@@ -11,7 +11,7 @@ int main()
 	
 	cin >> val1 >> val2 >> val3;
 	
-	char separator = ',';
+	string separator = ", ";
 	
 	if (val1 <= val2) {
 		if (val1 <= val3) {
