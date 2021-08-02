@@ -9,8 +9,6 @@ vector<short> get_primes(short last) {
 		return primes;
 	
 	vector<bool> markers(last);	
-	markers.push_back(false);  // primes[0] == false
-	markers.push_back(false);  // primes[1] == false
 		
 	for (short i = 2; i <= last; i++) 
 		if (false == markers[i]) 
