@@ -4,7 +4,6 @@
 using namespace std;
 
 constexpr int fatal_error = -1;
-const string no_score = "";
 
 void ensure_sizes(vector<int>& scores, vector<string>& names) {
 	if (scores.size() != names.size())
@@ -17,14 +16,6 @@ void print(vector<int>& scores, vector<string>& names) {
 		cout << names[i] << "   " << scores[i] << "\n";
 }
 
-bool exist(int n, vector<int>& vec) {
-	for (unsigned int i = 0; i < vec.size(); i++)
-		if (vec[i] == n)
-			return true;
-			
-	return false;
-}
-
 bool exist(string s, vector<string>& vec) {
 	for (unsigned int i = 0; i < vec.size(); i++)
 		if (vec[i] == s)
@@ -33,27 +24,31 @@ bool exist(string s, vector<string>& vec) {
 	return false;
 }
 
-string get_name_for_score(int score, vector<string>& names, vector<int>& scores) {
+vector<string> get_names_for_score(int score, vector<string>& names, vector<int>& scores) {
 	ensure_sizes(scores, names);
+	vector<string> result;
 	for (unsigned int i = 0; i < scores.size(); i++)
 		if (scores[i] == score)
-			return names[i];
+			result.push_back(names[i]);
 			
-	return no_score;
+	return result;
 }
 
 void print_name_for_score(vector<string>& names, vector<int>& scores) {
 	int score;
-	string name_for_score;
+	vector<string> names_for_score;
 	
 	cout << "\n Enter number to get number's name or Ctrl+D to quit: ";
 	while(cin >> score) {
-		name_for_score = get_name_for_score(score, names, scores);
-		if (name_for_score == no_score)
+		names_for_score = get_names_for_score(score, names, scores);
+		if (names_for_score.size() == 0)
 			cout << "No score for such number\n";
-		else
-			cout << "For score \"" << score << "\" name is " << name_for_score << "\n";
-		//print(scores, names);
+		else {
+			cout << "For score " << score << " names are: ";
+			for (unsigned int i = 0; i < names_for_score.size(); i++)
+				cout << names_for_score[i] << "\t";
+			cout << "\n";
+		}
 		cout << "\n Enter number to get number's name or Ctrl+D to quit: ";
 	}
 	
