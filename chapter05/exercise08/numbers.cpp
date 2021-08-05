@@ -55,10 +55,10 @@ void print_program_info() {
 	cout << "Number of these integers is specified by User \n";
 }
 
-int sum_first_elements(vector<int>& integers, int number) {
+void check_preconditions(vector<int>& integers, int number) {
 	if (number <= 0) 
 		throw runtime_error("Precondition: number of first integers to calculate sum must be > 0");
-		
+	
 	const unsigned int size = integers.size();
 	if (size == 0)
 		throw runtime_error("Precondition: number of all integers to calculate sum must be > 0");
@@ -66,12 +66,30 @@ int sum_first_elements(vector<int>& integers, int number) {
 	if (number > size) 
 		throw runtime_error(
 				"Precondition: Number of integers to calculate sum must be <= number of all integers \n");
+}
+
+int sum_first_elements(vector<int>& integers, int number) {
+	check_preconditions(integers, number);
 		
 	int sum = 0;
 	for (unsigned int i = 0; i < number; i++)
 		sum += integers[i];
 		
 	return sum;
+}
+
+void print_first_elements(vector<int>& integers, int number, int sum) {
+	check_preconditions(integers, number);
+		
+	cout << "Sum " << number << " of integers (" << integers[0];
+	
+	for (unsigned int i = 1; i < number - 1; i++)
+		cout << ", " << integers[i];
+		
+	if (number > 1)
+		cout << " and " << integers[number - 1];
+		
+	cout << ") is " << sum << endl;
 }
 
 int main() { 
@@ -94,5 +112,5 @@ int main() {
 	get_integers(integers);
 	int sum = sum_first_elements(integers, integers_to_sum);
 	
-	cout << "Sum of " << integers_to_sum << " first integers is " << sum << endl;
+	print_first_elements(integers, integers_to_sum, sum);
 }
