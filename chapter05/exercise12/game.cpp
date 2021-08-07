@@ -60,6 +60,7 @@ unsigned int calculate_cows(vector<char>& user_chars) {
 					if (single_char_cows_counter == 0) {
 						cow_chars.push_back(user_chars[i]);
 						result++;
+						break;
 					}
 					else
 						single_char_cows_counter--;
@@ -106,7 +107,7 @@ char game() {
 		unsigned int bulls = calculate_bulls(user_chars);
 		unsigned int cows  = calculate_cows(user_chars);
 		
-		cout << "Result: " << bulls << " bulls " << cows << " cows " << endl;
+		cout << "Result: " << bulls << " bulls and " << cows << " cows " << endl;
 		if (size == bulls)
 			return end_of_game;
 		else
