@@ -118,23 +118,22 @@ bool is_digit(char c) {
 		return false;
 }
 
-bool get_chars(vector<char>& input_chars) {
+class End_Of_Data {};
+
+void get_chars(vector<char>& input_chars) {
 	input_chars.clear();
 	cout << "Enter " << size << " digits to guess digits sequence: ";
 	char c;
-	bool is_end_of_data = false;
-	for (unsigned int i = 0; i < size && !is_end_of_data; i++) {
+	for (unsigned int i = 0; i < size; i++) {
 		cin >> c;
 		
 		if (!cin)
-			is_end_of_data = true;
+			throw End_Of_Data();
 		else if (false == is_digit(c))
 			throw runtime_error("Entered value must be digit from 0 to 9");
 		else
 			input_chars.push_back(c);
 	}
-	
-	return is_end_of_data;
 }
 
 constexpr char end_of_game = 'e';
@@ -159,7 +158,7 @@ int calculate_seed() {
 		result += int(character);
 		
 	if (!cin)
-		throw runtime_error("");
+		throw End_Of_Data();
 		
 	return result;
 }
@@ -169,36 +168,17 @@ void game(unsigned int seed) {
 	
 	char game_status = continue_game;
 	vector<char> user_chars; 
-	bool is_end_of_data;
+
 	do {
 		try {
-			is_end_of_data = get_chars(user_chars);
-			if (is_end_of_data)
-				game_status = end_of_game;
-			else 
-				game_status = game(user_chars);
+			get_chars(user_chars);
+			game_status = game(user_chars);
 		}
 		catch (runtime_error& e) {
 			cout << e.what() << endl;
 		}
 		
 	} while(game_status == continue_game);
-}
-
-
-
-bool game_preparation() {
-	constexpr bool EXIT = false;
-	constexpr bool NO_EXIT = true;
-	
-	try {
-		unsigned int seed = calculate_seed();
-		game(seed);
-		return NO_EXIT;
-	}
-	catch (runtime_error& e) {
-		return EXIT;
-	}
 }
 
 void print_menu(char start_game, char exit) {
@@ -212,17 +192,19 @@ void menu() {
 	constexpr char exit = 'B';
 	bool is_continue = true;
 	char option;
+	unsigned int seed;
 	
 	do {
 		print_menu(start_game, exit);
 		cin >> option;
 		
 		if (!cin)
-			is_continue = false;
+			throw End_Of_Data();
 		else {
 			switch(option) {
 				case start_game:
-					is_continue = game_preparation();
+					seed = calculate_seed();
+					game(seed);
 					break;
 				case exit:
 					is_continue = false;
@@ -237,7 +219,10 @@ void menu() {
 }
 
 int main() {
-	menu();
+	try {
+		menu();
+	} 
+	catch (End_Of_Data& e) { }
 }
 
 
