@@ -27,6 +27,8 @@ bool is_upper_letter(char c) {
 
 char get_upper_case(char c) {
 	if (false == is_lower_letter(c)) {
+		if (!cin)
+			exit(0);
 		cerr << "character = " << c << endl; 
 		throw runtime_error("character is not lower letter");
 	}
@@ -39,6 +41,8 @@ char get_upper_case(char c) {
 bool equals(const string& a, const string& b, unsigned int index) {
 	const unsigned int A_SIZE = a.size();
 	if (index >= A_SIZE) {
+		if (!cin)
+			exit(0);
 		cerr << "Index = " << index << " string.size = " << A_SIZE << endl; 
 		throw runtime_error("index >= string.size())");
 	}
@@ -144,8 +148,9 @@ bool sentence(bool first_word) {
 int main() {
 	bool is_sentence = false;
 	bool first_word = true;
-	cout << "\n Enter Ctrl+D to quit: ";
-	cout << "Enter words to check all words are parts of sentence: \n";
+	cout << "\n Enter Ctrl+D to quit \n ";
+	cout << "Sentence must be started with upper letter \n";
+	cout << "Enter words to check all words are sentence: \n";
 	do {
 		is_sentence = sentence(first_word);
 		if (!cin) 
@@ -154,7 +159,7 @@ int main() {
 		if (is_sentence)
 			cout << "OK \n";
 		else
-			cout << "Bad \n";
+			cout << "Wrong \n";
 	} while(true);
 	
 }
