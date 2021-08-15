@@ -51,7 +51,7 @@ unsigned long power(unsigned int base, unsigned short exponent) {
 	return result;
 } 
 
-unsigned long string_to_int(const string str) {
+unsigned long string_to_integer(const string str) {
 	if (false == is_digits_string(str))
 		throw runtime_error("Precondition: string must have only digits 0-9 ");
 	const unsigned int LENGTH = str.size();
@@ -146,7 +146,7 @@ void decomposition() {
 		cout << "\nTo quit press Ctrl+D\n";
 		try {
 			digits = get_digits_string();
-			unsigned long number = string_to_int(digits);
+			unsigned long number = string_to_integer(digits);
 			decomposition(number);
 		}
 		catch (runtime_error& e) {
