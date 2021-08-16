@@ -47,8 +47,9 @@ short get_number(const string& prompt) {
 	cout << prompt;
 	cin >> n;
 	if (!cin) {
-		cerr << "Max value for short type int is " << numeric_limits<short>::max() << endl;
-		cerr << "Min value for short type int is " << numeric_limits<short>::min() << endl;
+		cerr << "Accepted values are only integers \n";
+		cerr << "Max value for short type integer is " << numeric_limits<short>::max() << endl;
+		cerr << "Min value for short type integer is " << numeric_limits<short>::min() << endl;
 		throw End_Of_Data();
 	}
 	
@@ -56,7 +57,7 @@ short get_number(const string& prompt) {
 }
 
 void get_numbers(short& a, short& b) {
-	const string PROMPT = "Enter value of number ";
+	const string PROMPT = "Enter value of integer number ";
 	cout << "\nTo quit press Ctrl+D\n";
 	a = get_number(PROMPT + "a: ");
 	b = get_number(PROMPT + "b: ");

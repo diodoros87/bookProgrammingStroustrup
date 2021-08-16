@@ -15,7 +15,7 @@ inline void error(const string& errormessage)
 inline void error(const string& errormessage, char c)
 {
 	cerr << errormessage << c << endl;
-   throw runtime_error("");
+   throw runtime_error(errormessage);
 }
 
 
@@ -95,7 +95,7 @@ Token Token_stream::get()
 		  return Token('8', val);   // let '8' represent "a number"
 		}
 		default:
-			error("Bad token");
+			error("Bad token: ", ch);
 	}
 }
 
