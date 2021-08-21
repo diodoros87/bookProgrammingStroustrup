@@ -1,12 +1,3 @@
-
-/*
-	calculator08buggy.cpp
-
-	Helpful comments removed.
-
-	We have inserted 3 bugs that the compiler will catch and 3 that it won't.
-*/
-
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -71,6 +62,8 @@ constexpr char print = ';';
 constexpr char number = '8';
 constexpr char name = 'a';
 
+constexpr char NEW_LINE = '\n';
+
 const string quit_name = "quit";
 
 Token Token_stream::get_number() {	
@@ -110,7 +103,9 @@ Token Token_stream::check_other_tokens(char ch) {
 
 char Token_stream::get_char() {
 	char ch;
-	cin >> ch;
+	do {
+		cin.get(ch);
+	} while (cin && isspace(ch) && ch != NEW_LINE);
 	if(!cin)
 		exit(0);
 	return ch;
@@ -124,6 +119,7 @@ Token Token_stream::get()
 	}
 	char ch = get_char();
 	switch (ch) {
+		case NEW_LINE:
 		case '(': case ')': 
 		case '+': case '-': 
 		case '*': case '/': case '%':
@@ -153,7 +149,7 @@ void Token_stream::ignore(char c)
 	char ch;
 	do {
 		cin.get(ch);
-	} while (cin && ch != c && ch != '\n');
+	} while (cin && ch != c && ch != NEW_LINE);
 
 	return;
 }
@@ -211,13 +207,14 @@ double primary()
 	case '-':
 		return -primary();
 	case '+':
+	case NEW_LINE:
 		return primary();
 	case number:
 		return t.value;
 	case name:
 		return get_value(t.name);
 	default:
-		error("primary expected");
+		error("primary has not: ", t.kind);
 	}
 }
 
@@ -246,6 +243,8 @@ double term()
 				left = fmod(left, d);
 				break;
 			}
+		case NEW_LINE:
+			;
 		default:
 			ts.unget(t);
 			return left;
@@ -265,6 +264,8 @@ double expression()
 		case '-':
 			left -= term();
 			break;
+		case NEW_LINE:
+			;
 		default:
 			ts.unget(t);
 			return left;
@@ -300,31 +301,46 @@ double statement()
 	}
 }
 
-void clean_up_mess()
-{
+void clean_up_mess() {
 	ts.ignore(print);
+}
+
+bool is_running() {
+	Token t = ts.get();
+	while (t.kind == print || t.kind == NEW_LINE) 
+		t = ts.get();
+	ts.unget(t);
+	if (t.kind == quit) 
+		return false;
+	else
+		return true;
 }
 
 const string prompt = "> ";
 const string result = "= ";
 
-void calculate()
-{
-	while (true) 
-	try {
-		cout << prompt;
-		Token t = ts.get();
-		while (t.kind == print) 
-			t = ts.get();
-		if (t.kind == quit) 
-			return;
-		ts.unget(t);
-		cout << result << statement() << endl;
-	}
-	catch (runtime_error& e) {
-		cerr << e.what() << endl;
-		clean_up_mess();
-	}
+void calculate() {
+	double value = exp(1);   // Euler number	
+	cout << prompt;
+	do {
+		try {
+			if (false == is_running())
+				return;
+			value = statement();
+			Token t = ts.get();
+			if (t.kind == print) {
+				cout << result << value << endl;
+				cout << prompt;
+			}
+			else
+				ts.unget(t);
+		} 
+		catch (runtime_error& e) {
+			cerr << e.what() << endl;
+			clean_up_mess();
+			cout << prompt;
+		}
+	} while (true);
 }
 
 void enter_key(char key) {
