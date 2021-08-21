@@ -214,7 +214,7 @@ double primary()
 	case name:
 		return get_value(t.name);
 	default:
-		error("primary has not: ", t.kind);
+		error("unrecognized primary: ", t.kind);
 	}
 }
 
@@ -244,7 +244,7 @@ double term()
 				break;
 			}
 		case NEW_LINE:
-			;
+			break;
 		default:
 			ts.unget(t);
 			return left;
@@ -265,7 +265,7 @@ double expression()
 			left -= term();
 			break;
 		case NEW_LINE:
-			;
+			break;
 		default:
 			ts.unget(t);
 			return left;
