@@ -15,8 +15,7 @@ using namespace std;
 
 inline void error(const string& errormessage)
 {
-	cerr << errormessage << endl;
-   throw runtime_error("");
+   throw runtime_error("error: " + errormessage);
 }
 
 inline void error(const string& s, const string& s2)
@@ -26,7 +25,7 @@ inline void error(const string& s, const string& s2)
 
 inline void error(const string& s, const char c)
 {
-	cerr << s << c << endl;
+	cerr << "error: " << s << "\'" << c << "\'" << endl;
    throw runtime_error("");
 }
 
@@ -44,6 +43,11 @@ class Token_stream {
 private:
 	bool full;
 	Token buffer;
+	
+	char  get_char();
+	Token get_number();
+	Token check_dot();
+	Token check_other_tokens(char c);
 public:
 	Token_stream() :full(false), buffer(0) { }
 	
@@ -61,13 +65,56 @@ void Token_stream::unget(Token t)
 	full = true;      // buffer is now full
 }
 
-constexpr char let = 'L';
-constexpr char quit = 'Q';
+constexpr char declaration_key = '#';
+constexpr char quit = 'q';
 constexpr char print = ';';
 constexpr char number = '8';
 constexpr char name = 'a';
 
-const string declkey = "let";
+const string quit_name = "quit";
+
+Token Token_stream::get_number() {	
+	double val;
+	cin >> val;
+	if (cin)
+		return Token(number, val);
+	else
+		throw runtime_error("Attempt to reading number has failed");
+}
+
+Token Token_stream::check_dot() {	
+	cin.unget();
+	try {
+		return get_number();
+	}
+	catch (runtime_error& e) {
+		cerr << "exception: " << e.what() << endl;
+		error("Number started with dot must have digit as next char");
+	}
+}
+
+Token Token_stream::check_other_tokens(char ch) {
+	if (isalpha(ch)) {
+		string s;
+		s += ch;
+		while (cin.get(ch) && (isalpha(ch) || isdigit(ch)))
+			s += ch;
+		cin.unget();
+		if (s == quit_name) 
+			return Token(quit);
+		else
+			return Token(name, s);
+	}
+	error("Bad token: ", ch);
+}
+
+char Token_stream::get_char() {
+	char ch;
+	cin >> ch;
+	if(!cin)
+		exit(0);
+	return ch;
+}
 
 Token Token_stream::get()
 {
@@ -75,42 +122,23 @@ Token Token_stream::get()
 		full = false; 
 		return buffer; 
 	}
-	char ch;
-	cin >> ch;
-	if(!cin)
-		exit(0);
+	char ch = get_char();
 	switch (ch) {
 		case '(': case ')': 
 		case '+': case '-': 
 		case '*': case '/': case '%':
 		case '=':
 		case print:
-		case quit:
+		case declaration_key:
 			return Token(ch);
 		case '.':
+			return check_dot();
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
-			{	
-				cin.unget();
-				double val;
-				cin >> val;
-				if(!cin) 
-					error("Number started with dot must have digit as next char");
-				return Token(number, val);
-			}
+			cin.unget();
+			return get_number();
 		default:
-			if (isalpha(ch)) {
-				string s;
-				s += ch;
-				while (cin.get(ch) && (isalpha(ch) || isdigit(ch)))
-					s += ch;
-				cin.unget();
-				if (s == declkey) 
-					return Token(let);
-				else
-					return Token(name, s);
-			}
-			error("Bad token", ch);
+			return check_other_tokens(ch);
 	}
 }
 
@@ -124,8 +152,9 @@ void Token_stream::ignore(char c)
 
 	char ch;
 	do {
-		cin >> ch;
-	} while (cin && ch != c);
+		cin.get(ch);
+	} while (cin && ch != c && ch != '\n');
+
 	return;
 }
 
@@ -263,7 +292,7 @@ double statement()
 {
 	Token t = ts.get();
 	switch (t.kind) {
-	case let:
+	case declaration_key:
 		return declaration();
 	default:
 		ts.unget(t);
@@ -281,7 +310,7 @@ const string result = "= ";
 
 void calculate()
 {
-	while (cin) 
+	while (true) 
 	try {
 		cout << prompt;
 		Token t = ts.get();
@@ -307,6 +336,7 @@ void enter_key(char key) {
 
 int main()
 try {
+	names.push_back(Variable("k", 1000));
 	calculate();
 	return 0;
 }
