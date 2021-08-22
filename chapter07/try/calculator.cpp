@@ -1,23 +1,32 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <limits>
 
 using namespace std;
 
-inline void error(const string& errormessage)
-{
+inline void error(const string& errormessage) {
    throw runtime_error("error: " + errormessage);
 }
 
-inline void error(const string& s, const string& s2)
-{
+inline void error(const string& s, const string& s2) {
 	error(s + s2);
 }
 
-inline void error(const string& s, const char c)
-{
-	cerr << "error: " << s << "\'" << c << "\'" << endl;
+inline void error(const string& s, const char c) {
+	cerr << "error: " << s << "'" << c << "'" << endl;
    throw runtime_error("");
+}
+
+string get_alphanum_string(char first) {
+	string s = "";
+	if (isalpha(first)) {   // string with only letter at start
+		s += first;
+		while (cin.get(first) && (isalpha(first) || isdigit(first)))
+			s += first;
+		cin.unget();
+	}
+	return s;
 }
 
 struct Token {
@@ -38,7 +47,7 @@ private:
 	char  get_char();
 	Token get_number();
 	Token get_number_with_dot();
-	Token check_other_tokens(char c);
+	Token get_other_tokens(char c);
 public:
 	Token_stream() :full(false), buffer(0) { }
 	
@@ -61,10 +70,13 @@ constexpr char quit = 'q';
 constexpr char print = ';';
 constexpr char number = '8';
 constexpr char name = 'a';
+constexpr char SQRT = 'S';
+constexpr char POWER = '^';
 
 constexpr char NEW_LINE = '\n';
 
 const string quit_name = "quit";
+const string SQRT_NAME = "sqrt";
 
 Token Token_stream::get_number() {	
 	double val;
@@ -84,19 +96,16 @@ Token Token_stream::get_number_with_dot() {
 	return get_number();
 }
 
-Token Token_stream::check_other_tokens(char ch) {
-	if (isalpha(ch)) {
-		string s;
-		s += ch;
-		while (cin.get(ch) && (isalpha(ch) || isdigit(ch)))
-			s += ch;
-		cin.unget();
-		if (s == quit_name) 
-			return Token(quit);
-		else
-			return Token(name, s);
-	}
-	error("Bad token: ", ch);
+Token Token_stream::get_other_tokens(char first) {
+	string s = get_alphanum_string(first);
+	if (s == quit_name) 
+		return Token(quit);
+	else if (s == SQRT_NAME) 
+		return Token(SQRT);
+	else if (s.size() > 0)
+		return Token(name, s);
+
+	error("Bad token: ", first);
 }
 
 char Token_stream::get_char() {
@@ -111,8 +120,7 @@ char Token_stream::get_char() {
 	return ch;
 }
 
-Token Token_stream::get()
-{
+Token Token_stream::get() {
 	if (full) { 
 		full = false; 
 		return buffer; 
@@ -124,8 +132,10 @@ Token Token_stream::get()
 		case '+': case '-': 
 		case '*': case '/': case '%':
 		case '=':
+		case '!':
 		case print:
 		case declaration_key:
+		case POWER:
 			return Token(ch);
 		case '.':
 			return get_number_with_dot();
@@ -134,12 +144,11 @@ Token Token_stream::get()
 			cin.unget();
 			return get_number();
 		default:
-			return check_other_tokens(ch);
+			return get_other_tokens(ch);
 	}
 }
 
-void Token_stream::ignore(char c)
-{
+void Token_stream::ignore(char c) {
 	if (full && c == buffer.kind) {
 		full = false;
 		return;
@@ -190,10 +199,78 @@ bool is_declared(string s)
 
 Token_stream ts;
 
+unsigned long factorial(short number) {
+	if (0 > number)
+		throw runtime_error("Precondition: can not calculate factorial for number < 0");
+	
+	constexpr unsigned long U_LONG_MAX = numeric_limits<unsigned long>::max();
+	unsigned long result = 1;
+	for (short counter = 2; counter <= number; counter++) {
+		if (result > U_LONG_MAX / counter) {
+			cerr << "Calculating factorial of " << number << " = " << number << "! :\n";
+			cerr << "While calculating factorial of " << counter << " = " << counter << "! :\n";
+			cerr << 	" result = " << result << " U_LONG_MAX = " << U_LONG_MAX << " \n";
+			cerr << "result > U_LONG_MAX / counter that is " << result << " > " << U_LONG_MAX / counter << "\n";
+			cerr << "result * counter = " << result * counter << "\n";
+			throw overflow_error("unsigned long overflow error");
+		}
+		result = result * counter;
+	}
+	
+	if (0 >= result)
+		throw runtime_error("Final condition: result of factorial can not be number <= 0");
+		
+	return result;
+}
+
+double primary();
+
+double square_root() {
+	Token t = ts.get();
+	if ('(' != t.kind) 
+		error("after sqrt calculation '(' expected");
+	ts.unget(t);
+	double x = primary();
+	if (x < 0)
+		error("can not sqrt calculation for number < 0");
+	return sqrt(x);
+}
+
+bool is_integer(double number) {
+	int integer = number;
+	if (integer == number)
+		return true;
+	else
+		return false;
+}
+
+double power(double base, int exponent) {
+	if (0 == base) {
+		if (0 != exponent)
+			return 0;
+		error("0 to power of 0 is indeterminate form");
+	}
+	double result = 1;
+	unsigned int last = exponent > 0 ? exponent : -exponent;
+	unsigned int counter = 1;
+	while(counter++ <= last)
+		result *= base;
+	if (exponent < 0)
+		result = 1 / result;
+	return result;
+}
+
+double power(double base) {
+	double exponent = primary();
+	if (false == is_integer(exponent))
+		error("calculate of power only for integer exponent");
+	double result = power(base, exponent);
+	return result;
+}
+
 double expression();
 
-double primary()
-{
+double primary() {
 	Token t = ts.get();
 	switch (t.kind) {
 	case '(':
@@ -218,19 +295,38 @@ double primary()
 	}
 }
 
-double term()
-{
-	double left = primary();
+double factor() {
+	double result;
+	Token t = ts.get();
+	if (SQRT == t.kind)
+		result = square_root();
+	else {
+		ts.unget(t); 
+		result = primary();
+	}
+		
+	t = ts.get();
+	if (POWER == t.kind)
+		result = power(result);
+	else if (t.kind == '!')
+		result = factorial(result);
+	else
+		ts.unget(t); 
+	return result;
+}
+
+double term() {
+	double left = factor();
 	while (true) {
 		Token t = ts.get();
 		switch (t.kind) {
 		case '*':
-			left *= primary();
+			left *= factor();
 			break;
 		case '/':
 		case '%':
 			{	
-				double d = primary();
+				double d = factor();
 				if (d == 0) 
 					error("divide by zero");
 				if (t.kind == '/')
@@ -246,8 +342,7 @@ double term()
 	}
 }
 
-double expression()
-{
+double expression() {
 	double left = term();
 	while (true) {
 		Token t = ts.get();
@@ -265,8 +360,7 @@ double expression()
 	}
 }
 
-double declaration()
-{
+double declaration() {
 	Token t = ts.get();
 	if (t.kind != name) 
 		error("name expected in declaration");
@@ -281,8 +375,7 @@ double declaration()
 	return d;
 }
 
-double statement()
-{
+double statement() {
 	Token t = ts.get();
 	switch (t.kind) {
 	case declaration_key:
