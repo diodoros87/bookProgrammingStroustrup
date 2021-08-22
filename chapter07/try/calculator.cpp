@@ -52,12 +52,12 @@ public:
 	Token_stream() :full(false), buffer(0) { }
 	
 	Token get();
-	void unget(Token t);
-	void ignore(char);
+	void unget(Token& t);
+	void ignore(char, char);
 };
 
 // The unget() member function puts its argument back into the Token_stream's buffer:
-void Token_stream::unget(Token t)
+void Token_stream::unget(Token& t)
 {
 	if (full) 
 		error("unget() into a full buffer");
@@ -148,8 +148,8 @@ Token Token_stream::get() {
 	}
 }
 
-void Token_stream::ignore(char c) {
-	if (full && c == buffer.kind) {
+void Token_stream::ignore(char c1, char c2) {
+	if (full && (c1 == buffer.kind || c2 == buffer.kind)) {
 		full = false;
 		return;
 	}
@@ -158,7 +158,7 @@ void Token_stream::ignore(char c) {
 	char ch;
 	do {
 		cin.get(ch);
-	} while (cin && ch != c && ch != NEW_LINE);
+	} while (cin && ch != c1 && ch != c2);
 
 	return;
 }
@@ -387,7 +387,7 @@ double statement() {
 }
 
 void clean_up_mess() {
-	ts.ignore(print);
+	ts.ignore(print, NEW_LINE);
 }
 
 bool is_running() {
