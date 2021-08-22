@@ -37,7 +37,7 @@ private:
 	
 	char  get_char();
 	Token get_number();
-	Token check_dot();
+	Token get_number_with_dot();
 	Token check_other_tokens(char c);
 public:
 	Token_stream() :full(false), buffer(0) { }
@@ -72,18 +72,16 @@ Token Token_stream::get_number() {
 	if (cin)
 		return Token(number, val);
 	else
-		throw runtime_error("Attempt to reading number has failed");
+		error("Attempt to reading number has failed");
 }
 
-Token Token_stream::check_dot() {	
+Token Token_stream::get_number_with_dot() {	
+	char ch = get_char();
 	cin.unget();
-	try {
-		return get_number();
-	}
-	catch (runtime_error& e) {
-		cerr << "exception: " << e.what() << endl;
-		error("Number started with dot must have digit as next char");
-	}
+	if (false == isdigit(ch)) 
+		error("Number started with dot must have digit as next char.");
+	cin.putback('.');
+	return get_number();
 }
 
 Token Token_stream::check_other_tokens(char ch) {
@@ -106,8 +104,10 @@ char Token_stream::get_char() {
 	do {
 		cin.get(ch);
 	} while (cin && isspace(ch) && ch != NEW_LINE);
-	if(!cin)
+	if(!cin) {
+		cout << "Exit \n";
 		exit(0);
+	}
 	return ch;
 }
 
@@ -128,7 +128,7 @@ Token Token_stream::get()
 		case declaration_key:
 			return Token(ch);
 		case '.':
-			return check_dot();
+			return get_number_with_dot();
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
 			cin.unget();
@@ -201,13 +201,13 @@ double primary()
 			double d = expression();
 			t = ts.get();
 			if (t.kind != ')') 
-				error("'(' expected");
+				error("')' expected");
 			return d;
 		}
 	case '-':
 		return -primary();
 	case '+':
-	case NEW_LINE:
+	case NEW_LINE:   // to allow many lines calculations without ignoring new line tokens in cin and Token_stream
 		return primary();
 	case number:
 		return t.value;
@@ -228,23 +228,17 @@ double term()
 			left *= primary();
 			break;
 		case '/':
-			{	
-				double d = primary();
-				if (d == 0) 
-					error("divide by zero");
-				left /= d;
-				break;
-			}
 		case '%':
 			{	
 				double d = primary();
 				if (d == 0) 
 					error("divide by zero");
-				left = fmod(left, d);
+				if (t.kind == '/')
+					left /= d;
+				else
+					left = fmod(left, d);
 				break;
 			}
-		case NEW_LINE:
-			break;
 		default:
 			ts.unget(t);
 			return left;
@@ -263,8 +257,6 @@ double expression()
 			break;
 		case '-':
 			left -= term();
-			break;
-		case NEW_LINE:
 			break;
 		default:
 			ts.unget(t);
@@ -309,36 +301,29 @@ bool is_running() {
 	Token t = ts.get();
 	while (t.kind == print || t.kind == NEW_LINE) 
 		t = ts.get();
-	ts.unget(t);
 	if (t.kind == quit) 
 		return false;
-	else
-		return true;
+	else 
+		ts.unget(t);
+	return true;
 }
 
-const string prompt = "> ";
-const string result = "= ";
-
 void calculate() {
+	const string prompt = "> ";
+	const string result = "= ";
 	double value = exp(1);   // Euler number	
-	cout << prompt;
 	do {
 		try {
+			cout << prompt;
 			if (false == is_running())
 				return;
-			value = statement();
-			Token t = ts.get();
-			if (t.kind == print) {
-				cout << result << value << endl;
-				cout << prompt;
-			}
-			else
-				ts.unget(t);
+			value = statement();             // separation in call of statement() and
+			cout << result << value << endl; // call of cout to do not allow display string of result 
+			                                 // before end of writing many lines calculations
 		} 
 		catch (runtime_error& e) {
 			cerr << e.what() << endl;
 			clean_up_mess();
-			cout << prompt;
 		}
 	} while (true);
 }
