@@ -281,7 +281,7 @@ double power(double base) {
 	if ('(' != t.kind) 
 		error_and_unget("in power calculation exponent must be in brackets", t);
 	ts.unget(t);
-	double exponent = primary();
+	double exponent = primary();  // brackets are in primary()
 	if (false == is_integer(exponent))
 		error("calculate of power only for integer exponent");
 	double result = power(base, exponent);
@@ -291,7 +291,6 @@ double power(double base) {
 bool curly_braces = false;
 bool square_braces = false;
 bool operation = false;
-bool minus_number = false;
 
 double expression();
 /*
@@ -351,7 +350,9 @@ double primary() {
 	return result;
 }
 
-double before_primary(Token& t) {
+double factor();
+
+double before_primary(Token& t, bool& minus_number) {
 	switch (t.kind) {
 		case SQRT:
 			return square_root();
@@ -360,7 +361,7 @@ double before_primary(Token& t) {
 				error("Next token after operator can not be + or -");
 			minus_number = true;    // -4! == -24    (-4)! error
 			operation = true;
-			return primary();
+			return factor();
 		default:
 			ts.unget(t);
 			return primary();
@@ -388,14 +389,13 @@ double after_primary(double x, Token& t) {
 }
 
 double factor() {
+	bool minus_number = false;
 	Token t = ts.get_token_after_SPACE();
-	double result = before_primary(t);
+	double result = before_primary(t, minus_number);
 	t = ts.get_token_after_SPACE();
 	result = after_primary(result, t);
-	if (minus_number) {
+	if (minus_number)
 		result = -result;
-		minus_number = false;
-	}
 	return result;
 }
 
