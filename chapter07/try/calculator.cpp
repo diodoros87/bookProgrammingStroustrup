@@ -199,6 +199,11 @@ bool is_declared(string s)
 
 Token_stream ts;
 
+inline void error_and_unget(const string& errormessage, Token& t) {
+	ts.unget(t);
+   throw runtime_error("error: " + errormessage);
+}
+
 unsigned long factorial(short number) {
 	if (0 > number)
 		throw runtime_error("Precondition: can not calculate factorial for number < 0");
@@ -268,38 +273,78 @@ double power(double base) {
 	return result;
 }
 
+bool curly_braces = false;
+bool square_braces = false;
+bool operation = false;
+
 double expression();
 
+double brackets_pair(char bracket_kind) {
+	char last_bracket = 0;
+	bool curly_braces = false;
+	if (bracket_kind == '{') {
+		last_bracket = '}';
+		curly_braces = true;
+	}
+	else if (bracket_kind == '(')
+		last_bracket = ')';
+	else
+		error("Unrecognized opening bracket ", bracket_kind);
+		
+	double d = expression();
+   Token t = ts.get();
+   if (t.kind != last_bracket)
+		error("closed bracket expected: ", last_bracket);
+		 
+   return d;
+}
+
 double primary() {
+	double result;
 	Token t = ts.get();
 	switch (t.kind) {
 	case '(':
-		{	
-			double d = expression();
-			t = ts.get();
-			if (t.kind != ')') 
-				error("')' expected");
-			return d;
-		}
-	case '-':
-		return -primary();
+		result = expression();
+		t = ts.get();
+		if (t.kind != ')') 
+			error_and_unget("')' expected", t);
+		break;
 	case '+':
+	case '-':
+		if (true == operation)
+			error("Next token after operator can not be + or -");
+		operation = true;
+		result = '+' == t.kind ? primary() : -primary();
+		break;
 	case NEW_LINE:   // to allow many lines calculations without ignoring new line tokens in cin and Token_stream
-		return primary();
+		result = primary();
+		break;
 	case number:
-		return t.value;
+		result = t.value;
+		break;
 	case name:
-		return get_value(t.name);
+		result = get_value(t.name);
+		break;
 	default:
 		error("unrecognized primary: ", t.kind);
 	}
+	
+	return result;
 }
 
 double factor() {
 	double result;
+	bool minus = false;
 	Token t = ts.get();
 	if (SQRT == t.kind)
 		result = square_root();
+	else if ('-' == t.kind) { // to allow minus '-' as first char in expression with factorial
+		if (operation)
+			error("Next token after operator can not be + or -");
+		minus = true;	    // -4! == -24    (-4)! error
+		operation = true;
+		result = primary();
+	}
 	else {
 		ts.unget(t); 
 		result = primary();
@@ -308,8 +353,11 @@ double factor() {
 	t = ts.get();
 	if (POWER == t.kind)
 		result = power(result);
-	else if (t.kind == '!')
-		result = factorial(result);
+	else if (t.kind == '!') {
+		result = factorial(result);  // -4! == -24    (-4)! error
+		if (minus == true)
+			result = -result;
+	}
 	else
 		ts.unget(t); 
 	return result;
@@ -317,6 +365,7 @@ double factor() {
 
 double term() {
 	double left = factor();
+	operation = true;
 	while (true) {
 		Token t = ts.get();
 		switch (t.kind) {
@@ -343,7 +392,9 @@ double term() {
 }
 
 double expression() {
+	operation = false;
 	double left = term();
+	operation = true;
 	while (true) {
 		Token t = ts.get();
 		switch (t.kind) {
