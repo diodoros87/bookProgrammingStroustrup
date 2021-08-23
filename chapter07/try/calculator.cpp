@@ -213,9 +213,9 @@ inline void error_and_unget(const string& errormessage, Token& t) {
    throw runtime_error("error: " + errormessage);
 }
 
-bool is_integer(double number) {
-	int integer = number;
-	if (integer == number)
+bool is_integer(double x) {
+	int integer = x;
+	if (integer == x)
 		return true;
 	else
 		return false;
@@ -314,15 +314,39 @@ double brackets_pair(char bracket_kind) {
    return d;
 }
 */
+
+void is_next_token_correct(Token& t) {
+	Token next_token = ts.get();
+	switch (t.kind) {
+		case '!':
+			if ('(' == next_token.kind || number == next_token.kind)
+				error("Next token after factorial token can not be bracket or number");
+			break;
+		case number:
+			if ('(' == next_token.kind)
+				error("Next token after number can not be bracket");
+			break;
+		case ')':
+			if (number == next_token.kind)
+				error("Next token after brackets can not be number");
+			break;
+		default:
+			error("Next token should not be check for ", t.kind);
+			
+	}
+	ts.unget(next_token);
+}
+
 double primary() {
 	double result;
 	Token t = ts.get_token_after_SPACE();
 	switch (t.kind) {
 	case '(':
 		result = expression();
-		t = ts.get();
+		t = ts.get_token_after_SPACE();
 		if (t.kind != ')')
 			error_and_unget("')' expected", t);
+		is_next_token_correct(t);
 		operation = false;
 		break;
 	case '+':
@@ -338,6 +362,7 @@ double primary() {
 	case number:
 		result = t.value;
 		operation = false;
+		is_next_token_correct(t);
 		break;
 	case name:
 		result = get_value(t.name);
@@ -380,6 +405,7 @@ double after_primary(double x, Token& t) {
 			if (operation)
 				error("Next token after operator can not be '!'");
 			result = factorial(x);  // -4! == -24    (-4)! error
+			is_next_token_correct(t);
 			break;
 		default:
 			ts.unget(t);
