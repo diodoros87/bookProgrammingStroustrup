@@ -54,6 +54,7 @@ public:
 	Token get();
 	void unget(Token& t);
 	void ignore(char, char);
+	Token get_token_after_SPACE();
 };
 
 // The unget() member function puts its argument back into the Token_stream's buffer:
@@ -72,7 +73,7 @@ constexpr char number = '8';
 constexpr char name = 'a';
 constexpr char SQRT = 'S';
 constexpr char POWER = '^';
-
+constexpr char SPACE = 's';
 constexpr char NEW_LINE = '\n';
 
 const string quit_name = "quit";
@@ -97,6 +98,9 @@ Token Token_stream::get_number_with_dot() {
 }
 
 Token Token_stream::get_other_tokens(char first) {
+	if (isspace(first)) 
+		return Token(SPACE);
+		
 	string s = get_alphanum_string(first);
 	if (s == quit_name) 
 		return Token(quit);
@@ -108,11 +112,16 @@ Token Token_stream::get_other_tokens(char first) {
 	error("Bad token: ", first);
 }
 
+Token Token_stream::get_token_after_SPACE() {
+	Token t = get();
+	while (t.kind == SPACE)
+		t = get();
+	return t;
+}
+
 char Token_stream::get_char() {
 	char ch;
-	do {
-		cin.get(ch);
-	} while (cin && isspace(ch) && ch != NEW_LINE);
+	cin.get(ch);
 	if(!cin) {
 		cout << "Exit \n";
 		exit(0);
@@ -233,11 +242,10 @@ double primary();
 double square_root() {
 	Token t = ts.get();
 	if ('(' != t.kind) 
-		error("after sqrt calculation '(' expected");
-	ts.unget(t);
+		error_and_unget("number of square root must be in brackets", t);
 	double x = primary();
 	if (x < 0)
-		error("can not sqrt calculation for number < 0");
+		error("Real solution for square root for number < 0 does not exist");
 	return sqrt(x);
 }
 
@@ -266,6 +274,9 @@ double power(double base, int exponent) {
 }
 
 double power(double base) {
+	Token t = ts.get();
+	if ('(' != t.kind) 
+		error_and_unget("in power calculation exponent must be in brackets", t);
 	double exponent = primary();
 	if (false == is_integer(exponent))
 		error("calculate of power only for integer exponent");
@@ -276,9 +287,10 @@ double power(double base) {
 bool curly_braces = false;
 bool square_braces = false;
 bool operation = false;
+bool minus_number = false;
 
 double expression();
-
+/*
 double brackets_pair(char bracket_kind) {
 	char last_bracket = 0;
 	bool curly_braces = false;
@@ -298,15 +310,15 @@ double brackets_pair(char bracket_kind) {
 		 
    return d;
 }
-
+*/
 double primary() {
 	double result;
-	Token t = ts.get();
+	Token t = ts.get_token_after_SPACE();
 	switch (t.kind) {
 	case '(':
 		result = expression();
 		t = ts.get();
-		if (t.kind != ')') 
+		if (t.kind != ')')
 			error_and_unget("')' expected", t);
 		break;
 	case '+':
@@ -332,34 +344,51 @@ double primary() {
 	return result;
 }
 
-double factor() {
+double before_primary(Token& t) {
+	switch (t.kind) {
+		case SQRT:
+			return square_root();
+		case '-':    // to allow minus '-' as first char in expression with factorial
+			if (operation)
+				error("Next token after operator can not be + or -");
+			minus_number = true;    // -4! == -24    (-4)! error
+			operation = true;
+			return primary();
+		default:
+			ts.unget(t);
+			return primary();
+	}
+}
+
+double after_primary(double x, Token& t) {
 	double result;
-	bool minus = false;
-	Token t = ts.get();
-	if (SQRT == t.kind)
-		result = square_root();
-	else if ('-' == t.kind) { // to allow minus '-' as first char in expression with factorial
-		if (operation)
-			error("Next token after operator can not be + or -");
-		minus = true;	    // -4! == -24    (-4)! error
-		operation = true;
-		result = primary();
+	switch (t.kind) {
+		case POWER:
+			if (operation)
+				error("Next token after operator can not be ", POWER);
+			result = power(x);
+			break;
+		case '!':    // to allow minus '-' as first char in expression with factorial
+			if (operation)
+				error("Next token after operator can not be '!'");
+			result = factorial(x);  // -4! == -24    (-4)! error
+			if (minus_number) {
+				result = -result;
+				minus_number = false;
+			}
+			break;
+		default:
+			ts.unget(t);
+			result = x;
 	}
-	else {
-		ts.unget(t); 
-		result = primary();
-	}
-		
-	t = ts.get();
-	if (POWER == t.kind)
-		result = power(result);
-	else if (t.kind == '!') {
-		result = factorial(result);  // -4! == -24    (-4)! error
-		if (minus == true)
-			result = -result;
-	}
-	else
-		ts.unget(t); 
+	return result;
+}
+
+double factor() {
+	Token t = ts.get_token_after_SPACE();
+	double result = before_primary(t);
+	t = ts.get_token_after_SPACE();
+	result = after_primary(result, t);
 	return result;
 }
 
@@ -367,7 +396,7 @@ double term() {
 	double left = factor();
 	operation = true;
 	while (true) {
-		Token t = ts.get();
+		Token t = ts.get_token_after_SPACE();
 		switch (t.kind) {
 		case '*':
 			left *= factor();
@@ -396,7 +425,7 @@ double expression() {
 	double left = term();
 	operation = true;
 	while (true) {
-		Token t = ts.get();
+		Token t = ts.get_token_after_SPACE();
 		switch (t.kind) {
 		case '+':
 			left += term();
@@ -443,7 +472,7 @@ void clean_up_mess() {
 
 bool is_running() {
 	Token t = ts.get();
-	while (t.kind == print || t.kind == NEW_LINE) 
+	while (t.kind == print || t.kind == NEW_LINE || t.kind == SPACE)
 		t = ts.get();
 	if (t.kind == quit) 
 		return false;
@@ -475,7 +504,7 @@ void calculate() {
 void enter_key(char key) {
 	cout << "Enter \'" << key << "\' to continue ";
 	char c;
-	while (cin >> c && c != key)
+	while (cin.get(c) && c != key)
 		continue;
 }
 
