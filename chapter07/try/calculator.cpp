@@ -213,9 +213,19 @@ inline void error_and_unget(const string& errormessage, Token& t) {
    throw runtime_error("error: " + errormessage);
 }
 
-unsigned long factorial(short number) {
+bool is_integer(double number) {
+	int integer = number;
+	if (integer == number)
+		return true;
+	else
+		return false;
+}
+
+unsigned long factorial(double number) {
 	if (0 > number)
 		throw runtime_error("Precondition: can not calculate factorial for number < 0");
+	if (false == is_integer(number))
+		error("Precondition: calculate of factorial only for integer numbers");
 	
 	constexpr unsigned long U_LONG_MAX = numeric_limits<unsigned long>::max();
 	unsigned long result = 1;
@@ -240,21 +250,14 @@ unsigned long factorial(short number) {
 double primary();
 
 double square_root() {
-	Token t = ts.get();
+	Token t = ts.get_token_after_SPACE();
 	if ('(' != t.kind) 
 		error_and_unget("number of square root must be in brackets", t);
+	ts.unget(t);
 	double x = primary();
 	if (x < 0)
 		error("Real solution for square root for number < 0 does not exist");
 	return sqrt(x);
-}
-
-bool is_integer(double number) {
-	int integer = number;
-	if (integer == number)
-		return true;
-	else
-		return false;
 }
 
 double power(double base, int exponent) {
@@ -274,9 +277,10 @@ double power(double base, int exponent) {
 }
 
 double power(double base) {
-	Token t = ts.get();
+	Token t = ts.get_token_after_SPACE();
 	if ('(' != t.kind) 
 		error_and_unget("in power calculation exponent must be in brackets", t);
+	ts.unget(t);
 	double exponent = primary();
 	if (false == is_integer(exponent))
 		error("calculate of power only for integer exponent");
@@ -320,6 +324,7 @@ double primary() {
 		t = ts.get();
 		if (t.kind != ')')
 			error_and_unget("')' expected", t);
+		operation = false;
 		break;
 	case '+':
 	case '-':
@@ -333,9 +338,11 @@ double primary() {
 		break;
 	case number:
 		result = t.value;
+		operation = false;
 		break;
 	case name:
 		result = get_value(t.name);
+		operation = false;
 		break;
 	default:
 		error("unrecognized primary: ", t.kind);
@@ -372,10 +379,6 @@ double after_primary(double x, Token& t) {
 			if (operation)
 				error("Next token after operator can not be '!'");
 			result = factorial(x);  // -4! == -24    (-4)! error
-			if (minus_number) {
-				result = -result;
-				minus_number = false;
-			}
 			break;
 		default:
 			ts.unget(t);
@@ -389,6 +392,10 @@ double factor() {
 	double result = before_primary(t);
 	t = ts.get_token_after_SPACE();
 	result = after_primary(result, t);
+	if (minus_number) {
+		result = -result;
+		minus_number = false;
+	}
 	return result;
 }
 
