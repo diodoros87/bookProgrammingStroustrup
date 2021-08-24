@@ -84,7 +84,6 @@ struct Token {
 
 string get_reserved_name(Token& t) {
 	char kind = t.kind;
-	string name;
 	switch (kind) {
 		case quit:
 			return quit_name;
@@ -171,6 +170,8 @@ Token Token_stream::get() {
 	switch (ch) {
 		case NEW_LINE:
 		case '(': case ')': 
+		case '[': case ']': 
+		case '{': case '}': 
 		case '+': case '-': 
 		case '*': case '/': case '%':
 		case '=':   // printing character as '=' and separately treated '=' in case of change printing character 
@@ -287,7 +288,7 @@ double primary();
 double square_root() {
 	Token t = ts.get_token_after_SPACE();
 	ts.unget(t);
-	if ('(' != t.kind) 
+	if ('(' != t.kind && '[' != t.kind && '{' != t.kind) 
 		error("number of square root must be in brackets");
 	
 	double x = primary();
@@ -315,7 +316,7 @@ double power(double base, int exponent) {
 double power(double base) {
 	Token t = ts.get_token_after_SPACE();
 	ts.unget(t);
-	if ('(' != t.kind) 
+	if ('(' != t.kind && '[' != t.kind && '{' != t.kind)
 		error("in power calculation exponent must be in brackets");
 	double exponent = primary();  // brackets are in primary()
 	if (false == is_integer(exponent))
@@ -323,37 +324,6 @@ double power(double base) {
 	double result = power(base, exponent);
 	return result;
 }
-
-// global variables to check calculator input data correction (to validate)
-// in mathematical operations this global variables validate only sequence of input data
-//--------------------------------------------
-bool curly_braces = false;   // curly braces can not be inside square or round brackets
-bool square_braces = false;  // square braces can not be inside round brackets
-bool operation = false;      // can not accept sequence of +- +- ++ /- *+ *- and
-// other mixes of 2 or more subsequent operators not separated by brackets
-
-double expression();
-/*
-double brackets_pair(char bracket_kind) {
-	char last_bracket = 0;
-	bool curly_braces = false;
-	if (bracket_kind == '{') {
-		last_bracket = '}';
-		curly_braces = true;
-	}
-	else if (bracket_kind == '(')
-		last_bracket = ')';
-	else
-		error("Unrecognized opening bracket ", bracket_kind);
-		
-	double d = expression();
-   Token t = ts.get();
-   if (t.kind != last_bracket)
-		error("closed bracket expected: ", last_bracket);
-		 
-   return d;
-}
-*/
 
 // validate next token after token t to check calculator input data correction (to validate)
 // in mathematical operations this function validate only sequence of input data
@@ -373,24 +343,31 @@ void validate_next_token(Token& t) {
 	char next = next_token.kind;
 	switch (t.kind) {
 		case '!':
-			if ('(' == next || number == next || NAME == next || SQRT == next)
-				error("Next token after factorial token can not be bracket or number or sqrt");
+			if ('(' == next || '[' == next || '{' == next ||
+				number == next || NAME == next || SQRT == next)
+				error("Next token after factorial token can not be opening bracket or \
+number or variable or sqrt");
 			break;
 		case number:
-			if ('(' == next || NAME == next || SQRT == next)
-				error("Next token after number can not be bracket or name or sqrt");
+			if ('(' == next || '[' == next || '{' == next ||
+				NAME == next || SQRT == next)
+				error("Next token after number can not be opening bracket or variable or sqrt");
 			break;
 		case ')':
-			if (number == next || NAME == next || '(' == next || SQRT == next)
-				error("Next token after brackets can not be number or name or bracket or sqrt");
+		case ']':
+		case '}':
+			if ('(' == next || '[' == next || '{' == next ||
+				number == next || NAME == next || SQRT == next)
+				error("Next token after closed bracket can not be number or variable or \
+opening bracket or sqrt");
 			break;
 		case NAME:
-			if ('(' == next || SQRT == next)
-				error("Next token after name can not be bracket or sqrt");
+			if ('(' == next || '[' == next || '{' == next || SQRT == next)
+				error("Next token after variable can not be opening bracket or sqrt");
 			break;
 		case '=':
 			if (false == (next == SPACE || next == NEW_LINE || (next == print && next != '=')))
-				error("In calculation next token after = must be space, tab, new line, print but not '='");
+				error("In calculation next token after = must be space, tab, new line, print but not =");
 			break;
 		default:
 			error("Next token should not be check for ", t.kind);
@@ -399,6 +376,53 @@ void validate_next_token(Token& t) {
 	ts.unget(next_token);
 }
 
+// global variables to check calculator input data correction (to validate)
+// in mathematical operations this global variables validate only sequence of input data
+//--------------------------------------------
+bool round_braces = false;   // curly braces can not be inside square or round brackets
+bool square_braces = false;  // square braces can not be inside round brackets
+bool operation = false;      // can not accept sequence of +- +- ++ /- *+ *- and
+// other mixes of 2 or more subsequent operators not separated by brackets
+
+double expression();
+
+double brackets_expression(char bracket_kind) {
+	char last_bracket = 0;
+	switch(bracket_kind) {
+		case '(':
+			last_bracket = ')';
+			round_braces = true;
+			break;
+		case '[':
+			if (round_braces) 
+				error("Before close brace ), square brace [ is not accepted");
+			last_bracket = ']';
+			square_braces = true;
+			break;
+		case '{':
+			if (square_braces)
+				error("Before close brace ], curly brace { is not accepted");
+			if (round_braces)
+				error("Before close brace ), curly brace { is not accepted");
+			last_bracket = '}';
+			break;
+		default:
+			error("Unrecognized opening bracket ", bracket_kind);
+	}
+		
+	double result = expression();
+	Token t = ts.get_token_after_SPACE();
+	if (t.kind != last_bracket) {
+		ts.unget(t);
+		error("closed bracket expected: ", last_bracket);
+	}
+	validate_next_token(t); 
+	if (bracket_kind == '[')
+		square_braces = false;
+	else if (bracket_kind == '(')
+		round_braces = false;
+   return result;
+}
 
 // calculator functions to token process and calculations
 //-------------------------------------------- 
@@ -407,13 +431,9 @@ double primary() {
 	Token t = ts.get_token_after_SPACE();
 	switch (t.kind) {
 	case '(':
-		result = expression();
-		t = ts.get_token_after_SPACE();
-		if (t.kind != ')') {
-			ts.unget(t);
-			error("')' expected");
-		}
-		validate_next_token(t);
+	case '[':
+	case '{':
+		result = brackets_expression(t.kind);
 		operation = false;
 		break;
 	case '+':
@@ -595,6 +615,8 @@ double statement() {
 
 void clean_up_mess() {
 	ts.ignore(print, NEW_LINE);
+	round_braces = false;   // set flag to false after error to cleaning before next operations
+	square_braces = false;  // set flag to false after error to cleaning before next operations
 }
 
 bool is_running() {
@@ -635,9 +657,48 @@ void enter_key(char key) {
 		continue;
 }
 
+void print_variables() {
+	cout << "\n Already defined variables are listed below: \n";
+	for (Variable x : names)
+		cout << x.name << " = " << x.value << endl;
+	cout << " Already defined variables are listed above\n";
+}
+
+void print_info() {
+	cout << "Welcome in simple calculator.\n Use floating-point numbers." << endl;
+	cout << "In below informations 'x', 'y', 'z' are treated as number or variable \n";
+	cout << "Signed numbers or variables -x (-x) +x (+x) are allowed \
+but --x x++ -+x are unacceptable\n";
+	cout << "To their accept necessary is separation by brackets -(-x) +(-y) \
+but every sign must be separated by number or bracket \n";
+	cout << "Operators can not follow each other - between operators must be bracket or variable or number:\n";
+	cout << "+x*y-z*(-x/t) is OK, but x/-z is unacceptable \n";
+	cout << "Supported set of brackets: \n";
+	cout << "{} [] {[]} () [()] {()} {[()]} \n";
+	cout << "Each kind of brackets may be inside the same kind of bracket: (()) [[]] {{{}}} \n";
+	cout << "{} can not be be inside () and []  \n";
+	cout << "[] can not be be inside ()  \n";
+	cout << "Supported operations: \n";
+	cout << "1. addition x+y \n";
+	cout << "2. subtraction x-y \n";
+	cout << "3. multiplication x*y \n";
+	cout << "4. division x/y \n";
+	cout << "5. modulo division x%y \n";
+	cout << "6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n";
+	cout << "7. power(exponentiation)) x^y (x to power of y - y is exponent) \n";
+	cout << "number of exponent must be in any supported bracket kind \n";
+	cout << "8. factorial x! \n";
+	cout << "To print result press " << print << " or whitespace or new line " << endl;
+	cout << "To do operation in many lines enter operator directly before press new line for example 2+3+ENTER: \n";
+	cout << "In new line operation will be continue \n";
+	cout << "To quit enter "<< quit_name << endl;
+}
+
 int main()
 try {
+	print_info();
 	names.push_back(Variable("k", 1000));
+	print_variables();
 	calculate();
 	return 0;
 }
