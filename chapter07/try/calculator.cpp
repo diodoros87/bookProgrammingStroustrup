@@ -50,10 +50,14 @@ constexpr char quit = 'q';
 constexpr char print = '=';   
 constexpr char number = '8';
 constexpr char NAME = 'a';
+constexpr char HELP = 'h';
 constexpr char SQRT = 'S';
 constexpr char POWER = '^';
 constexpr char SPACE = 's';
 constexpr char NEW_LINE = '\n';
+
+constexpr char SQUARE_ROOT = 'r';
+constexpr char EXPONENTIATION = 'p';
 
 // Token program keywords
 //--------------------------------------------
@@ -148,6 +152,8 @@ Token Token_stream::get_other_tokens(char first) {
 		return Token(quit);
 	else if (s == SQRT_NAME) 
 		return Token(SQRT);
+	else if (s.size() == 1 && s[0] == toupper(HELP)) 
+		return Token(HELP);
 	else if (s.size() > 0)
 		return Token(NAME, s);
 
@@ -177,6 +183,7 @@ Token Token_stream::get() {
 		case '=':   // printing character as '=' and separately treated '=' in case of change printing character 
 		//case print:
 		case '!':
+		case HELP:
 		case declaration_key:
 		case POWER:
 			return Token(ch);
@@ -619,20 +626,55 @@ void clean_up_mess() {
 	square_braces = false;  // set flag to false after error to cleaning before next operations
 }
 
+void print_help() {
+	cout << "Welcome in simple calculator.\n Use floating-point numbers." << endl;
+	cout << "In below informations 'x', 'y', 'z' are treated as number or variable \n";
+	cout << "Signed numbers or variables -x (-x) +x (+x) are allowed \
+but --x x++ -+x are unacceptable\n";
+	cout << "To their accept necessary is separation by brackets -(-x) +(-y) \
+but every sign must be separated by number or bracket \n";
+	cout << "Operators can not follow each other - between operators must be bracket or variable or number:\n";
+	cout << "+x*y-z*(-x/t) is OK, but x/-z is unacceptable \n";
+	cout << "Supported set of brackets: \n";
+	cout << "{} [] {[]} () [()] {()} {[()]} \n";
+	cout << "Each kind of brackets may be inside the same kind of bracket: (()) [[]] {{{}}} \n";
+	cout << "{} can not be be inside () and []  \n";
+	cout << "[] can not be be inside ()  \n";
+	cout << "Supported operations: \n";
+	cout << "1. addition x+y \n";
+	cout << "2. subtraction x-y \n";
+	cout << "3. multiplication x*y \n";
+	cout << "4. division x/y \n";
+	cout << "5. modulo division x%y \n";
+	cout << "6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n";
+	cout << "7. power(exponentiation)) x^y (x to power of y - y is exponent) \n";
+	cout << "number of exponent must be in any supported bracket kind \n";
+	cout << "8. factorial x! \n";
+	cout << "To print result press " << print << " or whitespace or new line " << endl;
+	cout << "To do operation in many lines enter operator directly before press new line for example 2+3+ENTER: \n";
+	cout << "In new line operation will be continue \n";
+	cout << "To quit enter "<< quit_name << endl;
+}
+
+const string prompt = "> ";
+const string result = "= ";
+
 bool is_running() {
 	Token t = ts.get();
 	while (t.kind == NEW_LINE || t.kind == SPACE)  // || t.kind == print
 		t = ts.get();
 	if (t.kind == quit) 
 		return false;
+	if (t.kind == HELP) { 
+		print_help();
+		cout << prompt;
+	}
 	else 
 		ts.unget(t);
 	return true;
 }
 
 void calculate() {
-	const string prompt = "> ";
-	const string result = "= ";
 	double value = exp(1);   // Euler number	
 	do {
 		try {
@@ -664,39 +706,10 @@ void print_variables() {
 	cout << " Already defined variables are listed above\n";
 }
 
-void print_info() {
-	cout << "Welcome in simple calculator.\n Use floating-point numbers." << endl;
-	cout << "In below informations 'x', 'y', 'z' are treated as number or variable \n";
-	cout << "Signed numbers or variables -x (-x) +x (+x) are allowed \
-but --x x++ -+x are unacceptable\n";
-	cout << "To their accept necessary is separation by brackets -(-x) +(-y) \
-but every sign must be separated by number or bracket \n";
-	cout << "Operators can not follow each other - between operators must be bracket or variable or number:\n";
-	cout << "+x*y-z*(-x/t) is OK, but x/-z is unacceptable \n";
-	cout << "Supported set of brackets: \n";
-	cout << "{} [] {[]} () [()] {()} {[()]} \n";
-	cout << "Each kind of brackets may be inside the same kind of bracket: (()) [[]] {{{}}} \n";
-	cout << "{} can not be be inside () and []  \n";
-	cout << "[] can not be be inside ()  \n";
-	cout << "Supported operations: \n";
-	cout << "1. addition x+y \n";
-	cout << "2. subtraction x-y \n";
-	cout << "3. multiplication x*y \n";
-	cout << "4. division x/y \n";
-	cout << "5. modulo division x%y \n";
-	cout << "6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n";
-	cout << "7. power(exponentiation)) x^y (x to power of y - y is exponent) \n";
-	cout << "number of exponent must be in any supported bracket kind \n";
-	cout << "8. factorial x! \n";
-	cout << "To print result press " << print << " or whitespace or new line " << endl;
-	cout << "To do operation in many lines enter operator directly before press new line for example 2+3+ENTER: \n";
-	cout << "In new line operation will be continue \n";
-	cout << "To quit enter "<< quit_name << endl;
-}
-
 int main()
 try {
-	print_info();
+	cout << "Welcome in simple calculator.\n";
+	print_help();
 	names.push_back(Variable("k", 1000));
 	print_variables();
 	calculate();
