@@ -5,6 +5,8 @@
 
 using namespace std;
 
+// Errors
+//--------------------------------------------
 inline void error(const string& errormessage) {
    throw runtime_error("error: " + errormessage);
 }
@@ -18,6 +20,8 @@ inline void error(const string& s, const char c) {
    throw runtime_error("");
 }
 
+// String and char operations
+//--------------------------------------------
 string get_alphanum_string(char first) {
 	string s = "";
 	if (isalpha(first)) {   // string with only letter at start
@@ -29,6 +33,45 @@ string get_alphanum_string(char first) {
 	return s;
 }
 
+char get_char() {
+	char ch;
+	cin.get(ch);
+	if(!cin) {
+		cout << "Exit \n";
+		exit(0);
+	}
+	return ch;
+}
+
+// Token char kinds
+//--------------------------------------------
+constexpr char declaration_key = '#';
+constexpr char quit = 'q';
+constexpr char print = '=';   
+constexpr char number = '8';
+constexpr char NAME = 'a';
+constexpr char SQRT = 'S';
+constexpr char POWER = '^';
+constexpr char SPACE = 's';
+constexpr char NEW_LINE = '\n';
+
+// Token program keywords
+//--------------------------------------------
+const string quit_name = "quit";
+const string SQRT_NAME = "sqrt";
+
+// Token program keywords can not be used as variable name
+const vector<string> NOT_VARIABLES = { quit_name, SQRT_NAME };
+
+bool exist(string parameter, vector<string> vec) {
+	for (string s : vec)
+		if (parameter == s) 
+			return true;
+	return false;
+}
+
+// Token struct
+//--------------------------------------------
 struct Token {
 	char kind;
 	double value;
@@ -39,12 +82,13 @@ struct Token {
 	Token(char ch, string s) :kind(ch), name(s) { }
 };
 
+// Token_stream class
+//--------------------------------------------
 class Token_stream {
 private:
 	bool full;
 	Token buffer;
 	
-	char  get_char();
 	Token get_number();
 	Token get_number_with_dot();
 	Token get_other_tokens(char c);
@@ -57,7 +101,6 @@ public:
 	Token get_token_after_SPACE();
 };
 
-// The unget() member function puts its argument back into the Token_stream's buffer:
 void Token_stream::unget(Token& t)
 {
 	if (full) 
@@ -65,19 +108,6 @@ void Token_stream::unget(Token& t)
 	buffer = t;       // copy t to buffer
 	full = true;      // buffer is now full
 }
-
-constexpr char declaration_key = '#';
-constexpr char quit = 'q';
-constexpr char print = ';';
-constexpr char number = '8';
-constexpr char name = 'a';
-constexpr char SQRT = 'S';
-constexpr char POWER = '^';
-constexpr char SPACE = 's';
-constexpr char NEW_LINE = '\n';
-
-const string quit_name = "quit";
-const string SQRT_NAME = "sqrt";
 
 Token Token_stream::get_number() {	
 	double val;
@@ -107,7 +137,7 @@ Token Token_stream::get_other_tokens(char first) {
 	else if (s == SQRT_NAME) 
 		return Token(SQRT);
 	else if (s.size() > 0)
-		return Token(name, s);
+		return Token(NAME, s);
 
 	error("Bad token: ", first);
 }
@@ -117,16 +147,6 @@ Token Token_stream::get_token_after_SPACE() {
 	while (t.kind == SPACE)
 		t = get();
 	return t;
-}
-
-char Token_stream::get_char() {
-	char ch;
-	cin.get(ch);
-	if(!cin) {
-		cout << "Exit \n";
-		exit(0);
-	}
-	return ch;
 }
 
 Token Token_stream::get() {
@@ -140,9 +160,9 @@ Token Token_stream::get() {
 		case '(': case ')': 
 		case '+': case '-': 
 		case '*': case '/': case '%':
-		case '=':
+		case '=':   // printing character as '=' and separately treated '=' in case of change printing character 
+		//case print:
 		case '!':
-		case print:
 		case declaration_key:
 		case POWER:
 			return Token(ch);
@@ -172,25 +192,26 @@ void Token_stream::ignore(char c1, char c2) {
 	return;
 }
 
+// Variable struct
 struct Variable {
 	string name;
 	double value;
 	Variable(string n, double v) : name(n), value(v) { }
 };
 
+// Variable structs vector and operations on this vector
+//--------------------------------------------
 vector<Variable> names;
 
-double get_value(string s)
-{
-	for (int i = 0; i < names.size(); ++i)
+double get_value(string s) {
+	for (unsigned int i = 0; i < names.size(); ++i)
 		if (names[i].name == s) 
 			return names[i].value;
 	error("get: undefined name ", s);
 }
 
-void set_value(string s, double d)
-{
-	for (int i = 0; i <= names.size(); ++i)
+void set_value(string s, double d) {
+	for (unsigned int i = 0; i <= names.size(); ++i)
 		if (names[i].name == s) {
 			names[i].value = d;
 			return;
@@ -198,21 +219,19 @@ void set_value(string s, double d)
 	error("set: undefined name ", s);
 }
 
-bool is_declared(string s)
-{
-	for (int i = 0; i < names.size(); ++i)
+bool is_declared(string s) {
+	for (unsigned int i = 0; i < names.size(); ++i)
 		if (names[i].name == s) 
 			return true;
 	return false;
 }
 
+// global variable of type Token_stream 
+//--------------------------------------------
 Token_stream ts;
 
-inline void error_and_unget(const string& errormessage, Token& t) {
-	ts.unget(t);
-   throw runtime_error("error: " + errormessage);
-}
-
+// mathematical operations part 1
+//--------------------------------------------
 bool is_integer(double x) {
 	int integer = x;
 	if (integer == x)
@@ -247,13 +266,17 @@ unsigned long factorial(double number) {
 	return result;
 }
 
+// declarations of primary in calculator
 double primary();
 
+// mathematical operations part 2
+//--------------------------------------------
 double square_root() {
 	Token t = ts.get_token_after_SPACE();
-	if ('(' != t.kind) 
-		error_and_unget("number of square root must be in brackets", t);
 	ts.unget(t);
+	if ('(' != t.kind) 
+		error("number of square root must be in brackets");
+	
 	double x = primary();
 	if (x < 0)
 		error("Real solution for square root for number < 0 does not exist");
@@ -278,9 +301,9 @@ double power(double base, int exponent) {
 
 double power(double base) {
 	Token t = ts.get_token_after_SPACE();
-	if ('(' != t.kind) 
-		error_and_unget("in power calculation exponent must be in brackets", t);
 	ts.unget(t);
+	if ('(' != t.kind) 
+		error("in power calculation exponent must be in brackets");
 	double exponent = primary();  // brackets are in primary()
 	if (false == is_integer(exponent))
 		error("calculate of power only for integer exponent");
@@ -288,9 +311,13 @@ double power(double base) {
 	return result;
 }
 
-bool curly_braces = false;
-bool square_braces = false;
-bool operation = false;
+// global variables to check calculator input data correction (to validate)
+// in mathematical operations this global variables validate only sequence of input data
+//--------------------------------------------
+bool curly_braces = false;   // curly braces can not be inside square or round brackets
+bool square_braces = false;  // square braces can not be inside round brackets
+bool operation = false;      // can not accept sequence of +- +- ++ /- *+ *- and
+// other mixes of 2 or more subsequent operators not separated by brackets
 
 double expression();
 /*
@@ -315,20 +342,42 @@ double brackets_pair(char bracket_kind) {
 }
 */
 
-void is_next_token_correct(Token& t) {
+// validate next token after token t to check calculator input data correction (to validate)
+// in mathematical operations this function validate only sequence of input data
+/* this function does not allow direct operations of the type: 
+5!2 
+6(7) 
+(8)9
+ which as a result create 2 separate expressions.
+In order to create 2 separate expressions, separate these characters with a separator, e.g. new line, space or printing character:
+5! 2 
+6;(7)
+(8) 9
+*/
+//--------------------------------------------
+void validate_next_token(Token& t) {
 	Token next_token = ts.get();
+	char next = next_token.kind;
 	switch (t.kind) {
 		case '!':
-			if ('(' == next_token.kind || number == next_token.kind)
+			if ('(' == next || number == next || NAME == next)
 				error("Next token after factorial token can not be bracket or number");
 			break;
 		case number:
-			if ('(' == next_token.kind)
-				error("Next token after number can not be bracket");
+			if ('(' == next || NAME == next)
+				error("Next token after number can not be bracket or name");
 			break;
 		case ')':
-			if (number == next_token.kind)
-				error("Next token after brackets can not be number");
+			if (number == next || NAME == next || '(' == next)
+				error("Next token after brackets can not be number or name or bracket");
+			break;
+		case NAME:
+			if ('(' == next)
+				error("Next token after name can not be bracket");
+			break;
+		case '=':
+			if (false == (next == SPACE || next == NEW_LINE || (next == print && next != '=')))
+				error("In calculation next token after = must be space, tab, new line, print but not '='");
 			break;
 		default:
 			error("Next token should not be check for ", t.kind);
@@ -337,6 +386,9 @@ void is_next_token_correct(Token& t) {
 	ts.unget(next_token);
 }
 
+
+// calculator functions to token process and calculations
+//-------------------------------------------- 
 double primary() {
 	double result;
 	Token t = ts.get_token_after_SPACE();
@@ -344,14 +396,16 @@ double primary() {
 	case '(':
 		result = expression();
 		t = ts.get_token_after_SPACE();
-		if (t.kind != ')')
-			error_and_unget("')' expected", t);
-		is_next_token_correct(t);
+		if (t.kind != ')') {
+			ts.unget(t);
+			error("')' expected");
+		}
+		validate_next_token(t);
 		operation = false;
 		break;
 	case '+':
 	case '-':
-		if (true == operation)
+		if (operation)
 			error("Next token after operator can not be + or -");
 		operation = true;
 		result = '+' == t.kind ? primary() : -primary();
@@ -362,11 +416,12 @@ double primary() {
 	case number:
 		result = t.value;
 		operation = false;
-		is_next_token_correct(t);
+		validate_next_token(t);
 		break;
-	case name:
+	case NAME:
 		result = get_value(t.name);
 		operation = false;
+		validate_next_token(t);
 		break;
 	default:
 		error("unrecognized primary: ", t.kind);
@@ -377,14 +432,18 @@ double primary() {
 
 double factor();
 
+// before primary may be minus or sqrt
+// skip plus because is not problematic for factorial calculations
+// which order of operations has precedence over * / % - + 
 double before_primary(Token& t, bool& minus_number) {
 	switch (t.kind) {
 		case SQRT:
 			return square_root();
-		case '-':    // to allow minus '-' as first char in expression with factorial
+		case '-':    // to allow minus '-' as first token in expression with factorial, which can not accept minus numbers
+						 // errors: -4! == -24  and  (-4)!
 			if (operation)
 				error("Next token after operator can not be + or -");
-			minus_number = true;    // -4! == -24    (-4)! error
+			minus_number = true;    // ok: -4! == -24    error: (-4)! 
 			operation = true;
 			return factor();
 		default:
@@ -393,11 +452,13 @@ double before_primary(Token& t, bool& minus_number) {
 	}
 }
 
+// after primary may be tokens: power(exponent) and factorial 
+// which order of operations has precedence over * / % - + 
 double after_primary(double x, Token& t) {
 	double result;
 	switch (t.kind) {
 		case POWER:
-			if (operation)
+			if (operation)   // to avoid sequence type: +^ /^ 
 				error("Next token after operator can not be ", POWER);
 			result = power(x);
 			break;
@@ -405,7 +466,11 @@ double after_primary(double x, Token& t) {
 			if (operation)
 				error("Next token after operator can not be '!'");
 			result = factorial(x);  // -4! == -24    (-4)! error
-			is_next_token_correct(t);
+			validate_next_token(t);
+			break;
+		case '=':
+			result = x;
+			validate_next_token(t);
 			break;
 		default:
 			ts.unget(t);
@@ -414,17 +479,26 @@ double after_primary(double x, Token& t) {
 	return result;
 }
 
+// calculate of factors (square root, power, factorial)
+// which order of operations has precedence over * / % - + 
 double factor() {
 	bool minus_number = false;
 	Token t = ts.get_token_after_SPACE();
 	double result = before_primary(t, minus_number);
 	t = ts.get_token_after_SPACE();
 	result = after_primary(result, t);
+	t = ts.get_token_after_SPACE();
+	if ('=' == t.kind)
+		validate_next_token(t);
+	else
+		ts.unget(t);
 	if (minus_number)
 		result = -result;
 	return result;
 }
 
+// calculate of elements / % * (quotient. modulo quotient, product)
+// which order of operations has precedence over - + 
 double term() {
 	double left = factor();
 	operation = true;
@@ -453,6 +527,8 @@ double term() {
 	}
 }
 
+// calculate of elements sums and differences
+// which order of operations is the lowest
 double expression() {
 	operation = false;
 	double left = term();
@@ -473,14 +549,18 @@ double expression() {
 	}
 }
 
+
+// validate of declaration
 double declaration() {
-	Token t = ts.get();
-	if (t.kind != name) 
-		error("name expected in declaration");
+	Token t = ts.get_token_after_SPACE();
 	string name = t.name;
+	if (exist(name, NOT_VARIABLES))
+		error(name, " is keyword and can not be used");
+	if (t.kind != NAME) 
+		error("name expected in declaration");
 	if (is_declared(name)) 
 		error(name, " declared twice");
-	Token t2 = ts.get();
+	Token t2 = ts.get_token_after_SPACE();
 	if (t2.kind != '=') 
 		error("= missing in declaration of ", name);
 	double d = expression();
@@ -489,7 +569,7 @@ double declaration() {
 }
 
 double statement() {
-	Token t = ts.get();
+	Token t = ts.get_token_after_SPACE();
 	switch (t.kind) {
 	case declaration_key:
 		return declaration();
@@ -505,7 +585,7 @@ void clean_up_mess() {
 
 bool is_running() {
 	Token t = ts.get();
-	while (t.kind == print || t.kind == NEW_LINE || t.kind == SPACE)
+	while (t.kind == NEW_LINE || t.kind == SPACE)  // || t.kind == print
 		t = ts.get();
 	if (t.kind == quit) 
 		return false;
