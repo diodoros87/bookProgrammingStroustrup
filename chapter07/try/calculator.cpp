@@ -57,16 +57,16 @@ constexpr char NEW_LINE = '\n';
 
 // Token program keywords
 //--------------------------------------------
-const string quit_name = "quit";
-const string SQRT_NAME = "sqrt";
+string quit_name = "quit";
+string SQRT_NAME = "sqrt";
 
 // Token program keywords can not be used as variable name
-const vector<string> NOT_VARIABLES = { quit_name, SQRT_NAME };
+const vector<char> NOT_VARIABLES_TOKENS = { quit, SQRT };
 
-bool exist(string parameter, vector<string> vec) {
-	for (string s : vec)
-		if (parameter == s) 
-			return true;
+bool exist(char c, const vector<char>& vec) {
+	for (char a : vec) 
+		if (a == c) 
+			return true;		
 	return false;
 }
 
@@ -81,6 +81,19 @@ struct Token {
 	Token(char ch, double val) :kind(ch), value(val) { }
 	Token(char ch, string s) :kind(ch), name(s) { }
 };
+
+string get_reserved_name(Token& t) {
+	char kind = t.kind;
+	string name;
+	switch (kind) {
+		case quit:
+			return quit_name;
+		case SQRT:
+			return SQRT_NAME;
+		default:
+			return "";
+	}
+}
 
 // Token_stream class
 //--------------------------------------------
@@ -360,20 +373,20 @@ void validate_next_token(Token& t) {
 	char next = next_token.kind;
 	switch (t.kind) {
 		case '!':
-			if ('(' == next || number == next || NAME == next)
-				error("Next token after factorial token can not be bracket or number");
+			if ('(' == next || number == next || NAME == next || SQRT == next)
+				error("Next token after factorial token can not be bracket or number or sqrt");
 			break;
 		case number:
-			if ('(' == next || NAME == next)
-				error("Next token after number can not be bracket or name");
+			if ('(' == next || NAME == next || SQRT == next)
+				error("Next token after number can not be bracket or name or sqrt");
 			break;
 		case ')':
-			if (number == next || NAME == next || '(' == next)
-				error("Next token after brackets can not be number or name or bracket");
+			if (number == next || NAME == next || '(' == next || SQRT == next)
+				error("Next token after brackets can not be number or name or bracket or sqrt");
 			break;
 		case NAME:
-			if ('(' == next)
-				error("Next token after name can not be bracket");
+			if ('(' == next || SQRT == next)
+				error("Next token after name can not be bracket or sqrt");
 			break;
 		case '=':
 			if (false == (next == SPACE || next == NEW_LINE || (next == print && next != '=')))
@@ -553,18 +566,19 @@ double expression() {
 // validate of declaration
 double declaration() {
 	Token t = ts.get_token_after_SPACE();
-	string name = t.name;
-	if (exist(name, NOT_VARIABLES))
-		error(name, " is keyword and can not be used");
+	if (exist(t.kind, NOT_VARIABLES_TOKENS)) {
+		string keyword_name = get_reserved_name(t);
+		error(keyword_name + " is keyword and can not be used as variable");
+	}
 	if (t.kind != NAME) 
 		error("name expected in declaration");
-	if (is_declared(name)) 
-		error(name, " declared twice");
+	if (is_declared(t.name)) 
+		error(t.name, " declared twice");
 	Token t2 = ts.get_token_after_SPACE();
 	if (t2.kind != '=') 
-		error("= missing in declaration of ", name);
+		error("= missing in declaration of ", t.name);
 	double d = expression();
-	names.push_back(Variable(name, d));
+	names.push_back(Variable(t.name, d));
 	return d;
 }
 
