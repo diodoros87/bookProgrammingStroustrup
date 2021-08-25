@@ -68,11 +68,21 @@ const string SQRT_NAME = "sqrt";
 const string HELP_NAME = string(1, toupper(HELP)) + " or " + string(1, tolower(HELP));
 
 // Token program keywords can not be used as variable name
-const vector<char> NOT_VARIABLES_TOKENS = { quit, SQRT, HELP };
+const vector<char> NOT_VARIABLES_TOKENS = { quit, SQRT, HELP, print, POWER, declaration_key };
 
 bool exist(char c, const vector<char>& vec) {
 	for (char a : vec) 
 		if (a == c) 
+			return true;		
+	return false;
+}
+
+const vector<string> NOT_VARIABLES_NAMES = { quit_name, SQRT_NAME, 
+											string(1, toupper(HELP)), string(1, tolower(HELP)) };
+
+bool exist(string s, const vector<string>& vec) {
+	for (string a : vec) 
+		if (a == s) 
 			return true;		
 	return false;
 }
@@ -98,6 +108,12 @@ string get_reserved_name(Token& t) {
 			return SQRT_NAME;
 		case HELP:
 			return HELP_NAME;
+		case print:
+			return string(1, print);
+		case POWER:
+			return string(1, POWER);
+		case declaration_key:
+			return string(1, declaration_key);
 		default:
 			return "";
 	}
@@ -662,8 +678,12 @@ double declaration() {
 		string keyword_name = get_reserved_name(t);
 		error(keyword_name + " is keyword and can not be used as variable");
 	}
-	if (t.kind != NAME) 
-		error("name expected in declaration");
+	if (exist(t.name, NOT_VARIABLES_NAMES)) 
+		error(t.name + " is keyword and can not be used as variable");
+	if (t.kind != NAME) { 
+		ts.unget(t);
+		error("name expected in declaration - name must begin at letter and contains letters, numbers and _");
+	}
 	if (is_declared(t.name)) 
 		error(t.name, " declared twice");
 	Token t2 = ts.get_token_after_SPACE();
