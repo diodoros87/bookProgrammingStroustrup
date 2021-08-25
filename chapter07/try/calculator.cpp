@@ -20,6 +20,21 @@ inline void error(const string& s, const char c) {
    throw runtime_error("");
 }
 
+// String and char operations
+//--------------------------------------------
+string get_alphanum_string(char first) {
+	string s = "";
+	if (isalpha(first)) {   // string with only letter at start
+		s += first;          // get alphanumerical string
+		char c;
+		while (cin.get(c) && (isalpha(c) || isdigit(c)))
+			s += c;
+			
+		cin.unget();   // to save non-alphanumerical character in input stream
+	}
+	return s;
+}
+
 char get_char() {
 	char ch;
 	cin.get(ch);
@@ -121,6 +136,9 @@ but every sign must be separated by number or bracket \n";
 	cout << "To separate many calculations press " << print << " or whitespace or new line " << endl;
 	cout << "To do operation in many lines enter operator directly before press new line for example 2+3+ENTER: \n";
 	cout << "In new line operation will be continue \n";
+	cout << "To define new variable enter "<< declaration_key << " whitespace, variable name = value(number or other variable)\n";
+	cout << "Variable name must started with letter and may contain letters, digits and _ \n";
+	cout << "Can not declare identical variable name \n";
 	cout << "To quit enter "<< quit_name << endl;
 	cout << "To display this manual enter " << HELP << " case insensitive " << endl;
 }
@@ -136,7 +154,9 @@ private:
 	
 	Token get_number();
 	Token get_number_with_dot();
-	Token get_other_tokens(char c);
+	Token get_single_token(char first);
+	Token get_alphanum_token(char first);
+	Token get_other_token(char c);
 public:
 	Token_stream() :full(false), buffer(0) { }
 	
@@ -146,8 +166,7 @@ public:
 	Token get_token_after_SPACE();
 };
 
-void Token_stream::unget(Token& t)
-{
+void Token_stream::unget(Token& t) {
 	if (full) 
 		error("unget() into a full buffer");
 	buffer = t;       // copy t to buffer
@@ -172,58 +191,59 @@ Token Token_stream::get_number_with_dot() {
 	return get_number();
 }
 
-// String and char operations
-//--------------------------------------------
-string get_string(char first) {
-	string s = "";
-	if (isalpha(first)) {   // string with only letter at start
-		s += first;          // get alphanumerical string
-		while (cin.get(first) && (isalpha(first) || isdigit(first)))
-			s += first;
-		cin.unget();
-	}
-	
-	return s;
-}
+Token EMPTY_TOKEN = Token(0);
 
-Token Token_stream::get_other_tokens(char first) {
+Token Token_stream::get_single_token(char first) {
 	if (isspace(first)) 
 		return Token(SPACE);
 		
-	if (first == declaration_key){
-		char c = get_char();
-		if (c != '\n' && isspace(c))
-			return Token(declaration_key);
+	if (first != declaration_key && first != tolower(HELP) && first != toupper(HELP))
+		return EMPTY_TOKEN; // not single token
+		
+	Token result = EMPTY_TOKEN;
+	char next = get_char();   // get next char after 'first' char
+	cin.unget();   // to save 'next' character in input stream
+	if (first == declaration_key) {
+		if (next != '\n' && isspace(next))
+			result = Token(declaration_key);
 		else
 			error("After declaration key must be whitespace except new line");
 	}
+	else if ((first == tolower(HELP) || first == toupper(HELP)) &&
+				(next == print || isspace(next)))
+		result = Token(HELP);
 		
-	string s = get_string(first);
+	return result;
+}
+
+Token Token_stream::get_alphanum_token(char first) {
+	string s = get_alphanum_string(first);
 	if (s == quit_name) 
 		return Token(quit);
 	else if (s == SQRT_NAME) 
 		return Token(SQRT);
-	else if (s.size() == 1) {
-		if (s[0] == tolower(HELP) || s[0] == toupper(HELP))
-			return Token(HELP);
-		else
-			return Token(NAME, s);
-	}
-	else if (s.size() > 1)
+	else if (s.size() > 0)
 		return Token(NAME, s);
+		
+	return EMPTY_TOKEN;
+}
 
-	error("Bad token: ", first);
+Token Token_stream::get_other_token(char first) {
+	Token result = get_single_token(first);
+	if (result.kind == EMPTY_TOKEN.kind)	
+		result = get_alphanum_token(first);
+	if (result.kind != EMPTY_TOKEN.kind)	
+		return result;
+	else
+		error("Bad token: ", first);
 }
 
 Token Token_stream::get_token_after_SPACE() {
 	Token t = get();
 	while (t.kind == SPACE)
 		t = get();
-	if (t.kind == HELP) {
-		manual.print_help();
-		unget(t);
+	if (t.kind == HELP)
 		throw manual; 
-	}
 
 	return t;
 }
@@ -253,7 +273,7 @@ Token Token_stream::get() {
 			cin.unget();
 			return get_number();
 		default:
-			return get_other_tokens(ch);
+			return get_other_token(ch);
 	}
 }
 
@@ -410,9 +430,9 @@ void validate_next_token(Token& t) {
 	switch (t.kind) {
 		case '!':
 			if ('(' == next || '[' == next || '{' == next ||
-				number == next || NAME == next || SQRT == next)
+				number == next || NAME == next || SQRT == next || '!' == next)
 				error("Next token after factorial token can not be opening bracket or \
-number or variable or sqrt");
+number or variable or sqrt or !");
 			break;
 		case number:
 			if ('(' == next || '[' == next || '{' == next ||
@@ -635,7 +655,6 @@ double expression() {
 	}
 }
 
-
 // validate of declaration
 double declaration() {
 	Token t = ts.get_token_after_SPACE();
@@ -662,9 +681,8 @@ double statement() {
 		try {
 			return declaration();
 		}
-		catch (Manual& m) {
+		catch (Manual&) {
 			error(HELP_NAME, " are keywords and can not be used as variable");
-			throw m;
 		}
 	default:
 		ts.unget(t);
@@ -682,15 +700,25 @@ const string prompt = "> ";
 const string result = "= ";
 
 bool is_running() {
-	Token t = ts.get();
-	while (t.kind == NEW_LINE || t.kind == SPACE || t.kind == print)
+	Token t = EMPTY_TOKEN;
+	bool skipping = true;
+	do {
 		t = ts.get();
+		switch (t.kind) {
+			case HELP:
+				manual.print_help();
+				cout << prompt;
+			case NEW_LINE:
+			case SPACE:
+			case print:
+				break;
+			default:
+				skipping = false;
+		}
+	} while(skipping);	
+				
 	if (t.kind == quit) 
 		return false;
-	if (t.kind == HELP) { 
-		manual.print_help();
-		cout << prompt;
-	}
 	else 
 		ts.unget(t);
 	return true;
@@ -711,7 +739,9 @@ void calculate() {
 			cerr << e.what() << endl;
 			clean_up_mess();
 		}
-		catch (Manual&) {
+		catch (Manual& m) {
+			system("clear");
+			manual.print_help();
 			clean_up_mess();
 		}
 	} while (true);
