@@ -47,7 +47,7 @@ char get_char() {
 //--------------------------------------------
 constexpr char declaration_key = '#';
 constexpr char quit = 'q';
-constexpr char print = '=';   
+constexpr char print = ';';   
 constexpr char number = '8';
 constexpr char NAME = 'a';
 constexpr char HELP = 'h';
@@ -97,6 +97,45 @@ string get_reserved_name(Token& t) {
 			return "";
 	}
 }
+
+class Manual {
+	public:
+		void print_help();
+};
+
+void Manual::print_help() {
+	cout << "MANUAL for simple calculator.\n ";
+	cout << "Using floating-point numbers and variables for calculation." << endl;
+	cout << "In below informations 'x', 'y', 'z' are treated as number or variable \n";
+	cout << "Signed numbers or variables -x (-x) +x (+x) are allowed \
+but --x x++ -+x are unacceptable\n";
+	cout << "To their accept necessary is separation by brackets -(-x) +(-y) \
+but every sign must be separated by number or bracket \n";
+	cout << "Operators can not follow each other - between operators must be bracket or variable or number:\n";
+	cout << "+x*y-z*(-x/t) is OK, but x/-z is unacceptable \n";
+	cout << "Supported set of brackets: \n";
+	cout << "{} [] {[]} () [()] {()} {[()]} \n";
+	cout << "Each kind of brackets may be inside the same kind of bracket: (()) [[]] {{{}}} \n";
+	cout << "{} can not be be inside () and []  \n";
+	cout << "[] can not be be inside ()  \n";
+	cout << "Supported operations: \n";
+	cout << "1. addition x+y \n";
+	cout << "2. subtraction x-y \n";
+	cout << "3. multiplication x*y \n";
+	cout << "4. division x/y \n";
+	cout << "5. modulo division x%y \n";
+	cout << "6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n";
+	cout << "7. power(exponentiation)) x^y (x to power of y - y is exponent) \n";
+	cout << "number of exponent must be in any supported bracket kind \n";
+	cout << "8. factorial x! \n";
+	cout << "To separate many calculations press " << print << " or whitespace or new line " << endl;
+	cout << "To do operation in many lines enter operator directly before press new line for example 2+3+ENTER: \n";
+	cout << "In new line operation will be continue \n";
+	cout << "To quit enter "<< quit_name << endl;
+	cout << "To display this manual enter " << HELP << " case insensitive " << endl;
+}
+
+Manual manual;
 
 // Token_stream class
 //--------------------------------------------
@@ -152,7 +191,7 @@ Token Token_stream::get_other_tokens(char first) {
 		return Token(quit);
 	else if (s == SQRT_NAME) 
 		return Token(SQRT);
-	else if (s.size() == 1 && s[0] == toupper(HELP)) 
+	else if (s.size() == 1 && (s[0] == toupper(HELP) || s[0] == toupper(HELP))) 
 		return Token(HELP);
 	else if (s.size() > 0)
 		return Token(NAME, s);
@@ -162,8 +201,24 @@ Token Token_stream::get_other_tokens(char first) {
 
 Token Token_stream::get_token_after_SPACE() {
 	Token t = get();
-	while (t.kind == SPACE)
+	bool space = false;
+	while (t.kind == SPACE) {
+		space = true;
 		t = get();
+	}
+	if(space) {
+		t = get();
+		if (t.kind == tolower(HELP) || t.kind == toupper(HELP)) {
+			space = false;
+			while (t.kind == SPACE) {
+				space = true;
+				t = get();
+			}
+			if(space || t.kind == print || t.kind == NEW_LINE)
+				manual.print_help(); 
+		}
+	}
+		
 	return t;
 }
 
@@ -180,8 +235,8 @@ Token Token_stream::get() {
 		case '{': case '}': 
 		case '+': case '-': 
 		case '*': case '/': case '%':
-		case '=':   // printing character as '=' and separately treated '=' in case of change printing character 
-		//case print:
+		case '=':  
+		case print:
 		case '!':
 		case HELP:
 		case declaration_key:
@@ -372,10 +427,6 @@ opening bracket or sqrt");
 			if ('(' == next || '[' == next || '{' == next || SQRT == next)
 				error("Next token after variable can not be opening bracket or sqrt");
 			break;
-		case '=':
-			if (false == (next == SPACE || next == NEW_LINE || (next == print && next != '=')))
-				error("In calculation next token after = must be space, tab, new line, print but not =");
-			break;
 		default:
 			error("Next token should not be check for ", t.kind);
 			
@@ -508,10 +559,6 @@ double after_primary(double x, Token& t) {
 			result = factorial(x);  // -4! == -24    (-4)! error
 			validate_next_token(t);
 			break;
-		case '=':
-			result = x;
-			validate_next_token(t);
-			break;
 		default:
 			ts.unget(t);
 			result = x;
@@ -527,11 +574,6 @@ double factor() {
 	double result = before_primary(t, minus_number);
 	t = ts.get_token_after_SPACE();
 	result = after_primary(result, t);
-	t = ts.get_token_after_SPACE();
-	if ('=' == t.kind)
-		validate_next_token(t);
-	else
-		ts.unget(t);
 	if (minus_number)
 		result = -result;
 	return result;
@@ -626,46 +668,16 @@ void clean_up_mess() {
 	square_braces = false;  // set flag to false after error to cleaning before next operations
 }
 
-void print_help() {
-	cout << "Welcome in simple calculator.\n Use floating-point numbers." << endl;
-	cout << "In below informations 'x', 'y', 'z' are treated as number or variable \n";
-	cout << "Signed numbers or variables -x (-x) +x (+x) are allowed \
-but --x x++ -+x are unacceptable\n";
-	cout << "To their accept necessary is separation by brackets -(-x) +(-y) \
-but every sign must be separated by number or bracket \n";
-	cout << "Operators can not follow each other - between operators must be bracket or variable or number:\n";
-	cout << "+x*y-z*(-x/t) is OK, but x/-z is unacceptable \n";
-	cout << "Supported set of brackets: \n";
-	cout << "{} [] {[]} () [()] {()} {[()]} \n";
-	cout << "Each kind of brackets may be inside the same kind of bracket: (()) [[]] {{{}}} \n";
-	cout << "{} can not be be inside () and []  \n";
-	cout << "[] can not be be inside ()  \n";
-	cout << "Supported operations: \n";
-	cout << "1. addition x+y \n";
-	cout << "2. subtraction x-y \n";
-	cout << "3. multiplication x*y \n";
-	cout << "4. division x/y \n";
-	cout << "5. modulo division x%y \n";
-	cout << "6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n";
-	cout << "7. power(exponentiation)) x^y (x to power of y - y is exponent) \n";
-	cout << "number of exponent must be in any supported bracket kind \n";
-	cout << "8. factorial x! \n";
-	cout << "To print result press " << print << " or whitespace or new line " << endl;
-	cout << "To do operation in many lines enter operator directly before press new line for example 2+3+ENTER: \n";
-	cout << "In new line operation will be continue \n";
-	cout << "To quit enter "<< quit_name << endl;
-}
-
 const string prompt = "> ";
 const string result = "= ";
 
 bool is_running() {
 	Token t = ts.get();
-	while (t.kind == NEW_LINE || t.kind == SPACE)  // || t.kind == print
+	while (t.kind == NEW_LINE || t.kind == SPACE || t.kind == print)
 		t = ts.get();
 	if (t.kind == quit) 
 		return false;
-	if (t.kind == HELP) { 
+	if (t.kind == tolower(HELP) || t.kind == toupper(HELP)) { 
 		print_help();
 		cout << prompt;
 	}
