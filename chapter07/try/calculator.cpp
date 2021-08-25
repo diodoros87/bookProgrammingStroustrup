@@ -8,7 +8,7 @@ using namespace std;
 // Errors
 //--------------------------------------------
 inline void error(const string& errormessage) {
-   throw runtime_error("error: " + errormessage);
+   throw runtime_error("!!!!! Error: " + errormessage);
 }
 
 inline void error(const string& s, const string& s2) {
@@ -16,21 +16,8 @@ inline void error(const string& s, const string& s2) {
 }
 
 inline void error(const string& s, const char c) {
-	cerr << "error: " << s << "'" << c << "'" << endl;
+	cerr << "!!!!! Error: " << s << "'" << c << "'" << endl;
    throw runtime_error("");
-}
-
-// String and char operations
-//--------------------------------------------
-string get_alphanum_string(char first) {
-	string s = "";
-	if (isalpha(first)) {   // string with only letter at start
-		s += first;
-		while (cin.get(first) && (isalpha(first) || isdigit(first)))
-			s += first;
-		cin.unget();
-	}
-	return s;
 }
 
 char get_char() {
@@ -61,11 +48,12 @@ constexpr char EXPONENTIATION = 'p';
 
 // Token program keywords
 //--------------------------------------------
-string quit_name = "quit";
-string SQRT_NAME = "sqrt";
+const string quit_name = "quit";
+const string SQRT_NAME = "sqrt";
+const string HELP_NAME = string(1, toupper(HELP)) + " or " + string(1, tolower(HELP));
 
 // Token program keywords can not be used as variable name
-const vector<char> NOT_VARIABLES_TOKENS = { quit, SQRT };
+const vector<char> NOT_VARIABLES_TOKENS = { quit, SQRT, HELP };
 
 bool exist(char c, const vector<char>& vec) {
 	for (char a : vec) 
@@ -93,6 +81,8 @@ string get_reserved_name(Token& t) {
 			return quit_name;
 		case SQRT:
 			return SQRT_NAME;
+		case HELP:
+			return HELP_NAME;
 		default:
 			return "";
 	}
@@ -182,18 +172,44 @@ Token Token_stream::get_number_with_dot() {
 	return get_number();
 }
 
+// String and char operations
+//--------------------------------------------
+string get_string(char first) {
+	string s = "";
+	if (isalpha(first)) {   // string with only letter at start
+		s += first;          // get alphanumerical string
+		while (cin.get(first) && (isalpha(first) || isdigit(first)))
+			s += first;
+		cin.unget();
+	}
+	
+	return s;
+}
+
 Token Token_stream::get_other_tokens(char first) {
 	if (isspace(first)) 
 		return Token(SPACE);
 		
-	string s = get_alphanum_string(first);
+	if (first == declaration_key){
+		char c = get_char();
+		if (c != '\n' && isspace(c))
+			return Token(declaration_key);
+		else
+			error("After declaration key must be whitespace except new line");
+	}
+		
+	string s = get_string(first);
 	if (s == quit_name) 
 		return Token(quit);
 	else if (s == SQRT_NAME) 
 		return Token(SQRT);
-	else if (s.size() == 1 && (s[0] == toupper(HELP) || s[0] == toupper(HELP))) 
-		return Token(HELP);
-	else if (s.size() > 0)
+	else if (s.size() == 1) {
+		if (s[0] == tolower(HELP) || s[0] == toupper(HELP))
+			return Token(HELP);
+		else
+			return Token(NAME, s);
+	}
+	else if (s.size() > 1)
 		return Token(NAME, s);
 
 	error("Bad token: ", first);
@@ -201,24 +217,14 @@ Token Token_stream::get_other_tokens(char first) {
 
 Token Token_stream::get_token_after_SPACE() {
 	Token t = get();
-	bool space = false;
-	while (t.kind == SPACE) {
-		space = true;
+	while (t.kind == SPACE)
 		t = get();
+	if (t.kind == HELP) {
+		manual.print_help();
+		unget(t);
+		throw manual; 
 	}
-	if(space) {
-		t = get();
-		if (t.kind == tolower(HELP) || t.kind == toupper(HELP)) {
-			space = false;
-			while (t.kind == SPACE) {
-				space = true;
-				t = get();
-			}
-			if(space || t.kind == print || t.kind == NEW_LINE)
-				manual.print_help(); 
-		}
-	}
-		
+
 	return t;
 }
 
@@ -238,8 +244,6 @@ Token Token_stream::get() {
 		case '=':  
 		case print:
 		case '!':
-		case HELP:
-		case declaration_key:
 		case POWER:
 			return Token(ch);
 		case '.':
@@ -655,7 +659,13 @@ double statement() {
 	Token t = ts.get_token_after_SPACE();
 	switch (t.kind) {
 	case declaration_key:
-		return declaration();
+		try {
+			return declaration();
+		}
+		catch (Manual& m) {
+			error(HELP_NAME, " are keywords and can not be used as variable");
+			throw m;
+		}
 	default:
 		ts.unget(t);
 		return expression();
@@ -677,8 +687,8 @@ bool is_running() {
 		t = ts.get();
 	if (t.kind == quit) 
 		return false;
-	if (t.kind == tolower(HELP) || t.kind == toupper(HELP)) { 
-		print_help();
+	if (t.kind == HELP) { 
+		manual.print_help();
 		cout << prompt;
 	}
 	else 
@@ -701,6 +711,9 @@ void calculate() {
 			cerr << e.what() << endl;
 			clean_up_mess();
 		}
+		catch (Manual&) {
+			clean_up_mess();
+		}
 	} while (true);
 }
 
@@ -721,7 +734,7 @@ void print_variables() {
 int main()
 try {
 	cout << "Welcome in simple calculator.\n";
-	print_help();
+	manual.print_help();
 	names.push_back(Variable("k", 1000));
 	print_variables();
 	calculate();
