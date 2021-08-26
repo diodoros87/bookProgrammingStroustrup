@@ -57,6 +57,7 @@ constexpr char SQRT = 'S';
 constexpr char POWER = '^';
 constexpr char SPACE = 's';
 constexpr char NEW_LINE = '\n';
+constexpr char CONST = 'C';
 
 constexpr char SQUARE_ROOT = 'r';
 constexpr char EXPONENTIATION = 'p';
@@ -64,11 +65,12 @@ constexpr char EXPONENTIATION = 'p';
 // Token program keywords
 //--------------------------------------------
 const string quit_name = "quit";
+const string CONST_NAME = "const";
 const string SQRT_NAME = "sqrt";
 const string HELP_NAME = string(1, toupper(HELP)) + " or " + string(1, tolower(HELP));
 
 // Token program keywords can not be used as variable name
-const vector<char> NOT_VARIABLES_TOKENS = { quit, SQRT, HELP, print, POWER, declaration_key };
+const vector<char> NOT_VARIABLES_TOKENS = { quit, SQRT, HELP, print, POWER, declaration_key, CONST };
 
 bool exist(char c, const vector<char>& vec) {
 	for (char a : vec) 
@@ -77,7 +79,7 @@ bool exist(char c, const vector<char>& vec) {
 	return false;
 }
 
-const vector<string> NOT_VARIABLES_NAMES = { quit_name, SQRT_NAME, 
+const vector<string> NOT_VARIABLES_NAMES = { quit_name, SQRT_NAME, CONST_NAME,
 											string(1, toupper(HELP)), string(1, tolower(HELP)) };
 
 bool exist(string s, const vector<string>& vec) {
@@ -114,6 +116,8 @@ string get_reserved_name(Token& t) {
 			return string(1, POWER);
 		case declaration_key:
 			return string(1, declaration_key);
+		case CONST:
+			return CONST_NAME;
 		default:
 			return "";
 	}
@@ -238,6 +242,8 @@ Token Token_stream::get_alphanum_token(char first) {
 		return Token(quit);
 	else if (s == SQRT_NAME) 
 		return Token(SQRT);
+	else if (s == CONST_NAME) 
+		return Token(CONST);
 	else if (s.size() > 0)
 		return Token(NAME, s);
 		
@@ -312,7 +318,9 @@ void Token_stream::ignore(char c1, char c2) {
 struct Variable {
 	string name;
 	double value;
-	Variable(string n, double v) : name(n), value(v) { }
+	bool constant;
+	Variable(string n, double v) : name(n), value(v), constant(false) { }
+	Variable(string n, double v, bool c) : name(n), value(v), constant(c) { }
 };
 
 // Variable structs vector and operations on this vector
@@ -329,6 +337,8 @@ double get_value(string s) {
 void set_value(string s, double d) {
 	for (unsigned int i = 0; i <= names.size(); ++i)
 		if (names[i].name == s) {
+			if (names[i].constant == true)
+				error("set: constant name ", s);
 			names[i].value = d;
 			return;
 		}
@@ -692,7 +702,14 @@ void reset_global_variables() {
 
 // validate of declaration
 double declaration() {
+	bool is_constant = false;
 	Token t = ts.get_token_after_SPACE();
+	if (t.kind == CONST) { 
+		is_constant = true;
+		t = ts.get_token_after_SPACE();
+		if (t.kind == '=')
+			error(CONST_NAME + " is keyword and can not be used as variable");
+	}
 	if (exist(t.kind, NOT_VARIABLES_TOKENS)) {
 		string keyword_name = get_reserved_name(t);
 		error(keyword_name + " is keyword and can not be used as variable");
@@ -712,7 +729,7 @@ double declaration() {
 		error("= missing in declaration of ", t.name);
 	}
 	double d = expression();
-	names.push_back(Variable(t.name, d));
+	names.push_back(Variable(t.name, d, is_constant));
 	return d;
 }
 
