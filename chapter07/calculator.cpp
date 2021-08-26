@@ -22,12 +22,12 @@ inline void error(const string& s, const char c) {
 
 // String and char operations
 //--------------------------------------------
-string get_alphanum_string(char first) {
+string get_name_string(char first) {
 	string s = "";
-	if (isalpha(first)) {   // string with only letter at start
+	if (isalpha(first) || '_' == first) {   // string with only letter at start
 		s += first;          // get alphanumerical string
 		char c;
-		while (cin.get(c) && (isalpha(c) || isdigit(c)))
+		while (cin.get(c) && ('_' == c || isalpha(c) || isdigit(c)))
 			s += c;
 			
 		cin.unget();   // to save non-alphanumerical character in input stream
@@ -153,7 +153,7 @@ but every sign must be separated by number or bracket \n";
 	cout << "To do operation in many lines enter operator directly before press new line for example 2+3+ENTER: \n";
 	cout << "In new line operation will be continue \n";
 	cout << "To define new variable enter "<< declaration_key << " whitespace, variable name = value(number or other variable)\n";
-	cout << "Variable name must started with letter and may contain letters, digits and _ \n";
+	cout << "Variable name must started with letter or _ and may contain letters, digits and _ \n";
 	cout << "Can not declare identical variable name \n";
 	cout << "To quit enter "<< quit_name << endl;
 	cout << "To display this manual enter " << HELP << " case insensitive " << endl;
@@ -233,7 +233,7 @@ Token Token_stream::get_single_token(char first) {
 }
 
 Token Token_stream::get_alphanum_token(char first) {
-	string s = get_alphanum_string(first);
+	string s = get_name_string(first);
 	if (s == quit_name) 
 		return Token(quit);
 	else if (s == SQRT_NAME) 
@@ -482,6 +482,10 @@ bool square_braces = false;  // square braces can not be inside round brackets
 bool operation = false;      // can not accept sequence of +- +- ++ /- *+ *- and
 // other mixes of 2 or more subsequent operators not separated by brackets
 
+bool assignment = false;
+int names_counter = 0;
+int assignment_counter = 0;
+
 double expression();
 
 double brackets_expression(char bracket_kind) {
@@ -542,8 +546,7 @@ double primary() {
 		result = '+' == t.kind ? primary() : -primary();
 		break;
 	case NEW_LINE:   // to allow many lines calculations without ignoring new line tokens in cin and Token_stream
-		result = primary();
-		break;
+		return primary();
 	case number:
 		result = t.value;
 		operation = false;
@@ -553,11 +556,23 @@ double primary() {
 		result = get_value(t.name);
 		operation = false;
 		validate_next_token(t);
-		break;
+		names_counter++;
+		return result;
+	case '=':
+		cerr << " assignment " << assignment << " names_counter " << names_counter << " assignment_counter "<< assignment_counter << endl;
+		if (false == assignment || names_counter > 1 || assignment_counter > 1)
+			error("Assignment operator must be only one in expression and \n must occur after variable name directly \
+and if variable name is first primary in expression ");
+		assignment_counter++;
+		return expression();
+			
 	default:
 		error("unrecognized primary: ", t.kind);
 	}
-	
+	cerr << "assignment = false " << assignment << "\n";
+	cerr << "names_counter = " << names_counter << "\n";
+	cerr << "assignment_counter = " << assignment_counter << "\n";
+	assignment = false;
 	return result;
 }
 
@@ -671,6 +686,14 @@ double expression() {
 	}
 }
 
+void reset_global_variables() {
+	round_braces = false;   // set flag to false after error to cleaning before next operations
+	square_braces = false;  // set flag to false after error to cleaning before next operations
+	assignment = false;
+	names_counter = 0;
+	assignment_counter = 0;
+}
+
 // validate of declaration
 double declaration() {
 	Token t = ts.get_token_after_SPACE();
@@ -682,38 +705,52 @@ double declaration() {
 		error(t.name + " is keyword and can not be used as variable");
 	if (t.kind != NAME) { 
 		ts.unget(t);
-		error("name expected in declaration - name must begin at letter and contains letters, numbers and _");
+		error("variable name expected in declaration",
+			" name must started with letter or _ and may contain letters, digits and _ ");
 	}
 	if (is_declared(t.name)) 
 		error(t.name, " declared twice");
 	Token t2 = ts.get_token_after_SPACE();
-	if (t2.kind != '=') 
+	if (t2.kind != '=') {
+		ts.unget(t2);
 		error("= missing in declaration of ", t.name);
+	}
 	double d = expression();
 	names.push_back(Variable(t.name, d));
 	return d;
 }
 
 double statement() {
+	reset_global_variables();
 	Token t = ts.get_token_after_SPACE();
 	switch (t.kind) {
-	case declaration_key:
-		try {
-			return declaration();
+		case declaration_key:
+			try {
+				return declaration();
+			}
+			catch (Manual&) {
+				error(HELP_NAME, " are keywords and can not be used as variable");
+			}
+		case NAME: {
+			assignment = true;
+			cerr << "NAME\n";
+			ts.unget(t);
+			double value = expression();
+			if (assignment) {
+				set_value(t.name, value);
+				assignment = false;
+			}
+			return value;
 		}
-		catch (Manual&) {
-			error(HELP_NAME, " are keywords and can not be used as variable");
-		}
-	default:
-		ts.unget(t);
-		return expression();
+		default:
+			ts.unget(t);
+			return expression();
 	}
 }
 
 void clean_up_mess() {
 	ts.ignore(print, NEW_LINE);
-	round_braces = false;   // set flag to false after error to cleaning before next operations
-	square_braces = false;  // set flag to false after error to cleaning before next operations
+	reset_global_variables();
 }
 
 const string prompt = "> ";
