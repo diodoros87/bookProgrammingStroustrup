@@ -482,9 +482,8 @@ bool square_braces = false;  // square braces can not be inside round brackets
 bool operation = false;      // can not accept sequence of +- +- ++ /- *+ *- and
 // other mixes of 2 or more subsequent operators not separated by brackets
 
-bool assignment = false;
-int names_counter = 0;
-int assignment_counter = 0;
+bool assignment_chance = false;
+bool assignment_done = false;
 
 double expression();
 
@@ -556,23 +555,13 @@ double primary() {
 		result = get_value(t.name);
 		operation = false;
 		validate_next_token(t);
-		names_counter++;
 		return result;
-	case '=':
-		cerr << " assignment " << assignment << " names_counter " << names_counter << " assignment_counter "<< assignment_counter << endl;
-		if (false == assignment || names_counter > 1 || assignment_counter > 1)
-			error("Assignment operator must be only one in expression and \n must occur after variable name directly \
-and if variable name is first primary in expression ");
-		assignment_counter++;
-		return expression();
 			
 	default:
 		error("unrecognized primary: ", t.kind);
 	}
-	cerr << "assignment = false " << assignment << "\n";
-	cerr << "names_counter = " << names_counter << "\n";
-	cerr << "assignment_counter = " << assignment_counter << "\n";
-	assignment = false;
+
+	assignment_chance = false;
 	return result;
 }
 
@@ -614,6 +603,14 @@ double after_primary(double x, Token& t) {
 			result = factorial(x);  // -4! == -24    (-4)! error
 			validate_next_token(t);
 			break;
+		case '=': 
+		if (! assignment_chance || assignment_done)
+			error("Assignment operator must be only one in expression and \n must occur after variable name directly \
+and if variable name is first primary in expression ");
+				assignment_done = true;
+				assignment_chance = false;
+				result = expression();
+				break;
 		default:
 			ts.unget(t);
 			result = x;
@@ -689,9 +686,8 @@ double expression() {
 void reset_global_variables() {
 	round_braces = false;   // set flag to false after error to cleaning before next operations
 	square_braces = false;  // set flag to false after error to cleaning before next operations
-	assignment = false;
-	names_counter = 0;
-	assignment_counter = 0;
+	assignment_chance = false;
+	assignment_done = false;
 }
 
 // validate of declaration
@@ -732,14 +728,11 @@ double statement() {
 				error(HELP_NAME, " are keywords and can not be used as variable");
 			}
 		case NAME: {
-			assignment = true;
-			cerr << "NAME\n";
+			assignment_chance = true;
 			ts.unget(t);
 			double value = expression();
-			if (assignment) {
+			if (assignment_done) 
 				set_value(t.name, value);
-				assignment = false;
-			}
 			return value;
 		}
 		default:
