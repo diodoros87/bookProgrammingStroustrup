@@ -20,31 +20,6 @@ inline void error(const string& s, const char c) {
    throw runtime_error("");
 }
 
-// String and char operations
-//--------------------------------------------
-string get_name_string(char first) {
-	string s = "";
-	if (isalpha(first) || '_' == first) {   // string with only letter at start
-		s += first;          // get alphanumerical string
-		char c;
-		while (cin.get(c) && ('_' == c || isalpha(c) || isdigit(c)))
-			s += c;
-			
-		cin.unget();   // to save non-alphanumerical character in input stream
-	}
-	return s;
-}
-
-char get_char() {
-	char ch;
-	cin.get(ch);
-	if(!cin) {
-		cout << "Exit \n";
-		exit(0);
-	}
-	return ch;
-}
-
 // Token char kinds
 //--------------------------------------------
 constexpr char declaration_key = '#';
@@ -58,19 +33,22 @@ constexpr char POWER = '^';
 constexpr char SPACE = 's';
 constexpr char NEW_LINE = '\n';
 constexpr char CONST = 'C';
+constexpr char VARS_VIEW = 'v';
 
-constexpr char SQUARE_ROOT = 'r';
-constexpr char EXPONENTIATION = 'p';
+//constexpr char SQUARE_ROOT = 'r';
+//constexpr char EXPONENTIATION = 'p';
 
 // Token program keywords
 //--------------------------------------------
 const string quit_name = "quit";
 const string CONST_NAME = "const";
+const string VARS_VIEW_NAME = "vars_view";
 const string SQRT_NAME = "sqrt";
 const string HELP_NAME = string(1, toupper(HELP)) + " or " + string(1, tolower(HELP));
 
 // Token program keywords can not be used as variable name
-const vector<char> NOT_VARIABLES_TOKENS = { quit, SQRT, HELP, print, POWER, declaration_key, CONST };
+const vector<char> NOT_VARIABLES_TOKENS = { quit, SQRT, HELP, print, POWER, declaration_key,
+														CONST, VARS_VIEW };
 
 bool exist(char c, const vector<char>& vec) {
 	for (char a : vec) 
@@ -79,7 +57,7 @@ bool exist(char c, const vector<char>& vec) {
 	return false;
 }
 
-const vector<string> NOT_VARIABLES_NAMES = { quit_name, SQRT_NAME, CONST_NAME,
+const vector<string> NOT_VARIABLES_NAMES = { quit_name, SQRT_NAME, CONST_NAME, VARS_VIEW_NAME,
 											string(1, toupper(HELP)), string(1, tolower(HELP)) };
 
 bool exist(string s, const vector<string>& vec) {
@@ -118,53 +96,61 @@ string get_reserved_name(const Token& t) {
 			return string(1, declaration_key);
 		case CONST:
 			return CONST_NAME;
+		case VARS_VIEW:
+			return VARS_VIEW_NAME;
 		default:
 			return "";
 	}
 }
 
-class Manual {
-	public:
-		void print_help();
+struct Manual {
+	string manual_string = "MANUAL for simple calculator. \n\
+Using floating-point numbers and variables for calculation.\n\
+In below informations 'x', 'y', 'z' are treated as number or variable \n\
+Signed numbers or variables -x (-x) +x (+x) are allowed \
+but --x x++ -+x are unacceptable\n\
+To their accept necessary is separation by brackets -(-x) +(-y) \
+but every sign must be separated by number or bracket \n\
+Operators can not follow each other - between operators must be bracket or variable or number:\n\
+\+x*y-z*(-x/t) is OK, but x/-z is unacceptable \n\
+Supported set of brackets: \n\
+{} [] {[]} () [()] {()} {[()]} \n\
+Each kind of brackets may be inside the same kind of bracket: (()) [[]] {{{}}} \n\
+{} can not be be inside () and []  \n\
+[] can not be be inside ()  \n\
+Supported operations: \n\
+1. addition x+y \n\
+2. subtraction x-y \n\
+3. multiplication x*y \n\
+4. division x/y \n\
+5. modulo division x%y \n\
+6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n\
+7. power(exponentiation)) x" + string(1, POWER) + "y (x to power of y - y is exponent) \n\
+number of exponent must be in any supported bracket kind \n\
+8. factorial x! \n\
+To separate many calculations press " + string(1, print) + " or whitespace or new line \n\
+To do operation in many lines enter operator directly before press new line for example 2+3+ENTER: \n\
+In new line operation will be continue \n\
+To define new variable enter " + string(1, declaration_key) + " whitespace, variable name = value(number or other variable)\n\
+Variable name must started with letter or _ and may contain letters, digits and _ \n\
+Can not declare identical variable name \n\
+To define constant 'variable' enter: " + string(1, declaration_key) + " " + CONST_NAME + " name_of_variable \n\
+To display already defined variables enter " + VARS_VIEW_NAME + "\n\
+To quit enter " + quit_name + "\n\
+To display this manual enter " + string(1, HELP) + " case insensitive \n";
 };
 
-void Manual::print_help() {
-	cout << "MANUAL for simple calculator.\n ";
-	cout << "Using floating-point numbers and variables for calculation." << endl;
-	cout << "In below informations 'x', 'y', 'z' are treated as number or variable \n";
-	cout << "Signed numbers or variables -x (-x) +x (+x) are allowed \
-but --x x++ -+x are unacceptable\n";
-	cout << "To their accept necessary is separation by brackets -(-x) +(-y) \
-but every sign must be separated by number or bracket \n";
-	cout << "Operators can not follow each other - between operators must be bracket or variable or number:\n";
-	cout << "+x*y-z*(-x/t) is OK, but x/-z is unacceptable \n";
-	cout << "Supported set of brackets: \n";
-	cout << "{} [] {[]} () [()] {()} {[()]} \n";
-	cout << "Each kind of brackets may be inside the same kind of bracket: (()) [[]] {{{}}} \n";
-	cout << "{} can not be be inside () and []  \n";
-	cout << "[] can not be be inside ()  \n";
-	cout << "Supported operations: \n";
-	cout << "1. addition x+y \n";
-	cout << "2. subtraction x-y \n";
-	cout << "3. multiplication x*y \n";
-	cout << "4. division x/y \n";
-	cout << "5. modulo division x%y \n";
-	cout << "6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n";
-	cout << "7. power(exponentiation)) x^y (x to power of y - y is exponent) \n";
-	cout << "number of exponent must be in any supported bracket kind \n";
-	cout << "8. factorial x! \n";
-	cout << "To separate many calculations press " << print << " or whitespace or new line " << endl;
-	cout << "To do operation in many lines enter operator directly before press new line for example 2+3+ENTER: \n";
-	cout << "In new line operation will be continue \n";
-	cout << "To define new variable enter "<< declaration_key << " whitespace, variable name = value(number or other variable)\n";
-	cout << "Variable name must started with letter or _ and may contain letters, digits and _ \n";
-	cout << "Can not declare identical variable name \n";
-	cout << "To define constant 'variable' enter: " << declaration_key << " " << CONST_NAME << " name_of_variable \n";
-	cout << "To quit enter "<< quit_name << endl;
-	cout << "To display this manual enter " << HELP << " case insensitive " << endl;
-}
-
 Manual manual;
+
+char get_char() {
+	char ch;
+	cin.get(ch);
+	if(!cin) {
+		cout << "Exit \n";
+		exit(0);
+	}
+	return ch;
+}
 
 // Token_stream class
 //--------------------------------------------
@@ -175,7 +161,7 @@ private:
 	
 	Token get_number();
 	Token get_number_with_dot();
-	Token get_single_token(char first);
+	Token get_single_char_token(char first);
 	Token get_alphanum_token(char first);
 	Token get_other_token(char c);
 public:
@@ -186,7 +172,26 @@ public:
 	void ignore(char, char);
 	Token get_token_after_SPACE();
 	bool is_constant_token(Token& t);
+	string get_name_string(char first);
+	string get_name_string();
 };
+
+string Token_stream::get_name_string() {
+	string s = "";
+	char c;
+	while (cin.get(c) && ('_' == c || isalpha(c) || isdigit(c)))
+		s += c;
+			
+	cin.unget();   // to save non-alphanumerical character in input stream
+	return s;
+}
+
+string Token_stream::get_name_string(char first) {
+	string s = "";
+	if (isalpha(first) || '_' == first)   // string with only letter at start
+		s = first + get_name_string();     // get alphanumerical string
+	return s;
+}
 
 void Token_stream::unget(Token& t) {
 	if (full) 
@@ -213,9 +218,9 @@ Token Token_stream::get_number_with_dot() {
 	return get_number();
 }
 
-Token EMPTY_TOKEN = Token(0);
+Token EMPTY_TOKEN = Token(0);  // to signal that get of token is unsuccessfull
 
-Token Token_stream::get_single_token(char first) {
+Token Token_stream::get_single_char_token(char first) {
 	if (isspace(first)) 
 		return Token(SPACE);
 		
@@ -231,9 +236,12 @@ Token Token_stream::get_single_token(char first) {
 		else
 			error("After declaration key must be whitespace except new line");
 	}
-	else if ((first == tolower(HELP) || first == toupper(HELP)) &&
-				(next == print || isspace(next)))
-		result = Token(HELP);
+	else if (first == tolower(HELP) || first == toupper(HELP)) {
+		if (next == print || isspace(next))
+			result = Token(HELP);
+		else if (! isalnum(next))
+			error("After help key must be whitespace or " + string(1, print) + " or alphanumerical key");
+	}
 		
 	return result;
 }
@@ -246,7 +254,9 @@ Token Token_stream::get_alphanum_token(char first) {
 		return Token(SQRT);
 	else if (s == CONST_NAME) 
 		return Token(CONST);
-	else if (s.size() > 0)
+	else if (s == VARS_VIEW_NAME) 
+		return Token(VARS_VIEW);
+	else if (s.size() > 0) 
 		return Token(NAME, s);
 		
 	return EMPTY_TOKEN;
@@ -265,7 +275,7 @@ bool Token_stream::is_constant_token(Token& t) {
 }
 
 Token Token_stream::get_other_token(char first) {
-	Token result = get_single_token(first);
+	Token result = get_single_char_token(first);
 	if (result.kind == EMPTY_TOKEN.kind)	
 		result = get_alphanum_token(first);
 	if (result.kind != EMPTY_TOKEN.kind)	
@@ -651,7 +661,7 @@ double before_primary(Token& t, bool& minus_number) {
 	}
 }
 
-// after primary may be tokens: power(exponent) and factorial 
+// after primary may be tokens: power(exponent), factorial and assignment '='
 // which order of operations has precedence over * / % - + 
 double after_primary(double x, Token& t) {
 	double result;
@@ -695,7 +705,7 @@ double factor() {
 	return result;
 }
 
-// calculate of elements / % * (quotient. modulo quotient, product)
+// calculate of elements / % * (quotient, modulo quotient, product)
 // which order of operations has precedence over - + 
 double term() {
 	double left = factor();
@@ -819,7 +829,11 @@ bool is_running() {
 		t = ts.get();
 		switch (t.kind) {
 			case HELP:
-				manual.print_help();
+				cout << manual.manual_string;
+				cout << prompt;
+				break;
+			case VARS_VIEW:
+				symbols.print_variables();
 				cout << prompt;
 			case NEW_LINE:
 			case SPACE:
@@ -828,8 +842,7 @@ bool is_running() {
 			default:
 				skipping = false;
 		}
-	} while(skipping);	
-				
+	} while(skipping);				
 	if (t.kind == quit) 
 		return false;
 	else 
@@ -854,7 +867,7 @@ void calculate() {
 		}
 		catch (Manual& m) {
 			system("clear");
-			manual.print_help();
+			cout << manual.manual_string;
 			clean_up_mess();
 		}
 	} while (true);
@@ -876,7 +889,7 @@ void add_predefined_variables() {
 int main()
 try {
 	cout << "Welcome in simple calculator.\n";
-	manual.print_help();
+	cout << manual.manual_string;
 	add_predefined_variables();
 	symbols.print_variables();
 	calculate();
