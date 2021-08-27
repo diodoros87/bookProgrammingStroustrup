@@ -101,7 +101,7 @@ struct Token {
 	Token(char ch, string s) :kind(ch), name(s) { }
 };
 
-string get_reserved_name(Token& t) {
+string get_reserved_name(const Token& t) {
 	char kind = t.kind;
 	switch (kind) {
 		case quit:
@@ -257,8 +257,9 @@ bool Token_stream::is_constant_token(Token& t) {
 	if (t.kind == CONST) { 
 		result = true;
 		t = get_token_after_SPACE();
-		if (t.kind == '=')
-			error(CONST_NAME + " is keyword and can not be used as variable");
+		if (t.kind != NAME)
+			error(CONST_NAME + " is keyword and can not be used as variable. ",
+			"After this keyword must be new declared name");
 	}
 	return result;
 }
@@ -579,6 +580,14 @@ double brackets_expression(char bracket_kind) {
    return result;
 }
 
+void not_primary_error(const Token& t) {
+	string name = get_reserved_name(t);
+	if (name.size() > 0)
+		error("unrecognized primary: ", name);
+	else
+		error("unrecognized primary: ", t.kind);
+}
+
 // calculator functions to token process and calculations
 //-------------------------------------------- 
 double primary() {
@@ -613,7 +622,7 @@ double primary() {
 		return result;    // return before end of method to avoid set assignment_chance to false for first entered name
 			
 	default:
-		error("unrecognized primary: ", t.kind);
+		not_primary_error(t);
 	}
 	if(assignment_chance)
 		assignment_chance = false;   // after get token other than NAME, assignment_chance is set ot false
