@@ -159,6 +159,7 @@ but every sign must be separated by number or bracket \n";
 	cout << "To define new variable enter "<< declaration_key << " whitespace, variable name = value(number or other variable)\n";
 	cout << "Variable name must started with letter or _ and may contain letters, digits and _ \n";
 	cout << "Can not declare identical variable name \n";
+	cout << "To define constant 'variable' enter: " << declaration_key << " " << CONST_NAME << " name_of_variable \n";
 	cout << "To quit enter "<< quit_name << endl;
 	cout << "To display this manual enter " << HELP << " case insensitive " << endl;
 }
@@ -184,6 +185,7 @@ public:
 	void unget(Token& t);
 	void ignore(char, char);
 	Token get_token_after_SPACE();
+	bool is_constant_token(Token& t);
 };
 
 void Token_stream::unget(Token& t) {
@@ -250,6 +252,17 @@ Token Token_stream::get_alphanum_token(char first) {
 	return EMPTY_TOKEN;
 }
 
+bool Token_stream::is_constant_token(Token& t) {
+	bool result = false;
+	if (t.kind == CONST) { 
+		result = true;
+		t = get_token_after_SPACE();
+		if (t.kind == '=')
+			error(CONST_NAME + " is keyword and can not be used as variable");
+	}
+	return result;
+}
+
 Token Token_stream::get_other_token(char first) {
 	Token result = get_single_token(first);
 	if (result.kind == EMPTY_TOKEN.kind)	
@@ -314,6 +327,10 @@ void Token_stream::ignore(char c1, char c2) {
 	return;
 }
 
+// global variable of type Token_stream 
+//--------------------------------------------
+Token_stream ts;
+
 // Variable struct
 struct Variable {
 	string name;
@@ -325,16 +342,25 @@ struct Variable {
 
 // Variable structs vector and operations on this vector
 //--------------------------------------------
-vector<Variable> names;
+class Symbol_table {
+	private:
+		vector<Variable> names;
+	public:
+		double get_value(string s);
+		void set_value(string s, double d);
+		bool is_declared(string s);
+		double define_name(string s, double value, bool is_constant);
+		void print_variables();
+};
 
-double get_value(string s) {
+double Symbol_table::get_value(string s) {
 	for (unsigned int i = 0; i < names.size(); ++i)
 		if (names[i].name == s) 
 			return names[i].value;
 	error("get: undefined name ", s);
 }
 
-void set_value(string s, double d) {
+void Symbol_table::set_value(string s, double d) {
 	for (unsigned int i = 0; i <= names.size(); ++i)
 		if (names[i].name == s) {
 			if (names[i].constant == true)
@@ -345,16 +371,34 @@ void set_value(string s, double d) {
 	error("set: undefined name ", s);
 }
 
-bool is_declared(string s) {
+bool Symbol_table::is_declared(string s) {
 	for (unsigned int i = 0; i < names.size(); ++i)
 		if (names[i].name == s) 
 			return true;
 	return false;
 }
 
-// global variable of type Token_stream 
+double Symbol_table::define_name(string s, double value, bool is_constant) {
+	if (is_declared(s)) 
+		error(s, " declared twice");
+	names.push_back(Variable(s, value, is_constant));
+	return value;
+}
+
+void Symbol_table::print_variables() {
+	cout << "\n Already defined variables are listed below: \n";
+	for (Variable x : names) {
+		cout << x.name << " = " << x.value; 
+		if (x.constant)
+			cout << "    constant ";
+		cout << endl;
+	}
+	cout << " Already defined variables are listed above\n";
+}
+
+// global variable of type Symbol_table with declared variables 
 //--------------------------------------------
-Token_stream ts;
+Symbol_table symbols;
 
 // mathematical operations part 1
 //--------------------------------------------
@@ -491,9 +535,9 @@ bool round_braces = false;   // curly braces can not be inside square or round b
 bool square_braces = false;  // square braces can not be inside round brackets
 bool operation = false;      // can not accept sequence of +- +- ++ /- *+ *- and
 // other mixes of 2 or more subsequent operators not separated by brackets
-
-bool assignment_chance = false;
-bool assignment_done = false;
+bool assignment_chance = false; // to signal assignment chance after detect first token as name of variable
+bool assignment_done = false;   // when assignment has done to signal assignment completed and 
+// other assignment can not exist in expression
 
 double expression();
 
@@ -555,23 +599,24 @@ double primary() {
 		result = '+' == t.kind ? primary() : -primary();
 		break;
 	case NEW_LINE:   // to allow many lines calculations without ignoring new line tokens in cin and Token_stream
-		return primary();
+		return primary();  // return before end of method to avoid set assignment_chance to false for first entered name
+								// to allow assignment divided in many lines
 	case number:
 		result = t.value;
 		operation = false;
 		validate_next_token(t);
 		break;
 	case NAME:
-		result = get_value(t.name);
+		result = symbols.get_value(t.name);
 		operation = false;
 		validate_next_token(t);
-		return result;
+		return result;    // return before end of method to avoid set assignment_chance to false for first entered name
 			
 	default:
 		error("unrecognized primary: ", t.kind);
 	}
-
-	assignment_chance = false;
+	if(assignment_chance)
+		assignment_chance = false;   // after get token other than NAME, assignment_chance is set ot false
 	return result;
 }
 
@@ -702,14 +747,8 @@ void reset_global_variables() {
 
 // validate of declaration
 double declaration() {
-	bool is_constant = false;
 	Token t = ts.get_token_after_SPACE();
-	if (t.kind == CONST) { 
-		is_constant = true;
-		t = ts.get_token_after_SPACE();
-		if (t.kind == '=')
-			error(CONST_NAME + " is keyword and can not be used as variable");
-	}
+	bool is_constant = ts.is_constant_token(t);
 	if (exist(t.kind, NOT_VARIABLES_TOKENS)) {
 		string keyword_name = get_reserved_name(t);
 		error(keyword_name + " is keyword and can not be used as variable");
@@ -721,16 +760,14 @@ double declaration() {
 		error("variable name expected in declaration",
 			" name must started with letter or _ and may contain letters, digits and _ ");
 	}
-	if (is_declared(t.name)) 
-		error(t.name, " declared twice");
 	Token t2 = ts.get_token_after_SPACE();
 	if (t2.kind != '=') {
 		ts.unget(t2);
 		error("= missing in declaration of ", t.name);
 	}
-	double d = expression();
-	names.push_back(Variable(t.name, d, is_constant));
-	return d;
+	double value = expression();
+	symbols.define_name(t.name, value, is_constant);
+	return value;
 }
 
 double statement() {
@@ -749,7 +786,7 @@ double statement() {
 			ts.unget(t);
 			double value = expression();
 			if (assignment_done) 
-				set_value(t.name, value);
+				symbols.set_value(t.name, value);
 			return value;
 		}
 		default:
@@ -821,19 +858,18 @@ void enter_key(char key) {
 		continue;
 }
 
-void print_variables() {
-	cout << "\n Already defined variables are listed below: \n";
-	for (Variable x : names)
-		cout << x.name << " = " << x.value << endl;
-	cout << " Already defined variables are listed above\n";
+void add_predefined_variables() {
+	symbols.define_name("k", 1000, false);
+	symbols.define_name("PI", 3.14159, true);
+	symbols.define_name("e", 2.71828, true);
 }
 
 int main()
 try {
 	cout << "Welcome in simple calculator.\n";
 	manual.print_help();
-	names.push_back(Variable("k", 1000));
-	print_variables();
+	add_predefined_variables();
+	symbols.print_variables();
 	calculate();
 	return 0;
 }
