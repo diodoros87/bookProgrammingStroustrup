@@ -351,7 +351,7 @@ struct Variable {
 	Variable(string n, double v, bool c) : name(n), value(v), constant(c) { }
 };
 
-// Variable structs vector and operations on this vector
+// Symbol_table class has Variable struct vector and operations on this vector
 //--------------------------------------------
 class Symbol_table {
 	private:
@@ -407,7 +407,7 @@ void Symbol_table::print_variables() {
 	cout << " Already defined variables are listed above\n";
 }
 
-// global variable of type Symbol_table with declared variables 
+// global variable of class Symbol_table with declared variables 
 //--------------------------------------------
 Symbol_table symbols;
 
@@ -782,7 +782,7 @@ double declaration() {
 	Token t2 = ts.get_token_after_SPACE();
 	if (t2.kind != '=') {
 		ts.unget(t2);
-		error("= missing in declaration of ", t.name);
+		error("= must be directly after variable name in declaration of ", t.name);
 	}
 	double value = expression();
 	symbols.define_name(t.name, value, is_constant);
