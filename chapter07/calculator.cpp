@@ -268,8 +268,8 @@ bool Token_stream::is_constant_token(Token& t) {
 		result = true;
 		t = get_token_after_SPACE();
 		if (t.kind != NAME)
-			error(CONST_NAME + " is keyword and can not be used as variable. ",
-			"After this keyword must be new declared name");
+			error(CONST_NAME + " is keyword and can not be used as variable. \n",
+			"After this keyword must be one new declared name, = as assignment operator, value");
 	}
 	return result;
 }
@@ -542,8 +542,8 @@ opening bracket or sqrt");
 // global variables to check calculator input data correction (to validate)
 // in mathematical operations this global variables validate only sequence of input data
 //--------------------------------------------
-bool round_braces = false;   // curly braces can not be inside square or round brackets
-bool square_braces = false;  // square braces can not be inside round brackets
+short round_braces = 0;   // counter opening round braces - curly braces can not be inside square or round brackets
+short square_braces = 0;  // counter opening square braces - square braces can not be inside round brackets
 bool operation = false;      // can not accept sequence of +- +- ++ /- *+ *- and
 // other mixes of 2 or more subsequent operators not separated by brackets
 bool assignment_chance = false; // to signal assignment chance after detect first token as name of variable
@@ -557,18 +557,18 @@ double brackets_expression(char bracket_kind) {
 	switch(bracket_kind) {
 		case '(':
 			last_bracket = ')';
-			round_braces = true;
+			round_braces++;
 			break;
 		case '[':
-			if (round_braces) 
+			if (round_braces > 0) 
 				error("Before close brace ), square brace [ is not accepted");
 			last_bracket = ']';
-			square_braces = true;
+			square_braces++;
 			break;
 		case '{':
-			if (square_braces)
+			if (square_braces > 0)
 				error("Before close brace ], curly brace { is not accepted");
-			if (round_braces)
+			if (round_braces > 0)
 				error("Before close brace ), curly brace { is not accepted");
 			last_bracket = '}';
 			break;
@@ -584,9 +584,9 @@ double brackets_expression(char bracket_kind) {
 	}
 	validate_next_token(t); 
 	if (bracket_kind == '[')
-		square_braces = false;
+		square_braces--;
 	else if (bracket_kind == '(')
-		round_braces = false;
+		round_braces--;
    return result;
 }
 
@@ -635,7 +635,7 @@ double primary() {
 		not_primary_error(t);
 	}
 	if(assignment_chance)
-		assignment_chance = false;   // after get token other than NAME, assignment_chance is set ot false
+		assignment_chance = false;   // after get token other than NAME, assignment_chance is set to false
 	return result;
 }
 
@@ -758,8 +758,8 @@ double expression() {
 }
 
 void reset_global_variables() {
-	round_braces = false;   // set flag to false after error to cleaning before next operations
-	square_braces = false;  // set flag to false after error to cleaning before next operations
+	round_braces = 0;   // set counter opening round braces to 0 to cleaning before next operations
+	square_braces = 0;  // set counter opening square braces to 0 to cleaning before next operations
 	assignment_chance = false;
 	assignment_done = false;
 }
@@ -782,7 +782,7 @@ double declaration() {
 	Token t2 = ts.get_token_after_SPACE();
 	if (t2.kind != '=') {
 		ts.unget(t2);
-		error("= must be directly after variable name in declaration of ", t.name);
+		error("= must be directly after only one variable name in declaration of ", t.name);
 	}
 	double value = expression();
 	symbols.define_name(t.name, value, is_constant);
