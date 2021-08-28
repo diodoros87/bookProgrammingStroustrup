@@ -171,6 +171,7 @@ public:
 	void unget(Token& t);
 	void ignore(char, char);
 	Token get_token_after_SPACE();
+	void check_name(Token& t);
 	bool is_constant_token(Token& t);
 	string get_name_string(char first);
 	string get_name_string();
@@ -262,14 +263,30 @@ Token Token_stream::get_alphanum_token(char first) {
 	return EMPTY_TOKEN;
 }
 
+void Token_stream::check_name(Token& t) {
+	if (exist(t.kind, NOT_VARIABLES_TOKENS)) {
+		string keyword_name = get_reserved_name(t);
+		error(keyword_name + " is keyword and can not be used as variable");
+	}
+	if (exist(t.name, NOT_VARIABLES_NAMES)) 
+		error(t.name + " is keyword and can not be used as variable");
+	if (t.kind != NAME) { 
+		unget(t);
+		error("variable name expected in declaration",
+			" name must started with letter or _ and may contain letters, digits and _ ");
+	}
+}
+
 bool Token_stream::is_constant_token(Token& t) {
 	bool result = false;
 	if (t.kind == CONST) { 
 		result = true;
-		t = get_token_after_SPACE();
-		if (t.kind != NAME)
+		t = get_token_after_SPACE();  // if constant token then get next token (should be variable name)
+		if (t.kind == '=' || t.kind == NEW_LINE) {
+			unget(t);
 			error(CONST_NAME + " is keyword and can not be used as variable. \n",
-			"After this keyword must be one new declared name, = as assignment operator, value");
+				"After this keyword must be one new declared name, = as assignment operator, value");
+		}
 	}
 	return result;
 }
@@ -510,10 +527,10 @@ void validate_next_token(Token& t) {
 	char next = next_token.kind;
 	switch (t.kind) {
 		case '!':
-			if ('(' == next || '[' == next || '{' == next ||
+			if ('(' == next || '[' == next || '{' == next || '=' == next ||
 				number == next || NAME == next || SQRT == next || '!' == next)
 				error("Next token after factorial token can not be opening bracket or \
-number or variable or sqrt or !");
+number or variable or sqrt or ! or =");
 			break;
 		case number:
 			if ('(' == next || '[' == next || '{' == next ||
@@ -544,11 +561,14 @@ opening bracket or sqrt");
 //--------------------------------------------
 short round_braces = 0;   // counter opening round braces - curly braces can not be inside square or round brackets
 short square_braces = 0;  // counter opening square braces - square braces can not be inside round brackets
+
 bool operation = false;      // can not accept sequence of +- +- ++ /- *+ *- and
 // other mixes of 2 or more subsequent operators not separated by brackets
+
 bool assignment_chance = false; // to signal assignment chance after detect first token as name of variable
 bool assignment_done = false;   // when assignment has done to signal assignment completed and 
 // other assignment can not exist in expression
+short names_counter = 0;  // counter of variables to control nummber of variables before '='
 
 double expression();
 
@@ -629,13 +649,15 @@ double primary() {
 		result = symbols.get_value(t.name);
 		operation = false;
 		validate_next_token(t);
+		if(assignment_chance)
+			names_counter++;
 		return result;    // return before end of method to avoid set assignment_chance to false for first entered name
 			
 	default:
 		not_primary_error(t);
 	}
 	if(assignment_chance)
-		assignment_chance = false;   // after get token other than NAME, assignment_chance is set to false
+		assignment_chance = false;   // after get tokens other than NAME, assignment_chance is set to false
 	return result;
 }
 
@@ -678,7 +700,7 @@ double after_primary(double x, Token& t) {
 			validate_next_token(t);
 			break;
 		case '=': 
-		if (! assignment_chance || assignment_done)
+		if (! assignment_chance || assignment_done || names_counter > 1)
 			error("Assignment operator must be only one in expression and \n must occur after variable name directly \
 and if variable name is first primary in expression ");
 				assignment_done = true;
@@ -762,23 +784,13 @@ void reset_global_variables() {
 	square_braces = 0;  // set counter opening square braces to 0 to cleaning before next operations
 	assignment_chance = false;
 	assignment_done = false;
+	names_counter = 0;
 }
 
-// validate of declaration
 double declaration() {
 	Token t = ts.get_token_after_SPACE();
 	bool is_constant = ts.is_constant_token(t);
-	if (exist(t.kind, NOT_VARIABLES_TOKENS)) {
-		string keyword_name = get_reserved_name(t);
-		error(keyword_name + " is keyword and can not be used as variable");
-	}
-	if (exist(t.name, NOT_VARIABLES_NAMES)) 
-		error(t.name + " is keyword and can not be used as variable");
-	if (t.kind != NAME) { 
-		ts.unget(t);
-		error("variable name expected in declaration",
-			" name must started with letter or _ and may contain letters, digits and _ ");
-	}
+	ts.check_name(t);
 	Token t2 = ts.get_token_after_SPACE();
 	if (t2.kind != '=') {
 		ts.unget(t2);
