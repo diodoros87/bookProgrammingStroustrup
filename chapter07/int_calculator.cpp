@@ -2,6 +2,7 @@
 #include <vector>
 #include <cmath>
 #include <climits>
+#include <limits>
 
 using namespace std;
 
@@ -36,7 +37,19 @@ bool is_integer(double x) {
 	return true;
 }
 
-void check_integer_range(double val) {
+bool is_integer(long long x) {
+	int integer = x;
+	if (integer != x) {
+		cerr << "Parameter long long x = " << x << endl;
+		cerr << "Int of x = " << integer << endl;
+		return false;
+		//error("Parameter is NOT int type");
+	}
+	return true;
+}
+
+void check_integer_range(long long val) {
+	cerr << " val = " << val << endl;
 	if (val > INT_MAX)
 		error("Max number for int is ", INT_MAX);
 	if (val < INT_MIN)
@@ -223,12 +236,25 @@ void Token_stream::unget(Token& t) {
 	full = true;      // buffer is now full
 }
 
-Token Token_stream::get_number() {	
+// function get only non-negative numbers, because every token of '-' char is get separately from number
+Token Token_stream::get_number() {	 
 	long long val;
 	cin >> val;
 	if (!cin)
 		error("Attempt to reading number has failed");
-	check_integer_range(val);
+	/*
+	std::numeric_limits<int>::min();
+	cerr << " 0+(std::numeric_limits<int>::min()) = " << 0+(std::numeric_limits<int>::min()) << endl;
+	cerr << " std::numeric_limits<int>::min() = " << std::numeric_limits<int>::min() << endl;	
+	cerr << " val = " << val << endl;
+	cerr << " 0-(std::numeric_limits<int>::min()) = " << 0-(std::numeric_limits<int>::min()) << endl;
+	cerr << " std::numeric_limits<int>::min() = " << std::numeric_limits<int>::min() << endl;
+	*/
+	if (val != -(INT_MIN) && false == is_integer(val))  // absolute value of abs(INT_MIN) == abs(INT_MAX + 1)
+		error("input value is not int type ");
+	
+	//if (val != -INT_MIN)  // absolute value of INT_MIN > INT_MAX
+		//is_integer(val);
 	return Token(number, val);
 }
 
@@ -467,7 +493,7 @@ int factorial(int number) {
 }
 
 // declarations of primary in calculator
-int primary();
+long primary();
 
 // mathematical operations part 2
 //--------------------------------------------
@@ -502,10 +528,18 @@ void print_power_overflow(int base, int exponent, const int LIMIT, int result, i
 	cerr << "Calculate " << base << " to power of " << exponent << " integer overflow :\n";
 	cerr << "While calculating " << base << " to power of " << counter <<
 		" result = " << result << " " << LIMIT_NAME << " = " << LIMIT << " \n";
-	if (INT_MAX == LIMIT)
-		cerr << "result > INT_MAX / base that is " << result << " > " << INT_MAX / base << "\n";
-	else
-		cerr << "result < INT_MIN / base that is " << result << " < " << INT_MIN / base << "\n";
+	if (INT_MAX == LIMIT) {
+		if (result > 0 && base > 0)
+			cerr << "result > INT_MAX / base that is " << result << " > " << INT_MAX / base << "\n";
+		else if (result < 0 && base < 0)
+			cerr << "result < INT_MAX / base that is " << result << " < " << INT_MAX / base << "\n";
+	}
+	else {
+		if (result < 0 && base > 0)
+			cerr << "result < INT_MIN / base that is " << result << " < " << INT_MIN / base << "\n";
+		else if (result > 0 && base < 0)
+			cerr << "result > INT_MIN / base that is " << result << " > " << INT_MIN / base << "\n";
+	}
 		
 	cerr << "result * base = " << result * base << "\n";
 }
@@ -520,13 +554,29 @@ int power(int base, int exponent) {
 	int last = exponent > 0 ? exponent : -exponent;
 	
 	for (int counter = 1; counter <= last; counter++) {
-		if (result > INT_MAX / base) {
-			print_power_overflow(base, exponent, INT_MAX, result, counter);
-			throw overflow_error("integer overflow error");
+		if (result > 0 && base > 0) {
+			if  (result > INT_MAX / base) {
+				print_power_overflow(base, exponent, INT_MAX, result, counter);
+				throw overflow_error("integer overflow error");
+			}
 		}
-		else if (result < INT_MIN / base) {
-			print_power_overflow(base, exponent, INT_MIN, result, counter);
-			throw overflow_error("integer overflow error");
+		else if (result < 0 && base < 0) {
+			if (result < INT_MAX / base) {
+				print_power_overflow(base, exponent, INT_MAX, result, counter);
+				throw overflow_error("integer overflow error");
+			}
+		}
+		else if (result < 0 && base > 0) {
+			if (result < INT_MIN / base) {
+				print_power_overflow(base, exponent, INT_MIN, result, counter);
+				throw overflow_error("integer overflow error");
+			}
+		}
+		else if (result > 0 && base < 0) {
+			if (result > INT_MIN / base) {
+				print_power_overflow(base, exponent, INT_MIN, result, counter);
+				throw overflow_error("integer overflow error");
+			}
 		}
 		
 		result *= base;
@@ -535,7 +585,7 @@ int power(int base, int exponent) {
 	if (exponent >= 0)
 		return result;
 	
-	double result_double = 1 / result;
+	double result_double = 1. / result;
 	if (false == is_integer(result_double))
 		error("result of power is not int type ");
 	result = result_double;
@@ -665,8 +715,8 @@ void not_primary_error(const Token& t) {
 
 // calculator functions to token process and calculations
 //-------------------------------------------- 
-int primary() {
-	int result;
+long primary() {
+	long result;
 	Token t = ts.get_token_after_SPACE();
 	switch (t.kind) {
 	case '(':
@@ -675,19 +725,12 @@ int primary() {
 		result = brackets_expression(t.kind);
 		operation = false;
 		break;
-	case '-': {
-		if (operation)
-			error("Next token after operator can not be + or -");
-		operation = true;
-		long result_long = -primary();   // absolute value of INT_MIN >  absolute value of INT_MAX
-		check_integer_range(result_long);
-		break;
-	}
+	case '-':
 	case '+':
 		if (operation)
 			error("Next token after operator can not be + or -");
 		operation = true;
-		result = primary();
+		result = '+' == t.kind ? primary() : -primary();
 		break;
 	case NEW_LINE:   // to allow many lines calculations without ignoring new line tokens in cin and Token_stream
 		return primary();  // return before end of method to avoid set assignment_chance to false for first entered name
@@ -772,15 +815,13 @@ and if variable name is first primary in expression ");
 int factor() {
 	bool minus_number = false;
 	Token t = ts.get_token_after_SPACE();
-	int result = before_primary(t, minus_number);
+	long result = before_primary(t, minus_number);
+	check_integer_range(result);
 	t = ts.get_token_after_SPACE();
 	result = after_primary(result, t);
-	if (minus_number) {
-		long result_long = -primary();
-		check_integer_range(result_long);  // absolute value of INT_MIN >  absolute value of INT_MAX
-		result = result_long;
-	}
-	return result;
+	if (minus_number)
+		result = -result;
+	return (int)result;
 }
 
 // calculate of elements / % * (quotient, modulo quotient, product)
