@@ -26,6 +26,11 @@ inline void error(const string& s, int i) {
    throw runtime_error("");
 }
 
+inline void error(const string& s, long i) {
+	cerr << "!!!!! Error: " << s << i <<  endl;
+   throw runtime_error("");
+}
+
 bool is_integer(double x) {
 	int integer = x;
 	if (integer != x) {
@@ -41,6 +46,17 @@ bool is_integer(long long x) {
 	int integer = x;
 	if (integer != x) {
 		cerr << "Parameter long long x = " << x << endl;
+		cerr << "Int of x = " << integer << endl;
+		return false;
+		//error("Parameter is NOT int type");
+	}
+	return true;
+}
+
+bool is_integer(long x) {
+	int integer = x;
+	if (integer != x) {
+		cerr << "Parameter long x = " << x << endl;
 		cerr << "Int of x = " << integer << endl;
 		return false;
 		//error("Parameter is NOT int type");
@@ -242,19 +258,9 @@ Token Token_stream::get_number() {
 	cin >> val;
 	if (!cin)
 		error("Attempt to reading number has failed");
-	/*
-	std::numeric_limits<int>::min();
-	cerr << " 0+(std::numeric_limits<int>::min()) = " << 0+(std::numeric_limits<int>::min()) << endl;
-	cerr << " std::numeric_limits<int>::min() = " << std::numeric_limits<int>::min() << endl;	
-	cerr << " val = " << val << endl;
-	cerr << " 0-(std::numeric_limits<int>::min()) = " << 0-(std::numeric_limits<int>::min()) << endl;
-	cerr << " std::numeric_limits<int>::min() = " << std::numeric_limits<int>::min() << endl;
-	*/
-	if (val != -(INT_MIN) && false == is_integer(val))  // absolute value of abs(INT_MIN) == abs(INT_MAX + 1)
+	if (val != -(long long)(INT_MIN) && false == is_integer(val))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
 		error("input value is not int type ");
 	
-	//if (val != -INT_MIN)  // absolute value of INT_MIN > INT_MAX
-		//is_integer(val);
 	return Token(number, val);
 }
 
@@ -503,9 +509,11 @@ int square_root() {
 	if ('(' != t.kind && '[' != t.kind && '{' != t.kind) 
 		error("number of square root must be in brackets");
 	
-	int x = primary();
+	long x = primary();
 	if (x < 0)
 		error("Real solution for square root for number < 0 does not exist");
+	if (false == is_integer(x))
+		error("number of square root is not int type ");
 	double result_double = sqrt(x);
 	if (false == is_integer(result_double))
 		error("result of square root is not int type ");
@@ -598,8 +606,10 @@ int power(int base) {
 	ts.unget(t);
 	if ('(' != t.kind && '[' != t.kind && '{' != t.kind)
 		error("in power calculation exponent must be in brackets");
-	int exponent = primary();  // brackets are in primary()
-	int result = power(base, exponent);
+	long exponent = primary();  // brackets are in primary()
+	if (false == is_integer(exponent))
+		error("exponent is not int type ");
+	int result = power(base, (int)exponent);
 	return result;
 }
 
@@ -757,26 +767,35 @@ long primary() {
 	return result;
 }
 
-int factor();
+long factor();
 
 // before primary may be minus or sqrt
 // skip plus because is not problematic for factorial calculations
 // which order of operations has precedence over * / % - + 
-int before_primary(Token& t, bool& minus_number) {
+long before_primary(Token& t, bool& minus_number) {
+	long result;
 	switch (t.kind) {
 		case SQRT:
-			return square_root();
+			result = square_root();
+			break;
 		case '-':    // to allow minus '-' as first token in expression with factorial, which can not accept minus numbers
 						 // errors: -4! == -24  and  (-4)!
 			if (operation)
 				error("Next token after operator can not be + or -");
 			minus_number = true;    // ok: -4! == -24    error: (-4)! 
 			operation = true;
-			return factor();
-		default:
+			result = -factor();
+			if (result == -(long)(INT_MIN))   // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
+				error("Max number for int is ", INT_MAX);
+			break;
+		default: 
 			ts.unget(t);
-			return primary();
+			result = primary();
+			break;
 	}
+	if (result != -(long long)(INT_MIN) && false == is_integer(result))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
+		error("value is not int type ", result);
+	return result;
 }
 
 // after primary may be tokens: power(exponent), factorial and assignment '='
@@ -812,16 +831,17 @@ and if variable name is first primary in expression ");
 
 // calculate of factors (square root, power, factorial)
 // which order of operations has precedence over * / % - + 
-int factor() {
+long factor() {
 	bool minus_number = false;
 	Token t = ts.get_token_after_SPACE();
 	long result = before_primary(t, minus_number);
-	check_integer_range(result);
 	t = ts.get_token_after_SPACE();
 	result = after_primary(result, t);
+	//if (minus_number && result == -(long)(INT_MIN))   // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
+		//error("Min number for int is ", INT_MIN);
 	if (minus_number)
 		result = -result;
-	return (int)result;
+	return result;
 }
 
 // calculate of elements / % * (quotient, modulo quotient, product)

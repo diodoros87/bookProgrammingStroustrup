@@ -667,20 +667,25 @@ double factor();
 // skip plus because is not problematic for factorial calculations
 // which order of operations has precedence over * / % - + 
 double before_primary(Token& t, bool& minus_number) {
+	double result;
 	switch (t.kind) {
 		case SQRT:
-			return square_root();
+			result = square_root();
+			break;
 		case '-':    // to allow minus '-' as first token in expression with factorial, which can not accept minus numbers
 						 // errors: -4! == -24  and  (-4)!
 			if (operation)
 				error("Next token after operator can not be + or -");
 			minus_number = true;    // ok: -4! == -24    error: (-4)! 
 			operation = true;
-			return factor();
+			t = ts.get_token_after_SPACE();
+			result = before_primary(t, minus_number);
+			break;
 		default:
 			ts.unget(t);
-			return primary();
+			result = primary();
 	}
+	return result;
 }
 
 // after primary may be tokens: power(exponent), factorial and assignment '='
