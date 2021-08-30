@@ -25,10 +25,17 @@ inline void error(const string& s, int i) {
    throw runtime_error("");
 }
 
+bool is_in_long_range(double val) {
+	if (val >= LONG_MIN && val <= LONG_MAX)
+		return true;
+	else
+		return false;
+}
+
 bool is_integer(double x) {
 	int integer = x;
 	if (integer != x) {
-		if (0 == fmod(x, 1))
+		if (is_in_long_range(x) && 0 == fmod(x, 1))
 			cerr << "Parameter long x = " << (long)x << endl;
 		else
 			cerr << "Parameter double x = " << x << endl;
@@ -40,7 +47,6 @@ bool is_integer(double x) {
 }
 
 void check_integer_range(double val) {
-	cerr << " val = " << val << endl;
 	if (val > INT_MAX)
 		error("Max number for int is ", INT_MAX);
 	if (val < INT_MIN)
@@ -286,6 +292,8 @@ Token Token_stream::get_alphanum_token(char first) {
 		return Token(CONST);
 	else if (s == VARS_VIEW_NAME) 
 		return Token(VARS_VIEW);
+	//else if (s == SQRT_NAME) 
+		//return Token(SQRT);
 	else if (s.size() > 0) 
 		return Token(NAME, s);
 		
@@ -779,20 +787,14 @@ double before_primary(Token& t, bool& minus_number) {
 			operation = true;
 			t = ts.get_token_after_SPACE();
 			result = before_primary(t, minus_number);
-			cerr << "before_primary minus (long)result " << (long)result << endl;
 			break;
 		default: 
 			ts.unget(t);
 			result = primary();
-			cerr << "before_primary = " << result << endl;
-			cerr << "minus_number = " << minus_number << endl;
-			//cerr << "-(long)(INT_MIN) = " << -(long)(INT_MIN) << endl;
 			if (false == minus_number && result == -(long)(INT_MIN))   // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
 				error("Max number for int is ", INT_MAX);
 			break;
 	}
-	//if (result != -(long)(INT_MIN) && false == is_integer(result))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
-		//error("value is not int type ", result);
 	return result;
 }
 
@@ -835,12 +837,8 @@ int factor() {
 	double result = before_primary(t, minus_number);
 	t = ts.get_token_after_SPACE();
 	result = after_primary(result, t);
-	//if (minus_number && result == -(long)(INT_MIN))   // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
-		//error("Min number for int is ", INT_MIN);
-	cerr << "1 (long)result " << (long)result << endl;
 	if (minus_number)
 		result = -result;
-	cerr << "2 (long)result " << (long)result << endl;
 	if (false == is_integer(result))
 		error("result is not int type");
 	return (int)result;
