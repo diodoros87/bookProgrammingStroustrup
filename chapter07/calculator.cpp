@@ -125,7 +125,7 @@ Supported operations: \n\
 4. division x/y \n\
 5. modulo division x%y \n\
 6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n\
-7. power(exponentiation)) x" + string(1, POWER) + "y (x to power of y - y is exponent) \n\
+7. power(exponentiation)) x" + string(1, POWER) + "(y) (x to power of y - y is exponent) \n\
 number of exponent must be in any supported bracket kind \n\
 8. factorial x! \n\
 To separate many calculations press " + string(1, print) + " or whitespace or new line \n\

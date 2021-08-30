@@ -2,7 +2,6 @@
 #include <vector>
 #include <cmath>
 #include <climits>
-#include <limits>
 
 using namespace std;
 
@@ -26,15 +25,13 @@ inline void error(const string& s, int i) {
    throw runtime_error("");
 }
 
-inline void error(const string& s, long i) {
-	cerr << "!!!!! Error: " << s << i <<  endl;
-   throw runtime_error("");
-}
-
 bool is_integer(double x) {
 	int integer = x;
 	if (integer != x) {
-		cerr << "Parameter double x = " << x << endl;
+		if (0 == fmod(x, 1))
+			cerr << "Parameter long x = " << (long)x << endl;
+		else
+			cerr << "Parameter double x = " << x << endl;
 		cerr << "Int of x = " << integer << endl;
 		return false;
 		//error("Parameter is NOT int type");
@@ -42,29 +39,7 @@ bool is_integer(double x) {
 	return true;
 }
 
-bool is_integer(long long x) {
-	int integer = x;
-	if (integer != x) {
-		cerr << "Parameter long long x = " << x << endl;
-		cerr << "Int of x = " << integer << endl;
-		return false;
-		//error("Parameter is NOT int type");
-	}
-	return true;
-}
-
-bool is_integer(long x) {
-	int integer = x;
-	if (integer != x) {
-		cerr << "Parameter long x = " << x << endl;
-		cerr << "Int of x = " << integer << endl;
-		return false;
-		//error("Parameter is NOT int type");
-	}
-	return true;
-}
-
-void check_integer_range(long long val) {
+void check_integer_range(double val) {
 	cerr << " val = " << val << endl;
 	if (val > INT_MAX)
 		error("Max number for int is ", INT_MAX);
@@ -119,15 +94,24 @@ bool exist(string s, const vector<string>& vec) {
 
 // Token struct
 //--------------------------------------------
-struct Token {
-	char kind;
-	int value;
+struct Token {    // Token has only non-negative numbers, because every token of '-'(minus) char is get separately from number
+	char kind;     
+	unsigned int value;    // absolute value of labs(INT_MIN) == labs(INT_MAX + 1)
 	string name;
 	
 	Token(char ch) :kind(ch), value(0) { }
-	Token(char ch, int val) :kind(ch), value(val) { }
+	Token(char ch, double val);
+	//Token(char ch, double val) :kind(ch), value(val) { }
 	Token(char ch, string s) :kind(ch), name(s) { }
 };
+
+// Token has only non-negative numbers, because every token of '-'(minus) char is get separately from number
+Token::Token(char ch, double val) { 
+	if (val != -(long)(INT_MIN) && false == is_integer(val))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
+		error("Precondition: Token value must be int type");
+	kind = ch;
+	value = val;
+}
 
 string get_reserved_name(const Token& t) {
 	char kind = t.kind;
@@ -158,7 +142,7 @@ struct Manual {
 Using only int type numbers and variables for calculation.\n\
 Max number for int is ") + to_string(INT_MAX) +
 string(". Min number for int is ") + to_string(INT_MIN) +
-string("\nIn below informations 'x', 'y', 'z' are treated as number or variable \n\
+"\nIn below informations 'x', 'y', 'z' are treated as number or variable \n\
 Signed numbers or variables -x (-x) +x (+x) are allowed \
 but --x x++ -+x are unacceptable\n\
 To their accept necessary is separation by brackets -(-x) +(-y) \
@@ -177,7 +161,7 @@ Supported operations: \n\
 4. division x/y \n\
 5. modulo division x%y \n\
 6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n\
-7. power(exponentiation)) x") + string(1, POWER) + "y (x to power of y - y is exponent) \n\
+7. power(exponentiation) x" + string(1, POWER) + "(y) (x to power of y - y is exponent) \n\
 number of exponent must be in any supported bracket kind \n\
 8. factorial x! \n\
 To separate many calculations press " + string(1, print) + " or whitespace or new line \n\
@@ -254,11 +238,11 @@ void Token_stream::unget(Token& t) {
 
 // function get only non-negative numbers, because every token of '-' char is get separately from number
 Token Token_stream::get_number() {	 
-	long long val;
+	double val;
 	cin >> val;
 	if (!cin)
 		error("Attempt to reading number has failed");
-	if (val != -(long long)(INT_MIN) && false == is_integer(val))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
+	if (val != -(long)(INT_MIN) && false == is_integer(val))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
 		error("input value is not int type ");
 	
 	return Token(number, val);
@@ -418,9 +402,9 @@ class Symbol_table {
 		vector<Variable> names;
 	public:
 		int get_value(string s);
-		void set_value(string s, int d);
+		void set_value(string s, double d);
 		bool is_declared(string s);
-		int define_name(string s, int value, bool is_constant);
+		int define_name(string s, double value, bool is_constant);
 		void print_variables();
 };
 
@@ -431,12 +415,14 @@ int Symbol_table::get_value(string s) {
 	error("get: undefined name ", s);
 }
 
-void Symbol_table::set_value(string s, int d) {
+void Symbol_table::set_value(string s, double v) {
+	if (! is_integer(v))
+		error("set precondition: input parameter is not type int ");
 	for (unsigned int i = 0; i <= names.size(); ++i)
 		if (names[i].name == s) {
 			if (names[i].constant == true)
 				error("set: constant name ", s);
-			names[i].value = d;
+			names[i].value = v;
 			return;
 		}
 	error("set: undefined name ", s);
@@ -449,7 +435,9 @@ bool Symbol_table::is_declared(string s) {
 	return false;
 }
 
-int Symbol_table::define_name(string s, int value, bool is_constant) {
+int Symbol_table::define_name(string s, double value, bool is_constant) {
+	if (! is_integer(value))
+		error("set precondition: input parameter is not type int ");
 	if (is_declared(s)) 
 		error(s, " declared twice");
 	names.push_back(Variable(s, value, is_constant));
@@ -473,11 +461,11 @@ Symbol_table symbols;
 
 // mathematical operations part 1
 //--------------------------------------------
-int factorial(int number) {
+int factorial(double number) {
 	if (0 > number)
 		error("Precondition: can not calculate factorial for number < 0");
-	//if (! is_integer(number))
-		//error("Precondition: can not calculate factorial for NOT int type");
+	if (! is_integer(number))
+		error("Precondition: can not calculate factorial for NOT int type");
 
 	int result = 1;
 	for (short counter = 2; counter <= number; counter++) {
@@ -499,7 +487,7 @@ int factorial(int number) {
 }
 
 // declarations of primary in calculator
-long primary();
+double primary();
 
 // mathematical operations part 2
 //--------------------------------------------
@@ -509,16 +497,16 @@ int square_root() {
 	if ('(' != t.kind && '[' != t.kind && '{' != t.kind) 
 		error("number of square root must be in brackets");
 	
-	long x = primary();
+	double x = primary();
 	if (x < 0)
 		error("Real solution for square root for number < 0 does not exist");
 	if (false == is_integer(x))
 		error("number of square root is not int type ");
-	double result_double = sqrt(x);
-	if (false == is_integer(result_double))
+	double result = sqrt(x);
+	if (false == is_integer(result))
 		error("result of square root is not int type ");
-	int result = result_double;
-	return result;
+	
+	return (int)result;
 }
 
 void print_power_overflow(int base, int exponent, const int LIMIT, int result, int counter) {
@@ -552,7 +540,9 @@ void print_power_overflow(int base, int exponent, const int LIMIT, int result, i
 	cerr << "result * base = " << result * base << "\n";
 }
 
-int power(int base, int exponent) {
+int power(double base, int exponent) {
+	if (! is_integer(base))
+		error("Precondition: base of power must be int type");
 	if (0 == base) {
 		if (0 != exponent)
 			return 0;
@@ -560,6 +550,9 @@ int power(int base, int exponent) {
 	}
 	int result = 1;
 	int last = exponent > 0 ? exponent : -exponent;
+	
+	//if (exponent < 0 && base != -1 && base != 1)
+		//error("result of power is not int type ");
 	
 	for (int counter = 1; counter <= last; counter++) {
 		if (result > 0 && base > 0) {
@@ -606,7 +599,7 @@ int power(int base) {
 	ts.unget(t);
 	if ('(' != t.kind && '[' != t.kind && '{' != t.kind)
 		error("in power calculation exponent must be in brackets");
-	long exponent = primary();  // brackets are in primary()
+	double exponent = primary();  // brackets are in primary()
 	if (false == is_integer(exponent))
 		error("exponent is not int type ");
 	int result = power(base, (int)exponent);
@@ -725,8 +718,8 @@ void not_primary_error(const Token& t) {
 
 // calculator functions to token process and calculations
 //-------------------------------------------- 
-long primary() {
-	long result;
+double primary() {
+	double result;
 	Token t = ts.get_token_after_SPACE();
 	switch (t.kind) {
 	case '(':
@@ -767,13 +760,13 @@ long primary() {
 	return result;
 }
 
-long factor();
+int factor();
 
 // before primary may be minus or sqrt
 // skip plus because is not problematic for factorial calculations
 // which order of operations has precedence over * / % - + 
-long before_primary(Token& t, bool& minus_number) {
-	long result;
+double before_primary(Token& t, bool& minus_number) {
+	double result;
 	switch (t.kind) {
 		case SQRT:
 			result = square_root();
@@ -784,24 +777,29 @@ long before_primary(Token& t, bool& minus_number) {
 				error("Next token after operator can not be + or -");
 			minus_number = true;    // ok: -4! == -24    error: (-4)! 
 			operation = true;
-			result = -factor();
-			if (result == -(long)(INT_MIN))   // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
-				error("Max number for int is ", INT_MAX);
+			t = ts.get_token_after_SPACE();
+			result = before_primary(t, minus_number);
+			cerr << "before_primary minus (long)result " << (long)result << endl;
 			break;
 		default: 
 			ts.unget(t);
 			result = primary();
+			cerr << "before_primary = " << result << endl;
+			cerr << "minus_number = " << minus_number << endl;
+			//cerr << "-(long)(INT_MIN) = " << -(long)(INT_MIN) << endl;
+			if (false == minus_number && result == -(long)(INT_MIN))   // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
+				error("Max number for int is ", INT_MAX);
 			break;
 	}
-	if (result != -(long long)(INT_MIN) && false == is_integer(result))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
-		error("value is not int type ", result);
+	//if (result != -(long)(INT_MIN) && false == is_integer(result))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
+		//error("value is not int type ", result);
 	return result;
 }
 
 // after primary may be tokens: power(exponent), factorial and assignment '='
 // which order of operations has precedence over * / % - + 
-int after_primary(int x, Token& t) {
-	int result;
+double after_primary(double x, Token& t) {
+	double result;
 	switch (t.kind) {
 		case POWER:
 			if (operation)   // to avoid sequence type: +^ /^ 
@@ -831,17 +829,21 @@ and if variable name is first primary in expression ");
 
 // calculate of factors (square root, power, factorial)
 // which order of operations has precedence over * / % - + 
-long factor() {
+int factor() {
 	bool minus_number = false;
 	Token t = ts.get_token_after_SPACE();
-	long result = before_primary(t, minus_number);
+	double result = before_primary(t, minus_number);
 	t = ts.get_token_after_SPACE();
 	result = after_primary(result, t);
 	//if (minus_number && result == -(long)(INT_MIN))   // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
 		//error("Min number for int is ", INT_MIN);
+	cerr << "1 (long)result " << (long)result << endl;
 	if (minus_number)
 		result = -result;
-	return result;
+	cerr << "2 (long)result " << (long)result << endl;
+	if (false == is_integer(result))
+		error("result is not int type");
+	return (int)result;
 }
 
 // calculate of elements / % * (quotient, modulo quotient, product)
