@@ -75,11 +75,26 @@ const string POWER_NAME = "pow";
 const string CONST_NAME = "const";
 const string VARS_VIEW_NAME = "vars_view";
 const string SQRT_NAME = "sqrt";
-const string HELP_NAME = string(1, toupper(HELP)) + " or " + string(1, tolower(HELP));
+const string HELP_NAME = "help";
 
 // Token program keywords can not be used as variable name
 const vector<char> NOT_VARIABLES_TOKENS = { quit, SQRT, HELP, print, POWER, declaration_key,
 														CONST, VARS_VIEW };
+														
+bool equals_case_insensitive(string s1, string s2) {
+	const unsigned int SIZE = s1.size();
+	if (SIZE != s2.size())
+		return false;
+		
+	for (unsigned int i = 0; i < SIZE; i++) {
+		char c1 = tolower(s1[i]);
+		char c2 = tolower(s2[i]);
+		if (c1 != c2)
+			return false;
+	}
+	
+	return true;
+}
 
 bool exist(char c, const vector<char>& vec) {
 	for (char a : vec) 
@@ -89,7 +104,7 @@ bool exist(char c, const vector<char>& vec) {
 }
 
 const vector<string> NOT_VARIABLES_NAMES = { quit_name, SQRT_NAME, CONST_NAME, VARS_VIEW_NAME,
-											string(1, toupper(HELP)), string(1, tolower(HELP)) };
+											HELP_NAME, POWER_NAME };
 
 bool exist(string s, const vector<string>& vec) {
 	for (string a : vec) 
@@ -131,7 +146,7 @@ string get_reserved_name(const Token& t) {
 		case print:
 			return string(1, print);
 		case POWER:
-			return string(1, POWER);
+			return POWER_NAME;
 		case declaration_key:
 			return string(1, declaration_key);
 		case CONST:
@@ -167,7 +182,7 @@ Supported operations: \n\
 4. division x/y \n\
 5. modulo division x%y \n\
 6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n\
-7. power(exponentiation) x" + string(1, POWER) + "(y) (x to power of y - y is exponent) \n\
+7. power(exponentiation) x" + POWER_NAME + "(x, y) (x to power of y - y is exponent) \n\
 number of exponent must be in any supported bracket kind \n\
 8. factorial x! \n\
 To separate many calculations press " + string(1, print) + " or whitespace or new line \n\
@@ -179,7 +194,7 @@ Can not declare identical variable name \n\
 To define constant 'variable' enter: " + string(1, declaration_key) + " " + CONST_NAME + " name_of_variable \n\
 To display already defined variables enter " + VARS_VIEW_NAME + "\n\
 To quit enter " + quit_name + "\n\
-To display this manual enter " + string(1, HELP) + " case insensitive \n";
+To display this manual enter " + HELP_NAME + " case insensitive \n";
 };
 
 Manual manual;
@@ -203,6 +218,7 @@ private:
 	
 	Token get_number();
 	Token get_single_char_token(char first);
+	bool  is_help_token(string s);
 	Token get_alphanum_token(char first);
 	Token get_other_token(char c);
 public:
@@ -260,7 +276,7 @@ Token Token_stream::get_single_char_token(char first) {
 	if (isspace(first)) 
 		return Token(SPACE);
 		
-	if (first != declaration_key && first != tolower(HELP) && first != toupper(HELP))
+	if (first != declaration_key)
 		return EMPTY_TOKEN; // not single token
 		
 	Token result = EMPTY_TOKEN;
@@ -271,29 +287,37 @@ Token Token_stream::get_single_char_token(char first) {
 			result = Token(declaration_key);
 		else
 			error("After declaration key must be whitespace except new line");
-	}
-	else if (first == tolower(HELP) || first == toupper(HELP)) {
-		if (next == print || isspace(next))
-			result = Token(HELP);
-		else if (! isalnum(next))
-			error("After help key must be whitespace or " + string(1, print) + " or alphanumerical key");
-	}
-		
+	} 
 	return result;
+}
+
+bool Token_stream::is_help_token(string s) {
+	if (false == equals_case_insensitive(s, HELP_NAME))
+		return false;
+	
+	char next = get_char();   // get next char after string s
+	cin.unget();   // to save 'next' character in input stream	
+	if (next == print || isspace(next))
+		return true;
+	else if (! isalnum(next))
+		error("After help name must be whitespace or " + string(1, print) + 
+						" or alphanumerical key or " + declaration_key);
 }
 
 Token Token_stream::get_alphanum_token(char first) {
 	string s = get_name_string(first);
 	if (s == quit_name) 
 		return Token(quit);
+	else if (s == POWER_NAME) 
+		return Token(POWER);
 	else if (s == SQRT_NAME) 
 		return Token(SQRT);
 	else if (s == CONST_NAME) 
 		return Token(CONST);
 	else if (s == VARS_VIEW_NAME) 
 		return Token(VARS_VIEW);
-	//else if (s == SQRT_NAME) 
-		//return Token(SQRT);
+	else if (is_help_token(s))
+		return Token(HELP);
 	else if (s.size() > 0) 
 		return Token(NAME, s);
 		
@@ -364,7 +388,7 @@ Token Token_stream::get() {
 		case '=':  
 		case print:
 		case '!':
-		case POWER:
+		case ',':
 			return Token(ch);
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
@@ -548,9 +572,7 @@ void print_power_overflow(int base, int exponent, const int LIMIT, int result, i
 	cerr << "result * base = " << result * base << "\n";
 }
 
-int power(double base, int exponent) {
-	if (! is_integer(base))
-		error("Precondition: base of power must be int type");
+int power(int base, int exponent) {
 	if (0 == base) {
 		if (0 != exponent)
 			return 0;
@@ -602,18 +624,6 @@ int power(double base, int exponent) {
 	return result;
 }
 
-int power(int base) {
-	Token t = ts.get_token_after_SPACE();
-	ts.unget(t);
-	if ('(' != t.kind && '[' != t.kind && '{' != t.kind)
-		error("in power calculation exponent must be in brackets");
-	double exponent = primary();  // brackets are in primary()
-	if (false == is_integer(exponent))
-		error("exponent is not int type ");
-	int result = power(base, (int)exponent);
-	return result;
-}
-
 // validate next token after token t to check calculator input data correction (to validate)
 // in mathematical operations this function validate only sequence of input data
 /* this function does not allow direct operations of the type: 
@@ -633,26 +643,26 @@ void validate_next_token(Token& t) {
 	switch (t.kind) {
 		case '!':
 			if ('(' == next || '[' == next || '{' == next || '=' == next ||
-				number == next || NAME == next || SQRT == next || '!' == next)
+				number == next || NAME == next || SQRT == next || '!' == next || POWER == next)
 				error("Next token after factorial token can not be opening bracket or \
-number or variable or sqrt or ! or =");
+number or variable or sqrt or ! or power");
 			break;
 		case number:
 			if ('(' == next || '[' == next || '{' == next ||
-				NAME == next || SQRT == next)
-				error("Next token after number can not be opening bracket or variable or sqrt");
+				NAME == next || SQRT == next || POWER == next)
+				error("Next token after number can not be opening bracket or variable or sqrt or power");
 			break;
 		case ')':
 		case ']':
 		case '}':
 			if ('(' == next || '[' == next || '{' == next ||
-				number == next || NAME == next || SQRT == next)
+				number == next || NAME == next || SQRT == next || POWER == next)
 				error("Next token after closed bracket can not be number or variable or \
-opening bracket or sqrt");
+opening bracket or sqrt or power");
 			break;
 		case NAME:
-			if ('(' == next || '[' == next || '{' == next || SQRT == next)
-				error("Next token after variable can not be opening bracket or sqrt");
+			if ('(' == next || '[' == next || '{' == next || SQRT == next || POWER == next)
+				error("Next token after variable can not be opening bracket or sqrt or power");
 			break;
 		default:
 			error("Next token should not be check for ", t.kind);
@@ -676,6 +686,51 @@ bool assignment_done = false;   // when assignment has done to signal assignment
 short names_counter = 0;  // counter of variables to control nummber of variables before '='
 
 int expression();
+
+int power() {
+	Token t = ts.get_token_after_SPACE();
+	char bracket_kind = t.kind;
+	char last_bracket = 0;
+	switch(bracket_kind) {
+		case '(':
+			last_bracket = ')';
+			round_braces++;
+			break;
+		case '[':
+			if (round_braces > 0) 
+				error("Before close brace ), square brace [ is not accepted");
+			last_bracket = ']';
+			square_braces++;
+			break;
+		case '{':
+			if (square_braces > 0)
+				error("Before close brace ], curly brace { is not accepted");
+			if (round_braces > 0)
+				error("Before close brace ), curly brace { is not accepted");
+			last_bracket = '}';
+			break;
+		default:
+			error("in power calculation base and exponent must be in brackets");
+	}
+	int base = expression();
+	t = ts.get_token_after_SPACE();
+	if (',' != t.kind)
+		error("in power calculation after base and before exponent must be ", ',');
+	int exponent = expression();  
+	t = ts.get_token_after_SPACE();
+	if (t.kind != last_bracket) {
+		ts.unget(t);
+		error("closed bracket expected: ", last_bracket);
+	}
+	validate_next_token(t); 
+	if (bracket_kind == '[')
+		square_braces--;
+	else if (bracket_kind == '(')
+		round_braces--;
+
+	int result = power((int)base, (int)exponent);
+	return result;
+}
 
 int brackets_expression(char bracket_kind) {
 	char last_bracket = 0;
@@ -779,6 +834,9 @@ double before_primary(Token& t, bool& minus_number) {
 		case SQRT:
 			result = square_root();
 			break;
+		case POWER:
+			result = power();
+			break;
 		case '-':    // to allow minus '-' as first token in expression with factorial, which can not accept minus numbers
 						 // errors: -4! == -24  and  (-4)!
 			if (operation)
@@ -803,11 +861,6 @@ double before_primary(Token& t, bool& minus_number) {
 double after_primary(double x, Token& t) {
 	double result;
 	switch (t.kind) {
-		case POWER:
-			if (operation)   // to avoid sequence type: +^ /^ 
-				error("Next token after operator can not be ", POWER);
-			result = power(x);
-			break;
 		case '!':    // to allow minus '-' as first char in expression with factorial
 			if (operation)
 				error("Next token after operator can not be '!'");

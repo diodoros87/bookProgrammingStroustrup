@@ -530,7 +530,7 @@ void validate_next_token(Token& t) {
 			if ('(' == next || '[' == next || '{' == next || '=' == next ||
 				number == next || NAME == next || SQRT == next || '!' == next)
 				error("Next token after factorial token can not be opening bracket or \
-number or variable or sqrt or ! or =");
+number or variable or sqrt or !");
 			break;
 		case number:
 			if ('(' == next || '[' == next || '{' == next ||
