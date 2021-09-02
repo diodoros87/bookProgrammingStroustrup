@@ -134,11 +134,15 @@ Token::Token(char ch, double val) {
 	value = val;
 }
 
-string get_reserved_name(const Token& t) {
+string get_name(const Token& t) {
 	char kind = t.kind;
 	switch (kind) {
 		case quit:
 			return quit_name;
+		case number:
+			return "number";
+		case NAME:
+			return t.name;
 		case SQRT:
 			return SQRT_NAME;
 		case HELP:
@@ -182,7 +186,7 @@ Supported operations: \n\
 4. division x/y \n\
 5. modulo division x%y \n\
 6. square root sqrt(x) - number of sqrt must be in any supported bracket kind \n\
-7. power(exponentiation) x" + POWER_NAME + "(x, y) (x to power of y - y is exponent) \n\
+7. power(exponentiation) " + POWER_NAME + "(x, y) (x to power of y - y is exponent) \n\
 number of exponent must be in any supported bracket kind \n\
 8. factorial x! \n\
 To separate many calculations press " + string(1, print) + " or whitespace or new line \n\
@@ -326,7 +330,7 @@ Token Token_stream::get_alphanum_token(char first) {
 
 void Token_stream::check_name(Token& t) {
 	if (exist(t.kind, NOT_VARIABLES_TOKENS)) {
-		string keyword_name = get_reserved_name(t);
+		string keyword_name = get_name(t);
 		error(keyword_name + " is keyword and can not be used as variable");
 	}
 	if (exist(t.name, NOT_VARIABLES_NAMES)) 
@@ -450,7 +454,7 @@ int Symbol_table::get_value(string s) {
 void Symbol_table::set_value(string s, double v) {
 	if (! is_integer(v))
 		error("set precondition: input parameter is not type int ");
-	for (unsigned int i = 0; i <= names.size(); ++i)
+	for (unsigned int i = 0; i < names.size(); ++i)
 		if (names[i].name == s) {
 			if (names[i].constant == true)
 				error("set: constant name ", s);
@@ -558,15 +562,15 @@ void print_power_overflow(int base, int exponent, const int LIMIT, int result, i
 		" result = " << result << " " << LIMIT_NAME << " = " << LIMIT << " \n";
 	if (INT_MAX == LIMIT) {
 		if (result > 0 && base > 0)
-			cerr << "result > INT_MAX / base that is " << result << " > " << INT_MAX / base << "\n";
+			cerr << "result > INT_MAX / base that is " << result << " > " << LIMIT / base << "\n";
 		else if (result < 0 && base < 0)
-			cerr << "result < INT_MAX / base that is " << result << " < " << INT_MAX / base << "\n";
+			cerr << "result < INT_MAX / base that is " << result << " < " << LIMIT / base << "\n";
 	}
 	else {
 		if (result < 0 && base > 0)
-			cerr << "result < INT_MIN / base that is " << result << " < " << INT_MIN / base << "\n";
+			cerr << "result < INT_MIN / base that is " << result << " < " << LIMIT / base << "\n";
 		else if (result > 0 && base < 0)
-			cerr << "result > INT_MIN / base that is " << result << " > " << INT_MIN / base << "\n";
+			cerr << "result > INT_MIN / base that is " << result << " > " << LIMIT / base << "\n";
 	}
 		
 	cerr << "result * base = " << result * base << "\n";
@@ -645,7 +649,7 @@ void validate_next_token(Token& t) {
 			if ('(' == next || '[' == next || '{' == next || '=' == next ||
 				number == next || NAME == next || SQRT == next || '!' == next || POWER == next)
 				error("Next token after factorial token can not be opening bracket or \
-number or variable or sqrt or ! or power");
+number or variable or sqrt or ! or power or =");
 			break;
 		case number:
 			if ('(' == next || '[' == next || '{' == next ||
@@ -687,19 +691,29 @@ short names_counter = 0;  // counter of variables to control nummber of variable
 
 int expression();
 
-int power() {
-	Token t = ts.get_token_after_SPACE();
-	char bracket_kind = t.kind;
-	char last_bracket = 0;
+void token_error(const string& message, const Token& t);
+
+char get_last_bracket_kind(char bracket_kind) {
 	switch(bracket_kind) {
 		case '(':
-			last_bracket = ')';
+			return ')';
+		case '[':
+			return ']';
+		case '{':
+			return '}';
+		default:
+			token_error("Unrecognized opening bracket ", bracket_kind);
+	}
+}
+
+void increment_bracket_kind(char bracket_kind) {
+	switch(bracket_kind) {
+		case '(':
 			round_braces++;
 			break;
 		case '[':
 			if (round_braces > 0) 
 				error("Before close brace ), square brace [ is not accepted");
-			last_bracket = ']';
 			square_braces++;
 			break;
 		case '{':
@@ -707,55 +721,62 @@ int power() {
 				error("Before close brace ], curly brace { is not accepted");
 			if (round_braces > 0)
 				error("Before close brace ), curly brace { is not accepted");
-			last_bracket = '}';
 			break;
 		default:
-			error("in power calculation base and exponent must be in brackets");
+			token_error("Unrecognized opening bracket ", bracket_kind);
 	}
-	int base = expression();
-	t = ts.get_token_after_SPACE();
-	if (',' != t.kind)
-		error("in power calculation after base and before exponent must be ", ',');
-	int exponent = expression();  
-	t = ts.get_token_after_SPACE();
-	if (t.kind != last_bracket) {
-		ts.unget(t);
-		error("closed bracket expected: ", last_bracket);
-	}
-	validate_next_token(t); 
-	if (bracket_kind == '[')
-		square_braces--;
-	else if (bracket_kind == '(')
-		round_braces--;
+}
 
-	int result = power((int)base, (int)exponent);
+void decrement_bracket_kind(char bracket_kind) {
+	switch(bracket_kind) {
+		case '(':
+			round_braces--;
+			break;
+		case '[':
+			square_braces--;
+			break;
+		case '{':
+			break;
+		default:
+			token_error("Unrecognized opening bracket ", bracket_kind);
+	}
+}
+
+int power() {
+	int base, exponent;
+	Token t = ts.get_token_after_SPACE();
+	try {
+		char bracket_kind = t.kind;
+		char last_bracket = get_last_bracket_kind(bracket_kind);
+		increment_bracket_kind(bracket_kind);
+		base = expression();
+		t = ts.get_token_after_SPACE();
+		if (',' != t.kind)
+			error("in power calculation after base and before exponent must be ", ',');
+		exponent = expression();  
+		t = ts.get_token_after_SPACE();
+		if (t.kind != last_bracket) {
+			ts.unget(t);
+			error("closed bracket expected: ", last_bracket);
+		}
+		validate_next_token(t); 
+		decrement_bracket_kind(bracket_kind);
+	}
+	catch(runtime_error& e) {
+		if(t.kind == NEW_LINE)
+			ts.unget(t);
+		error(e.what() + string("\nIn power calculation base, ',' and exponent must be in only one pair of brackets \n"),
+			"Syntax: pow(base, exponent) - base and exponent may be expression in brackets but \n\
+base, ',' and exponent must be in only one pair of brackets after name of pow");
+	}
+
+	int result = power(base, exponent);
 	return result;
 }
 
 int brackets_expression(char bracket_kind) {
-	char last_bracket = 0;
-	switch(bracket_kind) {
-		case '(':
-			last_bracket = ')';
-			round_braces++;
-			break;
-		case '[':
-			if (round_braces > 0) 
-				error("Before close brace ), square brace [ is not accepted");
-			last_bracket = ']';
-			square_braces++;
-			break;
-		case '{':
-			if (square_braces > 0)
-				error("Before close brace ], curly brace { is not accepted");
-			if (round_braces > 0)
-				error("Before close brace ), curly brace { is not accepted");
-			last_bracket = '}';
-			break;
-		default:
-			error("Unrecognized opening bracket ", bracket_kind);
-	}
-		
+	char last_bracket = get_last_bracket_kind(bracket_kind);
+	increment_bracket_kind(bracket_kind);
 	int result = expression();
 	Token t = ts.get_token_after_SPACE();
 	if (t.kind != last_bracket) {
@@ -763,20 +784,19 @@ int brackets_expression(char bracket_kind) {
 		error("closed bracket expected: ", last_bracket);
 	}
 	validate_next_token(t); 
-	if (bracket_kind == '[')
-		square_braces--;
-	else if (bracket_kind == '(')
-		round_braces--;
+	decrement_bracket_kind(bracket_kind);
 
    return result;
 }
 
-void not_primary_error(const Token& t) {
-	string name = get_reserved_name(t);
+void token_error(const string& message, const Token& t) {
+	string name = get_name(t);
 	if (name.size() > 0)
-		error("unrecognized primary: ", name);
+		error(message, name);
+	else if (NAME == t.kind)
+		error(message);
 	else
-		error("unrecognized primary: ", t.kind);
+		error(message, t.kind);
 }
 
 // calculator functions to token process and calculations
@@ -815,7 +835,7 @@ double primary() {
 		return result;    // return before end of method to avoid set assignment_chance to false for first entered name
 			
 	default:
-		not_primary_error(t);
+		token_error("unrecognized primary: ", t);
 	}
 	if(assignment_chance)
 		assignment_chance = false;   // after get tokens other than NAME, assignment_chance is set to false

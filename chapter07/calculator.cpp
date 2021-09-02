@@ -389,7 +389,7 @@ double Symbol_table::get_value(string s) {
 }
 
 void Symbol_table::set_value(string s, double d) {
-	for (unsigned int i = 0; i <= names.size(); ++i)
+	for (unsigned int i = 0; i < names.size(); ++i)
 		if (names[i].name == s) {
 			if (names[i].constant == true)
 				error("set: constant name ", s);
@@ -530,7 +530,7 @@ void validate_next_token(Token& t) {
 			if ('(' == next || '[' == next || '{' == next || '=' == next ||
 				number == next || NAME == next || SQRT == next || '!' == next)
 				error("Next token after factorial token can not be opening bracket or \
-number or variable or sqrt or !");
+number or variable or sqrt or ! or =");
 			break;
 		case number:
 			if ('(' == next || '[' == next || '{' == next ||
@@ -657,7 +657,7 @@ double primary() {
 		not_primary_error(t);
 	}
 	if(assignment_chance)
-		assignment_chance = false;   // after get tokens other than NAME, assignment_chance is set to false
+		assignment_chance = false;   // after get tokens other than NAME and NEW_LINE, assignment_chance is set to false
 	return result;
 }
 
