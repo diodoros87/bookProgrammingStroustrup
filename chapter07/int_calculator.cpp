@@ -128,7 +128,7 @@ struct Token {    // Token has only non-negative numbers, because every token of
 
 // Token has only non-negative numbers, because every token of '-'(minus) char is get separately from number
 Token::Token(char ch, double val) { 
-	if (val != -(long)(INT_MIN) && false == is_integer(val))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
+	if (val != -(long)(INT_MIN) && false == is_integer(val))  // absolute value of labs(INT_MIN) == labs(INT_MAX + 1)
 		error("Precondition: Token value must be int type");
 	kind = ch;
 	value = val;
@@ -268,7 +268,7 @@ Token Token_stream::get_number() {
 	cin >> val;
 	if (!cin)
 		error("Attempt to reading number has failed");
-	if (val != -(long)(INT_MIN) && false == is_integer(val))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
+	if (val != -(long)(INT_MIN) && false == is_integer(val))  // absolute value of labs(INT_MIN) == labs(INT_MAX + 1)
 		error("input value is not int type ");
 	
 	return Token(number, val);
@@ -687,7 +687,7 @@ bool operation = false;      // can not accept sequence of +- +- ++ /- *+ *- and
 bool assignment_chance = false; // to signal assignment chance after detect first token as name of variable
 bool assignment_done = false;   // when assignment has done to signal assignment completed and 
 // other assignment can not exist in expression
-short names_counter = 0;  // counter of variables to control nummber of variables before '='
+short names_counter = 0;  // counter of variables to control number of variables before '='
 
 int expression();
 
@@ -858,7 +858,7 @@ double before_primary(Token& t, bool& minus_number) {
 			result = power();
 			break;
 		case '-':    // to allow minus '-' as first token in expression with factorial, which can not accept minus numbers
-						 // errors: -4! == -24  and  (-4)!
+						 // and generate errors for -4! == -24  and  (-4)!
 			if (operation)
 				error("Next token after operator can not be + or -");
 			minus_number = true;    // ok: -4! == -24    error: (-4)! 
@@ -869,7 +869,7 @@ double before_primary(Token& t, bool& minus_number) {
 		default: 
 			ts.unget(t);
 			result = primary();
-			if (false == minus_number && result == -(long)(INT_MIN))   // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
+			if (false == minus_number && result == -(long)(INT_MIN))   // absolute value of labs(INT_MIN) == labs(INT_MAX + 1)
 				error("Max number for int is ", INT_MAX);
 			break;
 	}
