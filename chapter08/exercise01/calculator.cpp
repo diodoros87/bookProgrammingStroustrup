@@ -565,16 +565,26 @@ opening bracket or sqrt");
 // global variables to check calculator input data correction (to validate)
 // in mathematical operations this global variables validate only sequence of input data
 //--------------------------------------------
-short round_braces = 0;   // counter opening round braces - curly braces can not be inside square or round brackets
-short square_braces = 0;  // counter opening square braces - square braces can not be inside round brackets
+struct Braces_counter {
+   short round_braces;   // counter opening round braces - curly braces can not be inside square or round brackets
+   short square_braces;  // counter opening square braces - square braces can not be inside round brackets
+   Braces_counter() : round_braces(0), square_braces(0) { }
+};
+Braces_counter braces_counter;
 
 bool operation = false;      // can not accept sequence of +- +- ++ /- *+ *- and
 // other mixes of 2 or more subsequent operators not separated by brackets
 
-bool assignment_chance = false; // to signal assignment chance after detect first token as name of variable
-bool assignment_done = false;   // when assignment has done to signal assignment completed and 
-// other assignment can not exist in expression
-short names_counter = 0;  // counter of variables to control nummber of variables before '='
+struct Assignment_validator {
+   bool assignment_chance; // to signal assignment chance after detect first token as name of variable
+   bool assignment_done;   // when assignment has done to signal assignment completed and 
+   // other assignment can not exist in expression
+   short names_counter;  // counter of variables to control nummber of variables before '='
+   
+   Assignment_validator() : 
+      assignment_chance(false), assignment_done(false), names_counter(0) {}
+};
+Assignment_validator assignment_validator;
 
 double expression(Token_stream& ts);
 
@@ -583,18 +593,18 @@ double brackets_expression(Token_stream& ts, const char bracket_kind) {
 	switch(bracket_kind) {
 		case '(':
 			last_bracket = ')';
-			round_braces++;
+			braces_counter.round_braces++;
 			break;
 		case '[':
-			if (round_braces > 0) 
+			if (braces_counter.round_braces > 0) 
 				error("Before close brace ), square brace [ is not accepted");
 			last_bracket = ']';
-			square_braces++;
+			braces_counter.square_braces++;
 			break;
 		case '{':
-			if (square_braces > 0)
+			if (braces_counter.square_braces > 0)
 				error("Before close brace ], curly brace { is not accepted");
-			if (round_braces > 0)
+			if (braces_counter.round_braces > 0)
 				error("Before close brace ), curly brace { is not accepted");
 			last_bracket = '}';
 			break;
@@ -610,9 +620,9 @@ double brackets_expression(Token_stream& ts, const char bracket_kind) {
 	}
 	validate_next_token(ts, t); 
 	if (bracket_kind == '[')
-		square_braces--;
+		braces_counter.square_braces--;
 	else if (bracket_kind == '(')
-		round_braces--;
+		braces_counter.round_braces--;
    return result;
 }
 
@@ -655,15 +665,15 @@ double primary(Token_stream& ts) {
 		result = symbols.get_value(t.name);
 		operation = false;
 		validate_next_token(ts, t);
-		if(assignment_chance)
-			names_counter++;
+		if(assignment_validator.assignment_chance)
+			assignment_validator.names_counter++;
 		return result;    // return before end of method to avoid set assignment_chance to false for first entered name
 			
 	default:
 		not_primary_error(t);
 	}
-	if(assignment_chance)
-		assignment_chance = false;   // after get tokens other than NAME and NEW_LINE, assignment_chance is set to false
+	if(assignment_validator.assignment_chance)
+		assignment_validator.assignment_chance = false;   // after get tokens other than NAME and NEW_LINE, assignment_chance is set to false
 	return result;
 }
 
@@ -711,11 +721,12 @@ double after_primary(Token_stream& ts, double x, Token& t) {
 			validate_next_token(ts, t);
 			break;
 		case '=': 
-		if (! assignment_chance || assignment_done || names_counter > 1)
+		if (! assignment_validator.assignment_chance || assignment_validator.assignment_done
+            || assignment_validator.names_counter > 1)
 			error("Assignment operator must be only one in expression and \n must occur after variable name directly \
 and if variable name is first primary in expression ");
-				assignment_done = true;
-				assignment_chance = false;
+				assignment_validator.assignment_done = true;
+				assignment_validator.assignment_chance = false;
 				result = expression(ts);
 				break;
 		default:
@@ -790,12 +801,12 @@ double expression(Token_stream& ts) {
 	}
 }
 
-void reset_global_variables() {
-	round_braces = 0;   // set counter opening round braces to 0 to cleaning before next operations
-	square_braces = 0;  // set counter opening square braces to 0 to cleaning before next operations
-	assignment_chance = false;
-	assignment_done = false;
-	names_counter = 0;
+void reset_statement_status() {
+	braces_counter.round_braces = 0;   // set counter opening round braces to 0 to cleaning before next operations
+	braces_counter.square_braces = 0;  // set counter opening square braces to 0 to cleaning before next operations
+	assignment_validator.assignment_chance = false;
+	assignment_validator.assignment_done = false;
+	assignment_validator.names_counter = 0;
 }
 
 double declaration(Token_stream& ts) {
@@ -813,7 +824,7 @@ double declaration(Token_stream& ts) {
 }
 
 double statement(Token_stream& ts) {
-	reset_global_variables();
+	reset_statement_status();
 	Token t = ts.get_token_after_SPACE();
 	switch (t.kind) {
 		case declaration_key:
@@ -824,10 +835,10 @@ double statement(Token_stream& ts) {
 				error(HELP_NAME, " are keywords and can not be used as variable");
 			}
 		case NAME: {
-			assignment_chance = true;
+			assignment_validator.assignment_chance = true;
 			ts.unget(t);
 			double value = expression(ts);
-			if (assignment_done) 
+			if (assignment_validator.assignment_done) 
 				symbols.set_value(t.name, value);
 			return value;
 		}
@@ -839,13 +850,10 @@ double statement(Token_stream& ts) {
 
 void clean_up_mess(Token_stream& ts) {
 	ts.ignore(print, NEW_LINE);
-	reset_global_variables();
+	reset_statement_status();
 }
 
-const string prompt = "> ";
-const string result = "= ";
-
-bool is_running(Token_stream& ts) {
+bool is_running(Token_stream& ts, const string prompt) {
 	Token t = EMPTY_TOKEN;
 	bool skipping = true;
 	do {
@@ -874,11 +882,13 @@ bool is_running(Token_stream& ts) {
 }
 
 void calculate(Token_stream& ts) {
+   const string prompt = "> ";
+   const string result = "= ";
 	double value = exp(1);   // Euler number	
 	do {
 		try {
 			cout << prompt;
-			if (false == is_running(ts))
+			if (false == is_running(ts, prompt))
 				return;
 			value = statement(ts);             // separation in call of statement() and
 			cout << result << value << endl; // call of cout to do not allow display string of result 
