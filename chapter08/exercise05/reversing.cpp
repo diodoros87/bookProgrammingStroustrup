@@ -98,5 +98,5 @@ void tests() {
    tests("four", vec);
    
    vec = {1, 2, 3, 4, 5};
-   tests("four", vec);
+   tests("five", vec);
 }
