@@ -1,11 +1,17 @@
 #include <climits>
 #include <vector>
 #include <iostream>
+#include <string>
 
 using std::vector;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::string;
+
+inline void error(const string& errormessage) {
+   throw std::runtime_error("!!!!! Error: " + errormessage);
+}
 
 bool exist(int x, int y, const vector<int>& vec) {
    bool is_x = false;
@@ -19,7 +25,6 @@ bool exist(int x, int y, const vector<int>& vec) {
       
       result = is_x && is_y;
    }
-      
    return result;
 }
 
@@ -99,39 +104,29 @@ bool is_sum_int_overflow(int a, int b) {
 }
 
 void fibonacci(int x, int y, vector<int>& vec, int n) {
-   if (n <= 0) {
-      cerr << "Number of numbers to print must be > 0 \n";
-      return;
-   }
-   if (false == vec.empty()) {
-      cerr << "Input vector must be empty \n";
-      return;
-   }
+   if (n <= 0) 
+      error("Number of numbers to print must be > 0 \n");
+   if (false == vec.empty())
+      error("Input vector must be empty \n");
    if (x > y) {
       cerr << " x = " << x << " y = " << y << endl;
-      cerr << "Requirement: x <= y \n";
-      return;
+      error("Requirement: x <= y \n");
    }
    const vector<int>& fib_numbers = fibonacci_wrapped();
-   if (! exist(x, y, fib_numbers)) {
-      cerr << "Not all of the numbers are Fibonacci numbers \n";
-      return;
-   }
-   if (! are_consecutive_fibonacci(x, y)) {
-      cerr << "Numbers are not consecutive Fibonacci numbers \n";
-      return;
-   }
+   if (! exist(x, y, fib_numbers)) 
+      error("Not all of the numbers are Fibonacci numbers \n");
+   if (! are_consecutive_fibonacci(x, y))
+      error("Numbers are not consecutive Fibonacci numbers \n");
+
    int start = get_index(x, fib_numbers);
    const int MAX_INDEX = fib_numbers.size() - 1;
    if (start < MAX_INDEX - 1 && x == fib_numbers[start + 1] && y == fib_numbers[start + 2])
       start++;
-      
    if (MAX_INDEX < start + n - 1) {
       cerr << " Index of x (start index of printing) = " << start << endl;
       cerr << " Max index of Fibonacci numbers = " << MAX_INDEX << endl;
       cerr << " Number of numbers to print = " << n << endl;
-      cerr << "Number of numbers to print is too big \n";
-      return;
+      error("Number of numbers to print is too big \n");
    }
    for (int index = start; n > 0; n--, index++) 
       vec.push_back(fib_numbers[index]);
