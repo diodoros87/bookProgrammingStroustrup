@@ -16,16 +16,13 @@ inline void error(const string& errormessage) {
 bool exist(int x, int y, const vector<int>& vec) {
    bool is_x = false;
    bool is_y = false;
-   bool result = false;
-   for (unsigned int i = 0; i < vec.size() && false == result; i++) {
+   for (unsigned int i = 0; i < vec.size() && ! (is_x && is_y); i++) {
       if (! is_x && x == vec[i])
          is_x = true;
       if (! is_y && y == vec[i])
          is_y = true;
-      
-      result = is_x && is_y;
    }
-   return result;
+   return is_x && is_y;
 }
 
 int get_index(int x, const vector<int>& vec) {
@@ -57,7 +54,8 @@ const vector<int>& fibonacci_wrapped() {
 
 int get_fibonacci_max() {
    const vector<int>& vec = fibonacci_wrapped();
-   return vec[vec.size() - 1];
+   static const int MAX = vec[vec.size() - 1];
+   return MAX;
 }
 
 bool are_consecutive_fibonacci(int x, int next) {
@@ -77,19 +75,14 @@ bool are_consecutive_fibonacci(int x, int next) {
 
 bool is_sum_int_overflow(int a, int b) {
    bool result = false;
-   long long b_long = static_cast<long long>(b);  // using long long due to 
-                                 // a > INT_MAX - b or a < INT_MIN - b are
-                                 // operations only on int type and may be overflow 
-                                 //  INT_MAX - (-1) = INT_MAX + 1 overflow
-                                 //  INT_MAX - (-1) = INT_MIN - 1 overflow
    if (a > 0 && b > 0) {
-      if (a > INT_MAX - b_long) {
+      if (a > INT_MAX - b) {
          result = true;
          cout << " INT_MAX = " << INT_MAX << endl;
       }
    }
    else if (a < 0 && b < 0) {
-      if (a < INT_MIN - b_long) {
+      if (a < INT_MIN - b) {
          result = true;
          cout << " INT_MIN = " << INT_MIN << endl;
       }
