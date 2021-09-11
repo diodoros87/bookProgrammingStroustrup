@@ -1,6 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 #include "input.h"
 #include "error.h"
@@ -35,14 +36,29 @@ int main() {
 
 void print(const string& LABEL, const vector<string>& names, const vector<double>& age) {
    cout << LABEL << endl;
-   cout << "Names and ages" << endl;
    const unsigned int NAMES_SIZE = names.size();
    const unsigned int AGE_SIZE = age.size();
    const unsigned int SIZE = NAMES_SIZE > AGE_SIZE ? AGE_SIZE : NAMES_SIZE;
-   for (unsigned int i = 0; i < SIZE; ) {
+   for (unsigned int i = 0; i < SIZE; i++) {
       cout << i << ". ";
       cout << names[i] << "\t\t";
-      cout << age[i++] << "\n";
+      cout << age[i] << "\n";
+   }
+   if (SIZE == 0)
+      cerr << " No names and ages to print " << endl;
+}
+
+void print_sorted(const string& LABEL, const vector<string>& names, const vector<double>& vec_age) {
+   cout << LABEL << endl;
+   const unsigned int NAMES_SIZE = names.size();
+   const unsigned int AGE_SIZE = vec_age.size();
+   const unsigned int SIZE = NAMES_SIZE > AGE_SIZE ? AGE_SIZE : NAMES_SIZE;
+   double age = 0;
+   for (unsigned int i = 0; i < SIZE; i++) {
+      age = get_age(names[i]);
+      cout << i << ". ";
+      cout << names[i] << "\t\t";
+      cout << age << "\n";
    }
    if (SIZE == 0)
       cerr << " No names and ages to print " << endl;
@@ -51,7 +67,7 @@ void print(const string& LABEL, const vector<string>& names, const vector<double
 double read_age() {
    double age;
    do {
-      age = get_double("Enter person's age: ");
+      age = get_double();
       try {
          validate_age(age);
          return age;
@@ -73,13 +89,11 @@ void read_age(vector<double>& vec_age, unsigned int n) {
    }
 }
 
-void read_name(string& out) {
-   string name;
+void read_name(string& name) {
    do {
-      name = get_string("Enter person's name: ");
+      read_string(name);
       try {
          validate_name(name);
-         out = name;
          break;
       }
       catch (runtime_error& e) {
@@ -99,11 +113,21 @@ void read_names(vector<string>& vec_name, unsigned int n) {
    }
 }
 
+vector<string> get_sorted_vector(const vector<string>& input) {
+   vector<string> result = input;
+   sort(result.begin(), result.end());
+   return result;
+}
+
 void tests() {
    unsigned int quantity = 5;
    read_names(age_ordered_names, quantity);
    read_age(global_vec_age, quantity);
    print("Entered names and ages are printed below:", age_ordered_names, 
                global_vec_age);
-   
+   vector<string> sorted_names = get_sorted_vector(age_ordered_names);
+   print("Entered names and ages are printed below:", age_ordered_names, 
+               global_vec_age);
+   print_sorted("Sorted entered names and ages are printed below:", sorted_names, 
+               global_vec_age);
 }
