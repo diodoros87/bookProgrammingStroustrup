@@ -8,4 +8,3 @@ struct End_of_data {};
 
 double get_double ();
 double get_double (const string& PROMPT);
-struct Number_expected {};

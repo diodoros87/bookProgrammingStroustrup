@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <limits>
 
 #include "input.h"
 
@@ -33,10 +34,16 @@ void read_string (const string& PROMPT, string& s) {
 
 double get_double () {
    double result;
-   cin >> result;
-   if (! cin) 
-      throw Number_expected();
-   return result;
+   do {
+      cin >> result;
+      if (cin)
+         return result;
+      if (cin.eof())
+         throw End_of_data();
+      std::cerr << "Value entered is not type double number. Enter number ";
+      cin.clear(); // unset failbit
+      cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip bad input
+   } while (true);
 }
 
 double get_double (const string& PROMPT) {

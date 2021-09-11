@@ -1,7 +1,6 @@
 #include <vector>
 #include <iostream>
 #include <string>
-#include <algorithm>
 
 #include "input.h"
 #include "error.h"
@@ -16,10 +15,6 @@ int main() {
       tests();
       return 0;
    }
-   catch (Number_expected) {
-      cerr << "Enter non-number value, but number was expected" << endl;
-      return 1;
-   }
    catch (End_of_data) {
       cerr << "End-of-transmission character was detected" << endl;
       return 0;
@@ -32,36 +27,6 @@ int main() {
       cerr << "unrecognized exception\n";
       return 2;
    }
-}
-
-void print(const string& LABEL, const vector<string>& names, const vector<double>& age) {
-   cout << LABEL << endl;
-   const unsigned int NAMES_SIZE = names.size();
-   const unsigned int AGE_SIZE = age.size();
-   const unsigned int SIZE = NAMES_SIZE > AGE_SIZE ? AGE_SIZE : NAMES_SIZE;
-   for (unsigned int i = 0; i < SIZE; i++) {
-      cout << i << ". ";
-      cout << names[i] << "\t\t";
-      cout << age[i] << "\n";
-   }
-   if (SIZE == 0)
-      cerr << " No names and ages to print " << endl;
-}
-
-void print_sorted(const string& LABEL, const vector<string>& names, const vector<double>& vec_age) {
-   cout << LABEL << endl;
-   const unsigned int NAMES_SIZE = names.size();
-   const unsigned int AGE_SIZE = vec_age.size();
-   const unsigned int SIZE = NAMES_SIZE > AGE_SIZE ? AGE_SIZE : NAMES_SIZE;
-   double age = 0;
-   for (unsigned int i = 0; i < SIZE; i++) {
-      age = get_age(names[i]);
-      cout << i << ". ";
-      cout << names[i] << "\t\t";
-      cout << age << "\n";
-   }
-   if (SIZE == 0)
-      cerr << " No names and ages to print " << endl;
 }
 
 double read_age() {
@@ -102,6 +67,23 @@ void read_name(string& name) {
    } while (true);
 }
 
+void read_names(vector<string>& vec_name) {
+   const string END = "@";
+   string name;
+   cout << "Enter names. To finish enter " << END << " \n";
+   read_string(name);
+   while (END != name) {
+      try {
+         validate_name(name);
+         vec_name.push_back(name);
+      }
+      catch (runtime_error& e) {
+         cerr << e.what() << endl;
+      }
+      read_string(name);
+   }
+}
+
 void read_names(vector<string>& vec_name, unsigned int n) {
    if (n == 0)
       error(" number of names must be > 0");
@@ -113,21 +95,24 @@ void read_names(vector<string>& vec_name, unsigned int n) {
    }
 }
 
-vector<string> get_sorted_vector(const vector<string>& input) {
-   vector<string> result = input;
-   sort(result.begin(), result.end());
-   return result;
-}
-
 void tests() {
    unsigned int quantity = 5;
-   read_names(age_ordered_names, quantity);
+   read_names(age_ordered_names, 5);
    read_age(global_vec_age, quantity);
-   print("Entered names and ages are printed below:", age_ordered_names, 
-               global_vec_age);
-   vector<string> sorted_names = get_sorted_vector(age_ordered_names);
-   print("Entered names and ages are printed below:", age_ordered_names, 
-               global_vec_age);
-   print_sorted("Sorted entered names and ages are printed below:", sorted_names, 
-               global_vec_age);
+   print("Entered names with age are printed below:");
+   
+   print_sorted("Sorted entered names with age are printed below:");
+   print("Entered names with age are printed below:");
+   
+   age_ordered_names.clear();
+   global_vec_age.clear();
+   read_names(age_ordered_names);
+   quantity = age_ordered_names.size();
+   if (quantity > 0) {
+      read_age(global_vec_age, quantity);
+      print("Entered names with age are printed below:");
+      
+      print_sorted("Sorted entered names with age are printed below:");
+      print("Entered names with age are printed below:");
+   }
 }
