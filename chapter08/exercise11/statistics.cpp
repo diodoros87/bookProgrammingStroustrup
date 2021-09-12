@@ -115,6 +115,14 @@ Statistics get_statistics(const vector<double>& vec) {
    return result;
 }
 
+void get_statistics(const vector<double>& vec, double& min_ref, double& max_ref, double& mean_ref,
+                      double& median_ref) {
+   min_ref = min(vec);
+   max_ref = max(vec);
+   median_ref = median(vec);
+   mean_ref = mean(vec);
+}
+
 void print_statistics(const Statistics& statistics, const string& LABEL) {
    cout << "Min of " << LABEL << " = " << statistics.min << endl;
    cout << "Max of " << LABEL << " = " << statistics.max << endl;
@@ -122,19 +130,42 @@ void print_statistics(const Statistics& statistics, const string& LABEL) {
    cout << "Mean of " << LABEL << " = " << statistics.mean << endl;
 }
 
+void print_statistics(const double MIN, const double MAX, const double MEAN,
+                      const double MEDIAN, const string& LABEL) {
+   cout << "Min of " << LABEL << " = " << MIN << endl;
+   cout << "Max of " << LABEL << " = " << MAX << endl;
+   cout << "Median of " << LABEL << " = " << MEDIAN << endl;
+   cout << "Mean of " << LABEL << " = " << MEAN << endl;
+}
+
 void print_statistics(const vector<double>& vec, const string& LABEL) {
+   cout << "STATISTICS by return struct: \n";
    Statistics statistics = get_statistics(vec);
    print_statistics(statistics, LABEL);
+   
+   cout << "STATISTICS by refence arguments: \n";
+   double max = -1;
+   double min = -1;
+   double mean = -1;
+   double median = -1;
+   get_statistics(vec, min, max, mean, median);
+   print_statistics(min, max, mean, median, LABEL);
+}
+
+void test(vector<double>& vec, const string& LABEL) {
+   print_statistics(vec, LABEL);
+   cout << "NEW CONTENT: \n";
+   vec.push_back(1);
+   print_statistics(vec, LABEL);
 }
 
 void test() {
    vector<double> price = {1, 3.5, 5, 7, 0.5};
+   test(price, "price");
+   
    vector<double> weight = {2.5, 3, 5.5, 7.5, 0};
-   print_statistics(price, "price");
-   print_statistics(weight, "weight");
-   cout << "NEW CONTENT: \n";
-   price.push_back(1);
-   weight.push_back(1);
-   print_statistics(price, "price");
-   print_statistics(weight, "weight");
+   test(weight, "weight");
+   
+   weight.clear();
+   test(weight, "weight");
 }
