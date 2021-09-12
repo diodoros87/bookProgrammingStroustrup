@@ -41,8 +41,8 @@ double get_double () {
       if (cin.eof())
          throw End_of_data();
       std::cerr << "Value entered is not type double number. Enter number ";
-      cin.clear(); // unset failbit
-      cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skip bad input
+      cin.clear();
+      cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
    } while (true);
 }
 

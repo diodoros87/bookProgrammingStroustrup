@@ -46,7 +46,7 @@ double read_age() {
 void read_age(vector<double>& vec_age, unsigned int n) {
    if (n == 0)
       error(" number of age must be > 0");
-   cout << "Enter " << n << " number as person's age \n";
+   cout << "Enter " << n << " numbers as person's age \n";
    double age;
    for (unsigned int i = 0; i < n; i++) {
       age = read_age();
@@ -68,11 +68,10 @@ void read_name(string& name) {
 }
 
 void read_names(vector<string>& vec_name) {
-   const string END = "@";
-   string name;
-   cout << "Enter names. To finish enter " << END << " \n";
-   read_string(name);
-   while (END != name) {
+   constexpr char END = '@';
+   cout << "Enter names. To finish enter " << END << " as first character of string \n";
+   string name = get_string();
+   while (name.size() > 0 && END != name[0]) {
       try {
          validate_name(name);
          vec_name.push_back(name);
@@ -80,7 +79,7 @@ void read_names(vector<string>& vec_name) {
       catch (runtime_error& e) {
          cerr << e.what() << endl;
       }
-      read_string(name);
+      name = get_string();
    }
 }
 
@@ -104,10 +103,8 @@ void tests() {
    print_sorted("Sorted entered names with age are printed below:");
    print("Entered names with age are printed below:");
    
-   age_ordered_names.clear();
-   global_vec_age.clear();
    read_names(age_ordered_names);
-   quantity = age_ordered_names.size();
+   quantity = age_ordered_names.size() - quantity;
    if (quantity > 0) {
       read_age(global_vec_age, quantity);
       print("Entered names with age are printed below:");
