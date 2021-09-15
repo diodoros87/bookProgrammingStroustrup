@@ -170,14 +170,14 @@ int main() {
    check_assertion(tomorrow, 1978, 7, 20);
    cout << "\n tomorrow = " << tomorrow << '\n';
    
-   //init_day(today, 1978, 23, 20);
-   //init_day(today, 1978, 3, 44);
-   //init_day(today, 0, 3, 1);
-   //init_day(today, 1978, 1, -20);
-   //init_day(today, 1978, -2, 7);
-   //init_day(today, 1978, 0, 7);
-   //init_day(today, 1978, 3, 0);
-   //assert((2*2==5) && "Yet another way to add assert message");
+//    init_day(today, 1978, 23, 20);
+//    init_day(today, 1978, 3, 44);
+//    init_day(today, 0, 3, 1);
+//    init_day(today, 1978, 1, -20);
+//    init_day(today, 1978, -2, 7);
+//    init_day(today, 1978, 0, 7);
+//    init_day(today, 1978, 3, 0);
+   
    
    //add_day(tomorrow, +10000);
    //cout << "\n tomorrow = " << tomorrow << '\n';
