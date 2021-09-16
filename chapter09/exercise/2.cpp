@@ -4,7 +4,24 @@
 
 using namespace std;
 
-// helper functions:
+//#define NDEBUG
+
+#ifndef NDEBUG
+#   define M_Assert(Expr, Msg) \
+    __M_Assert(#Expr, Expr, __FILE__, __LINE__, Msg)
+#else
+#   define M_Assert(Expr, Msg) ;
+#endif
+
+void __M_Assert(const char* expr_str, const bool expr,
+                const char* file, const int line, const string& msg) {
+    if (! expr) {
+      std::cerr << "\nAssert failed:\t" << msg << "\n"
+         << "Expected:\t" << expr_str << "\n"
+         << "Source:\t\t" << file << ", line " << line << "\n";
+      exit(EXIT_FAILURE);
+   }
+}
 
 inline bool is_valid_year(int y) {
    if (0 == y)
@@ -66,15 +83,16 @@ struct Date {
    int y, m, d;                        // year, month, day 
    
    Date(int y, int m, int d);          // check for valid date and initialize
-   void add_day(int n);                // increase the Date by n days
-   bool is_valide() { return is_valid(y, m, d); }
+   void add_day(int n);                // increase or decrease the Date by n days
    void set_previous_day();
    void set_next_day();
 };
 
 //------------------------------------------------------------------------------
 
-
+inline bool is_valid(const Date& date) {
+   return is_valid(date.y, date.m, date.d);
+}
 
 ostream& operator<<(ostream& os, const Date& d) {
    return os << '(' << d.y
@@ -83,16 +101,17 @@ ostream& operator<<(ostream& os, const Date& d) {
             << ')';
 }
 
-Date::Date(int y, int m, int d)  : y(y), m(m), d(d) {
+Date::Date(int y, int m, int d) {
    // check that (y,m,d) is a valid date
    // if it is, use it to initialize date
+   
    if (! is_valid(y, m, d)) {
       cerr << y << ", " << m << ", " << d << " is incorrect date\n";
       throw runtime_error("Wrong date ");
-   }/*
-   y = y;
-   m = m;
-   d = d;*/
+   }
+   this->y = y;
+   this->m = m;
+   this->d = d;
 }
 
 //------------------------------------------------------------------------------
@@ -111,7 +130,7 @@ void Date::set_previous_day() {
       }
       d = get_max_day(m, y);
    }
-   if (! is_valide()) {
+   if (! is_valid(*this)) {
       cerr << *this << " is incorrect date\n";
       throw runtime_error("Wrong date ");
    }
@@ -132,21 +151,21 @@ void Date::set_next_day() {
             y++;
       }
    }
-   if (! is_valide()) {
+   if (! is_valid(*this)) {
       cerr << *this << " is incorrect date\n";
       throw runtime_error("Wrong date ");
    }
 }
 
 void Date::add_day(int n) {
-   // increase dd by n days
+   // increase by n days
    if (n > 0) {
       for (int counter = 0; counter < n; counter++) {
          cerr << *this << endl;
          set_next_day();
       }
    }
-   else {  // decrease dd by n days
+   else {  // decrease by n days
       for (int counter = 0; counter > n; counter--) {
          cerr << *this << endl;
          set_previous_day();
@@ -154,28 +173,10 @@ void Date::add_day(int n) {
    }
 }
 
-inline const char* get_message(int x, int expected_x, const string& LABEL) {
+inline void check_assertion(int x, int expected_x, const string& LABEL) {
    const string message = " " + LABEL + " " + to_string(x) +
                      " != expected " + LABEL + " " + to_string(expected_x);
-   return message.c_str();
-}
-
-inline void check_assertion(int x, int expected_x, const string& LABEL) {
-   //const string message = " " + LABEL + " " + to_string(x) +
-   //                 " != expected " + LABEL + " " + to_string(expected_x);
-   //
-   /*
-   const char *fmt = "sqrt(2) = %f";
-   int sz = snprintf(NULL, 0, fmt, sqrt(2));
-   char buf[sz + 1]; // note +1 for terminating null byte
-   snprintf(buf, sizeof buf, fmt, sqrt(2));
-   */
-   const char* message = string(" " + LABEL + " " + to_string(x) +
-                     " != expected " + LABEL + " " + to_string(expected_x)).c_str();
-   assert( (x == expected_x) && message);
-   //assert( (x == expected_x) && get_message(x, expected_x, LABEL) );
-   //string(" " + LABEL + " " + to_string(x) +
-     //                " != expected " + LABEL + " " + to_string(expected_x)));
+   M_Assert(x == expected_x, message);
 }
 
 inline void check_assertion(const Date& date, int y, int m, int d) {
@@ -184,11 +185,25 @@ inline void check_assertion(const Date& date, int y, int m, int d) {
    check_assertion(date.y, y, "year");
 }
 
+void test_incorrect(Date& date) {
+   int d = date.d;
+   int m = date.m;
+   int y = date.y;
+   try {
+      //date = {999, 16, 0};
+      date = Date(999, 16, 0);
+   }
+   catch (runtime_error& e) {
+      check_assertion(date, y, m, d);
+      cerr << "Exception catched: " << e.what() << endl;
+   }
+}
+
 //------------------------------------------------------------------------------
 
 int main() {
    Date today(1978, 7, 20); 
-   cerr << "today = " << today;
+   cerr << "today = " << today << endl;
    check_assertion(today, 1978, 7, 20);
    Date tomorrow = today; 
    check_assertion(tomorrow, 1978, 7, 20);
@@ -200,43 +215,23 @@ int main() {
    check_assertion(tomorrow, 1978, 7, 20);
    cout << "\n tomorrow = " << tomorrow << '\n';
    
-//    init_day(today, 1978, 23, 20);
-//    init_day(today, 1978, 3, 44);
-//    init_day(today, 0, 3, 1);
-//    init_day(today, 1978, 1, -20);
-//    init_day(today, 1978, -2, 7);
-//    init_day(today, 1978, 0, 7);
-//    init_day(today, 1978, 3, 0);
+   today = {2000, 4, 7};
+   cerr << "today = " << today << endl; 
    
-   
-   //add_day(tomorrow, +10000);
-   //cout << "\n tomorrow = " << tomorrow << '\n';
-   
-   //add_day(tomorrow, -10000);
-   //cout << "\n tomorrow = " << tomorrow << '\n';
+   test_incorrect(today); 
    
    Date test = {1999, 12, 31};
+   cout << "\n test date = " << test << '\n';
    test.add_day(+2000);
    cout << "\n test date = " << test << '\n';
    test.add_day(-2000);
    cout << "\n test date = " << test << '\n';
-//    init_day(test, 1999, 12, 31);
-//    add_day(test, -2000);
-//    cout << "\n test = " << test << '\n';
-//    
-//    init_day(test, -333, 12, 31);
-//    add_day(test, -2000);
-//    cout << "\n test = " << test << '\n';
    
    test = {-3, 12, 31};
+   cout << "\n test = " << test << '\n';
    test.add_day(+2000);
    cout << "\n test = " << test << '\n';
    
-   //init_day(test, -3, 12, 31);
    test.add_day(-2000);
    cout << "\n test = " << test << '\n';
-   
-   return 0;
 }
-
-//------------------------------------------------------------------------------
