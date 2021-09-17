@@ -89,7 +89,7 @@ void Date::set_previous_day() {
    else {
       --m;
       if (dec == m)
-         ++y;
+         --y;
       d = get_max_day(m, y.year());
    }
    if (! is_date()) {

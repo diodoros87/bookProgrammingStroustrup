@@ -13,9 +13,10 @@ inline void error(const string& MSG, const int X) {
    throw runtime_error(message);
 }
 
-inline const char* make_message(const int X, const string& SEPARATOR, const int Y, const string& MSG, const int Z) {
+inline string make_message(const int X, const string& SEPARATOR, const int Y, const string& MSG, const int Z) {
    string message = to_string(X) + SEPARATOR + to_string(Y) + SEPARATOR + to_string(Z) + MSG; 
-   return message.c_str();
+   return message;
+   //return message.c_str();
 }
 /*
 inline bool is_valid_year(int y) {

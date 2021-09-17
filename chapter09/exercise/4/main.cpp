@@ -18,9 +18,9 @@ using namespace std;
 void __M_Assert(const char* expr_str, const bool expr,
                 const char* file, const int line, const string& msg) {
     if (! expr) {
-      std::cerr << "\nAssert failed:\t" << msg << "\n"
-         << "Expected:\t" << expr_str << "\n"
-         << "Source:\t\t" << file << ", line " << line << "\n";
+      cerr << "\nAssert failed:\t" << msg << "\n"
+            << "Expected:\t" << expr_str << "\n"
+            << "Source:\t\t" << file << ", line " << line << "\n";
       exit(EXIT_FAILURE);
    }
 }
@@ -42,7 +42,7 @@ void test_incorrect(Date& date) {
    int m = date.month();
    int y = date.year();
    try {
-      date = {Year(999), Date::Month::mar, 3};
+      date = {Year{FORBIDDEN_YEAR}, Date::dec, 31};
    }
    catch (Invalid& e) {
       check_assertion(date, y, m, d);
@@ -78,7 +78,8 @@ void test() {
    test.add_day(-2000);
    cout << "\n test date = " << test << '\n';
    
-   test = {Year{-3}, Date::dec, 31};
+   //Date last;
+   test = {Year{2000}, Date::Month(55), 34};
    cout << "\n test = " << test << '\n';
    test.add_day(+2000);
    cout << "\n test = " << test << '\n';
