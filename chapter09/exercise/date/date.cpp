@@ -51,7 +51,7 @@ bool Date::is_date() {
    return is_date_valid(year(), month(), day());
 }
 
-bool Date::operator==(const Date& other) {
+bool Date::operator==(const Date& other) const {
    return year()==other.year()
       && month()==other.month()
       && day()==other.day();
@@ -59,7 +59,7 @@ bool Date::operator==(const Date& other) {
 
 //------------------------------------------------------------------------------
 
-bool Date::operator!=(const Date& other) {
+bool Date::operator!=(const Date& other) const {
    return !(*this==other);
 }
 
@@ -73,7 +73,7 @@ Relation get_relation(int first, int second) {
    return EQUAL;
 }
 
-bool Date::operator>(const Date& other) {
+bool Date::operator>(const Date& other) const {
    if (year() != other.year())
       return year() > other.year() ? true : false;
    if (month() != other.month())
@@ -265,47 +265,119 @@ void Date::add_month(int n) {
    cerr << *this << endl;
 }
 
-//const string Date::NN = "kk";
-
 const char* Date::MONTH_NAMES[] = {
    "January","February","March","April","May","June","July",
    "August","September","October","November","December"
 };
 
-/*
-enum Day {
-   sunday, monday, tuesday, wednesday, thursday, friday, saturday
+const char* DAY_NAMES[] = {
+   "sunday","monday","tuesday","wednesday","thursday","friday","saturday"
 };
 
-constexpr Day default_date_Day = tuesday;
+// prefix increment operator
+inline Day operator++(Day& day)  {
+   day = (day==Day::saturday) ? Day::sunday : Day(day+1);             // "wrap around"
+   return day;
+}
 
-long days_difference(const Date& first, const Date& second) {
-   
+// prefix decrement operator
+inline Day operator--(Day& day)  {
+   day = (day==Day::sunday) ? Day::saturday : Day(day-1);             // "wrap around"
+   return day;
+}
+
+constexpr Day default_date_Day = monday;
+
+unsigned int day_in_year(const Date& date) {
+   unsigned int result = date.day();
+   Date::Month month = date.month();
+   int year = date.year();
+   for (Date::Month counter = Date::jan; counter < month; ++counter)
+      result += get_max_day(counter, year);
+   return result;
+}
+
+void date_order(const Date& first, const Date& second, Date& greater, Date& not_greater) {
+   if (first > second) {
+      greater = first;
+      not_greater = second;
+   }
+   else {
+      greater = second;
+      not_greater = first;
+   }
+}
+
+int days_by_whole_years(const Date& first, const Date& second) {
+   Date greater, smaller;
+   date_order(first, second, greater, smaller);
+   int result = 0;
+   int years_diff = greater.year() - smaller.year();
+   cerr << "years_diff = " << years_diff << '\n';
+   for (int year = greater.year() - 1; years_diff > 1; year--, years_diff--)
+      result += how_many_days(year);
+   return result;
+}
+
+int days_difference(const Date& first, const Date& second) {
+   //if (first == second)
+   //   return 0;
+   Date greater, smaller;
+   date_order(first, second, greater, smaller);
+   int years_diff = greater.year() - smaller.year();
+   if (0 == years_diff)
+      return day_in_year(greater) - day_in_year(smaller);
+   int result = days_by_whole_years(first, second);
+   cerr << "result = " << result << '\n';
+   result +=  days_to_end_year(smaller) + day_in_year(greater);
+   cerr << "days_to_end_year(smaller) = " << days_to_end_year(smaller) << '\n';
+   cerr << "day_in_year(greater) = " << day_in_year(greater) << '\n';
+   return result;
 }
 
 Day day_of_week(const Date& other) {
    Date default_d = default_date();
-   if (default_d == other)
-      return default_date_Day;
-   bool greater = false;
-   if (other > default_d) 
-      greater = true;
-   
-   return d;
+   Day result = default_date_Day;
+   int diff = days_difference(other, default_d);
+   cerr << "diff = " << diff << '\n';
+   int offset = diff % 7;
+   cerr << "offset = " << offset << '\n';
+   bool default_greater = false;
+   if (default_d > other) 
+      default_greater = true;
+   cerr << "default_greater = " << default_greater << '\n';
+   for (int i = 0; i < offset; i++)
+      if (default_greater)
+         --result;
+      else 
+         ++result;
+   return result;
 }
 
 //------------------------------------------------------------------------------
 
-Date next_Sunday(const Date& d) {
-    // ...
-    return sunday;
+Date next_Sunday(const Date& date) {
+   Day day = day_of_week(date);
+   Date sunday {date}; 
+   int offset = 0;
+   for (; day != Day::sunday; ++day)
+      offset++;
+   sunday.add_day(offset);
+   return sunday;
 }
 
 //------------------------------------------------------------------------------
 
-Date next_weekday(const Date& d) {
-    // ...
-    return d;
+Date next_weekday(const Date& date) {
+   Date weekday {date}; 
+   Day day = day_of_week(date);
+   if (day == Day::sunday || day == Day::saturday)
+      return weekday;
+   int offset = 0;
+   for (; day != Day::saturday; ++day)
+      offset++;
+   weekday.add_day(offset);
+   return weekday;
 }
-*/
+
 }

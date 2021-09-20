@@ -28,6 +28,12 @@ inline bool is_valid_month(int m) {
    return true;
 }
 
+bool leapyear(int y);
+
+inline unsigned int how_many_days(int year) {
+   return leapyear(year) ? 366 : 365;
+}
+
 class Date {
 public:
    class Invalid : public exception { 
@@ -64,14 +70,23 @@ public:
    Month month() const { return m; }
    int year()  const { return y; }
    
-   bool operator==(const Date& other);
-   bool operator!=(const Date& other);
-   bool operator>(const Date& other);
+   bool operator==(const Date& other) const ;
+   bool operator!=(const Date& other) const ;
+   bool operator>(const Date& other) const ;
 private:
    int y;
    Month m;
    int d;   // day
 };
+
+unsigned int day_in_year(const Date& date);
+
+inline unsigned int days_to_end_year(const Date& date) {
+   //unsigned int days_by_year = how_many_days(date.year());
+   //unsigned int day_number = day_in_year(date);
+   std::cerr << "date.year() = " << date.year() << " how = " << how_many_days(date.year())  << '\n';
+   return how_many_days(date.year()) - day_in_year(date);
+}
 
 // prefix increment operator
 inline Date::Month operator++(Date::Month& m)  {
@@ -92,4 +107,15 @@ inline ostream& operator<<(ostream& os, Date::Month m) {
 ostream& operator<<(ostream& os, const Date& d);
 istream& operator>>(istream& is, Date& date);
 
+enum Day {
+   sunday, monday, tuesday, wednesday, thursday, friday, saturday
+};
+
+extern const char* DAY_NAMES[];
+
+inline ostream& operator<<(ostream& os, Day day) {
+   return os << DAY_NAMES[day];
+}
+
+Day day_of_week(const Date& other);
 }

@@ -43,7 +43,8 @@ void test_incorrect(Date& date) {
    int m = date.month();
    int y = date.year();
    try {
-      date = { 1900, Date::feb, 29};
+      date = { 1900, Date::feb, 29 };
+      assert(false);
    }
    catch (Date::Invalid& e) {
       check_assertion(date, y, m, d);
@@ -126,12 +127,31 @@ void adding_test(bool day, bool month, bool year) {
    cout << "\n test date BC/AD= " << test << '\n';
 }
 
+void day_test(const Date& date, const Day expected_day) {
+   Day day = day_of_week(date);
+   cout << "date = " << date << " is " << day << '\n';
+   check_assertion(day, expected_day, "day");
+   //assert(day == expected_day && "day != Day::tuesday");
+}
+
+void day_test() {
+   //day_test(Date{2004, Date::feb, 29}, Day::sunday);
+   day_test(Date{2001, Date::may, 20}, Day::sunday);
+   day_test(Date{2001, Date::jan, 2}, Day::tuesday);
+   day_test(Date{2000, Date::feb, 29}, Day::tuesday);
+   day_test(Date{2021, Date::sep, 20}, Day::monday);
+   //Date date = Date{2000, Date::feb, 29};
+   //cout << "default date day of week = " << day_of_week(def) << '\n';
+   //day_of_week();
+}
+
 void test() {
-   standard_test();
+   standard_test();/*
    test_input();
    adding_test(true, false, false);
    adding_test(false, true, false);
-   adding_test(false, false, true);
+   adding_test(false, false, true);*/
+   day_test();
 }
 
 int main() {
