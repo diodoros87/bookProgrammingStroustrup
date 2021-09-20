@@ -207,17 +207,17 @@ void Date::add_day(int n) {
    // increase by n days
    if (n > 0) {
       for (int counter = 0; counter < n; counter++) {
-         cerr << *this << endl;
+         //cerr << *this << endl;
          set_next_day();
       }
    }
    else {  // decrease by n days
       for (int counter = 0; counter > n; counter--) {
-         cerr << *this << endl;
+         //cerr << *this << endl;
          set_previous_day();
       }
    }
-   cerr << *this << endl;
+   //cerr << *this << endl;
 }
 
 void Date::set_previous_month() {
@@ -313,7 +313,7 @@ int days_by_whole_years(const Date& first, const Date& second) {
    date_order(first, second, greater, smaller);
    int result = 0;
    int years_diff = greater.year() - smaller.year();
-   cerr << "years_diff = " << years_diff << '\n';
+   //cerr << "years_diff = " << years_diff << '\n';
    for (int year = greater.year() - 1; years_diff > 1; year--, years_diff--)
       result += how_many_days(year);
    return result;
@@ -328,10 +328,10 @@ int days_difference(const Date& first, const Date& second) {
    if (0 == years_diff)
       return day_in_year(greater) - day_in_year(smaller);
    int result = days_by_whole_years(first, second);
-   cerr << "result = " << result << '\n';
+   //cerr << "result = " << result << '\n';
    result +=  days_to_end_year(smaller) + day_in_year(greater);
-   cerr << "days_to_end_year(smaller) = " << days_to_end_year(smaller) << '\n';
-   cerr << "day_in_year(greater) = " << day_in_year(greater) << '\n';
+   //cerr << "days_to_end_year(smaller) = " << days_to_end_year(smaller) << '\n';
+   //cerr << "day_in_year(greater) = " << day_in_year(greater) << '\n';
    return result;
 }
 
@@ -339,13 +339,13 @@ Day day_of_week(const Date& other) {
    Date default_d = default_date();
    Day result = default_date_Day;
    int diff = days_difference(other, default_d);
-   cerr << "diff = " << diff << '\n';
+   //cerr << "diff = " << diff << '\n';
    int offset = diff % 7;
-   cerr << "offset = " << offset << '\n';
+   //cerr << "offset = " << offset << '\n';
    bool default_greater = false;
    if (default_d > other) 
       default_greater = true;
-   cerr << "default_greater = " << default_greater << '\n';
+   //cerr << "default_greater = " << default_greater << '\n';
    for (int i = 0; i < offset; i++)
       if (default_greater)
          --result;
@@ -360,8 +360,11 @@ Date next_Sunday(const Date& date) {
    Day day = day_of_week(date);
    Date sunday {date}; 
    int offset = 0;
-   for (; day != Day::sunday; ++day)
-      offset++;
+   if (day == Day::sunday)
+      offset = 7;
+   else
+      for (; day != Day::sunday; ++day)
+         offset++;
    sunday.add_day(offset);
    return sunday;
 }
@@ -369,15 +372,30 @@ Date next_Sunday(const Date& date) {
 //------------------------------------------------------------------------------
 
 Date next_weekday(const Date& date) {
-   Date weekday {date}; 
+   Date next {date}; 
    Day day = day_of_week(date);
-   if (day == Day::sunday || day == Day::saturday)
-      return weekday;
    int offset = 0;
-   for (; day != Day::saturday; ++day)
-      offset++;
-   weekday.add_day(offset);
-   return weekday;
+   if (day == Day::monday)
+      offset = 7;
+   else
+      for (; day != Day::monday; ++day)
+         offset++;
+   next.add_day(offset);
+   return next;
+}
+
+Date next_workday(const Date& date) {
+   Date next {date}; 
+   Day day = day_of_week(date);
+   int offset = 1;
+   switch(day) {
+      case Day::friday :
+         offset++;
+      case Day::saturday :
+         offset++;
+   }
+   next.add_day(offset);
+   return next;
 }
 
 }

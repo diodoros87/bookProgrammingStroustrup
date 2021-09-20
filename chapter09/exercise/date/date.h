@@ -82,9 +82,6 @@ private:
 unsigned int day_in_year(const Date& date);
 
 inline unsigned int days_to_end_year(const Date& date) {
-   //unsigned int days_by_year = how_many_days(date.year());
-   //unsigned int day_number = day_in_year(date);
-   std::cerr << "date.year() = " << date.year() << " how = " << how_many_days(date.year())  << '\n';
    return how_many_days(date.year()) - day_in_year(date);
 }
 
@@ -118,4 +115,7 @@ inline ostream& operator<<(ostream& os, Day day) {
 }
 
 Day day_of_week(const Date& other);
+Date next_Sunday(const Date& date);
+Date next_weekday(const Date& date);
+Date next_workday(const Date& date);
 }

@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+#include <ctime>
+#include <cstring>
 
 #include "date.h"
 
@@ -127,22 +129,51 @@ void adding_test(bool day, bool month, bool year) {
    cout << "\n test date BC/AD= " << test << '\n';
 }
 
+void test_by_ctime (const Date& date, const Day result_day) {
+   if (date.year() < 1900)
+      throw runtime_error("test_by_ctime precondition: date.year() >= 1900");
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  /* get current timeinfo and modify it to the user's choice */
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  timeinfo->tm_year = date.year() - 1900;
+  timeinfo->tm_mon = date.month() - 1;
+  timeinfo->tm_mday = date.day();
+
+  /* call mktime: timeinfo->tm_wday will be set */
+  mktime ( timeinfo );
+
+  printf ("That day is a %s.\n", DAY_NAMES[timeinfo->tm_wday]);
+  check_assertion(result_day, timeinfo->tm_wday, "day by ctime");
+  cerr << "result_day = " << result_day << " timeinfo->tm_wday = " << timeinfo->tm_wday << '\n';
+  assert(strcmp (DAY_NAMES[timeinfo->tm_wday], DAY_NAMES[result_day]) == 0);
+}
+
 void day_test(const Date& date, const Day expected_day) {
+   cout << "BEGIN TEST "  << '\n';
    Day day = day_of_week(date);
    cout << "date = " << date << " is " << day << '\n';
    check_assertion(day, expected_day, "day");
-   //assert(day == expected_day && "day != Day::tuesday");
+   test_by_ctime(date, day);
+   Date sunday = next_Sunday(date);
+   cout << "next sunday = " << sunday << '\n';
+   Date weekday = next_weekday(date);
+   cout << "next weekday = " << weekday << '\n';
+   Date workday = next_workday(date);
+   cout << "next workday = " << workday << '\n';
+   cout << "END TEST "  << '\n';
 }
 
 void day_test() {
-   //day_test(Date{2004, Date::feb, 29}, Day::sunday);
+   day_test(Date{2004, Date::feb, 29}, Day::sunday);
    day_test(Date{2001, Date::may, 20}, Day::sunday);
    day_test(Date{2001, Date::jan, 2}, Day::tuesday);
    day_test(Date{2000, Date::feb, 29}, Day::tuesday);
    day_test(Date{2021, Date::sep, 20}, Day::monday);
-   //Date date = Date{2000, Date::feb, 29};
-   //cout << "default date day of week = " << day_of_week(def) << '\n';
-   //day_of_week();
+   day_test(Date{1954, Date::jul, 5}, Day::monday);
+   day_test(Date(), Day::monday);
 }
 
 void test() {
