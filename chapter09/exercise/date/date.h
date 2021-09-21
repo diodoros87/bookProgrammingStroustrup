@@ -1,5 +1,3 @@
-//#include <string>
-
 using std::string;
 using std::to_string;
 using std::runtime_error;
@@ -76,7 +74,7 @@ public:
 private:
    int y;
    Month m;
-   int d;   // day
+   int d;  
 };
 
 unsigned int day_in_year(const Date& date);

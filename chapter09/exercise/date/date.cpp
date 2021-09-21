@@ -63,16 +63,6 @@ bool Date::operator!=(const Date& other) const {
    return !(*this==other);
 }
 
-enum Relation { MINOR=-1, EQUAL, MAJOR };
-
-Relation get_relation(int first, int second) {
-   if (first > second)
-      return MAJOR;
-   else if (first < second)
-      return MINOR;
-   return EQUAL;
-}
-
 bool Date::operator>(const Date& other) const {
    if (year() != other.year())
       return year() > other.year() ? true : false;
@@ -397,9 +387,9 @@ Date start_week(int week, int year) {
       throw runtime_error("number of week in year can not be < 1");
    Date result(year, Date::jan, 1);
    for (int counter = 1; counter < week; counter++) {
-      result = next_weekday(result);
       if (year != result.year())
          throw runtime_error("number of week in year is too big");
+      result = next_weekday(result);
    }
    return result;
 }

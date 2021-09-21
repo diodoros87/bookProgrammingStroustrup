@@ -172,6 +172,10 @@ void day_test() {
    day_test(Date{2001, Date::jan, 2}, Day::tuesday);
    day_test(Date{2000, Date::feb, 29}, Day::tuesday);
    day_test(Date{2021, Date::sep, 20}, Day::monday);
+   day_test(Date{2021, Date::sep, 22}, Day::wednesday);
+   day_test(Date{2020, Date::sep, 24}, Day::thursday);
+   day_test(Date{2020, Date::dec, 25}, Day::friday);
+   day_test(Date{2020, Date::dec, 26}, Day::saturday);
    day_test(Date{1954, Date::jul, 5}, Day::monday);
    day_test(Date(), Day::monday);
 }
@@ -185,13 +189,14 @@ void week_of_year_test(const Date& date, const int expected_week) {
 }
 
 void week_of_year_test() {
-   /*week_of_year(Date{2004, Date::feb, 29}, );
-   day_test(Date{2001, Date::may, 20});
-   day_test(Date{2001, Date::jan, 2},);
-   day_test(Date{2000, Date::feb, 29},);*/
+   week_of_year_test(Date{2001, Date::jan, 2}, 1);
+   week_of_year_test(Date{2001, Date::jan, 1}, 1);
+   week_of_year_test(Date{2001, Date::jan, 7}, 1);
+   week_of_year_test(Date{2001, Date::jan, 8}, 2);
    week_of_year_test(Date{2021, Date::sep, 20}, 39);
    week_of_year_test(Date{2021, Date::jan, 4}, 2);
    week_of_year_test(Date{2021, Date::jan, 3}, 1);
+   week_of_year_test(Date{2021, Date::dec, 31}, 53);
 }
 
 void test() { 
