@@ -194,13 +194,13 @@ void week_of_year_test() {
    week_of_year_test(Date{2021, Date::jan, 3}, 1);
 }
 
-void test() { /*
+void test() { 
    standard_test();
    test_input();
    adding_test(true, false, false);
    adding_test(false, true, false);
    adding_test(false, false, true);
-   day_test();*/
+   day_test();
    week_of_year_test();
 }
 

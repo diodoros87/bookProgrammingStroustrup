@@ -207,17 +207,17 @@ void Date::add_day(int n) {
    // increase by n days
    if (n > 0) {
       for (int counter = 0; counter < n; counter++) {
-         cerr << *this << endl;
+         //cerr << *this << endl;
          set_next_day();
       }
    }
    else {  // decrease by n days
       for (int counter = 0; counter > n; counter--) {
-         cerr << *this << endl;
+         //cerr << *this << endl;
          set_previous_day();
       }
    }
-   cerr << *this << endl;
+   //cerr << *this << endl;
 }
 
 void Date::set_previous_month() {
@@ -252,17 +252,17 @@ void Date::add_month(int n) {
    // increase by n months
    if (n > 0) {
       for (int counter = 0; counter < n; counter++) {
-         cerr << *this << endl;
+         //cerr << *this << endl;
          set_next_month();
       }
    }
    else {  // decrease by n months
       for (int counter = 0; counter > n; counter--) {
-         cerr << *this << endl;
+         //cerr << *this << endl;
          set_previous_month();
       }
    }
-   cerr << *this << endl;
+   //cerr << *this << endl;
 }
 
 const char* Date::MONTH_NAMES[] = {
@@ -313,25 +313,19 @@ int days_by_whole_years(const Date& first, const Date& second) {
    date_order(first, second, greater, smaller);
    int result = 0;
    int years_diff = greater.year() - smaller.year();
-   //cerr << "years_diff = " << years_diff << '\n';
    for (int year = greater.year() - 1; years_diff > 1; year--, years_diff--)
       result += how_many_days(year);
    return result;
 }
 
 int days_difference(const Date& first, const Date& second) {
-   //if (first == second)
-   //   return 0;
    Date greater, smaller;
    date_order(first, second, greater, smaller);
    int years_diff = greater.year() - smaller.year();
    if (0 == years_diff)
       return day_in_year(greater) - day_in_year(smaller);
    int result = days_by_whole_years(first, second);
-   //cerr << "result = " << result << '\n';
    result +=  days_to_end_year(smaller) + day_in_year(greater);
-   //cerr << "days_to_end_year(smaller) = " << days_to_end_year(smaller) << '\n';
-   //cerr << "day_in_year(greater) = " << day_in_year(greater) << '\n';
    return result;
 }
 
@@ -339,13 +333,10 @@ Day day_of_week(const Date& other) {
    Date default_d = default_date();
    Day result = default_date_Day;
    int diff = days_difference(other, default_d);
-   //cerr << "diff = " << diff << '\n';
    int offset = diff % 7;
-   //cerr << "offset = " << offset << '\n';
    bool default_greater = false;
    if (default_d > other) 
       default_greater = true;
-   //cerr << "default_greater = " << default_greater << '\n';
    for (int i = 0; i < offset; i++)
       if (default_greater)
          --result;
@@ -424,30 +415,6 @@ unsigned int week_of_year(const Date& date) {
       if (temp > date) // if start of next week is after than parameter date then:
          return --week;  // return previous week
    } while (true);
-   /*
-   if (date < temp) 
-      return 1;
-   do {
-      week++;
-      //temp = next_Sunday(date);
-      temp = start_week(week, date.year());
-   } while (date >= temp);
-   
-   return --week;
-   
-   while (date > temp)
-      
-   Date temp(date.year(), Date::jan, 1);
-   Day temp_day = day_of_week(date);
-   Date temp = next_sunday(temp);  // every week in every year (except 1st week) must start on Day::monday
-   unsigned int week = 2;
-   for ( ; temp < date; week++)
-      temp = next_weekday(temp);   // Day::sunday is last day in week
-   do {
-      temp = next_weekday(temp);   // Day::sunday is last day in week
-      week++;   // week 1 is first week in year - may contains less than 7 days
-   } while (temp < date);
-   return week; */
 }
 
 }
