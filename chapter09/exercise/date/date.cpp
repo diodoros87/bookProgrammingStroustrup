@@ -207,17 +207,17 @@ void Date::add_day(int n) {
    // increase by n days
    if (n > 0) {
       for (int counter = 0; counter < n; counter++) {
-         //cerr << *this << endl;
+         cerr << *this << endl;
          set_next_day();
       }
    }
    else {  // decrease by n days
       for (int counter = 0; counter > n; counter--) {
-         //cerr << *this << endl;
+         cerr << *this << endl;
          set_previous_day();
       }
    }
-   //cerr << *this << endl;
+   cerr << *this << endl;
 }
 
 void Date::set_previous_month() {
@@ -396,6 +396,58 @@ Date next_workday(const Date& date) {
    }
    next.add_day(offset);
    return next;
+}
+
+// every week in every year (except 1st week) must start on Day::monday
+// week 1 is first week in year - may contains less than 7 days
+// // Day::sunday is last day in week
+Date start_week(int week, int year) {
+   if (1 > week)
+      throw runtime_error("number of week in year can not be < 1");
+   Date result(year, Date::jan, 1);
+   for (int counter = 1; counter < week; counter++) {
+      result = next_weekday(result);
+      if (year != result.year())
+         throw runtime_error("number of week in year is too big");
+   }
+   return result;
+}
+
+// every week in every year (except 1st week) must start on Day::monday
+// week 1 is first week in year - may contains less than 7 days
+// // Day::sunday is last day in week
+unsigned int week_of_year(const Date& date) {
+   unsigned int week = 1;
+   Date temp;
+   do {
+      temp = start_week(++week, date.year()); 
+      if (temp > date) // if start of next week is after than parameter date then:
+         return --week;  // return previous week
+   } while (true);
+   /*
+   if (date < temp) 
+      return 1;
+   do {
+      week++;
+      //temp = next_Sunday(date);
+      temp = start_week(week, date.year());
+   } while (date >= temp);
+   
+   return --week;
+   
+   while (date > temp)
+      
+   Date temp(date.year(), Date::jan, 1);
+   Day temp_day = day_of_week(date);
+   Date temp = next_sunday(temp);  // every week in every year (except 1st week) must start on Day::monday
+   unsigned int week = 2;
+   for ( ; temp < date; week++)
+      temp = next_weekday(temp);   // Day::sunday is last day in week
+   do {
+      temp = next_weekday(temp);   // Day::sunday is last day in week
+      week++;   // week 1 is first week in year - may contains less than 7 days
+   } while (temp < date);
+   return week; */
 }
 
 }

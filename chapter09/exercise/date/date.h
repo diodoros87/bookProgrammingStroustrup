@@ -118,4 +118,6 @@ Day day_of_week(const Date& other);
 Date next_Sunday(const Date& date);
 Date next_weekday(const Date& date);
 Date next_workday(const Date& date);
+unsigned int week_of_year(const Date& date);
+
 }

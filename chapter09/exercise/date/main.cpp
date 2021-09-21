@@ -176,13 +176,32 @@ void day_test() {
    day_test(Date(), Day::monday);
 }
 
-void test() {
-   standard_test();/*
+void week_of_year_test(const Date& date, const int expected_week) {
+   cout << "BEGIN TEST "  << '\n';
+   unsigned int week = week_of_year(date);
+   cout << "date = " << date << " is " << week << " week" << '\n';
+   check_assertion(week, expected_week, "day");
+   cout << "END TEST "  << '\n';
+}
+
+void week_of_year_test() {
+   /*week_of_year(Date{2004, Date::feb, 29}, );
+   day_test(Date{2001, Date::may, 20});
+   day_test(Date{2001, Date::jan, 2},);
+   day_test(Date{2000, Date::feb, 29},);*/
+   week_of_year_test(Date{2021, Date::sep, 20}, 39);
+   week_of_year_test(Date{2021, Date::jan, 4}, 2);
+   week_of_year_test(Date{2021, Date::jan, 3}, 1);
+}
+
+void test() { /*
+   standard_test();
    test_input();
    adding_test(true, false, false);
    adding_test(false, true, false);
-   adding_test(false, false, true);*/
-   day_test();
+   adding_test(false, false, true);
+   day_test();*/
+   week_of_year_test();
 }
 
 int main() {
