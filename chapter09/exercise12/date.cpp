@@ -58,7 +58,7 @@ Month int_to_month(int x) {
 
 void validation(int y, Month m, int d) {
    if (! is_date_valid(y, m, d)) {
-      string msg = to_string(y) + ", " + to_string(int(m)) + ", " + to_string(d) + " is incorrect date\n";
+      string msg = to_string(y) + ", " + MONTH_NAMES[int(m) - 1] + ", " + to_string(d) + " is incorrect date\n";
       throw Date::Invalid(msg);
    }
 }
@@ -66,7 +66,8 @@ void validation(int y, Month m, int d) {
 int Date::year_or_month_or_day(bool get_year, bool get_month) const {
    int year = START_YEAR;
    long int days_counter = how_many_days(year);
-   while (days > days_counter) 
+   long int all_days = days + 1;   // add 1(START_DAY) because 1st January 1970 is days = 0
+   while (all_days > days_counter) 
       days_counter += how_many_days(++year);  // sum of all days in year (from jan to dec)
    if (! is_valid_year(year))
       throw Invalid(make_message("Year can not be < ", START_YEAR));
@@ -76,17 +77,16 @@ int Date::year_or_month_or_day(bool get_year, bool get_month) const {
    days_counter -= how_many_days(year); // go back to begin year (Month::jan)
    Month month = Month::jan;
    days_counter += get_max_day(month, year);
-   while (days_counter > days) {
-      days_counter += get_max_day(month, year);
-      ++month;
+   while (all_days > days_counter) {
+      days_counter += get_max_day(++month, year);
       if (month == Month::jan)
-         throw Invalid(make_message("Month again is ", MONTH_NAMES[int(month) - 1]));
+         throw Invalid(make_message("Another year has been reached ", MONTH_NAMES[int(month) - 1]));
    }
    if (get_month)
       return int(month);
 
    days_counter -= get_max_day(month, year); // go back to begin month
-   int day = days - days_counter;
+   int day = all_days - days_counter;
    validation(year, month, day);
    return day;
 }
@@ -162,7 +162,8 @@ istream& operator>>(istream& is, Date& date) {
 }
 
 const Date& start_date() {
-   static const Date start(1970, Month::jan, 1);
+   static const Date start(START_YEAR, START_MONTH, START_DAY);
+   //static const Date start(1970, Month::jan, 1);
    return start;
 }
 
@@ -200,7 +201,7 @@ long int how_many_days(int y, Month m, int d) {
 long int days_difference(const Date& first, const Date& second);
 
 Date::Date() {
-   days = days_difference(default_date(), start_date());
+   days = how_many_days(default_date().year(), default_date().month(), default_date().day());
    validate();
 }
 
@@ -237,20 +238,33 @@ void Date::set_next_year() {
       m = Month::mar;
       d = 1;
    }
+   y++;
+   long diff = days_difference(*this, Date(y, m, d));
+   days += diff;
    validate();
 }
 
 void Date::add_year(int n) {
-   int next_year = y + n;
-   y = next_year;
+   int d = day();
+   Month m = month();
+   int y = year() + n;
    if (29 == d && Month::feb == m && ! leapyear(y)) {
-      m = mar;
+      m = Month::mar;
       d = 1;
    }
+   long diff = days_difference(*this, Date(y, m, d));
+   if (n > 0)
+      days += diff;
+   else
+      days -= diff;
    validate();
 }
 
 void Date::set_previous_day() {
+   /*
+   int d = day();
+   Month m = month();
+   int y = year();
    if (d != 1)
       d--;
    else {
@@ -259,10 +273,13 @@ void Date::set_previous_day() {
          --y;
       d = get_max_day(m, y);
    }
+   */
+   --days;
    validate();
 }
 
 void Date::set_next_day() {
+   /*
    int max_day = get_max_day(m, y);
    if (d < max_day)
       d++;
@@ -271,11 +288,14 @@ void Date::set_next_day() {
       ++m;
       if (Month::jan == m)
          ++y;
-   }
+   }*/
+   ++days;
    validate();
 }
 
 void Date::add_day(int n) {
+   //days += n;
+   //validate();
    // increase by n days
    if (n > 0) {
       for (int counter = 0; counter < n; counter++) {
@@ -293,6 +313,9 @@ void Date::add_day(int n) {
 }
 
 void Date::set_previous_month() {
+   int d = day();
+   Month m = month();
+   int y = year();
    --m;
    if (Month::dec == m)
       --y;
@@ -301,10 +324,15 @@ void Date::set_previous_month() {
       if (d > month_max_day)
          d = month_max_day;
    }
+   long diff = days_difference(*this, Date(y, m, d));
+   days -= diff;
    validate();
 }
 
 void Date::set_next_month() {
+   int d = day();
+   Month m = month();
+   int y = year();
    ++m;
    if (Month::jan == m)
       ++y;
@@ -313,6 +341,8 @@ void Date::set_next_month() {
       if (d > month_max_day)
          d = month_max_day;
    }
+   long diff = days_difference(*this, Date(y, m, d));
+   days += diff;
    validate();
 }
 
@@ -332,8 +362,8 @@ void Date::add_month(int n) {
    }
    //cerr << *this << endl;
 }
-/*
-const char* Date::MONTH_NAMES[] = {
+
+const char* MONTH_NAMES[] = {
    "January","February","March","April","May","June","July",
    "August","September","October","November","December"
 };
@@ -341,7 +371,7 @@ const char* Date::MONTH_NAMES[] = {
 const char* DAY_NAMES[] = {
    "sunday","monday","tuesday","wednesday","thursday","friday","saturday"
 };
-*/
+
 // prefix increment operator
 inline Day operator++(Day& day)  {
    day = (day==Day::saturday) ? Day::sunday : Day(day+1);             // "wrap around"

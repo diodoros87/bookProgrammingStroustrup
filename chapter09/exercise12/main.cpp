@@ -45,7 +45,7 @@ void test_incorrect(Date& date) {
    int m = static_cast<int>(date.month());
    int y = date.year();
    try {
-      date = { 1900, Month::feb, 29 };
+      date = { 1969, Month::feb, 1 };
       assert(false);
    }
    catch (Date::Invalid& e) {
@@ -87,6 +87,18 @@ void standard_test() {
    today = {2000, Month::apr, 7};
    cerr << "today = " << today << endl; 
    
+   Date d; 
+   cerr << "default = " << d << endl;
+   
+   const Date start = start_date(); 
+   cerr << "start_date = " << start << endl;
+   
+   Date def; 
+   cerr << "default = " << def << endl;
+   
+   Date start2 = start_date(); 
+   cerr << "start_date = " << start2 << endl;
+   
    test_incorrect(today); 
 }
 
@@ -107,26 +119,12 @@ void adding_test(bool day, bool month, bool year, Date& date, bool minus) {
 }
 
 void adding_test(bool day, bool month, bool year) {
-   Date test = {1999, Month::dec, 31};
+   Date test = {2000, Month::feb, 29};
    cout << "\n test date 1999/200n= " << test << '\n';
    adding_test(day, month, year, test, false);
    cout << "\n test date 1999/200n= " << test << '\n';
    adding_test(day, month, year, test, true);
    cout << "\n test date 1999/200n= " << test << '\n';
-   
-   test = {-3, Month::dec, 31};
-   cout << "\n test date BC/AD= " << test << '\n';
-   adding_test(day, month, year, test, false);
-   cout << "\n test date BC/AD= " << test << '\n';
-   adding_test(day, month, year, test, true);
-   
-   test = {-1, Month::feb, 29};
-   cout << "\n test date BC/AD= " << test << '\n';
-   adding_test(day, month, year, test, false);
-   cout << "\n test date BC/AD= " << test << '\n';
-   adding_test(day, month, year, test, true);
-   
-   cout << "\n test date BC/AD= " << test << '\n';
 }
 
 void test_by_ctime (const Date& date, const Day result_day) {
@@ -176,7 +174,8 @@ void day_test() {
    day_test(Date{2020, Month::sep, 24}, Day::thursday);
    day_test(Date{2020, Month::dec, 25}, Day::friday);
    day_test(Date{2020, Month::dec, 26}, Day::saturday);
-   day_test(Date{1954, Month::jul, 5}, Day::monday);
+   day_test(Date{1970, Month::jan, 1},  Day::thursday);
+   day_test(Date{1995, Month::feb, 28}, Day::tuesday);
    day_test(Date(), Day::monday);
 }
 

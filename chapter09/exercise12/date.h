@@ -5,13 +5,7 @@ using std::exception;
 using std::ostream;
 using std::istream;
 
-namespace Chrono {
-class Date;   
-const Date& start_date();
-//constexpr int START_YEAR = start_date().year();
-constexpr int START_YEAR = 1970;
-constexpr int START_DAY = 1;
-
+namespace Chrono {   
 inline string make_message(const string& MSG, const int X) {
    const string message = MSG + to_string(X); 
    return message;
@@ -20,10 +14,6 @@ inline string make_message(const string& MSG, const int X) {
 inline string make_message(const string& MSG, const string& MESSAGE) {
    const string message = MSG + MESSAGE; 
    return message;
-}
-
-inline bool is_valid_year(int y) {
-   return START_YEAR < y ? false : true;
 }
 
 inline bool is_valid_month(int m) {
@@ -36,16 +26,11 @@ inline unsigned int how_many_days(int year) {
    return leapyear(year) ? 366 : 365;
 }
 
-const char* MONTH_NAMES[] = {
-   "January","February","March","April","May","June","July",
-   "August","September","October","November","December"
-};
+extern const char* MONTH_NAMES[];
 
 enum class Month {
    jan = 1, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec
 };
-
-constexpr Month START_MONTH = Month::jan;
 
 Month int_to_month(int x);
 
@@ -85,8 +70,20 @@ public:
    bool operator!=(const Date& other) const ;
    bool operator>(const Date& other) const ;
 private:
-   long int days {0};  
+   long int days {0};  // START_YEAR / START_MONTH / START_DAY  1970/01/01
 };
+
+const Date& start_date();
+//const int START_YEAR = start_date().year();
+//const int START_DAY = start_date().day();
+constexpr int START_DAY = 1;
+constexpr int START_YEAR = 1970;
+constexpr Month START_MONTH = Month::jan;
+//const Month START_MONTH = start_date().month();
+
+inline bool is_valid_year(int y) {
+   return START_YEAR > y ? false : true;
+}
 
 unsigned int day_in_year(const Date& date);
 
@@ -117,9 +114,7 @@ enum Day {
    sunday, monday, tuesday, wednesday, thursday, friday, saturday
 };
 
-const char* DAY_NAMES[] = {
-   "sunday","monday","tuesday","wednesday","thursday","friday","saturday"
-};
+extern const char* DAY_NAMES[];
 
 inline ostream& operator<<(ostream& os, Day day) {
    return os << DAY_NAMES[day];
