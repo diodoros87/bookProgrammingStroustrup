@@ -57,7 +57,7 @@ void test_incorrect(Date& date) {
 Date get_date_from_input() {
    Date date;
    if (cin) {
-      cout << "Enter date in format (Y,M,D) ";
+      cout << "Enter date in format (Y,M,D) \n";
       cin >> date;
    }
    return date;
@@ -68,6 +68,17 @@ void test_input() {
    cout << "date from input = " << date_from_input << endl;
    date_from_input = get_date_from_input();
    cout << "date from input = " << date_from_input << endl;
+}
+
+void comparison_test(const Date& first, const Date& second) {
+   cout << "Begin Comparison test\n";
+   cout << first;
+   cout << second;
+   if (first != second) 
+      cout << "first != second\n";
+   else if (first == second)
+      cout << "first == second\n";
+   cout << "End Comparison test\n";
 }
 
 void standard_test() {
@@ -95,9 +106,12 @@ void standard_test() {
    
    Date def; 
    cerr << "default = " << def << endl;
-   
+      
    Date start2 = start_date(); 
    cerr << "start_date = " << start2 << endl;
+   
+   comparison_test(start, start2);
+   comparison_test(d, start);
    
    test_incorrect(today); 
 }
