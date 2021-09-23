@@ -89,6 +89,7 @@ void test_comparison(const Name_pairs& input) {
 
 void test() {
    Name_pairs pairs;
+   test_comparison(pairs);
    cout << pairs;
    unsigned int quantity = 5;
    read(pairs, quantity);
