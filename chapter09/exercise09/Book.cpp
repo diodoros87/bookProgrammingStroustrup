@@ -7,9 +7,11 @@
 #include "Book.h"
 #include "error.h"
 
-
 using namespace std;
 
+const char* Book::GENRE_NAMES[] = {
+   "Philosophy", "Astronomy", "Mathematics", "Computer Science"
+};
 
 void validate_name (const string& s) {
    unsigned int SIZE = s.size();
@@ -17,9 +19,6 @@ void validate_name (const string& s) {
       error("Name length must be > 1");
    if (! isupper(s[0]))
       error("Name's first character must be upper case");   
-   for (unsigned int i = 1; i < s.size(); i++)
-      if (! islower(s[i]))
-         error("After first character name must contain only lower case");
 }
 
 void validate_title(const string& title) {
@@ -37,14 +36,14 @@ void validate_ISBN(const string& isbn) {
    const unsigned int SIZE = isbn.size();
    unsigned int int_counter, separator_counter = 0;
    unsigned int index = 0;
-   for (unsigned int iteration = 0; index < SIZE && iteration < ITERATIONS; index++) {
+   for (unsigned int iteration = 0; index < (SIZE - 1) && iteration < ITERATIONS; iteration++) {
       if (isdigit(isbn[index])) 
          int_counter++;
       while(index < SIZE && isdigit(isbn[index]))
          index++;
       if (index < SIZE && isbn[index] == SEPARATOR_CHAR)
-         if (++separator_counter == SEPARATORS)
-            break;
+         ++separator_counter;
+      index++;
    }
    if (index == SIZE - 1 && isalnum(isbn[index])) 
       if (INTEGERS == int_counter && SEPARATORS == separator_counter)
@@ -60,9 +59,9 @@ void validate_date (const Date& d) {
    timeinfo = *localtime(&now);
    static constexpr int year_offset = 1900;
    int current_year = timeinfo.tm_year + year_offset;
-   if (current_year < d.year()) 
+   if (current_year > d.year()) 
       return;
-   else if (current_year > d.year()) 
+   else if (current_year < d.year()) 
       error(to_string(d.year()), " year of book is in the future");
    
    static const int month_offset = Date::Month::jan;
@@ -105,16 +104,11 @@ void Book::borrow() {
    borrowed = true;
 }
 
+/*
 ostream& operator<<(ostream& os, const Book& book) {
-   return os << " ISBN: " << book.isbn() << " \t" 
-           << book.get_author() << " \t" << book.get_title();
+   return os << " ISBN: " << book.isbn() << " \n" 
+           << book.get_author() << " \n" << book.get_title() << '\n'
+           << book.get_genre() << '\n';
    //return os;
 }
-
-bool operator==(const Book& a, const Book& b) {
-   return a.isbn() == b.isbn();
-}
-
-bool operator!=(const Book& a, const Book& b) {
-   return !(a==b);
-}
+*/

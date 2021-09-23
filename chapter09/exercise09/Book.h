@@ -1,14 +1,26 @@
+#ifndef BOOK_H
+#define BOOK_H
+
+#include "error.h"
 using std::string;
-//using std::vector;
 using std::ostream;
-//using Chrono;
 using Chrono::Date;
 
 class Book {
 public:
+   class Invalid_Book : public Invalid { 
+      string msg {"Invalid book: "};
+   public:
+      Invalid_Book(const string& message) { msg += message; }
+      const char* what() {
+         return msg.c_str();
+      }
+   };
    enum class Genre { 
       Philosophy, Astronomy, Mathematics, Computer_Science 
    };
+   static const char* GENRE_NAMES[];
+   
    string get_author() const { return author; }
    string get_title() const { return title; }
    string isbn() const { return ISBN; }
@@ -30,6 +42,22 @@ private:
    bool borrowed {false};
 };
 
-ostream& operator<<(ostream& os, const Book& book);
-bool operator==(const Book& a, const Book& b);
-bool operator!=(const Book& a, const Book& b);
+inline ostream& operator<<(ostream& os, const Book::Genre& genre) {
+   return os << Book::GENRE_NAMES[static_cast<int>(genre)];
+}
+
+inline ostream& operator<<(ostream& os, const Book& book) {
+   return os << " ISBN: " << book.isbn() << " \t" 
+           << book.get_author() << " \t" << book.get_title() << '\t'
+           << book.get_genre() << '\n';
+}
+
+inline bool operator==(const Book& a, const Book& b) {
+   return a.isbn() == b.isbn();
+}
+
+inline bool operator!=(const Book& a, const Book& b) {
+   return !(a==b);
+}
+
+#endif

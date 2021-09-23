@@ -212,18 +212,29 @@ void date_test() {
 }
 
 void test(string author, string title, Book::Genre genre, string isbn, Date date) {
-   Book book = {author, title, genre, isbn, date};
+   Book book = Book{author, title, genre, isbn, date};
    cout << book;
 }
 
+void test_incorrect(string author, string title, Book::Genre genre, string isbn, Date date) {
+   try {
+      test(author, title, genre, isbn, date);
+      assert(false);
+   }
+   catch (Invalid& e) {
+      //check_assertion(date, y, m, d);
+      cerr << "Exception catched: " << e.what() << endl;
+   }
+}
+
 void test() {
-   //Book book;
-   //cout << book;
-   Book defa();
-   cout << defa;
    test("Aristotle", "Metaphysics", Book::Genre::Philosophy, "1-2-3-5", Date{-343, Date::jan, 4});
-   test("Nicolaus Copernicus", "De revolutionibus orbis celesti", 
+   test("Nicolaus Copernicus", "De revolutionibus orbium coelestium", 
         Book::Genre::Astronomy, "14-24-34-c", Date{1543, Date::dec, 6});
+   test("Lucius Annaeus Seneca", "Epistulae morales ad Lucilium", 
+        Book::Genre::Philosophy, "544-24-34-N", Date{63, Date::dec, 16});
+   test("Euclid", "Elements",  Book::Genre::Mathematics,
+        "544b-24-34-N", Date{-300, Date::jun, 30});
 }
 
 int main() {
