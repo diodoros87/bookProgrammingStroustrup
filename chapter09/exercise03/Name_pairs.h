@@ -4,9 +4,7 @@ using std::vector;
 class Name_pairs {
    vector<string> vec_names;
    vector<double> vec_age;
-   //void validate() const;
-   //void validate_name (const string& s);
-   //void validate_age (double age);
+
    int get_min_name_index(unsigned int begin, unsigned int end);
 public:
    vector<string> get_names() const { return vec_names; }

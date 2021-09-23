@@ -28,12 +28,7 @@ void validate_age (double age) {
    if (age <= 0 || age > 150)
       error("Age must be > 0 and <= 150");
 }
-/*
-void validate() {
-   if (! size_equal())
-      error("Number of names different than number of ages");
-}
-*/
+
 double read_age() {
    double age;
    do {
@@ -98,36 +93,7 @@ void Name_pairs::read_names(unsigned int n) {
       vec_names.push_back(name);
    }
 }
-/*
-void Name_pairs::validate_age_index(unsigned int index) {
-   const unsigned int SIZE = vec_age.size();
-   if (SIZE <= index)
-      error("No age for index " + std::to_string(index));
-}
 
-unsigned int get_name_index(const string& s, unsigned int identical_name_counter) {
-   for (unsigned int i = 0; i < age_ordered_names.size(); i++)
-      if (s == age_ordered_names[i]) {
-         if (0 == identical_name_counter)
-            return i;
-         else
-            identical_name_counter--;
-      }
-      
-   error("No index for name ", s); 
-}
-
-double get_age(const string& name, unsigned int identical_name_counter) {
-   const unsigned int index = get_name_index(name, identical_name_counter);
-   try {
-      validate_age_index(index);
-      return vec_age[index];
-   }
-   catch (std::runtime_error& e) {
-      error("No age for name ", name);
-   }
-}
-*/
 int Name_pairs::get_min_name_index(unsigned int begin, unsigned int end) {
    const unsigned int SIZE = vec_names.size();
    if (begin >= SIZE || end > SIZE)
@@ -139,7 +105,7 @@ int Name_pairs::get_min_name_index(unsigned int begin, unsigned int end) {
    int result = begin;
    for (unsigned int i = begin + 1; i < end; i++)
       if (vec_names[i] < min) {
-         min = vec_names[i].size();
+         min = vec_names[i];
          result = i;
       }
 
@@ -151,50 +117,15 @@ void Name_pairs::sort() {
       error("Number of names different than number of ages");
    const unsigned int SIZE = vec_age.size();
    int min_index = 0;
-   //string temp_name;
-   //int temp_age;
    for (unsigned int index = 0; index < SIZE - 1; index++) {
       min_index = get_min_name_index(index, SIZE);
       if (index != min_index) {
          std::swap(vec_names[index], vec_names[min_index]);
-         std::swap(vec_age[index], vec_age[min_index]);/*
-         temp_name = vec_names[index];
-         vec_names[index] = vec_names[min_index];
-         vec_names[min_index] = temp_name;
-         temp_age = vec_age[index];
-         vec_names[index] = vec_names[min_index];*/
+         std::swap(vec_age[index], vec_age[min_index]);
       }
    }
 }
-/*
-vector<string> get_sorted_vector(const vector<string>& input) {
-   vector<string> result = input;
-   sort(result.begin(), result.end());
-   return result;
-}
 
-void print_sorted(const string& LABEL) {
-   const unsigned int SIZE = get_size_to_print();
-   cout << LABEL << endl;
-   vector<string> sorted_names = get_sorted_vector(age_ordered_names);
-   double age = 0;
-   string previous_name; // empty string, name can not be empty
-   unsigned int identity_counter = 0;
-   for (unsigned int i = 0; i < SIZE; i++) {
-      if (previous_name == sorted_names[i])
-         identity_counter++;
-      else
-         identity_counter = 0;
-      age = get_age(sorted_names[i], identity_counter);
-      cout << i << ". ";
-      cout << sorted_names[i] << "\t\t";
-      cout << age << "\n";
-      previous_name = sorted_names[i];
-   }
-   if (SIZE == 0)
-      cerr << " No pair of name and age to print " << endl;
-}
-*/
 std::ostream& operator<<(std::ostream& os, const Name_pairs& pairs) {
    vector<string> names = pairs.get_names();
    vector<double> ages = pairs.get_ages();
@@ -214,6 +145,18 @@ std::ostream& operator<<(std::ostream& os, const Name_pairs& pairs) {
    return os;
 }
 
+unsigned int how_many(const Name_pairs& pairs, string name, double age) {
+   vector<string> vec_name = pairs.get_names();
+   vector<double> vec_age = pairs.get_ages();
+   if (! pairs.size_equal())
+      error("Names vector size is different than ages vector size");
+   unsigned int counter = 0;
+   for (unsigned int i = 0; i < vec_name.size(); i++)
+      if (vec_name[i] == name && vec_age[i] == age)
+         counter++;
+   return counter;
+}
+
 bool operator==(const Name_pairs& a, const Name_pairs& b) {
    vector<string> a_names = a.get_names();
    vector<double> a_ages = a.get_ages();
@@ -225,16 +168,26 @@ bool operator==(const Name_pairs& a, const Name_pairs& b) {
    const unsigned int B_AGE_SIZE = b_ages.size();
    if (A_NAMES_SIZE != B_NAMES_SIZE || A_AGE_SIZE != B_AGE_SIZE)
       return false;
+   unsigned int a_counter = 0;
+   unsigned int b_counter = 0;
+   for (unsigned int i = 0; i < A_NAMES_SIZE; i++) {
+      a_counter = how_many(a, a_names[i], a_ages[i]);
+      b_counter = how_many(b, a_names[i], a_ages[i]);
+      if (a_counter != b_counter)
+         return false;
+   }
+   /*
+   a.sort();
+   b.sort();
    for (unsigned int i = 0; i < A_NAMES_SIZE; i++)
       if (a_names[i] != b_names[i])
          return false;
    for (unsigned int i = 0; i < B_AGE_SIZE; i++)
       if (a_ages[i] != b_ages[i])
-         return false;
+         return false;*/
    return true;
+   
 }
-
-//------------------------------------------------------------------------------
 
 bool operator!=(const Name_pairs& a, const Name_pairs& b) {
    return !(a==b);
