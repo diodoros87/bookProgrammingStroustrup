@@ -240,10 +240,15 @@ void test_incorrect_book_borrow(Book& book) {
 void test_book_borrowing() {
    Book meditations = Book{"Marcus Aurelius", "Meditations", Book::Genre::Philosophy, 
       "1-2-3-5", Date{172, Date::jan, 4}, false};
+   cout << book_status(meditations);
    test_incorrect_book_return(meditations);
+   cout << book_status(meditations);
    meditations.borrow();
+   cout << book_status(meditations);
    test_incorrect_book_borrow(meditations);
+   cout << book_status(meditations);
    meditations.return_book();
+   cout << book_status(meditations);
 }
 
 void test(const string& a, const string& t, Book::Genre g, const string& isbn, const Date& d) {

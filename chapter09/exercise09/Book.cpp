@@ -14,7 +14,7 @@ const char* Book::GENRE_NAMES[] = {
 };
 
 void validate_name (const string& s) {
-   unsigned int SIZE = s.size();
+   const unsigned int SIZE = s.size();
    if (2 > SIZE)
       throw Book::Invalid_Book("Author name length must be > 1");
    if (! isupper(s[0]))
@@ -117,4 +117,10 @@ void Book::borrow() {
    if (borrowed)
       throw Book::Invalid_Operation("Book has been borrowed already");
    borrowed = true;
+}
+
+string book_status(const Book& book) {
+   return " ISBN: " + book.isbn() + " \t" + book.get_author() + " \"" +
+      book.get_title() + '\"' + " " + Book::GENRE_NAMES[static_cast<int>(book.get_genre())] + 
+      "\t status: " + (book.is_borrow() ? " borrowed" : " available") + "\n";
 }

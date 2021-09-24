@@ -4,7 +4,9 @@
 #include <string>
 #include <stdexcept>
 
-class Invalid : public exception { 
+using std::string;
+
+class Invalid : public std::exception { 
    string msg {"!!!!! Error: "};
 public:
    Invalid() {}

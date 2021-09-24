@@ -1,5 +1,5 @@
-#ifndef BOOK_H
-#define BOOK_H
+//#ifndef BOOK_H
+//#define BOOK_H
 
 #include "error.h"
 using std::string;
@@ -59,7 +59,7 @@ inline ostream& operator<<(ostream& os, const Book::Genre& genre) {
 
 inline ostream& operator<<(ostream& os, const Book& book) {
    return os << " ISBN: " << book.isbn() << " \t" 
-           << book.get_author() << " \t" << book.get_title() << '\t'
+           << book.get_author() << " \"" << book.get_title() << "\" "
            << book.get_genre() << '\n';
 }
 
@@ -71,4 +71,6 @@ inline bool operator!=(const Book& a, const Book& b) {
    return !(a==b);
 }
 
-#endif
+string book_status(const Book& book);
+
+//#endif
