@@ -16,16 +16,20 @@ const char* Book::GENRE_NAMES[] = {
 void validate_name (const string& s) {
    unsigned int SIZE = s.size();
    if (2 > SIZE)
-      error("Name length must be > 1");
+      throw Book::Invalid_Book("Author name length must be > 1");
    if (! isupper(s[0]))
-      error("Name's first character must be upper case");   
+      throw Book::Invalid_Book("Author name's first character must be upper case");
+   for (unsigned int i = 0; i < SIZE; i++)
+      if (isalpha(s[i]) && (i + 1) < SIZE && isalpha(s[i + 1])) 
+         return;
+   throw Book::Invalid_Book("Author's name must have at least 2 alphabetic characters in succession");
 }
 
 void validate_title(const string& title) {
    for (unsigned int i = 0; i < title.size(); i++)
       if (isprint(title[i])) 
          return;
-   error("Title must contain at least 1 print character");
+   throw Book::Invalid_Book("Title must contain at least 1 print character");
 }
 
 void validate_ISBN(const string& isbn) {
@@ -48,7 +52,17 @@ void validate_ISBN(const string& isbn) {
    if (index == SIZE - 1 && isalnum(isbn[index])) 
       if (INTEGERS == int_counter && SEPARATORS == separator_counter)
          return;
-   error("Correct format ISBN is n-n-n-x where n is integer x is digit or letter");
+   throw Book::Invalid_Book("Correct format ISBN is n-n-n-x where n is integer x is digit or letter");
+}
+
+void check_time_difference(time_t& end, struct tm * timeinfo, const Date& d) {
+   time_t begin = mktime(timeinfo);
+   double diff_seconds = difftime(end, begin);
+   cerr << diff_seconds << " seconds since book date in the current timezone.\n";
+   
+   static constexpr long int SECONDS_PER_DAY = 24 * 60 * 60;
+   if (diff_seconds < SECONDS_PER_DAY) 
+      throw Book::Invalid_Book(to_string(d) + " date of book is too early");
 }
 
 void validate_date (const Date& d) {
@@ -62,53 +76,45 @@ void validate_date (const Date& d) {
    if (current_year > d.year()) 
       return;
    else if (current_year < d.year()) 
-      error(to_string(d.year()), " year of book is in the future");
+      throw Book::Invalid_Book(to_string(d.year()) + " year of book is in the future");
    
-   static const int month_offset = Date::Month::jan;
+   static constexpr int month_offset = 1;  // in struct tm months are: 0-11
    timeinfo.tm_year = d.year() - year_offset;
    timeinfo.tm_mon = d.month() - month_offset;  // in struct tm months are: 0-11
    timeinfo.tm_mday = d.day();
    timeinfo.tm_hour = 23; timeinfo.tm_min = 59; timeinfo.tm_sec = 59;
    
-   double diff_seconds = difftime(now, mktime(&timeinfo));
-   cerr << diff_seconds << " seconds since book date in the current timezone.\n";
-   static constexpr long int SECONDS_PER_DAY = 24 * 60 * 60;
-   if (diff_seconds < SECONDS_PER_DAY)
-      error(to_string(d.year()), " date of book is too early");
+   check_time_difference(now, &timeinfo, d);
 }
 
-Book::Book(const string& a, const string& t, Genre g, const string& isbn, const Date& d) : 
-author(a), title(t), ISBN(isbn), genre(g), date(d)
-{
+void Book::validation() const {
    validate_name(author);
    validate_title(title);
    validate_ISBN(ISBN);
-   validate_date(date);/*
-   author = a;
-   title = t;
-   ISBN = isbn;
-   date = d;
-   genre = g;*/
-   //borrowed = false;
+   validate_date(date);
+}
+
+Book::Book(const string& a, const string& t, Genre g, const string& isbn, const Date& d) : 
+author(a), title(t), ISBN(isbn), genre(g), date(d) 
+{
+   validation();
+}
+
+Book::Book(const string& a, const string& t, Genre g, const string& isbn, const Date& d, bool b) : 
+author(a), title(t), ISBN(isbn), genre(g), date(d)
+{
+   validation();
+   borrowed = b;
 }
 
 void Book::return_book() {
    if (! borrowed)
-      error("Book has not been borrowed yet");
+      throw Book::Invalid_Operation("Book has not been borrowed yet");
    borrowed = false;
 }
 
 void Book::borrow() {
    if (borrowed)
-      error("Book has been borrowed already");
+      throw Book::Invalid_Operation("Book has been borrowed already");
    borrowed = true;
 }
-
-/*
-ostream& operator<<(ostream& os, const Book& book) {
-   return os << " ISBN: " << book.isbn() << " \n" 
-           << book.get_author() << " \n" << book.get_title() << '\n'
-           << book.get_genre() << '\n';
-   //return os;
-}
-*/

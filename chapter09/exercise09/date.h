@@ -1,6 +1,5 @@
 using std::string;
 using std::to_string;
-using std::runtime_error;
 using std::exception;
 using std::ostream;
 using std::istream;
@@ -99,6 +98,7 @@ inline ostream& operator<<(ostream& os, Date::Month m) {
    return os << Date::MONTH_NAMES[m - 1];
 }
 
+string to_string(const Date& d);
 ostream& operator<<(ostream& os, const Date& d);
 istream& operator>>(istream& is, Date& date);
 
@@ -117,5 +117,6 @@ Date next_Sunday(const Date& date);
 Date next_weekday(const Date& date);
 Date next_workday(const Date& date);
 unsigned int week_of_year(const Date& date);
+Date get_today();
 
 }

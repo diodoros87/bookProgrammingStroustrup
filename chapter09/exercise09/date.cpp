@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <ctime>
 
 #include "date.h"
 
@@ -33,7 +34,7 @@ int get_max_day(Date::Month m, int y) {
       case Date::feb:
          return leapyear(y) ? 29 : 28;
       default:
-         throw runtime_error("Month must be in range 1 - 12");
+         throw Date::Invalid("Month must be in range 1 - 12");
    }
 }
 
@@ -105,6 +106,11 @@ istream& operator>>(istream& is, Date& date) {
    return is;
 }
 
+string to_string(const Date& d) {
+   return " " + std::to_string(d.year()) + " " + Date::MONTH_NAMES[d.month() - 1]
+                  + " " + std::to_string(d.day()) + " ";
+}
+
 const Date& default_date() {
    static const Date dd(2001,Date::jan,1); // start of 21st century
    return dd;
@@ -121,7 +127,7 @@ Date::Date()
 
 void Date::validate() {
    if (! is_date()) {
-      string msg = to_string(y) + ", " + to_string(m) + ", " + to_string(d) + " is incorrect date\n";
+      string msg = std::to_string(y) + ", " + std::to_string(m) + ", " + std::to_string(d) + " is incorrect date\n";
       throw Invalid(msg);
    }
 }
@@ -384,11 +390,11 @@ Date next_workday(const Date& date) {
 // // Day::sunday is last day in week
 Date start_week(int week, int year) {
    if (1 > week)
-      throw runtime_error("number of week in year can not be < 1");
+      throw Date::Invalid("number of week in year can not be < 1");
    Date result(year, Date::jan, 1);
    for (int counter = 1; counter < week; counter++) {
       if (year != result.year())
-         throw runtime_error("number of week in year is too big");
+         throw Date::Invalid("number of week in year is too big");
       result = next_weekday(result);
    }
    return result;
@@ -405,6 +411,24 @@ unsigned int week_of_year(const Date& date) {
       if (temp > date) // if start of next week is after than parameter date then:
          return --week;  // return previous week
    } while (true);
+}
+
+Date get_today() {
+   time_t rawtime;
+   struct tm * timeinfo;
+   
+   time ( &rawtime );
+   timeinfo = localtime ( &rawtime );
+   static constexpr int year_offset = 1900;
+   const int current_year = timeinfo->tm_year + year_offset;
+   static constexpr int month_offset = 1;  // in struct tm months are: 0-11
+   const int int_current_month = timeinfo->tm_mon + month_offset;
+   const int current_day = timeinfo->tm_mday;
+   if (! is_valid_month(int_current_month))
+      throw Date::Invalid("current month number '" + std::to_string(int_current_month) +
+            "' is not in range 1-12");
+   const Date::Month current_month = static_cast<Date::Month>(int_current_month);
+   return Date {current_year, current_month, current_day};
 }
 
 }

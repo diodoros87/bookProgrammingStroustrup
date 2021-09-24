@@ -131,6 +131,8 @@ void adding_test(bool day, bool month, bool year) {
    cout << "\n test date BC/AD= " << test << '\n';
 }
 
+
+
 void test_by_ctime (const Date& date, const Day result_day) {
    if (date.year() < 1900)
       throw runtime_error("test_by_ctime precondition: date.year() >= 1900");
@@ -211,35 +213,90 @@ void date_test() {
    week_of_year_test();
 }
 
-void test(string author, string title, Book::Genre genre, string isbn, Date date) {
-   Book book = Book{author, title, genre, isbn, date};
-   cout << book;
-}
-
-void test_incorrect(string author, string title, Book::Genre genre, string isbn, Date date) {
+void test_incorrect_book_return(Book& book) {
+   if (book.is_borrow())
+      return;
    try {
-      test(author, title, genre, isbn, date);
+      book.return_book();
       assert(false);
    }
-   catch (Invalid& e) {
-      //check_assertion(date, y, m, d);
+   catch (Book::Invalid_Operation& e) {
       cerr << "Exception catched: " << e.what() << endl;
    }
 }
 
-void test() {
+void test_incorrect_book_borrow(Book& book) {
+   if (! book.is_borrow())
+      return;
+   try {
+      book.borrow();
+      assert(false);
+   }
+   catch (Book::Invalid_Operation& e) {
+      cerr << "Exception catched: " << e.what() << endl;
+   }
+}
+
+void test_book_borrowing() {
+   Book meditations = Book{"Marcus Aurelius", "Meditations", Book::Genre::Philosophy, 
+      "1-2-3-5", Date{172, Date::jan, 4}, false};
+   test_incorrect_book_return(meditations);
+   meditations.borrow();
+   test_incorrect_book_borrow(meditations);
+   meditations.return_book();
+}
+
+void test(const string& a, const string& t, Book::Genre g, const string& isbn, const Date& d) {
+   Book book = Book{a, t, g, isbn, d};
+   cout << book;
+}
+
+void test_incorrect_books(const string& a, const string& t, Book::Genre g, const string& isbn, const Date& d) {
+   try {
+      test(a, t, g, isbn, d);
+      assert(false);
+   }
+   catch (Book::Invalid_Book& e) {
+      cerr << "Exception catched: " << e.what() << endl;
+   }
+}
+
+void test_book_construction() {
    test("Aristotle", "Metaphysics", Book::Genre::Philosophy, "1-2-3-5", Date{-343, Date::jan, 4});
    test("Nicolaus Copernicus", "De revolutionibus orbium coelestium", 
         Book::Genre::Astronomy, "14-24-34-c", Date{1543, Date::dec, 6});
    test("Lucius Annaeus Seneca", "Epistulae morales ad Lucilium", 
         Book::Genre::Philosophy, "544-24-34-N", Date{63, Date::dec, 16});
-   test("Euclid", "Elements",  Book::Genre::Mathematics,
+   
+   test_incorrect_books("Aristotle", "Incorrect ISBN", Book::Genre::Philosophy, "1-2-3-54", Date{-343, Date::jan, 4});
+   test_incorrect_books("Aristotle", "Incorrect ISBN", Book::Genre::Philosophy, "1+2-3-5", Date{2021, Date::sep, 22});
+   test_incorrect_books("Aristotle", "Today", Book::Genre::Philosophy, "1-2-3-5", get_today());
+   
+   test_incorrect_books("Euclid", "Incorrect ISBN",  Book::Genre::Mathematics,
         "544b-24-34-N", Date{-300, Date::jun, 30});
+   test_incorrect_books("E", "Incorrect Name",  Book::Genre::Mathematics,
+        "544-24-34-N", Date{-300, Date::jun, 30});
+   test_incorrect_books("E v", "Incorrect Name",  Book::Genre::Mathematics,
+        "544-24-34-N", Date{-300, Date::jun, 30});
+   test_incorrect_books("we", "Incorrect Name",  Book::Genre::Mathematics,
+        "544-24-34-N", Date{-300, Date::jun, 30});
+   test_incorrect_books("we", "Incorrect Name",  Book::Genre::Mathematics,
+        "544-24-34-N", Date{-300, Date::jun, 30});
+   
+   test("Euclid", "Elements",  Book::Genre::Mathematics,
+        "544-24-34-N", Date{-300, Date::jun, 30});
+   test("Aristotle", "Nicomachean Ethics", Book::Genre::Philosophy, "1-2-3-5", Date{-343, Date::jan, 4});
+   
+   test("Claudius Ptolemaeus", "Almagest", Book::Genre::Astronomy, "0-2-3-5", Date{160, Date::jan, 4});
+   test("Bjarne Stroustrup", "C++ Language", Book::Genre::Computer_Science, "11-98-79-3", Date{2012, Date::dec, 4});
+   test("Cay S. Horstmann", "Java Fundamentals", Book::Genre::Computer_Science, "1-2-3-5", Date{2016, Date::dec, 4});
+   test("Aristotle", "Nicomachean Ethics", Book::Genre::Philosophy, "1-2-3-5", Date{2021, Date::sep, 4});
 }
 
 int main() {
    try {
-      test();
+      test_book_construction();
+      test_book_borrowing();
       return 0;
    }
    catch (runtime_error& e) {

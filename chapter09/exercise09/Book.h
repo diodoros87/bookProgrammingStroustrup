@@ -9,13 +9,22 @@ using Chrono::Date;
 class Book {
 public:
    class Invalid_Book : public Invalid { 
-      string msg {"Invalid book: "};
+      string msg {string(Invalid::what()) + " Invalid book: "};
    public:
       Invalid_Book(const string& message) { msg += message; }
       const char* what() {
          return msg.c_str();
       }
    };
+   class Invalid_Operation : public Invalid { 
+      string msg {string(Invalid::what()) + " Invalid book operation: "};
+   public:
+      Invalid_Operation(const string& message) { msg += message; }
+      const char* what() {
+         return msg.c_str();
+      }
+   };
+   
    enum class Genre { 
       Philosophy, Astronomy, Mathematics, Computer_Science 
    };
@@ -32,8 +41,10 @@ public:
    void borrow();
    
    Book(const string& a, const string& t, Genre g, const string& isbn, const Date& d);
+   Book(const string& a, const string& t, Genre g, const string& isbn, const Date& d, bool b);
 private:
    Book();
+   void validation() const;
    const string author;
    const string title;
    const string ISBN;
