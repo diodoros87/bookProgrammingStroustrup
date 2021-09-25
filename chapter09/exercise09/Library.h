@@ -18,10 +18,16 @@ private:
    vector<Patron> users;
    vector<Transaction> transactions;
    
-   long long get_user_index(unsigned int number, unsigned int begin = 0);
+   long long get_user_index(unsigned int card_number, unsigned int begin = 0) const;
+   long long get_user_index(const string& name, unsigned int begin = 0) const;
+   long long get_book_index(const string& p_isbn, unsigned int begin = 0) const;
+   
 public:
    static constexpr unsigned long long MAX_USERS = UINT_MAX + 1;
+   static string generate_isbn(const Library& library);
+   
    class Invalid_Transaction : public Invalid { 
+   private:
       string msg {string(Invalid::what()) + " Invalid transaction: "};
    public:
       Invalid_Transaction(const string& message) { msg += message; }
@@ -30,8 +36,7 @@ public:
       }
    };
    
-   unsigned int generate_user_card_number();
-   static string generate_isbn();
+   unsigned int generate_user_card_number() const;
    
    Library();
    

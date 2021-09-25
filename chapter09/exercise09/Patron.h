@@ -13,6 +13,8 @@ public:
       }
    };
    
+   static string status(const Patron& patron);
+   
    string get_user_name() const { return user_name; }
    unsigned int get_number() const { return number; }
    unsigned int get_charges() const { return charges; }

@@ -31,3 +31,8 @@ user_name(name), number(n)
 {
    validate_name(name);
 }
+
+string Patron::status(const Patron& patron) {
+   return " User: " + patron.get_user_name() + "\t Card number: " +
+      to_string(patron.get_number()) + "\t Charges: " + to_string(patron.get_charges()) + "\n";
+}

@@ -40,17 +40,17 @@ void validate_ISBN(const string& isbn) {
    const unsigned int SIZE = isbn.size();
    unsigned int int_counter, separator_counter = 0;
    unsigned int index = 0;
-   for (unsigned int iteration = 0; index < (SIZE - 1) && iteration < ITERATIONS; iteration++) {
+   for (unsigned int iteration = 0; index < (SIZE - 1) && iteration < Book::ITERATIONS; iteration++) {
       if (isdigit(isbn[index])) 
          int_counter++;
       while(index < SIZE && isdigit(isbn[index]))
          index++;
-      if (index < SIZE && isbn[index] == SEPARATOR_CHAR)
+      if (index < SIZE && isbn[index] == Book::SEPARATOR_CHAR)
          ++separator_counter;
       index++;
    }
    if (index == SIZE - 1 && isalnum(isbn[index])) 
-      if (INTEGERS == int_counter && SEPARATORS == separator_counter)
+      if (Book::INTEGERS == int_counter && Book::SEPARATORS == separator_counter)
          return;
    throw Book::Invalid_Book("Correct format ISBN is n-n-n-x where n is integer x is digit or letter");
 }
