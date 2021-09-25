@@ -4,9 +4,10 @@
 #include <ctime>
 #include <cstring>
 
+#include "error.h"
 #include "date.h"
 #include "Book.h"
-#include "error.h"
+#include "Patron.h"
 
 using namespace std;
 using namespace Chrono;
@@ -213,6 +214,47 @@ void date_test() {
    week_of_year_test();
 }
 
+void test_patron_charges() {
+   User::Patron patron = User::Patron{"Alexander_Great", 333, 0};
+   assert(patron.are_charges() == false && "patron.are_charges() != false");
+   cout << patron;
+   patron.set_charges(-45);
+   assert(patron.are_charges() && "patron.are_charges() == false");
+   cout << patron;
+   patron.set_charges(+45);
+   assert(patron.are_charges() && "patron.are_charges() == false");
+   cout << patron;
+}
+
+void test_patron_construction(const string& name, unsigned int n) {
+   User::Patron patron = User::Patron{name, n};
+   assert(patron.are_charges() == false && "patron.are_charges() != false");
+   cout << patron;
+}
+
+void test_incorrect_patron(const string& name, unsigned int n) {
+   try {
+      test_patron_construction(name, n);
+      assert(false);
+   }
+   catch (User::Patron::Invalid_Patron& e) {
+      cerr << "Exception catched: " << e.what() << endl;
+   }
+}
+
+void test_patron() {
+   test_patron_construction("Hipparch", 1800);
+   test_patron_construction("Aristarch", 0);
+   test_patron_construction("hades", 333);
+   test_patron_construction("democrit_abdera", -747);
+   
+   test_incorrect_patron("eric", 33);
+   test_incorrect_patron("Ur", 111);
+   test_incorrect_patron("3ertfgf", 77);
+   test_incorrect_patron("democrit abdera", 747);
+   test_incorrect_patron("democrit-abdera", 747);
+}
+
 void test_incorrect_book_return(Book& book) {
    if (book.is_borrow())
       return;
@@ -302,22 +344,36 @@ int main() {
    try {
       test_book_construction();
       test_book_borrowing();
+      test_patron();
+      test_patron_charges();
       return 0;
    }
-   catch (runtime_error& e) {
-      cerr << "exception: " << e.what() << endl;
-      return 4;
+   catch (Book::Invalid_Operation& e) {
+      cerr << "main(): exception\n" << e.what() << endl;
+      return 6;
+   }
+   catch (Book::Invalid_Book& e) {
+      cerr << "main(): exception\n" << e.what() << endl;
+      return 6;
+   }
+   catch (User::Patron::Invalid_Patron& e) {
+      cerr << "main(): exception\n" << e.what() << endl;
+      return 5;
    }
    catch (Date::Invalid& e) {
-      cerr << "exception: " << e.what() << endl;
+      cerr << "main(): exception\n" << e.what() << endl;
       return 3;
    }
+   catch (runtime_error& e) {
+      cerr << "main(): exception\n" << e.what() << endl;
+      return 4;
+   }
    catch (exception& e) {
-      cerr << "exception: " << e.what() << endl;
+      cerr << "main(): exception\n" << e.what() << endl;
       return 1;
    }
    catch (...) {
-      cerr << "unrecognized exception\n";
+      cerr << "main(): unrecognized exception\n";
       return 2;
    }
 }
