@@ -8,6 +8,11 @@ using Chrono::Date;
 
 class Book {
 public:
+   static constexpr char SEPARATOR_CHAR = '-';
+   static constexpr unsigned int INTEGERS = 3;
+   static constexpr unsigned int SEPARATORS = 3;
+   static constexpr unsigned int ITERATIONS = 3;
+   
    class Invalid_Book : public Invalid { 
       string msg {string(Invalid::what()) + " Invalid book: "};
    public:

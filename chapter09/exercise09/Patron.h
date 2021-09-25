@@ -2,8 +2,6 @@
 using std::string;
 using std::ostream;
 
-namespace User {
-   
 class Patron {
 public:
    class Invalid_Patron : public Invalid { 
@@ -36,6 +34,4 @@ private:
 inline ostream& operator<<(ostream& os, const Patron& patron) {
    return os << " User: " << patron.get_user_name() << "\t Card number: " 
            << patron.get_number() << "\t Charges: " << patron.get_charges() << '\n';
-}
-
 }

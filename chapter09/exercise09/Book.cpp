@@ -33,10 +33,10 @@ void validate_title(const string& title) {
 }
 
 void validate_ISBN(const string& isbn) {
-   static constexpr char SEPARATOR_CHAR = '-';
+   /*static constexpr char SEPARATOR_CHAR = '-';
    static constexpr unsigned int INTEGERS = 3;
    static constexpr unsigned int SEPARATORS = 3;
-   static constexpr unsigned int ITERATIONS = 3;
+   static constexpr unsigned int ITERATIONS = 3;*/
    const unsigned int SIZE = isbn.size();
    unsigned int int_counter, separator_counter = 0;
    unsigned int index = 0;

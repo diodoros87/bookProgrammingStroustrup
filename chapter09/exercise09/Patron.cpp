@@ -5,10 +5,8 @@
 #include "Patron.h"
 
 using namespace std;
-
-namespace User {
    
-void validate_name (const string& s) {
+static void validate_name (const string& s) {
    static constexpr unsigned int MIN_SIZE = 5;
    const unsigned int SIZE = s.size();
    if (MIN_SIZE > SIZE)
@@ -32,6 +30,4 @@ Patron::Patron(const string& name, unsigned int n) :
 user_name(name), number(n)
 {
    validate_name(name);
-}
-
 }

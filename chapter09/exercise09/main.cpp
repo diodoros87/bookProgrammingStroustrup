@@ -8,6 +8,7 @@
 #include "date.h"
 #include "Book.h"
 #include "Patron.h"
+#include "Library.h"
 
 using namespace std;
 using namespace Chrono;
@@ -215,7 +216,7 @@ void date_test() {
 }
 
 void test_patron_charges() {
-   User::Patron patron = User::Patron{"Alexander_Great", 333, 0};
+   Patron patron = Patron{"Alexander_Great", 333, 0};
    assert(patron.are_charges() == false && "patron.are_charges() != false");
    cout << patron;
    patron.set_charges(-45);
@@ -227,7 +228,7 @@ void test_patron_charges() {
 }
 
 void test_patron_construction(const string& name, unsigned int n) {
-   User::Patron patron = User::Patron{name, n};
+   Patron patron = Patron{name, n};
    assert(patron.are_charges() == false && "patron.are_charges() != false");
    cout << patron;
 }
@@ -237,7 +238,7 @@ void test_incorrect_patron(const string& name, unsigned int n) {
       test_patron_construction(name, n);
       assert(false);
    }
-   catch (User::Patron::Invalid_Patron& e) {
+   catch (Patron::Invalid_Patron& e) {
       cerr << "Exception catched: " << e.what() << endl;
    }
 }
@@ -330,14 +331,14 @@ void test_book_construction() {
    test_incorrect_books("we", "Incorrect Name",  Book::Genre::Mathematics,
         "544-24-34-N", Date{-300, Date::jun, 30});
    
-   test("Euclid", "Elements",  Book::Genre::Mathematics,
-        "544-24-34-N", Date{-300, Date::jun, 30});
+   test("Euclid", "Elements",  Book::Genre::Mathematics, "544-24-34-N", Date{-300, Date::jun, 30});
    test("Aristotle", "Nicomachean Ethics", Book::Genre::Philosophy, "1-2-3-5", Date{-343, Date::jan, 4});
    
    test("Claudius Ptolemaeus", "Almagest", Book::Genre::Astronomy, "0-2-3-5", Date{160, Date::jan, 4});
    test("Bjarne Stroustrup", "C++ Language", Book::Genre::Computer_Science, "11-98-79-3", Date{2012, Date::dec, 4});
    test("Cay S. Horstmann", "Java Fundamentals", Book::Genre::Computer_Science, "1-2-3-5", Date{2016, Date::dec, 4});
-   test("Aristotle", "Nicomachean Ethics", Book::Genre::Philosophy, "1-2-3-5", Date{2021, Date::sep, 4});
+   test("Aristotle", "Organon", Book::Genre::Philosophy, "1-2-3-5", Date{-342, Date::sep, 4});
+   test("Plato", "Fedon", Book::Genre::Philosophy, "1-2-3-5", Date{-377, Date::feb, 4});
 }
 
 int main() {
@@ -348,32 +349,32 @@ int main() {
       test_patron_charges();
       return 0;
    }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "main(): exception\n" << e.what() << endl;
+   }
    catch (Book::Invalid_Operation& e) {
       cerr << "main(): exception\n" << e.what() << endl;
-      return 6;
    }
    catch (Book::Invalid_Book& e) {
       cerr << "main(): exception\n" << e.what() << endl;
-      return 6;
    }
-   catch (User::Patron::Invalid_Patron& e) {
+   catch (Patron::Invalid_Patron& e) {
       cerr << "main(): exception\n" << e.what() << endl;
-      return 5;
    }
    catch (Date::Invalid& e) {
       cerr << "main(): exception\n" << e.what() << endl;
-      return 3;
+   }
+   catch (Invalid& e) {
+      cerr << "main(): exception\n" << e.what() << endl;
    }
    catch (runtime_error& e) {
       cerr << "main(): exception\n" << e.what() << endl;
-      return 4;
    }
    catch (exception& e) {
       cerr << "main(): exception\n" << e.what() << endl;
-      return 1;
    }
    catch (...) {
       cerr << "main(): unrecognized exception\n";
-      return 2;
    }
+   return 1;
 }
