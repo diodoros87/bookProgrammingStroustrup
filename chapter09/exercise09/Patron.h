@@ -37,3 +37,12 @@ inline ostream& operator<<(ostream& os, const Patron& patron) {
    return os << " User: " << patron.get_user_name() << "\t Card number: " 
            << patron.get_number() << "\t Charges: " << patron.get_charges() << '\n';
 }
+
+inline bool operator==(const Patron& a, const Patron& b) {
+   return a.get_user_name() == b.get_user_name() && a.get_number() == b.get_number() 
+      && a.get_charges() == b.get_charges();
+}
+
+inline bool operator!=(const Patron& a, const Patron& b) {
+   return !(a==b);
+}

@@ -8,12 +8,12 @@ using std::string;
 
 #ifndef NDEBUG
 #   define Unforeseen_Behavior(Msg) \
-    __Unforeseen_Behavior(__FILE__, __LINE__, Msg)
+   __Unforeseen_Behavior(__FILE__, __LINE__, Msg)
 #else
-#   define Unforeseen_Behavior();
+#   define Unforeseen_Behavior() ;
 #endif
 
-inline void __Unforeseen_Behavior(const char* file, const int line, const string& msg = "") {
+inline void __Unforeseen_Behavior(const char* file, const int line, const string& msg) {
    std::cerr << "!!!!! FATAL ERROR !!! Program should not be executed this instruction: \n"
       << msg << "\n" << "Source:\t\t" << file << ", line " << line << "\n";
    exit(EXIT_FAILURE);

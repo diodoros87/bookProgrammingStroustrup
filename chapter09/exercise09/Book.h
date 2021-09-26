@@ -69,7 +69,8 @@ inline ostream& operator<<(ostream& os, const Book& book) {
 }
 
 inline bool operator==(const Book& a, const Book& b) {
-   return a.isbn() == b.isbn();
+   return a.isbn() == b.isbn() && a.get_title() == b.get_title() && a.get_author() == b.get_author()
+      && a.get_date() == b.get_date() && a.get_genre() == b.get_genre() && a.is_borrow() == b.is_borrow();
 }
 
 inline bool operator!=(const Book& a, const Book& b) {

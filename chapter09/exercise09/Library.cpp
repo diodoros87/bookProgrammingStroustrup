@@ -56,7 +56,7 @@ unsigned int Library::generate_user_card_number() const {
    if (index != INDEX_NOT_FOUND)
       return number++;
    else
-      Unforeseen_Behavior();
+      Unforeseen_Behavior("");
 }
 
 static long long int random_number(const long long BEGIN = 0, const long long INCREMENT = 1, const long long RANGE = RAND_MAX) {
@@ -75,7 +75,7 @@ static char random_alphanum() {
       if (result < LETTERS_RANGE)
          return result + 'A';
       else
-         return result + 'a';
+         return result - LETTERS_RANGE + 'a';
    }
 }
 
@@ -95,8 +95,16 @@ string Library::generate_isbn(const Library& library) {
    return result;
 }
 
-void Library::add_user(Patron parameter) {
-    if (is_max_users_number())
+void Library::add_user(const string& name) {
+   if (is_max_users_number())
+      throw Library::Invalid_Transaction("Can not add user to library with maximum number of users. \
+This library has already " + to_string(Library::MAX_USERS) + " users.");
+      Patron user = Patron(name, generate_user_card_number());
+      users.push_back(user);
+}
+
+void Library::add_user(const Patron& parameter) {
+   if (is_max_users_number())
       throw Library::Invalid_Transaction("Can not add user to library with maximum number of users. \
 This library has already " + to_string(Library::MAX_USERS) + " users.");
    for (Patron u : users) {
@@ -108,24 +116,34 @@ This library has already " + to_string(Library::MAX_USERS) + " users.");
    users.push_back(parameter);
 }
 
-void Library::add_book(Book parameter) {
+void Library::add_book(const string& a, const string& t, Book::Genre g, const Date& d /*= get_today()*/) {
+   Book book = Book(a, t, g, generate_isbn(*this), d);
+   books.push_back(book);
+}
+
+void Library::add_book(const Book& parameter) {
    for (Book b : books) 
       if (parameter.isbn() == b.isbn())
          throw Invalid_Transaction("Identical ISBN detected for  " + book_status(b));
    books.push_back(parameter);
 }
 
-static long long book_validation_index(const Book& book) {
-   const long long book_index = get_book_index(patron.get_user_name());
-   if (INDEX_NOT_FOUND == get_book_index(book.isbn()))
-      throw Library::Invalid_Transaction("User " + patron.get_user_name() + " is not registered to library");
-   return user_index;
+long long Library::book_validation_index(const Book& book) const {
+   const long long book_index = get_book_index(book.isbn());
+   if (INDEX_NOT_FOUND == book_index)
+      throw Library::Invalid_Transaction("Book " + book_status(book) + " is not in library");
+   if (books[book_index] != book)
+      throw Library::Invalid_Transaction("Book " + book_status(book) + " is different than \
+book with the same isbn in library: " + book_status(books[book_index]));
+      
+   return book_index;
 }
 
-static long long user_validation_index(const Patron& patron) {
+long long Library::user_validation_index(const Patron& patron) const {
    const long long user_index = get_user_index(patron.get_user_name());
    if (INDEX_NOT_FOUND == user_index)
       throw Library::Invalid_Transaction("User " + patron.get_user_name() + " is not registered to library");
+   
    const long long user_index_by_card_number = get_user_index(patron.get_number());
    if (user_index != user_index_by_card_number)
       Unforeseen_Behavior("user_index != user_index_by_card_number " + 
@@ -133,11 +151,34 @@ static long long user_validation_index(const Patron& patron) {
    if (INDEX_NOT_FOUND == get_user_index(patron.get_number()))
       throw Library::Invalid_Transaction("User with card number " + to_string(patron.get_number())
                   + " is not registered to library");
+   
+   if (users[user_index_by_card_number] != patron)
+      throw Library::Invalid_Transaction("User " + Patron::status(patron) + " is different than \
+user with the same card number in library: " + Patron::status(users[user_index_by_card_number]));
+   
    return user_index;
 }
 
-void Library::book_borrowing_request(const Patron& patron, const Book& book) {
+bool Library::exist(const Transaction& parameter) {
+    for (const Transaction t : transactions)
+      if (parameter == t)
+         return true;
+   return false;
+}
+
+void Library::book_borrowing_request(const Patron& patron, const Book& book, const Date& date/* = Chrono::get_today()*/) {
    const long long user_index = user_validation_index(patron);
    const long long book_index = book_validation_index(book);
-   Transaction transaction();
+   if (date > Chrono::get_today())
+      throw Library::Invalid_Transaction("Date " + to_string(date) + " is in the future. \
+Library can not accepted transaction with date is in the future. ");
+   if (users[user_index].are_charges())
+      throw Library::Invalid_Transaction("User " + Patron::status(patron) + " must pay charges.");
+   if (books[book_index].is_borrow())
+      throw Library::Invalid_Transaction("Book " + book_status(book) + " has been borrowed already.");
+   
+   Transaction new_transact(patron, book, date);
+   if (exist(new_transact))
+      throw Library::Invalid_Transaction("Identical transaction was saved previously.");
+   transactions.push_back(new_transact);
 }
