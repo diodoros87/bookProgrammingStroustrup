@@ -28,8 +28,8 @@ public:
 private:
    Patron();
    
-   const string user_name;
-   const unsigned int number {0};
+   string user_name;
+   unsigned int number {0};
    unsigned int charges {0};
 };
 

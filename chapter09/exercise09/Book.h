@@ -50,11 +50,11 @@ public:
 private:
    Book();
    void validation() const;
-   const string author;
-   const string title;
-   const string ISBN;
-   const Genre genre;
-   const Date date;
+   string author;
+   string title;
+   string ISBN;
+   Genre genre;
+   Date date;
    bool borrowed {false};
 };
 

@@ -22,7 +22,7 @@ using namespace Chrono;
 #   define M_Assert(Expr, Msg) ;
 #endif
 
-void __M_Assert(const char* expr_str, const bool expr,
+static void __M_Assert(const char* expr_str, const bool expr,
                 const char* file, const int line, const string& msg) {
     if (! expr) {
       cerr << "\nAssert failed:\t" << msg << "\n"
@@ -32,19 +32,19 @@ void __M_Assert(const char* expr_str, const bool expr,
    }
 }
 
-inline void check_assertion(int x, int expected_x, const string& LABEL) {
+static inline void check_assertion(int x, int expected_x, const string& LABEL) {
    const string message = " " + LABEL + " " + to_string(x) +
                      " != expected " + LABEL + " " + to_string(expected_x);
    M_Assert(x == expected_x, message);
 }
 
-inline void check_assertion(const Date& date, int y, int m, int d) {
+static inline void check_assertion(const Date& date, int y, int m, int d) {
    check_assertion(date.day(), d, "day");
    check_assertion(date.month(), m, "month");
    check_assertion(date.year(), y, "year");
 }
 
-void test_incorrect(Date& date) {
+static void test_incorrect(Date& date) {
    int d = date.day();
    int m = date.month();
    int y = date.year();
@@ -58,7 +58,7 @@ void test_incorrect(Date& date) {
    }
 }
 
-Date get_date_from_input() {
+static Date get_date_from_input() {
    Date date;
    if (cin) {
       cout << "Enter date in format (Y,M,D) ";
@@ -67,14 +67,14 @@ Date get_date_from_input() {
    return date;
 }
 
-void test_input() {
+static void test_input() {
    Date date_from_input = get_date_from_input();
    cout << "date from input = " << date_from_input << endl;
    date_from_input = get_date_from_input();
    cout << "date from input = " << date_from_input << endl;
 }
 
-void standard_test() {
+static void standard_test() {
    Date today(1978, Date::jul, 20); 
    cerr << "today = " << today << endl;
    check_assertion(today, 1978, Date::jul, 20);
@@ -94,7 +94,7 @@ void standard_test() {
    test_incorrect(today); 
 }
 
-void adding_test(bool day, bool month, bool year, Date& date, bool minus) {
+static void adding_test(bool day, bool month, bool year, Date& date, bool minus) {
    int number = 0;
    if (day) {
       number = minus ? -2000 : +2000;
@@ -110,7 +110,7 @@ void adding_test(bool day, bool month, bool year, Date& date, bool minus) {
    }
 }
 
-void adding_test(bool day, bool month, bool year) {
+static void adding_test(bool day, bool month, bool year) {
    Date test = {1999, Date::Month::dec, 31};
    cout << "\n test date 1999/200n= " << test << '\n';
    adding_test(day, month, year, test, false);
@@ -135,7 +135,7 @@ void adding_test(bool day, bool month, bool year) {
 
 
 
-void test_by_ctime (const Date& date, const Day result_day) {
+static void test_by_ctime (const Date& date, const Day result_day) {
    if (date.year() < 1900)
       throw runtime_error("test_by_ctime precondition: date.year() >= 1900");
   time_t rawtime;
@@ -157,7 +157,7 @@ void test_by_ctime (const Date& date, const Day result_day) {
   assert(strcmp (DAY_NAMES[timeinfo->tm_wday], DAY_NAMES[result_day]) == 0);
 }
 
-void day_test(const Date& date, const Day expected_day) {
+static void day_test(const Date& date, const Day expected_day) {
    cout << "BEGIN TEST "  << '\n';
    Day day = day_of_week(date);
    cout << "date = " << date << " is " << day << '\n';
@@ -172,7 +172,7 @@ void day_test(const Date& date, const Day expected_day) {
    cout << "END TEST "  << '\n';
 }
 
-void day_test() {
+static void day_test() {
    day_test(Date{2004, Date::feb, 29}, Day::sunday);
    day_test(Date{2001, Date::may, 20}, Day::sunday);
    day_test(Date{2001, Date::jan, 2}, Day::tuesday);
@@ -186,7 +186,7 @@ void day_test() {
    day_test(Date(), Day::monday);
 }
 
-void week_of_year_test(const Date& date, const int expected_week) {
+static void week_of_year_test(const Date& date, const int expected_week) {
    cout << "BEGIN TEST "  << '\n';
    unsigned int week = week_of_year(date);
    cout << "date = " << date << " is " << week << " week" << '\n';
@@ -194,7 +194,7 @@ void week_of_year_test(const Date& date, const int expected_week) {
    cout << "END TEST "  << '\n';
 }
 
-void week_of_year_test() {
+static void week_of_year_test() {
    week_of_year_test(Date{2001, Date::jan, 2}, 1);
    week_of_year_test(Date{2001, Date::jan, 1}, 1);
    week_of_year_test(Date{2001, Date::jan, 7}, 1);
@@ -205,7 +205,7 @@ void week_of_year_test() {
    week_of_year_test(Date{2021, Date::dec, 31}, 53);
 }
 
-void date_test() { 
+static void date_test() { 
    standard_test();
    //test_input();   checked many times
    adding_test(true, false, false);
@@ -215,8 +215,8 @@ void date_test() {
    week_of_year_test();
 }
 
-void test_patron_charges() {
-   Patron patron = Patron{"Alexander_Great", 333, 0};
+static Patron test_patron_charges() {
+   Patron patron = Patron{"Alexander_3_Great", 333, 0};
    assert(patron.are_charges() == false && "patron.are_charges() != false");
    cout << patron;
    patron.set_charges(-45);
@@ -225,15 +225,17 @@ void test_patron_charges() {
    patron.set_charges(+45);
    assert(patron.are_charges() && "patron.are_charges() == false");
    cout << patron;
+   return patron;
 }
 
-void test_patron_construction(const string& name, unsigned int n) {
+static Patron test_patron_construction(const string& name, unsigned int n) {
    Patron patron = Patron{name, n};
    assert(patron.are_charges() == false && "patron.are_charges() != false");
    cout << patron;
+   return patron;
 }
 
-void test_incorrect_patron(const string& name, unsigned int n) {
+static void test_incorrect_patron(const string& name, unsigned int n) {
    try {
       test_patron_construction(name, n);
       assert(false);
@@ -243,20 +245,26 @@ void test_incorrect_patron(const string& name, unsigned int n) {
    }
 }
 
-void test_patron() {
-   test_patron_construction("Hipparch", 1800);
-   test_patron_construction("Aristarch", 0);
-   test_patron_construction("hades", 333);
-   test_patron_construction("democrit_abdera", -747);
+static vector<Patron> test_patron() {
+   vector<Patron> v;
+   v.push_back(test_patron_construction("Hipparch", 200));
+   v.push_back(test_patron_construction("Aristarchus_of_Samos", 155));
+   v.push_back(test_patron_construction("hades", 0));
+   v.push_back(test_patron_construction("democrit_abdera", -747));
+   v.push_back(test_patron_construction("Epictetus", 99));
+   v.push_back(test_patron_construction("Musonius_Rufus", 66));
+   v.push_back(test_patron_construction("socrates", 405));
+   v.push_back(test_patron_construction("heraclitus", 500));
    
    test_incorrect_patron("eric", 33);
    test_incorrect_patron("Ur", 111);
    test_incorrect_patron("3ertfgf", 77);
    test_incorrect_patron("democrit abdera", 747);
    test_incorrect_patron("democrit-abdera", 747);
+   return v;
 }
 
-void test_incorrect_book_return(Book& book) {
+static void test_incorrect_book_return(Book& book) {
    if (book.is_borrow())
       return;
    try {
@@ -268,7 +276,7 @@ void test_incorrect_book_return(Book& book) {
    }
 }
 
-void test_incorrect_book_borrow(Book& book) {
+static void test_incorrect_book_borrow(Book& book) {
    if (! book.is_borrow())
       return;
    try {
@@ -280,7 +288,7 @@ void test_incorrect_book_borrow(Book& book) {
    }
 }
 
-void test_book_borrowing() {
+static void test_book_borrowing() {
    Book meditations = Book{"Marcus Aurelius", "Meditations", Book::Genre::Philosophy, 
       "1-2-3-5", Date{172, Date::jan, 4}, false};
    cout << book_status(meditations);
@@ -294,13 +302,13 @@ void test_book_borrowing() {
    cout << book_status(meditations);
 }
 
-Book test(const string& a, const string& t, Book::Genre g, const string& isbn, const Date& d) {
+static Book test(const string& a, const string& t, Book::Genre g, const string& isbn, const Date& d) {
    Book book = Book{a, t, g, isbn, d};
    cout << book;
    return book;
 }
 
-void test_incorrect_books(const string& a, const string& t, Book::Genre g, const string& isbn, const Date& d) {
+static void test_incorrect_books(const string& a, const string& t, Book::Genre g, const string& isbn, const Date& d) {
    try {
       test(a, t, g, isbn, d);
       assert(false);
@@ -310,7 +318,7 @@ void test_incorrect_books(const string& a, const string& t, Book::Genre g, const
    }
 }
 
-vector<Book> test_book_construction() {
+static vector<Book> test_book_construction() {
    vector<Book> v;
    v.push_back(test("Aristotle", "Metaphysics", Book::Genre::Philosophy, "1-2-3-5", Date{-343, Date::jan, 4}));
    v.push_back(test("Nicolaus Copernicus", "De revolutionibus orbium coelestium", 
@@ -345,25 +353,38 @@ vector<Book> test_book_construction() {
    return v;
 }
 
-void book_tests() {
-   //test_book_construction();
+static void add_and_test(Library& lib) {
+   lib.add_books(test_book_construction());
    test_book_borrowing();
-   test_patron();
-   test_patron_charges();
+   lib.add_users(test_patron());
+   lib.add_user(test_patron_charges());
 }
 
-void library_tests() {
-   vector<Book> books = test_book_construction();
+static void add_2_times(Library& lib, const string& name) {
+   lib.add_user(name);
+   try {
+      lib.add_user(name);
+   }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "Exception catched: \n" << e.what() << endl;
+   }
+}
+
+static void incorrect_add(Library& lib) {
+   add_2_times(lib, "marcus_aurelius");
+}
+
+static void library_test() {
    Library library;
-   library.add_books(books);
+   add_and_test(library);
    cout << library;
+   incorrect_add(library);
 }
 
 int main() {
    try {
       date_test();
-      book_tests();
-      library_tests();
+      library_test();
       return 0;
    }
    catch (Library::Invalid_Transaction& e) {

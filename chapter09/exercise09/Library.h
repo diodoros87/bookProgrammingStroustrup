@@ -12,6 +12,7 @@ private:
       Patron patron;
       Book book;
       Date date;
+      
       Transaction(const Patron& p, const Book& b, const Date& d = Chrono::get_today())
          : patron(p), book(b), date(d) {}
          
@@ -28,17 +29,21 @@ private:
    vector<Patron> users;
    vector<Transaction> transactions;
    
-   bool exist(const Transaction& t);
+   bool exist(const Transaction& t) const;
+   void add_transaction(const Patron& patron, const Book& book, const Date& date/* = Chrono::get_today()*/);
+   void erase_transactions();  // erasing the oldest transactions to save memory
    
-   long long get_user_index(unsigned int card_number, unsigned int begin = 0) const;
-   long long get_user_index(const string& name, unsigned int begin = 0) const;
-   long long get_book_index(const string& p_isbn, unsigned int begin = 0) const;
+   int get_user_index(unsigned int card_number, unsigned int begin = 0) const;
+   int get_user_index(const string& name, unsigned int begin = 0) const;
+   int get_book_index(const string& p_isbn, unsigned int begin = 0) const;
    
-   long long book_validation_index(const Book& book) const;
-   long long user_validation_index(const Patron& patron) const;
+   int book_validation_index(const Book& book) const;
+   int user_validation_index(const Patron& patron) const;
    
 public:
-   static constexpr unsigned long long MAX_USERS = UINT_MAX + 1;
+   static constexpr unsigned int MAX_USERS = 999;
+   static constexpr unsigned int MAX_BOOKS = 9999;
+   static constexpr unsigned int TRANSACTIONS_HISTORY_LIMIT = 9999;
    static string generate_isbn(const Library& library);
    
    class Invalid_Transaction : public Invalid { 
@@ -53,12 +58,14 @@ public:
    
    unsigned int generate_user_card_number() const;
    
-   //Library() {}
-   
    bool is_max_users_number() const { return users.size() == MAX_USERS; }
+   bool is_max_books_number() const { return books.size() == MAX_BOOKS; }
+   
    vector<Book> get_books() const { return books; }
    vector<Patron> get_users() const { return users; }
-   //unsigned int get_users_number() const { return users.size(); }
+   vector<Patron> get_users_with_charges() const; 
+   unsigned int get_users_number() const { return users.size(); }
+   unsigned int get_books_number() const { return books.size(); }
    vector<Transaction> get_transactions() const { return transactions; }
    
    static string get_string(const vector<Transaction>& transactions);
@@ -72,6 +79,8 @@ public:
    void add_books(const vector<Book>& vec);
    
    void book_borrowing_request(const Patron& patron, const Book& book, const Date& d = Chrono::get_today());
+   void return_book(const Patron& patron, const Book& book, const Date& d = Chrono::get_today());
+   void set_charges(const Patron& patron, unsigned int charges);
 };
 
 string get_string(const vector<Book>& books);
@@ -87,6 +96,10 @@ inline ostream& print_books(ostream& os, const Library& lib) {
 
 inline ostream& print_transactions(ostream& os, const Library& lib) {
    return os << "\n Transactions: \n" << Library::get_string(lib.get_transactions()) << '\n';
+}
+
+inline ostream& print_users_with_charges(ostream& os, const Library& lib) {
+   return os << get_string(lib.get_users_with_charges());
 }
 /*
 inline ostream& operator<<(ostream& os, const Library& lib) {
