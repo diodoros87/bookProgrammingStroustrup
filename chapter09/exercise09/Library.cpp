@@ -99,8 +99,11 @@ void Library::add_user(const string& name) {
    if (is_max_users_number())
       throw Library::Invalid_Transaction("Can not add user to library with maximum number of users. \
 This library has already " + to_string(Library::MAX_USERS) + " users.");
-      Patron user = Patron(name, generate_user_card_number());
-      users.push_back(user);
+      for (Patron u : users) 
+         if (name == u.get_user_name())
+            throw Library::Invalid_Transaction("Identical user name detected for " + Patron::status(u));
+   Patron user = Patron(name, generate_user_card_number());
+   users.push_back(user);
 }
 
 void Library::add_user(const Patron& parameter) {
@@ -116,6 +119,11 @@ This library has already " + to_string(Library::MAX_USERS) + " users.");
    users.push_back(parameter);
 }
 
+void Library::add_users(const vector<Patron>& vec) {
+   for (Patron p : vec) 
+      add_user(p);
+}
+
 void Library::add_book(const string& a, const string& t, Book::Genre g, const Date& d /*= get_today()*/) {
    Book book = Book(a, t, g, generate_isbn(*this), d);
    books.push_back(book);
@@ -126,6 +134,11 @@ void Library::add_book(const Book& parameter) {
       if (parameter.isbn() == b.isbn())
          throw Invalid_Transaction("Identical ISBN detected for  " + book_status(b));
    books.push_back(parameter);
+}
+
+void Library::add_books(const vector<Book>& vec) {
+   for (Book b : vec) 
+      add_book(b);
 }
 
 long long Library::book_validation_index(const Book& book) const {
@@ -160,7 +173,7 @@ user with the same card number in library: " + Patron::status(users[user_index_b
 }
 
 bool Library::exist(const Transaction& parameter) {
-    for (const Transaction t : transactions)
+    for (Transaction t : transactions)
       if (parameter == t)
          return true;
    return false;
@@ -181,4 +194,31 @@ Library can not accepted transaction with date is in the future. ");
    if (exist(new_transact))
       throw Library::Invalid_Transaction("Identical transaction was saved previously.");
    transactions.push_back(new_transact);
+}
+
+string get_string(const vector<Book>& books) {
+   string result;
+   for (unsigned int i = 0; i < books.size(); i++)
+      result += std::to_string(i) + ". " + book_status(books[i]);
+   return result;
+}
+
+string get_string(const vector<Patron>& users) {
+   string result;
+   for (unsigned int i = 0; i < users.size(); i++)
+      result += std::to_string(i) + ". " + Patron::status(users[i]);
+   return result;
+}
+
+string Library::Transaction::get_string() const {
+   return " Transaction:\n Patron: " + Patron::status(patron) + 
+      "\n Book: " + book_status(book) +
+      "\n Date: " + to_string(date);
+}
+
+string Library::get_string(const vector<Transaction>& transactions) {
+   string result;
+   for (unsigned int i = 0; i < transactions.size(); i++)
+      result += std::to_string(i) + ". " + transactions[i].get_string();
+   return result;
 }

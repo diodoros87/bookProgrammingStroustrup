@@ -207,7 +207,7 @@ void week_of_year_test() {
 
 void date_test() { 
    standard_test();
-   test_input();
+   //test_input();   checked many times
    adding_test(true, false, false);
    adding_test(false, true, false);
    adding_test(false, false, true);
@@ -294,9 +294,10 @@ void test_book_borrowing() {
    cout << book_status(meditations);
 }
 
-void test(const string& a, const string& t, Book::Genre g, const string& isbn, const Date& d) {
+Book test(const string& a, const string& t, Book::Genre g, const string& isbn, const Date& d) {
    Book book = Book{a, t, g, isbn, d};
    cout << book;
+   return book;
 }
 
 void test_incorrect_books(const string& a, const string& t, Book::Genre g, const string& isbn, const Date& d) {
@@ -309,12 +310,13 @@ void test_incorrect_books(const string& a, const string& t, Book::Genre g, const
    }
 }
 
-void test_book_construction() {
-   test("Aristotle", "Metaphysics", Book::Genre::Philosophy, "1-2-3-5", Date{-343, Date::jan, 4});
-   test("Nicolaus Copernicus", "De revolutionibus orbium coelestium", 
-        Book::Genre::Astronomy, "14-24-34-c", Date{1543, Date::dec, 6});
-   test("Lucius Annaeus Seneca", "Epistulae morales ad Lucilium", 
-        Book::Genre::Philosophy, "544-24-34-N", Date{63, Date::dec, 16});
+vector<Book> test_book_construction() {
+   vector<Book> v;
+   v.push_back(test("Aristotle", "Metaphysics", Book::Genre::Philosophy, "1-2-3-5", Date{-343, Date::jan, 4}));
+   v.push_back(test("Nicolaus Copernicus", "De revolutionibus orbium coelestium", 
+        Book::Genre::Astronomy, "14-24-34-c", Date{1543, Date::dec, 6}));
+   v.push_back(test("Lucius Annaeus Seneca", "Epistulae morales ad Lucilium", 
+        Book::Genre::Philosophy, "544-24-34-N", Date{63, Date::dec, 16}));
    
    test_incorrect_books("Aristotle", "Incorrect ISBN", Book::Genre::Philosophy, "1-2-3-54", Date{-343, Date::jan, 4});
    test_incorrect_books("Aristotle", "Incorrect ISBN", Book::Genre::Philosophy, "1+2-3-5", Date{2021, Date::sep, 22});
@@ -331,22 +333,37 @@ void test_book_construction() {
    test_incorrect_books("we", "Incorrect Name",  Book::Genre::Mathematics,
         "544-24-34-N", Date{-300, Date::jun, 30});
    
-   test("Euclid", "Elements",  Book::Genre::Mathematics, "544-24-34-N", Date{-300, Date::jun, 30});
-   test("Aristotle", "Nicomachean Ethics", Book::Genre::Philosophy, "1-2-3-5", Date{-343, Date::jan, 4});
+   v.push_back(test("Euclid", "Elements",  Book::Genre::Mathematics, "544-24-34-M", Date{-300, Date::jun, 30}));
+   v.push_back(test("Aristotle", "Nicomachean Ethics", Book::Genre::Philosophy, "1-2-3-n", Date{-343, Date::jan, 4}));
    
-   test("Claudius Ptolemaeus", "Almagest", Book::Genre::Astronomy, "0-2-3-5", Date{160, Date::jan, 4});
-   test("Bjarne Stroustrup", "C++ Language", Book::Genre::Computer_Science, "11-98-79-3", Date{2012, Date::dec, 4});
-   test("Cay S. Horstmann", "Java Fundamentals", Book::Genre::Computer_Science, "1-2-3-5", Date{2016, Date::dec, 4});
-   test("Aristotle", "Organon", Book::Genre::Philosophy, "1-2-3-5", Date{-342, Date::sep, 4});
-   test("Plato", "Fedon", Book::Genre::Philosophy, "1-2-3-5", Date{-377, Date::feb, 4});
+   v.push_back(test("Claudius Ptolemaeus", "Almagest", Book::Genre::Astronomy, "0-2-3-5", Date{160, Date::jan, 4}));
+   v.push_back(test("Bjarne Stroustrup", "C++ Language", Book::Genre::Computer_Science, "11-98-79-c", Date{2012, Date::dec, 4}));
+   v.push_back(test("Cay S. Horstmann", "Java Fundamentals", Book::Genre::Computer_Science, "1-2-3-j", Date{2016, Date::dec, 4}));
+   v.push_back(test("Aristotle", "Organon", Book::Genre::Philosophy, "1-2-3-o", Date{-342, Date::sep, 4}));
+   v.push_back(test("Plato", "Fedon", Book::Genre::Philosophy, "1-2-3-f", Date{-377, Date::feb, 4}));
+   v.push_back(test("Marcus Aurelius", "Meditations", Book::Genre::Philosophy, "1-2-3-a", Date{172, Date::jan, 4}));
+   return v;
+}
+
+void book_tests() {
+   //test_book_construction();
+   test_book_borrowing();
+   test_patron();
+   test_patron_charges();
+}
+
+void library_tests() {
+   vector<Book> books = test_book_construction();
+   Library library;
+   library.add_books(books);
+   cout << library;
 }
 
 int main() {
    try {
-      test_book_construction();
-      test_book_borrowing();
-      test_patron();
-      test_patron_charges();
+      date_test();
+      book_tests();
+      library_tests();
       return 0;
    }
    catch (Library::Invalid_Transaction& e) {

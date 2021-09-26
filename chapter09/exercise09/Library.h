@@ -15,12 +15,13 @@ private:
       Transaction(const Patron& p, const Book& b, const Date& d = Chrono::get_today())
          : patron(p), book(b), date(d) {}
          
-      bool operator==(const Transaction& other) {
+      bool operator==(const Transaction& other) const {
          return patron == other.patron && book == other.book && date == other.date;
       }
-      bool operator!=(const Transaction& other) {
+      bool operator!=(const Transaction& other) const {
          return !(*this==other);
       }
+      string get_string() const ;
    };
 
    vector<Book> books;
@@ -52,7 +53,7 @@ public:
    
    unsigned int generate_user_card_number() const;
    
-   Library();
+   //Library() {}
    
    bool is_max_users_number() const { return users.size() == MAX_USERS; }
    vector<Book> get_books() const { return books; }
@@ -60,10 +61,41 @@ public:
    //unsigned int get_users_number() const { return users.size(); }
    vector<Transaction> get_transactions() const { return transactions; }
    
+   static string get_string(const vector<Transaction>& transactions);
+   
    void add_user(const string& name);
    void add_user(const Patron& patron);
+   void add_users(const vector<Patron>& vec);
    
    void add_book(const Book& book);
    void add_book(const string& a, const string& t, Book::Genre g, const Date& d = Chrono::get_today());
+   void add_books(const vector<Book>& vec);
+   
    void book_borrowing_request(const Patron& patron, const Book& book, const Date& d = Chrono::get_today());
 };
+
+string get_string(const vector<Book>& books);
+string get_string(const vector<Patron>& users);
+
+inline ostream& print_users(ostream& os, const Library& lib) {
+   return os << "\n Users: \n" << get_string(lib.get_users()) << '\n';
+}
+
+inline ostream& print_books(ostream& os, const Library& lib) {
+   return os << "\n Books: \n" << get_string(lib.get_books()) << '\n';
+}
+
+inline ostream& print_transactions(ostream& os, const Library& lib) {
+   return os << "\n Transactions: \n" << Library::get_string(lib.get_transactions()) << '\n';
+}
+/*
+inline ostream& operator<<(ostream& os, const Library& lib) {
+   return os << "\nLibrary content: " << print_users(os, lib) <<
+      print_books(os, lib) << print_transactions(os, lib); 
+}
+*/
+inline ostream& operator<<(ostream& os, const Library& lib) {
+   return os << "\nLibrary content: \n Users: \n" << get_string(lib.get_users()) << 
+      "\n Books: \n" << get_string(lib.get_books()) << 
+      "\n Transactions: \n" << Library::get_string(lib.get_transactions()) << '\n';
+}
