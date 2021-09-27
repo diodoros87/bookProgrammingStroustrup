@@ -56,7 +56,7 @@ unsigned int Library::generate_user_card_number() const {
    int index = get_user_index(number);
    for (unsigned int counter = 1; INDEX_NOT_FOUND != index && counter <= UINT_MAX; counter++)
       index = get_user_index(++number);
-   cerr << "index = " << index;
+   
    if (index == INDEX_NOT_FOUND)
       return number++;
    else
@@ -64,23 +64,27 @@ unsigned int Library::generate_user_card_number() const {
 }
 
 static long long int random_number(const long long BEGIN = 0, const long long INCREMENT = 1, const long long RANGE = RAND_MAX) {
-   srand (time(NULL));
    return BEGIN + INCREMENT * rand() % RANGE;
 }
 
 static char random_alphanum() {
    static constexpr short int RANGE = 1 + ('9' - '0') + 1 + ('Z' - 'A') + 1 + ('z' - 'a');
    static constexpr short int LETTERS_RANGE = 1 + ('Z' - 'A');
-   short int result = rand() % RANGE;
-   if (10 > result)
-      return result + '0'; 
+   int random = rand() % RANGE;
+   if (10 > random)
+      random += '0'; 
    else {
-      result -= 10;
-      if (result < LETTERS_RANGE)
-         return result + 'A';
+      random -= 10;
+      if (random < LETTERS_RANGE)
+         random += 'A';
       else
-         return result - LETTERS_RANGE + 'a';
+         random = random - LETTERS_RANGE + 'a';
    }
+   const char result = random;
+   if ((result >='0' && result <= '9') || (result >= 'A' && result <= 'Z') || (result >= 'a' && result <= 'z'))
+      return result;
+   else
+      Unforeseen_Behavior("result = " + string(1, result));
 }
 
 static void control_books_size(const Library& library) {
@@ -133,7 +137,7 @@ void Library::add_users(const vector<Patron>& vec) {
       add_user(p);
 }
 
-void Library::add_book(const string& a, const string& t, Book::Genre g, const Date& d /*= get_today()*/) {
+void Library::add_book(const string& a, const string& t, Book::Genre g, const Date& d) {
    control_books_size(*this);
    Book book = Book(a, t, g, generate_isbn(*this), d);
    books.push_back(book);
@@ -183,18 +187,35 @@ user with the same card number in library: " + Patron::status(users[user_index_b
    return user_index;
 }
 
+int Library::get_transaction_index(const Patron& patron, const Book& book) const {
+   const int SIZE = transactions.size();
+   for (int i = 0; i < SIZE; i++) 
+      if (transactions[i].patron == patron && transactions[i].book == book)
+         return i;
+   return INDEX_NOT_FOUND;
+}
+
 bool Library::exist(const Transaction& parameter) const {
-    for (Transaction t : transactions)
+   for (Transaction t : transactions)
       if (parameter == t)
          return true;
    return false;
 }
 
+void Library::remove_transaction(const Patron& patron, const Book& book) {
+   const int index = get_transaction_index(patron, book);
+   if (INDEX_NOT_FOUND == index)
+      throw Library::Invalid_Transaction("Can not remove transaction, because transaction for " + Patron::status(patron)
+         + " and " + book_status(book) + " has not found.");
+   if (index >= transactions.size())
+      Unforeseen_Behavior("index(" + to_string(index) + ") >= transactions.size() " + to_string(transactions.size()));
+   transactions.erase(transactions.begin() + index);  // erasing the oldest transactions to save memory
+}
+
 void Library::erase_transactions() {
    static constexpr int DELETING = TRANSACTIONS_HISTORY_LIMIT / 10;
-   if (transactions.size() == TRANSACTIONS_HISTORY_LIMIT);
+   if (transactions.size() == TRANSACTIONS_HISTORY_LIMIT)
       transactions.erase(transactions.begin(), transactions.begin() + DELETING);  // erasing the oldest transactions to save memory
-   transactions.clear();
 }
 
 void Library::add_transaction(const Patron& patron, const Book& book, const Date& date/* = Chrono::get_today()*/) {
@@ -229,7 +250,7 @@ Library can not accepted transaction with date is in the future. ");
    if (false == books[book_index].is_borrow())
       throw Library::Invalid_Transaction("Book " + book_status(book) + " has not been borrowed yet.");
    
-   add_transaction(patron, book, date);
+   remove_transaction(patron, book);
    books[book_index].return_book();
 }
 

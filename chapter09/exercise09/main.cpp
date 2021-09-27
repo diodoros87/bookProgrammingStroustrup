@@ -350,11 +350,19 @@ static vector<Book> test_book_construction() {
    v.push_back(test("Aristotle", "Organon", Book::Genre::Philosophy, "1-2-3-o", Date{-342, Date::sep, 4}));
    v.push_back(test("Plato", "Fedon", Book::Genre::Philosophy, "1-2-3-f", Date{-377, Date::feb, 4}));
    v.push_back(test("Marcus Aurelius", "Meditations", Book::Genre::Philosophy, "1-2-3-a", Date{172, Date::jan, 4}));
+   
+   v.push_back(test("Marcus Aurelius", "Meditations", Book::Genre::Philosophy, "1-2-3-a", Date{172, Date::jan, 4}));
+   v.push_back(test("Bjarne Stroustrup", "C++ Language", Book::Genre::Computer_Science, "11-98-79-c", Date{2012, Date::dec, 4}));
    return v;
 }
 
 static void add_and_test(Library& lib) {
-   lib.add_books(test_book_construction());
+   try {
+      lib.add_books(test_book_construction());
+   }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "Exception catched: \n" << e.what() << endl;
+   }  
    test_book_borrowing();
    lib.add_users(test_patron());
    lib.add_user(test_patron_charges());
@@ -370,8 +378,46 @@ static void add_2_times(Library& lib, const string& name) {
    }
 }
 
+static void add_many_times(Library& lib, const string& a, const string& t, Book::Genre g, const int TIMES = 33) {
+   Date d = Date{2016, Date::dec, 4}; // date is not tested in this example
+   for (int i = 0; i < TIMES; i++) 
+      lib.add_book(a, t, g, d);
+}
+
+static void add_2_times(Library& lib, const string& a, const string& t, Book::Genre g) {
+   Date d = Date{2016, Date::dec, 4}; // date is not tested in this example
+   lib.add_book(a, t, g, d);
+   try {
+      lib.add_book(a, t, g, d);
+   }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "Exception catched: \n" << e.what() << endl;
+   }
+}
+
 static void incorrect_add(Library& lib) {
    add_2_times(lib, "marcus_aurelius");
+   add_2_times(lib, "neron");
+   add_2_times(lib, "Machiavelli");
+
+   add_many_times(lib, "Marcus Aurelius", "Meditations", Book::Genre::Philosophy);
+   add_many_times(lib, "Niccolo Machiavelli", "Prince", Book::Genre::Philosophy);
+   add_many_times(lib, "Niccolo Machiavelli", "Discourses on the First Ten Books of Titus Livius", Book::Genre::Philosophy);
+   add_many_times(lib, "Bertrand Russell", "Why I Am Not a Christian", Book::Genre::Philosophy);
+   add_many_times(lib, "Bertrand Russell", "The Problems of Philosophy", Book::Genre::Philosophy);
+   add_many_times(lib, "Bertrand Russell", "A History of Western Philosophy", Book::Genre::Philosophy);
+   add_many_times(lib, "Immanuel Kant", "Logik", Book::Genre::Philosophy);
+   add_many_times(lib, "Richard Dawkins", "The God Delusion", Book::Genre::Philosophy);
+   add_many_times(lib, "Adam Drozdek", "Data Structures and Algorithms in C++", Book::Genre::Computer_Science);
+   add_many_times(lib, "Bjarne Stroustrup", "Programming: Principles and Practice Using C++", Book::Genre::Computer_Science);
+   add_many_times(lib, "P & H Deitels", "Java How to Program", Book::Genre::Computer_Science);
+   
+   try {
+     add_many_times(lib, "P & H Deitels", "Java How to Program", Book::Genre::Computer_Science, Library::MAX_BOOKS);
+   }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "Exception catched: \n" << e.what() << endl;
+   }
 }
 
 static void library_test() {
@@ -379,6 +425,7 @@ static void library_test() {
    add_and_test(library);
    cout << library;
    incorrect_add(library);
+   cout << library;
 }
 
 int main() {

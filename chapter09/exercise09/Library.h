@@ -29,9 +29,11 @@ private:
    vector<Patron> users;
    vector<Transaction> transactions;
    
+   int get_transaction_index(const Patron& patron, const Book& book) const ;
    bool exist(const Transaction& t) const;
    void add_transaction(const Patron& patron, const Book& book, const Date& date/* = Chrono::get_today()*/);
    void erase_transactions();  // erasing the oldest transactions to save memory
+   void remove_transaction(const Patron& patron, const Book& book);
    
    int get_user_index(unsigned int card_number, unsigned int begin = 0) const;
    int get_user_index(const string& name, unsigned int begin = 0) const;
@@ -41,9 +43,10 @@ private:
    int user_validation_index(const Patron& patron) const;
    
 public:
-   static constexpr unsigned int MAX_USERS = 999;
-   static constexpr unsigned int MAX_BOOKS = 9999;
-   static constexpr unsigned int TRANSACTIONS_HISTORY_LIMIT = 9999;
+   static constexpr unsigned int MAX_USERS = 99;
+   static constexpr unsigned int MAX_BOOKS = 999;
+   static constexpr unsigned int TRANSACTIONS_HISTORY_LIMIT = 2000;
+   
    static string generate_isbn(const Library& library);
    
    class Invalid_Transaction : public Invalid { 
@@ -55,6 +58,8 @@ public:
          return msg.c_str();
       }
    };
+   
+   Library() { std::srand(std::time(0)); }
    
    unsigned int generate_user_card_number() const;
    
@@ -75,7 +80,7 @@ public:
    void add_users(const vector<Patron>& vec);
    
    void add_book(const Book& book);
-   void add_book(const string& a, const string& t, Book::Genre g, const Date& d = Chrono::get_today());
+   void add_book(const string& a, const string& t, Book::Genre g, const Date& d);
    void add_books(const vector<Book>& vec);
    
    void book_borrowing_request(const Patron& patron, const Book& book, const Date& d = Chrono::get_today());
