@@ -378,7 +378,7 @@ static void add_2_times(Library& lib, const string& name) {
    }
 }
 
-static void add_many_times(Library& lib, const string& a, const string& t, Book::Genre g, const int TIMES = 33) {
+static void add_many_times(Library& lib, const string& a, const string& t, Book::Genre g, const int TIMES = 5) {
    Date d = Date{2016, Date::dec, 4}; // date is not tested in this example
    for (int i = 0; i < TIMES; i++) 
       lib.add_book(a, t, g, d);
@@ -420,12 +420,96 @@ static void incorrect_add(Library& lib) {
    }
 }
 
+static void attempt_to_add(Library& lib, const Patron* user, const Book* book) {
+   int wrong = 0;
+   if (user) {
+      try {
+         lib.add_user(*user);
+      }
+      catch (Library::Invalid_Transaction& e) {
+         cerr << "Exception catched: \n" << e.what() << endl;
+         wrong++;
+      }
+   }
+   if (book) {
+      try {
+         lib.add_book(*book);
+      }
+      catch (Library::Invalid_Transaction& e) {
+         cerr << "Exception catched: \n" << e.what() << endl;
+         wrong++;
+      }
+   }
+   if (wrong > 0)
+      Unforeseen_Behavior("size of passed wrong parameters: " + to_string(wrong));
+}
+
+static void incorrect_book_borrowing_request(Library& lib, Patron& user, Book& book, bool change_today = false) {
+   Date date = get_today();
+   if (change_today)
+      date.add_year(+2);
+   try {
+      lib.book_borrowing_request(user, book, date);
+   }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "Exception catched: \n" << e.what() << endl;
+   }
+}
+
+static  void incorrect_transations(Library& lib, Patron& user, Book& book) {
+   if (lib.exist(user))
+      lib.delete_user(user);
+   else 
+      attempt_to_add(lib, &user, nullptr);
+   if (! lib.exist(book)) 
+      attempt_to_add(lib, nullptr, &book);
+   incorrect_book_borrowing_request(lib, user, book);
+   
+   lib.add_user(user);  
+   lib.delete_book(book);
+   incorrect_book_borrowing_request(lib, user, book);
+   
+   lib.add_book(book);
+   if (user.are_charges() == false)
+      lib.set_charges(user, 33);
+   incorrect_book_borrowing_request(lib, user, book);
+   
+   incorrect_book_borrowing_request(lib, user, book, true);
+   
+   /*
+   user
+   Patron user = Patron("Eratosthenes", lib.generate_user_card_number(), 600);
+   try {
+      
+   }
+   */
+}
+
+static void test_transactions(Library& lib) {
+   Patron user = test_patron_construction("Baruch_Spinoza", lib.generate_user_card_number());
+   lib.add_user(user);
+   print_users(cout, lib);
+   print_users_with_charges(cout, lib);
+   print_transactions(cout, lib);
+   lib.set_charges(user, 33);
+   print_users(cout, lib);
+   print_users_with_charges(cout, lib);
+   print_transactions(cout, lib);
+   Patron& last_patron = lib.get_users().back();
+   if (! lib.is_max_books_number())
+      lib.add_book("Isaac Newton", "Philosophiae naturalis principia mathematica", Book::Genre::Philosophy, Date{1688, Date::jan, 4});
+   std::vector<Book>::iterator last_book = lib.get_books().end() - 1;
+   incorrect_transations(lib, last_patron, *last_book);
+}
+
 static void library_test() {
    Library library;
    add_and_test(library);
    cout << library;
    incorrect_add(library);
    cout << library;
+   print_users_with_charges(cout, library);
+   test_transactions(library);
 }
 
 int main() {

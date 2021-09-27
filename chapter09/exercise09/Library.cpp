@@ -45,9 +45,9 @@ int Library::get_book_index(const string& p_isbn, unsigned int begin /* = 0*/) c
 }
 
 static void control_users_size(const Library& library) {
-   if (library.is_max_books_number())
+   if (library.is_max_users_number())
       throw Library::Invalid_Transaction("Can not add user to library with maximum number of users = "
-+ to_string(Library::MAX_USERS) + "This library has already " + to_string(library.get_users_number()) + " users.");
++ to_string(Library::MAX_USERS) + ". This library has already " + to_string(library.get_users_number()) + " users.");
 }
 
 unsigned int Library::generate_user_card_number() const {
@@ -130,6 +130,40 @@ void Library::add_user(const Patron& parameter) {
          throw Library::Invalid_Transaction("Identical user name detected for " + Patron::status(u));
    }
    users.push_back(parameter);
+}
+
+bool Library::exist(const Patron& parameter) const {
+   for (Patron u : users)
+      if (parameter == u)
+         return true;
+   return false;
+}
+
+bool Library::exist(const Book& parameter) const {
+   for (Book b : books)
+      if (parameter == b)
+         return true;
+   return false;
+}
+
+void Library::delete_user(const Patron& parameter) {
+   const int user_index = get_user_index(parameter.get_user_name());
+   if (INDEX_NOT_FOUND == user_index)
+      throw Library::Invalid_Transaction("User " + parameter.get_user_name() + " is not registered to library");
+   if (parameter != users[user_index]) 
+      throw Library::Invalid_Transaction("User with data: " + Patron::status(parameter) + " is not registered to library");
+
+   users.erase(users.begin() + user_index);
+}
+
+void Library::delete_book(const Book& parameter) {
+   const int book_index = get_book_index(parameter.isbn());
+   if (INDEX_NOT_FOUND == book_index)
+      throw Library::Invalid_Transaction("Book " + book_status(parameter) + " is not exist in library");
+   if (parameter != books[book_index]) 
+      throw Library::Invalid_Transaction("Book with data: " + book_status(parameter) + " is not exist to library");
+
+   books.erase(books.begin() + book_index);
 }
 
 void Library::add_users(const vector<Patron>& vec) {

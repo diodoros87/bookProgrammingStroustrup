@@ -43,9 +43,9 @@ private:
    int user_validation_index(const Patron& patron) const;
    
 public:
-   static constexpr unsigned int MAX_USERS = 99;
-   static constexpr unsigned int MAX_BOOKS = 999;
-   static constexpr unsigned int TRANSACTIONS_HISTORY_LIMIT = 2000;
+   static constexpr unsigned int MAX_USERS = 29;
+   static constexpr unsigned int MAX_BOOKS = 199;
+   static constexpr unsigned int TRANSACTIONS_HISTORY_LIMIT = 20;
    
    static string generate_isbn(const Library& library);
    
@@ -79,6 +79,12 @@ public:
    void add_user(const Patron& patron);
    void add_users(const vector<Patron>& vec);
    
+   void delete_user(const Patron& patron);
+   void delete_book(const Book& parameter);
+   
+   bool exist(const Book& parameter) const;
+   bool exist(const Patron& parameter) const;
+   
    void add_book(const Book& book);
    void add_book(const string& a, const string& t, Book::Genre g, const Date& d);
    void add_books(const vector<Book>& vec);
@@ -104,7 +110,7 @@ inline ostream& print_transactions(ostream& os, const Library& lib) {
 }
 
 inline ostream& print_users_with_charges(ostream& os, const Library& lib) {
-   return os << get_string(lib.get_users_with_charges());
+   return os << "\n Users with penalty charges: \n" << get_string(lib.get_users_with_charges());
 }
 /*
 inline ostream& operator<<(ostream& os, const Library& lib) {
