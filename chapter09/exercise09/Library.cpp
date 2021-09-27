@@ -223,7 +223,7 @@ user with the same card number in library: " + Patron::status(users[user_index_b
 
 int Library::get_transaction_index(const Patron& patron, const Book& book) const {
    const int SIZE = transactions.size();
-   for (int i = 0; i < SIZE; i++) 
+   for (int i = SIZE - 1; i > 0; i--) 
       if (transactions[i].patron == patron && transactions[i].book == book)
          return i;
    return INDEX_NOT_FOUND;
@@ -234,6 +234,20 @@ bool Library::exist(const Transaction& parameter) const {
       if (parameter == t)
          return true;
    return false;
+}
+
+void Library::check_last_borrower(const Patron& patron, const Book& book) const {
+   const int SIZE = transactions.size();
+   for (int i = SIZE - 1; i > 0; i--) 
+      if (transactions[i].book == book) {
+         if (transactions[i].patron == patron)
+            return;
+         else
+            throw Library::Invalid_Transaction(Patron::status(patron) + " is not last borrower.\n \
+Last borrower for " + book_status(book) + " is " + Patron::status(transactions[i].patron));
+      }
+      
+   Unforeseen_Behavior(book_status(book) + " was not marked as borrowed ! ");
 }
 
 void Library::remove_transaction(const Patron& patron, const Book& book) {
@@ -255,8 +269,6 @@ void Library::erase_transactions() {
 void Library::add_transaction(const Patron& patron, const Book& book, const Date& date/* = Chrono::get_today()*/) {
    erase_transactions();
    Transaction new_transact(patron, book, date);
-   if (exist(new_transact))
-      throw Library::Invalid_Transaction("Identical transaction was saved previously.");
    transactions.push_back(new_transact);
 }
 
@@ -265,14 +277,14 @@ void Library::book_borrowing_request(const Patron& patron, const Book& book, con
    const int book_index = book_validation_index(book);
    if (date > Chrono::get_today())
       throw Library::Invalid_Transaction("Date " + to_string(date) + " is in the future. \
-Library can not accepted transaction with date is in the future. ");
+Library can not accept transaction with date is in the future. ");
    if (users[user_index].are_charges())
       throw Library::Invalid_Transaction("User " + Patron::status(patron) + " must pay charges.");
    if (books[book_index].is_borrow())
       throw Library::Invalid_Transaction("Book " + book_status(book) + " has been borrowed already.");
    
-   add_transaction(patron, book, date);
    books[book_index].borrow();
+   add_transaction(users[user_index], books[book_index], date);
 }
 
 void Library::return_book(const Patron& patron, const Book& book, const Date& date/* = Chrono::get_today()*/) {
@@ -280,10 +292,11 @@ void Library::return_book(const Patron& patron, const Book& book, const Date& da
    const int book_index = book_validation_index(book);
    if (date > Chrono::get_today())
       throw Library::Invalid_Transaction("Date " + to_string(date) + " is in the future. \
-Library can not accepted transaction with date is in the future. ");
+Library can not accept transaction with date is in the future. ");
    if (false == books[book_index].is_borrow())
       throw Library::Invalid_Transaction("Book " + book_status(book) + " has not been borrowed yet.");
    
+   check_last_borrower(patron, book);
    remove_transaction(patron, book);
    books[book_index].return_book();
 }

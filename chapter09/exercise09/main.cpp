@@ -384,17 +384,6 @@ static void add_many_times(Library& lib, const string& a, const string& t, Book:
       lib.add_book(a, t, g, d);
 }
 
-static void add_2_times(Library& lib, const string& a, const string& t, Book::Genre g) {
-   Date d = Date{2016, Date::dec, 4}; // date is not tested in this example
-   lib.add_book(a, t, g, d);
-   try {
-      lib.add_book(a, t, g, d);
-   }
-   catch (Library::Invalid_Transaction& e) {
-      cerr << "Exception catched: \n" << e.what() << endl;
-   }
-}
-
 static void incorrect_add(Library& lib) {
    add_2_times(lib, "marcus_aurelius");
    add_2_times(lib, "neron");
@@ -441,7 +430,7 @@ static void attempt_to_add(Library& lib, const Patron* user, const Book* book) {
       }
    }
    if (wrong > 0)
-      Unforeseen_Behavior("size of passed wrong parameters: " + to_string(wrong));
+      Unforeseen_Behavior("number of passed wrong parameters: " + to_string(wrong));
 }
 
 static void incorrect_book_borrowing_request(Library& lib, Patron& user, Book& book, bool change_today = false) {
@@ -456,11 +445,32 @@ static void incorrect_book_borrowing_request(Library& lib, Patron& user, Book& b
    }
 }
 
+static void incorrect_book_borrowing_request_charges(Library& lib, Patron& user, Book& book) {
+   if (user.are_charges())
+      lib.set_charges(user, 0);
+   else
+      lib.set_charges(user, 33);
+   try {
+      lib.book_borrowing_request(user, book);
+   }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "Exception catched: \n" << e.what() << endl;
+   }
+}
+
+static void incorrect_book_turn(Library& lib, Patron& user, Book& book) {
+   try {
+      lib.return_book(user, book);
+   }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "Exception catched: \n" << e.what() << endl;
+   }
+}
+
 static  void incorrect_transations(Library& lib, Patron& user, Book& book) {
-   if (lib.exist(user))
-      lib.delete_user(user);
-   else 
+   if (! lib.exist(user))
       attempt_to_add(lib, &user, nullptr);
+   lib.delete_user(user);
    if (! lib.exist(book)) 
       attempt_to_add(lib, nullptr, &book);
    incorrect_book_borrowing_request(lib, user, book);
@@ -470,12 +480,23 @@ static  void incorrect_transations(Library& lib, Patron& user, Book& book) {
    incorrect_book_borrowing_request(lib, user, book);
    
    lib.add_book(book);
-   if (user.are_charges() == false)
-      lib.set_charges(user, 33);
-   incorrect_book_borrowing_request(lib, user, book);
-   
    incorrect_book_borrowing_request(lib, user, book, true);
    
+   incorrect_book_borrowing_request_charges(lib, user, book);
+   try {
+      lib.set_charges(user, 33);
+   }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "Exception catched: \n" << e.what() << endl;
+   }
+   user.set_charges(0);
+   lib.set_charges(user, 33);
+   user.set_charges(33);
+   incorrect_book_borrowing_request(lib, user, book);
+   lib.set_charges(user, 0);
+   user.set_charges(0);
+   lib.book_borrowing_request(user, book);
+   cout << lib;
    /*
    user
    Patron user = Patron("Eratosthenes", lib.generate_user_card_number(), 600);
@@ -498,8 +519,17 @@ static void test_transactions(Library& lib) {
    Patron& last_patron = lib.get_users().back();
    if (! lib.is_max_books_number())
       lib.add_book("Isaac Newton", "Philosophiae naturalis principia mathematica", Book::Genre::Philosophy, Date{1688, Date::jan, 4});
-   std::vector<Book>::iterator last_book = lib.get_books().end() - 1;
-   incorrect_transations(lib, last_patron, *last_book);
+   Book last_book = lib.get_books()[lib.get_books().size() - 1];
+   incorrect_transations(lib, last_patron, last_book);
+}
+
+static void delete_last_books(Library& lib, const unsigned int N) {
+   const unsigned int DELETIONS = N > lib.get_books_number() ? lib.get_books_number() : N;
+   vector<Book>::iterator last_book;
+   for (unsigned int i = 0; i < DELETIONS; i++)  {  // inefficient
+      Book last_book = lib.get_books().back();
+      lib.delete_book(last_book);
+   }
 }
 
 static void library_test() {
@@ -507,6 +537,8 @@ static void library_test() {
    add_and_test(library);
    cout << library;
    incorrect_add(library);
+   cout << library;
+   delete_last_books(library, 100);
    cout << library;
    print_users_with_charges(cout, library);
    test_transactions(library);

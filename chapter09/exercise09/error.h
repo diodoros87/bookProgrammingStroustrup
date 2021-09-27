@@ -28,19 +28,7 @@ public:
       return msg.c_str();
    }
 };
-/*
-class Unforeseen_Behavior : public std::runtime_error { 
-   string msg {"!!!!! FATAL ERROR !!! Program should not be executed this instruction: "};
-public:
-   Unforeseen_Behavior() {}
-   Unforeseen_Behavior(const char* file, const int line) { 
-      msg += message; 
-   }
-   const char* what() {
-      return msg.c_str();
-   }
-};
-*/
+
 inline void error(const std::string& errormessage) {
    throw std::runtime_error("!!!!! Error: " + errormessage);
 }

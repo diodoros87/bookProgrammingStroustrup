@@ -91,6 +91,7 @@ public:
    
    void book_borrowing_request(const Patron& patron, const Book& book, const Date& d = Chrono::get_today());
    void return_book(const Patron& patron, const Book& book, const Date& d = Chrono::get_today());
+   void check_last_borrower(const Patron& patron, const Book& book) const;
    void set_charges(const Patron& patron, unsigned int charges);
 };
 
