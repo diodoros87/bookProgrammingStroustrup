@@ -50,11 +50,11 @@ public:
 private:
    Book();
    void validation() const;
-   string author;
-   string title;
-   string ISBN;
-   Genre genre;
-   Date date;
+   string author;    // not const to can operate on implicitly-declared operator=
+   string title;     // not const to can operate on implicitly-declared operator=
+   string ISBN;      // not const to can operate on implicitly-declared operator=
+   Genre genre;      // not const to can operate on implicitly-declared operator=
+   Date date;        // not const to can operate on implicitly-declared operator=
    bool borrowed {false};
 };
 

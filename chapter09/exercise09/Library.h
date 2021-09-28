@@ -31,7 +31,7 @@ private:
    
    int get_transaction_index(const Patron& patron, const Book& book) const ;
    bool exist(const Transaction& t) const;
-   void add_transaction(const Patron& patron, const Book& book, const Date& date/* = Chrono::get_today()*/);
+   void add_transaction(const Patron& patron, const Book& book, const Date& date = Chrono::get_today());
    void erase_transactions();  // erasing the oldest transactions to save memory
    void remove_transaction(const Patron& patron, const Book& book);
    

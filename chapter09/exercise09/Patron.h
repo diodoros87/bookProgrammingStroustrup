@@ -28,9 +28,9 @@ public:
 private:
    Patron();
    
-   string user_name;
-   unsigned int number {0};
-   unsigned int charges {0};
+   string user_name;          // not const to can operate on implicitly-declared operator=
+   unsigned int number {0};   // not const to can operate on implicitly-declared operator=
+   unsigned int charges {0};  
 };
 
 inline ostream& operator<<(ostream& os, const Patron& patron) {

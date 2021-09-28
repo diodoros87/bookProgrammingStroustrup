@@ -409,7 +409,7 @@ static void incorrect_add(Library& lib) {
    }
 }
 
-static void attempt_to_add(Library& lib, const Patron* user, const Book* book) {
+static void attempt_to_add(Library& lib, const Patron* const user, const Book* const book) {
    int wrong = 0;
    if (user) {
       try {
@@ -433,7 +433,7 @@ static void attempt_to_add(Library& lib, const Patron* user, const Book* book) {
       Unforeseen_Behavior("number of passed wrong parameters: " + to_string(wrong));
 }
 
-static void incorrect_book_borrowing_request(Library& lib, Patron& user, Book& book, bool change_today = false) {
+static void incorrect_book_borrowing_request(Library& lib, const Patron& user, const Book& book, bool change_today = false) {
    Date date = get_today();
    if (change_today)
       date.add_year(+2);
@@ -445,7 +445,7 @@ static void incorrect_book_borrowing_request(Library& lib, Patron& user, Book& b
    }
 }
 
-static void incorrect_book_borrowing_request_charges(Library& lib, Patron& user, Book& book) {
+static void incorrect_book_borrowing_request_charges(Library& lib, Patron& user, const Book& book) {
    if (user.are_charges())
       lib.set_charges(user, 0);
    else
@@ -458,7 +458,7 @@ static void incorrect_book_borrowing_request_charges(Library& lib, Patron& user,
    }
 }
 
-static void incorrect_book_return(Library& lib, Patron& user, Book& book) {
+static void incorrect_book_return(Library& lib, const Patron& user, const Book& book) {
    try {
       lib.return_book(user, book);
    }
@@ -467,7 +467,7 @@ static void incorrect_book_return(Library& lib, Patron& user, Book& book) {
    }
 }
 
-static void incorrect_delete(Library& lib, Patron& user) {
+static void incorrect_delete(Library& lib, const Patron& user) {
    if (lib.exist(user))
       lib.delete_user(user);
    try {
@@ -478,7 +478,7 @@ static void incorrect_delete(Library& lib, Patron& user) {
    }
 }
 
-static void incorrect_delete(Library& lib, Book& book) {
+static void incorrect_delete(Library& lib, const Book& book) {
    if (lib.exist(book))
       lib.delete_book(book);
    try {
@@ -489,7 +489,7 @@ static void incorrect_delete(Library& lib, Book& book) {
    }
 }
 
-static void incorrect_transaction_other_user(Library& lib, Book& book) {
+static void incorrect_transaction_other_user(Library& lib, const Book& book) {
    if (lib.get_users_number() < 2 || book.is_borrow() == false)
       return;
    Patron other_user = lib.get_users().front();
@@ -532,12 +532,12 @@ static  void incorrect_transations(Library& lib, Patron& user, Book& book) {
    user.set_charges(0);
    lib.book_borrowing_request(user, book);
    cout << lib;
+   cout << lib << "\nBOOK WAS BORROWED ALREADY\n";
    
    incorrect_book_borrowing_request(lib, user, book);
    
    book.borrow();
    incorrect_book_borrowing_request(lib, user, book);
-   cout << lib << "\nBOOK WAS BORROWED ALREADY\n";
    
    incorrect_transaction_other_user(lib, book);
 
