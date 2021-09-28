@@ -35,6 +35,8 @@ private:
    void erase_transactions();  // erasing the oldest transactions to save memory
    void remove_transaction(const Patron& patron, const Book& book);
    
+   void check_last_borrower(const Patron& patron, const Book& book) const;
+   
    int get_user_index(unsigned int card_number, unsigned int begin = 0) const;
    int get_user_index(const string& name, unsigned int begin = 0) const;
    int get_book_index(const string& p_isbn, unsigned int begin = 0) const;
@@ -45,7 +47,7 @@ private:
 public:
    static constexpr unsigned int MAX_USERS = 29;
    static constexpr unsigned int MAX_BOOKS = 199;
-   static constexpr unsigned int TRANSACTIONS_HISTORY_LIMIT = 20;
+   static constexpr unsigned int TRANSACTIONS_HISTORY_LIMIT = 90;
    
    static string generate_isbn(const Library& library);
    
@@ -91,7 +93,7 @@ public:
    
    void book_borrowing_request(const Patron& patron, const Book& book, const Date& d = Chrono::get_today());
    void return_book(const Patron& patron, const Book& book, const Date& d = Chrono::get_today());
-   void check_last_borrower(const Patron& patron, const Book& book) const;
+
    void set_charges(const Patron& patron, unsigned int charges);
 };
 
@@ -107,7 +109,7 @@ inline ostream& print_books(ostream& os, const Library& lib) {
 }
 
 inline ostream& print_transactions(ostream& os, const Library& lib) {
-   return os << "\n Transactions: \n" << Library::get_string(lib.get_transactions()) << '\n';
+   return os << "\n TRANSACTIONS: \n" << Library::get_string(lib.get_transactions()) << '\n';
 }
 
 inline ostream& print_users_with_charges(ostream& os, const Library& lib) {
@@ -122,5 +124,5 @@ inline ostream& operator<<(ostream& os, const Library& lib) {
 inline ostream& operator<<(ostream& os, const Library& lib) {
    return os << "\nLibrary content: \n Users: \n" << get_string(lib.get_users()) << 
       "\n Books: \n" << get_string(lib.get_books()) << 
-      "\n Transactions: \n" << Library::get_string(lib.get_transactions()) << '\n';
+      "\n TRANSACTIONS: \n" << Library::get_string(lib.get_transactions()) << '\n';
 }

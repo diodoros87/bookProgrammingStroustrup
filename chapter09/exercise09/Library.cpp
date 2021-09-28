@@ -223,7 +223,7 @@ user with the same card number in library: " + Patron::status(users[user_index_b
 
 int Library::get_transaction_index(const Patron& patron, const Book& book) const {
    const int SIZE = transactions.size();
-   for (int i = SIZE - 1; i > 0; i--) 
+   for (int i = SIZE - 1; i >= 0; i--) 
       if (transactions[i].patron == patron && transactions[i].book == book)
          return i;
    return INDEX_NOT_FOUND;
@@ -238,7 +238,9 @@ bool Library::exist(const Transaction& parameter) const {
 
 void Library::check_last_borrower(const Patron& patron, const Book& book) const {
    const int SIZE = transactions.size();
-   for (int i = SIZE - 1; i > 0; i--) 
+   if (0 == SIZE)
+      return;
+   for (int i = SIZE - 1; i >= 0; i--) 
       if (transactions[i].book == book) {
          if (transactions[i].patron == patron)
             return;
@@ -261,7 +263,7 @@ void Library::remove_transaction(const Patron& patron, const Book& book) {
 }
 
 void Library::erase_transactions() {
-   static constexpr int DELETING = TRANSACTIONS_HISTORY_LIMIT / 10;
+   static constexpr int DELETING = TRANSACTIONS_HISTORY_LIMIT / 10;   // delete oldest 10%
    if (transactions.size() == TRANSACTIONS_HISTORY_LIMIT)
       transactions.erase(transactions.begin(), transactions.begin() + DELETING);  // erasing the oldest transactions to save memory
 }
@@ -329,9 +331,9 @@ string get_string(const vector<Patron>& users) {
 }
 
 string Library::Transaction::get_string() const {
-   return " Transaction:\n Patron: " + Patron::status(patron) + 
-      "\n Book: " + book_status(book) +
-      "\n Date: " + to_string(date);
+   return " TRANSACTION:\n Patron: " + Patron::status(patron) + 
+      " Book: " + book_status(book) +
+      " Date: " + to_string(date) + "\n";
 }
 
 string Library::get_string(const vector<Transaction>& transactions) {

@@ -19,7 +19,7 @@ using namespace Chrono;
 #   define M_Assert(Expr, Msg) \
     __M_Assert(#Expr, Expr, __FILE__, __LINE__, Msg)
 #else
-#   define M_Assert(Expr, Msg) ;
+#   define M_Assert(Expr, Msg);
 #endif
 
 static void __M_Assert(const char* expr_str, const bool expr,
@@ -458,7 +458,7 @@ static void incorrect_book_borrowing_request_charges(Library& lib, Patron& user,
    }
 }
 
-static void incorrect_book_turn(Library& lib, Patron& user, Book& book) {
+static void incorrect_book_return(Library& lib, Patron& user, Book& book) {
    try {
       lib.return_book(user, book);
    }
@@ -467,7 +467,39 @@ static void incorrect_book_turn(Library& lib, Patron& user, Book& book) {
    }
 }
 
+static void incorrect_delete(Library& lib, Patron& user) {
+   if (lib.exist(user))
+      lib.delete_user(user);
+   try {
+      lib.delete_user(user);
+   }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "Exception catched: \n" << e.what() << endl;
+   }
+}
+
+static void incorrect_delete(Library& lib, Book& book) {
+   if (lib.exist(book))
+      lib.delete_book(book);
+   try {
+      lib.delete_book(book);
+   }
+   catch (Library::Invalid_Transaction& e) {
+      cerr << "Exception catched: \n" << e.what() << endl;
+   }
+}
+
+static void incorrect_transaction_other_user(Library& lib, Book& book) {
+   if (lib.get_users_number() < 2 || book.is_borrow() == false)
+      return;
+   Patron other_user = lib.get_users().front();
+   incorrect_book_borrowing_request(lib, other_user, book);
+   incorrect_book_return(lib, other_user, book);
+}
+
 static  void incorrect_transations(Library& lib, Patron& user, Book& book) {
+   incorrect_delete(lib, user);
+   incorrect_delete(lib, book);
    if (! lib.exist(user))
       attempt_to_add(lib, &user, nullptr);
    lib.delete_user(user);
@@ -493,17 +525,35 @@ static  void incorrect_transations(Library& lib, Patron& user, Book& book) {
    lib.set_charges(user, 33);
    user.set_charges(33);
    incorrect_book_borrowing_request(lib, user, book);
+   
+   incorrect_book_return(lib, user, book);
+   
    lib.set_charges(user, 0);
    user.set_charges(0);
    lib.book_borrowing_request(user, book);
    cout << lib;
-   /*
-   user
-   Patron user = Patron("Eratosthenes", lib.generate_user_card_number(), 600);
-   try {
-      
-   }
-   */
+   
+   incorrect_book_borrowing_request(lib, user, book);
+   
+   book.borrow();
+   incorrect_book_borrowing_request(lib, user, book);
+   cout << lib << "\nBOOK WAS BORROWED ALREADY\n";
+   
+   incorrect_transaction_other_user(lib, book);
+
+   lib.return_book(user, book);
+   cout << lib;
+}
+
+static  void test_transactions_erasing(Library& lib) {
+   const unsigned int BOOKS = lib.get_books_number();
+   if ( lib.get_users_number() == 0 || BOOKS < Library::TRANSACTIONS_HISTORY_LIMIT )
+      Unforeseen_Behavior(" test_transactions_erasing can not be performed");
+   cout << "\n*** BEFORE test of transactions erasing:\n" << lib;
+   Patron first_patron = lib.get_users().at(0);
+   for (auto book : lib.get_books())
+      lib.book_borrowing_request(first_patron, book);
+   cout << "\n*** AFTER test of transactions erasing:\n" << lib;
 }
 
 static void test_transactions(Library& lib) {
@@ -542,10 +592,12 @@ static void library_test() {
    cout << library;
    print_users_with_charges(cout, library);
    test_transactions(library);
+   test_transactions_erasing(library);
 }
 
 int main() {
    try {
+      //Unforeseen_Behavior("");
       date_test();
       library_test();
       return 0;

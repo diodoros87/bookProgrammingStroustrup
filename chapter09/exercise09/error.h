@@ -6,11 +6,13 @@
 
 using std::string;
 
+//#define NDEBUG
+
 #ifndef NDEBUG
 #   define Unforeseen_Behavior(Msg) \
    __Unforeseen_Behavior(__FILE__, __LINE__, Msg)
 #else
-#   define Unforeseen_Behavior() ;
+#   define Unforeseen_Behavior(Msg);
 #endif
 
 inline void __Unforeseen_Behavior(const char* file, const int line, const string& msg) {
