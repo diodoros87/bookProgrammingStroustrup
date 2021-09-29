@@ -52,4 +52,14 @@ Rational Rational::operator+(const Rational& other) const {
    return Rational(n, d);
 } 
 
+bool Rational::operator>(const Rational& other) const {
+   Rational difference = operator-(other);
+   return difference.numerator > 0;
+}
+
+bool Rational::operator<(const Rational& other) const {
+   Rational difference = other.operator-(*this);
+   return difference.numerator > 0;
+}
+
 }

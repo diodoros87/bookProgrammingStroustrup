@@ -9,8 +9,6 @@ public:
    
    static Rational reverse(const Rational& number) { 
       return Rational (number.denominator, number.numerator);}
-   static Rational negate (const Rational& number) { 
-      return Rational(-number.numerator, number.denominator); }
 
    void set_numerator(long x) { reduce(x, denominator); numerator = x; }
    void set_denominator(long x) { reduce(numerator, x); denominator = x; }
@@ -20,6 +18,7 @@ public:
    Rational& operator=(const Rational& other);
    
    Rational operator-() const { return Rational(-numerator, denominator); }
+   Rational operator+() const { return *this; }
    
    Rational operator+(const Rational& other) const;
    Rational operator-(const Rational& other) const { return operator+(-other); }
@@ -29,8 +28,13 @@ public:
    bool operator==(const Rational& other) const { 
       return numerator == other.numerator && denominator == other.denominator; }
    bool operator!=(const Rational& other) const { return !(*this == other); } ;
+   
+   bool operator>(const Rational& other) const ;
+   bool operator<=(const Rational& other) const { return !operator>(other); };
+   bool operator<(const Rational& other) const ;
+   bool operator>=(const Rational& other) const { return !operator<(other); };
+   
    operator double() const { return static_cast<double>(numerator) / denominator; }
-   //bool operator>(const Rational& other) const ;
 private:
    void reduce(long& numerator, long& denominator);
    
