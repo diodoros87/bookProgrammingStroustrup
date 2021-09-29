@@ -19,8 +19,10 @@ public:
    
    Rational& operator=(const Rational& other);
    
+   Rational operator-() const { return Rational(-numerator, denominator); }
+   
    Rational operator+(const Rational& other) const;
-   Rational operator-(const Rational& other) const { return operator+(negate(other)); }
+   Rational operator-(const Rational& other) const { return operator+(-other); }
    Rational operator*(const Rational& other) const;
    Rational operator/(const Rational& other) const { return operator*(reverse(other)); }
    
@@ -37,7 +39,7 @@ private:
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Rational& number) {
-   return os << number.get_numerator() << " / " << number.get_denominator();
+   return os << "(" << number.get_numerator() << " / " << number.get_denominator() << ")";
 }
 
 long gcd_algorithm(long a, long b);
