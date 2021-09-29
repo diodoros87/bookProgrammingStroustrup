@@ -40,7 +40,7 @@ void __M_Assert(const char* expr_str, const bool expr,
    }
 }
 
-void __my_assertion(Rational x, Rational expected_x, const char* file, const int line) {
+void __my_assertion(const Rational& x, const Rational& expected_x, const char* file, const int line) {
    if (x != expected_x) {
       const string message = " " + to_string(x) +
                         " != expected " + " " + to_string(expected_x);
@@ -103,7 +103,7 @@ inline void print_multiply(const Rational& x, const Rational& y) {
    cout << y << " * " << x << " = " << y*x << " as " << double(y*x) << endl;
 }
 
-inline void print_divide(const Rational& x, const Rational& y) {
+void print_divide(const Rational& x, const Rational& y) {
    try {
       cout << x << " / " << y << " = " << x/y << " as " << double(x/y) << endl;
    }
@@ -118,9 +118,33 @@ inline void print_divide(const Rational& x, const Rational& y) {
    }
 }
 
+void set_tests() {
+   Rational r = {2, 3};
+   try {
+      r.set_denominator(0);
+   }
+   catch (const char* e) {
+      cerr << "exception const char* e: set_denominator : " << e << endl;
+   }
+   r = {5, 3};
+   cout << " assignment r = " << r << '\n';
+   r = r;
+   cout << " self assignment r = " << r << '\n';
+   Rational f = {2, 3};
+   f = r;
+   cout << " assignment f = " << f << '\n';
+   r.set_numerator(0);
+   try {
+      Rational::reverse(r);
+   }
+   catch (const char* e) {
+      cerr << "exception const char* e: reverse : " << e << endl;
+   }
+}
+
 inline void print_assignment(Rational x, const Rational& y) {
    cout << "ASSIGNMENT:\n";
-   cout << x << " = " << x << " y = " << y << endl;
+   cout << " x = " << x << " y = " << y << endl;
    x = y;
    cout << x << " = " << y << " is " << x << " as " << double(x) << endl;
    assert(x==y && "x!=y");
@@ -133,11 +157,11 @@ inline void print_equality(const Rational& x, const Rational& y) {
 }
 
 inline void print_negate(const Rational& x) {
-   cout << x << " and negate of this = " << -x << " as " << double(-x) << endl;
+   cout << x << " and minus of this = " << -x << " as " << double(-x) << endl;
 }
 
 inline void print_plus(const Rational& x) {
-   cout << x << " and negate of this = " << +x << " as " << double(+x) << endl;
+   cout << x << " and plus of this = " << +x << " as " << double(+x) << endl;
 }
 
 inline void print_reverse(const Rational& x) {
@@ -210,11 +234,14 @@ void arithmetic_test() {
    my_assertion(x=z, Rational(7, 3));  // x = z
    my_assertion(z=x, Rational(7, 3));
    my_assertion(x=z, Rational(7, 3));
+   
+#ifndef NDEBUG
    assert(z==x && "z!=x");
    assert(z>=x && "z<x");
    assert(z<=x && "z>x");
    assert(x>=z && "x<z");
    assert(x<=z && "x>z");
+#endif
    
    z.set_numerator(-9);
    my_assertion_double(z.get_numerator(), -3);
@@ -282,6 +309,7 @@ vector<Rational> construction_test() {
 void incorrect_test() { 
    constexpr long numerators[] = { -3, -4, 0, 2, 34, 1 };
    incorrect_construction(numerators, sizeof(numerators) / sizeof(*numerators));
+   set_tests();
 }
 
 void test() { 
