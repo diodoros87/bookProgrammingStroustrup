@@ -251,6 +251,10 @@ void arithmetic_test() {
    x.set_denominator(-12);
    my_assertion_double(x.get_denominator(), 3);
    my_assertion(x, Rational(15, -45));
+   z = Rational(0, 7);
+   x = { 0, -5 };
+   assert(z==x && "z!=x");
+   assert(!(z!=x) && "z!=x");
 }
 
 void arithmetic_test(const vector<Rational>& vec) {

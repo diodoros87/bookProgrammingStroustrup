@@ -26,7 +26,10 @@ public:
    Rational operator/(const Rational& other) const { return operator*(reverse(other)); }
    
    bool operator==(const Rational& other) const { 
-      return numerator == other.numerator && denominator == other.denominator; }
+      if (numerator == 0 && other.numerator == 0) 
+         return true;
+      return numerator == other.numerator && denominator == other.denominator; 
+   }
    bool operator!=(const Rational& other) const { return !(*this == other); } ;
    
    bool operator>(const Rational& other) const ;
