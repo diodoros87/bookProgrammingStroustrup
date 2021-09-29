@@ -15,6 +15,20 @@ using namespace rational;
 #else
 #   define M_Assert(Expr, Msg) ;
 #endif
+    
+#ifndef NDEBUG
+#   define my_assertion(Rational1, Rational2) \
+    __my_assertion(Rational1, Rational2, __FILE__, __LINE__)
+#else
+#   define my_assertion(Rational1, Rational2) ;
+#endif
+    
+#ifndef NDEBUG
+#   define my_assertion_double(double1, double2) \
+    __my_assertion_double(double1, double2, __FILE__, __LINE__)
+#else
+#   define my_assertion_double(double1, double2) ;
+#endif
 
 void __M_Assert(const char* expr_str, const bool expr,
                 const char* file, const int line, const string& msg) {
@@ -26,10 +40,20 @@ void __M_Assert(const char* expr_str, const bool expr,
    }
 }
 
-inline void check_assertion(double x, double expected_x, const string& LABEL = "") {
-   const string message = " " + LABEL + " " + to_string(x) +
-                     " != expected " + LABEL + " " + to_string(expected_x);
-   M_Assert(x == expected_x, message);
+void __my_assertion(Rational x, Rational expected_x, const char* file, const int line) {
+   if (x != expected_x) {
+      const string message = " " + to_string(x) +
+                        " != expected " + " " + to_string(expected_x);
+      __M_Assert("x == expected_x", x == expected_x, file, line, message);
+   }
+}
+
+void __my_assertion_double(double x, double expected_x, const char* file, const int line) {
+   if (x != expected_x) {
+      const string message = " " + to_string(x) +
+                        " != expected " + " " + to_string(expected_x);
+      __M_Assert("x == expected_x", x == expected_x, file, line, message);
+   }
 }
 
 void incorrect_construction(const long NUMERATORS[], const unsigned int SIZE) {
@@ -155,33 +179,51 @@ void print_arithmetic_tests(Rational x, Rational y) {
    print_reverse(y);
 } 
 
-inline void check_assertion(Rational x, Rational expected_x, const string& LABEL = "") {
-   const string message = " " + LABEL + " " + to_string(x) +
-                     " != expected " + LABEL + " " + to_string(expected_x);
-   M_Assert(x == expected_x, message);
-}
-
 void arithmetic_test() {
    Rational z = Rational(-49, -21);
    Rational x = Rational(66, -165);
-   check_assertion(z, Rational(7, 3));
-   check_assertion(x, Rational(-2, 5));
-   check_assertion(z+x, Rational(29, 15));
-   check_assertion(x+z, Rational(29, 15));
-   check_assertion(z-x, Rational(41, 15));
-   check_assertion(x-z, Rational(-41, 15));
-   check_assertion(z*x, Rational(-14, 15));
-   check_assertion(x*z, Rational(-14, 15));
-   check_assertion(z/x, Rational(-35, 6));
-   check_assertion(x/z, Rational(-6, 35));
-   check_assertion(+x, Rational(-2, 5));
-   check_assertion(+z, Rational(7, 3));
-   check_assertion(-x, Rational(2, 5));
-   check_assertion(-z, Rational(-7, 3));
-   check_assertion(Rational::reverse(x), Rational(-5, 2));
-   check_assertion(Rational::reverse(z), Rational(3, 7));
-   check_assertion(x=z, Rational(7, 3));
-   check_assertion(z=x, Rational(7, 3));
+   my_assertion_double(z.get_numerator(), 7);
+   my_assertion_double(z.get_denominator(), 3);
+   my_assertion_double(x.get_numerator(), -2);
+   my_assertion_double(x.get_denominator(), 5);
+   my_assertion(z, Rational(7, 3));
+   my_assertion(x, Rational(-2, 5));
+   my_assertion(z+x, Rational(29, 15));
+   my_assertion(x+z, Rational(29, 15));
+   my_assertion(z-x, Rational(41, 15));
+   my_assertion(x-z, Rational(-41, 15));
+   my_assertion(z*x, Rational(-14, 15));
+   my_assertion(x*z, Rational(-14, 15));
+   my_assertion(z/x, Rational(-35, 6));
+   my_assertion(x/z, Rational(-6, 35));
+   my_assertion(+x, Rational(-2, 5));
+   my_assertion(+z, Rational(7, 3));
+   my_assertion(-x, Rational(2, 5));
+   my_assertion(-z, Rational(-7, 3));
+   my_assertion(Rational::reverse(x), Rational(-5, 2));
+   my_assertion(Rational::reverse(z), Rational(3, 7));
+   assert(z!=x && "z==x");
+   assert(z>x && "z<=x");
+   assert(z>=x && "z<x");
+   assert(x<z && "x>=z");
+   assert(x<=z && "x>z");
+   my_assertion(x=z, Rational(7, 3));  // x = z
+   my_assertion(z=x, Rational(7, 3));
+   my_assertion(x=z, Rational(7, 3));
+   assert(z==x && "z!=x");
+   assert(z>=x && "z<x");
+   assert(z<=x && "z>x");
+   assert(x>=z && "x<z");
+   assert(x<=z && "x>z");
+   
+   z.set_numerator(-9);
+   my_assertion_double(z.get_numerator(), -3);
+   my_assertion(z, Rational(-3, 1));
+   x = Rational(8, 10);
+   my_assertion(x, Rational(-4, -5));
+   x.set_denominator(-12);
+   my_assertion_double(x.get_denominator(), 3);
+   my_assertion(x, Rational(15, -45));
 }
 
 void arithmetic_test(const vector<Rational>& vec) {
