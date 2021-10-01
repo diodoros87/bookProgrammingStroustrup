@@ -129,7 +129,7 @@ struct Token {    // Token has only non-negative numbers, because every token of
 
 // Token has only non-negative numbers, because every token of '-'(minus) char is get separately from number
 Token::Token(char ch, double val) { 
-	if (val != -(long long)(INT_MIN) && false == is_integer(val))  // absolute value of labs(INT_MIN) == labs(INT_MAX + 1)
+	if (val != -(long long)(INT_MIN) && false == is_integer(val))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
 		error("Precondition: Token value must be int type");
 	kind = ch;
 	value = val;
@@ -270,7 +270,7 @@ Token Token_stream::get_number() {
 	input_stream >> val;
 	if (!input_stream)
 		error("Attempt to reading number has failed");
-	if (val != -(long long)(INT_MIN) && false == is_integer(val))  // absolute value of labs(INT_MIN) == labs(INT_MAX + 1)
+	if (val != -(long long)(INT_MIN) && false == is_integer(val))  // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
 		error("input value is not int type ");
 	
 	return Token(number, val);
@@ -877,7 +877,7 @@ double before_primary(Token_stream& ts, Token& t, bool& minus_number) {
 		default: 
 			ts.unget(t);
 			result = primary(ts);
-			if (false == minus_number && result == -(long long)(INT_MIN))   // absolute value of labs(INT_MIN) == labs(INT_MAX + 1)
+			if (false == minus_number && result == -(long long)(INT_MIN))   // absolute value of llabs(INT_MIN) == llabs(INT_MAX + 1)
 				error("Max number for int is ", INT_MAX);
 			break;
 	}
