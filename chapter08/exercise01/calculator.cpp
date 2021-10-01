@@ -881,6 +881,13 @@ bool is_running(Token_stream& ts, const string prompt) {
 	return true;
 }
 
+void enter_key(istream& input_stream, char key) {
+	cout << "Enter \'" << key << "\' to continue ";
+	char c;
+	while (input_stream.get(c) && c != key)
+		continue;
+}
+
 void calculate(Token_stream& ts) {
    const string prompt = "> ";
    const string result = "= ";
@@ -899,18 +906,12 @@ void calculate(Token_stream& ts) {
 			clean_up_mess(ts);
 		}
 		catch (Manual& m) {
+         enter_key(ts.get_input_stream(), print);
 			system("clear");
 			cout << manual.manual_string;
 			clean_up_mess(ts);
 		}
 	} while (true);
-}
-
-void enter_key(istream& input_stream, char key) {
-	cout << "Enter \'" << key << "\' to continue ";
-	char c;
-	while (input_stream.get(c) && c != key)
-		continue;
 }
 
 void add_predefined_variables() {
