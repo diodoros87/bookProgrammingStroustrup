@@ -4,23 +4,58 @@
 #include <sstream>
 #include <utility>
 #include <string>
-#include <map>
+#include <map>      
+#include <array> 
 
 #include "nlohmann/json.hpp"
 
 using namespace std;
 
-struct rates_info {
+enum class Cache_control { no_store, no_cache };
+inline ostream& operator<<(ostream& os, const Cache_control& x) {
+   static const array<string, 2> AVAILABLE_CACHE_CONTROLS = { "no-store", "no-cache" };
+   return os << AVAILABLE_CACHE_CONTROLS[static_cast<int>(x)];
+}
+
+enum class Connection { keep_alive, close };
+inline ostream& operator<<(ostream& os, const Connection& x) {
+   static const array<string, 2> AVAILABLE_CONNECTIONS = { "keep-alive", "close" };
+   return os << AVAILABLE_CONNECTIONS[static_cast<int>(x)];
+}
+
+void process_json_document(const string & CURRENCY, const string & DOC);
+string get_json_document(const string & HOST, const string & DIRECTORY, const Cache_control & CACHE_CONTROL, const Connection & CONNECTION);
+
+int main() {
+   try {
+      const string CURRENCY = "USD";
+      const string HOST = "www.floatrates.com";
+      const string DIRECTORY = "/daily/" + CURRENCY + ".json";
+      const Connection CONNECTION = Connection::close;
+      const Cache_control CACHE_CONTROL = Cache_control::no_store;
+      const string DOC = get_json_document(HOST, DIRECTORY, CACHE_CONTROL, CONNECTION);
+      
+      process_json_document(CURRENCY, DOC);
+   }
+   catch (const exception & e) {
+      cerr << "Exception: " << e.what() << endl;
+   }
+   catch (...) {
+      cerr << "Unrecognized Exception: " <<  endl;
+   }
+}
+
+struct float_rates_info {
    string code;
-   //string alpha_code;
-   //string numeric_code;
-   //string name;
+   //string alpha_code;    // unused
+   //string numeric_code;  // unused
+   //string name;          // unused
    double rate;
-   //string date;
+   //string date;          // unused
    double inverse_rate;
 };
 
-void from_json(const nlohmann::json& jdata, rates_info& info) {
+void from_json(const nlohmann::json& jdata, float_rates_info& info) {
    info.code = jdata.at("code").get<string>();
    //info.alpha_code = jdata.at("alphaCode").get<string>();
    //info.numeric_code = jdata.at("numericCode").get<string>();
@@ -30,38 +65,16 @@ void from_json(const nlohmann::json& jdata, rates_info& info) {
    info.inverse_rate = jdata.at("inverseRate").get<double>();
 }
 
-void erase(string & result, char c, char a) {
-   for (unsigned i = 0; i < result.size(); i++) {
-      if (c == result[i] || a == result[i]) {
-         result.erase(result.begin() + i);
-         if (a == result[i]) {
-            result.erase(result.begin() + i);
-            while (i < result.size() && result[i] != a) 
-               result.erase(result.begin() + i);
-            if (i < result.size() && a == result[i]) 
-               result.erase(result.begin() + i);
-         }
-      }
-   }
-}
+void prepare_json_document(string & doc);
 
-void prepare_json_document(string & doc) {
-   size_t first = doc.find("{");
-   doc = doc.substr(first);
-   size_t last = doc.rfind("}");
-   doc = doc.substr(0, last + 1);
-   erase(doc, '\r', '\n');
-}
-
-string get_json_document(const string & CURRENCY, const string & HOST, const string & CACHE_CONTROL, const string & CONNECTION) {
+string get_json_document(const string & HOST, const string & DIRECTORY, const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
    asio::ip::tcp::iostream stream;
-
    stream.connect(HOST, "http");
-   stream    << "GET /daily/" << CURRENCY << ".json" << " HTTP/1.1\r\n";
+   stream    << "GET " << DIRECTORY << " HTTP/1.1\r\n";
    stream    << "Host: " + HOST + "\r\n";
    stream    << "Accept: application/json\r\n";
-   stream    << "Cache-Control: " + CACHE_CONTROL + "\r\n";
-   stream    << "Connection: " + CONNECTION + "\r\n\r\n" << flush;
+   stream    << "Cache-Control: " << CACHE_CONTROL << "\r\n";
+   stream    << "Connection: " << CONNECTION << "\r\n\r\n" << flush;
 
    ostringstream os;
    os << stream.rdbuf();
@@ -77,32 +90,33 @@ void process_json_document(const string & CURRENCY, const string & DOC) {
    nlohmann::json jdata;
    strstream >> jdata;
 
-   map<string, rates_info> rates = jdata;
-   for (const pair<const string, rates_info> &p : rates)
-   {
-      cout << " 1 " << CURRENCY << " = " << p.second.inverse_rate
-           << " 1 " << p.second.code << " = " << p.second.rate << endl;
+   map<string, float_rates_info> rates = jdata;
+   for (const pair<string, float_rates_info> &p : rates) {
+      cout << " 1 " << CURRENCY << " = " << p.second.rate << " " << p.second.code << " and "
+           << " 1 " << p.second.code << " = " << p.second.inverse_rate << " " << CURRENCY << endl;
                   
    }
 }
 
-int main() {
-	try {
-		const string CURRENCY = "USD";
-      const string HOST = "www.floatrates.com";
-      const string CONNECTION = "close";
-      const string CACHE_CONTROL = "no-store";
-		const string DOC = get_json_document(CURRENCY, HOST, CONNECTION, CACHE_CONTROL);
-      
-		process_json_document(CURRENCY, DOC);
-	}
-	catch (exception & e) {
-		cerr << "Exception: " << e.what() << endl;
-	}
-	catch (...) {
-		cerr << "Unrecognized Exception: " <<  endl;
-	}
+void erase(string & result, const char C, const char A) {
+   for (unsigned i = 0; i < result.size(); i++) {
+      if (C == result[i] || A == result[i]) {
+         result.erase(result.begin() + i);
+         if (A == result[i]) {
+            result.erase(result.begin() + i);
+            while (i < result.size() && result[i] != A) 
+               result.erase(result.begin() + i);
+            if (i < result.size() && A == result[i]) 
+               result.erase(result.begin() + i);
+         }
+      }
+   }
 }
 
-
-
+void prepare_json_document(string & doc) {
+   size_t first = doc.find("{");
+   doc = doc.substr(first);
+   size_t last = doc.rfind("}");
+   doc = doc.substr(0, last + 1);
+   erase(doc, '\r', '\n');
+}
