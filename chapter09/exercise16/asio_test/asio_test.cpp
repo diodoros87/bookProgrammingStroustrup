@@ -18,7 +18,7 @@ inline ostream& operator<<(ostream& os, const Cache_control& x) {
    static const array<string, 2> AVAILABLE_CACHE_CONTROLS = { "no-store", "no-cache" };
    const int INDEX = static_cast<int>(x);
    if (INDEX < 0 || INDEX >= AVAILABLE_CACHE_CONTROLS.size()){
-      assert(false);
+      assert(0 && "Unavailable cache control type ");
       return os << AVAILABLE_CACHE_CONTROLS[0];
    }
    return os << AVAILABLE_CACHE_CONTROLS[INDEX];
@@ -29,8 +29,8 @@ inline ostream& operator<<(ostream& os, const Connection& x) {
    static const array<string, 2> AVAILABLE_CONNECTIONS = { "keep-alive", "close" };
    const int INDEX = static_cast<int>(x);
    if (INDEX < 0 || INDEX >= AVAILABLE_CONNECTIONS.size()) {
-      assert(false);
-      return os << AVAILABLE_CONNECTIONS[0];
+      assert(0 && "Unavailable connection type ");
+      return os << AVAILABLE_CONNECTIONS[1];
    }
    return os << AVAILABLE_CONNECTIONS[INDEX];
 }
@@ -43,8 +43,8 @@ int main() {
       const string CURRENCY = "PLN";
       const string HOST = "www.floatrates.com";
       const string DIRECTORY = "/daily/" + CURRENCY + ".json";
-      const Connection CONNECTION = Connection::close;
       const Cache_control CACHE_CONTROL = Cache_control::no_store;
+      const Connection CONNECTION = Connection::close;
       const string DOC = get_json_document(HOST, DIRECTORY, CACHE_CONTROL, CONNECTION);
       
       process_json_document(CURRENCY, DOC);
@@ -69,11 +69,11 @@ struct float_rates_info {
 
 void from_json(const nlohmann::json& jdata, float_rates_info& info) {
    info.code = jdata.at("code").get<string>();
-   //info.alpha_code = jdata.at("alphaCode").get<string>();
-   //info.numeric_code = jdata.at("numericCode").get<string>();
-   //info.name = jdata.at("name").get<string>();
+   //info.alpha_code = jdata.at("alphaCode").get<string>();      // unused
+   //info.numeric_code = jdata.at("numericCode").get<string>();  // unused
+   //info.name = jdata.at("name").get<string>();                 // unused
    info.rate = jdata.at("rate").get<double>();
-   //info.date = jdata.at("date").get<string>();
+   //info.date = jdata.at("date").get<string>();                 // unused
    info.inverse_rate = jdata.at("inverseRate").get<double>();
 }
 
@@ -84,7 +84,7 @@ string get_json_document(const string & HOST, const string & DIRECTORY, const Ca
    stream.connect(HOST, "http");
    stream    << "GET " << DIRECTORY << " HTTP/2.0\r\n";
    stream    << "Host: " + HOST + "\r\n";
-   stream    << "Accept: application/json";
+   stream    << "Accept: application/json\r\n";
    stream    << "Cache-Control: " << CACHE_CONTROL << "\r\n";
    stream    << "Connection: " << CONNECTION  << "\r\n\r\n";
 
