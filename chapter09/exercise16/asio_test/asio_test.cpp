@@ -1,5 +1,6 @@
 //#define ASIO_STANDALONE 
 #include "asio.hpp"
+//#include "asio/system_error.hpp"
 #include <iostream>
 #include <sstream>
 #include <utility>
@@ -15,7 +16,7 @@ using namespace std;
 
 template<class Type>
 inline bool is_valid(const int INDEX, const Type& object) {
-   constexpr size_t SIZE = std::tuple_size<Type>{};
+   constexpr size_t SIZE = tuple_size<Type>{};
    if (INDEX < 0 || INDEX >= SIZE) {
       assert(0 && "Unavailable index ");
       return false;
@@ -41,9 +42,9 @@ inline ostream& operator<<(ostream& os, const Connection& x) {
    return os << AVAILABLE_CONNECTIONS[1];
 }
 
-enum class Method { get, head, options };
+enum class Method { get, options, post };
 inline ostream& operator<<(ostream& os, const Method& x) {
-   static const array<string, 3> AVAILABLE_METHODS = { "GET", "HEAD", "OPTIONS" };
+   static const array<string, 3> AVAILABLE_METHODS = { "GET", "OPTIONS", "POST" };
    const int INDEX = static_cast<int>(x);
    if (is_valid(INDEX, AVAILABLE_METHODS))
       return os << AVAILABLE_METHODS[INDEX];
@@ -54,12 +55,12 @@ void process_document(const string & CURRENCY, const string & DOC);
 string get_document(const string & HOST, const Method & METHOD, const string & DIRECTORY, 
                          const Cache_control & CACHE_CONTROL, const Connection & CONNECTION);
 
-class Asio_Exception : public exception { 
-   string msg {"!!! Asio Exception: "};
+class Asio_IO_Stream_Exception : public exception { 
+   string msg {"!!! error on the socket stream: "};
 public:
-   Asio_Exception() {}
-   Asio_Exception(const string& message) { msg += message; }
-   const char* what() {
+   Asio_IO_Stream_Exception() {}
+   Asio_IO_Stream_Exception(const string& message) { msg += message; }
+   const char* what() const noexcept {
       return msg.c_str();
    }
 };
@@ -70,21 +71,29 @@ int main() {
       const string HOST = "www.floatrates.com";
       const Method METHOD = Method::get;
       const string DIRECTORY = "/daily/" + CURRENCY + ".json";
+      //const string DIRECTORY = "/";            // "/" is root and "" has result 400 Bad Request
       const Cache_control CACHE_CONTROL = Cache_control::no_store;
       const Connection CONNECTION = Connection::close;
       const string DOC = get_document(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
       
       process_document(CURRENCY, DOC);
+      return 0;
    }
-   catch (Asio_Exception & e) {
+   catch (const Asio_IO_Stream_Exception & e) {
       cerr << e.what() << endl;
    }
-   catch (exception & e) {
+   catch (const asio::system_error &e) {
+      cerr << "!!! System Error ! Error code = " << e.code()
+           << "\n Message: " << e.what();
+      return e.code().value();
+   }
+   catch (const exception & e) {
       cerr << "Exception: " << e.what() << endl;
    }
    catch (...) {
       cerr << "Unrecognized Exception: " <<  endl;
    }
+   return 1;
 }
 
 struct float_rates_info {
@@ -103,21 +112,25 @@ void modify_document(string & doc);
 
 string get_document(const string & HOST, const Method & METHOD, const string & DIRECTORY,
                          const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
-   asio::ip::tcp::iostream stream;
-   stream.connect(HOST, "http");
-   stream    << METHOD << " " << DIRECTORY << " HTTP/1.1\r\n";
-   stream    << "Host: " + HOST + "\r\n";
-   stream    << "Accept-Charset: utf-8\r\n";
-   stream    << "Cache-Control: " << CACHE_CONTROL << "\r\n";
-   stream    << "Connection: " << CONNECTION  << "\r\n\r\n";
-   if (! stream)
-      throw Asio_Exception(stream.error().message());
-   ostringstream os;
-   os << stream.rdbuf();
-   stream.close();
-   string result = os.str();
-   //cout << result;
-   //cout << "EEEEEEEEEEEEEEEEEEEE\n";
+   asio::basic_socket_iostream<asio::ip::tcp> socket_iostream;
+   socket_iostream.connect(HOST, "http");
+   
+   socket_iostream    << METHOD << " " << DIRECTORY << " HTTP/1.1\r\n";
+   socket_iostream    << "Host: " + HOST + "\r\n";
+   socket_iostream    << "Accept-Charset: utf-8\r\n";
+   socket_iostream    << "Cache-Control: " << CACHE_CONTROL << "\r\n";
+   socket_iostream    << "Connection: " << CONNECTION  << "\r\n\r\n";
+   socket_iostream.flush();
+   
+   if (socket_iostream.fail())
+      throw Asio_IO_Stream_Exception(socket_iostream.error().message());
+   stringstream strstream;
+   strstream << socket_iostream.rdbuf();
+   
+   socket_iostream.close();
+   if (! socket_iostream)
+      throw Asio_IO_Stream_Exception(socket_iostream.error().message());
+   string result = strstream.str();
    modify_document(result);
    return result;
 }
