@@ -1,77 +1,54 @@
 #include <iostream>
 #include <string>
-#include <map>
 
 #include "curl_header.h"
 #include "curl_easy.h"
 #include "curl_exception.h"
 #include "curl_ios.h"
 
-
 #include "pugixml.hpp"
 
-using curl::curl_header;
-using curl::curlcpp_traceback;
-using curl::curl_ios;
-using curl::curl_easy;
-using curl::curl_easy_exception;
-
+using namespace curl;
+using namespace pugi;
 using namespace std; 
-/*
-struct rates_info {
-   string code;
-   //string alpha_code;
-   //string numeric_code;
-   //string name;
-   double rate;
-   //string date;
-   double inverse_rate;
-};
 
-void from_json(const nlohmann::json& jdata, rates_info& info) {
-   info.code = jdata.at("code").get<string>();
-   //info.alpha_code = jdata.at("alphaCode").get<string>();
-   //info.numeric_code = jdata.at("numericCode").get<string>();
-   //info.name = jdata.at("name").get<string>();
-   info.rate = jdata.at("rate").get<double>();
-   //info.date = jdata.at("date").get<string>();
-   info.inverse_rate = jdata.at("inverseRate").get<double>();
-}
-*/
-stringstream get_xml_document(const string& url) {
+stringstream get_document(const char* URL, const curl_header & HEADER) {
    stringstream stream;
-
    try {
-      curl_header header;
-      header.add("Accept: application/xml");
-      header.add("Content-Type: application/xml");
       curl_ios<stringstream> writer(stream);
       curl_easy easy(writer);
       
-      easy.add<CURLOPT_HTTPHEADER>(header.get());
-      easy.add<CURLOPT_URL>(url.data());
+      easy.add<CURLOPT_HTTPHEADER>(HEADER.get());
+      easy.add<CURLOPT_URL>(URL);
+      easy.add<CURLOPT_TIMEOUT>(10);
       easy.add<CURLOPT_FOLLOWLOCATION>(1);
 
       easy.perform();
+      return stream;
    }
-   catch (const curl_easy_exception & error) 
-   {
+   catch (const curl_easy_exception & error) {
       curlcpp_traceback errors = error.get_traceback();
       error.print_traceback();
    }
-   
-   return stream;
 }
 
-void process_xml_document(const string & STR);
+string get_xml_document(const char* URL) {
+   curl_header header;
+   header.add("Accept: application/xml");
+   header.add("Accept-Charset: utf-8");
+   stringstream stream = get_document(URL, header);
+   return stream.str();
+}
+
+void process_xml_document(const char * STR);
+void process_xml_document();
 
 int main() {
    string CURRENCY = "PLN";
-   const string URL = "http://api.nbp.pl/api/exchangerates/tables/a/";
-   stringstream doc = get_xml_document(URL);
-   
-   cout << doc.str() << '\n';
-   process_xml_document(doc.str());
+   static constexpr char* URL = "http://api.nbp.pl/api/exchangerates/tables/a/";
+   const string XML_DOC = get_xml_document(URL);
+   process_xml_document();
+   process_xml_document(XML_DOC.c_str());
    
 /*
    nlohmann::json jdata;
@@ -85,38 +62,50 @@ int main() {
    }*/
 }
 
-void process_xml_document(const string & STR) {
-   pugi::xml_document doc;
-   if (doc.load_string(STR.c_str()))
-   {
-      try
-      {
-         pugi::xpath_node_set titles = doc.select_nodes("/ArrayOfExchangeRatesTable/ExchangeRatesTable/Rates/Rate/Currency");
+inline void validate_xml(xml_document& XML_DOC, const char * STR) {
+   xml_parse_result result = XML_DOC.load_string(STR);
+   if (! result)  {
+      cerr << "XML [" << STR << "] parsed with errors, attr value: [" 
+         << XML_DOC.child("node").attribute("attr").value() << "]\n";
+      cerr << "Error description: " << result.description() << "\n";
+      cerr << "Error offset: " << result.offset << " (error at [..." << STR[result.offset] << "]\n\n";
+      throw runtime_error("Error: Document is not XML");
+   }
+}
 
-         for (pugi::xpath_node it : titles)
+void process_xml_document(const char * STR) {
+   static constexpr char* CURRENCY_NODE = "/ArrayOfExchangeRatesTable/ExchangeRatesTable/Rates/Rate/Currency";
+   static constexpr char* CODE_NODE = "/ArrayOfExchangeRatesTable/ExchangeRatesTable/Rates/Rate/Code";
+   static constexpr char* MID_RATE_NODE = "/ArrayOfExchangeRatesTable/ExchangeRatesTable/Rates/Rate/Mid";
+   xml_document doc;
+   //xml_parse_result result = XML_DOC.load_string(STR);
+   validate_xml(doc, STR);
+      
+   //if (doc.load_string(STR)) {
+      try {
+         xpath_node_set titles = doc.select_nodes(CURRENCY_NODE);
+
+         for (xpath_node it : titles)
          {
-            std::cout << it.node().text().as_string() << std::endl;
+            cout << it.node().text().as_string() << endl;
          }
       }
-      catch (pugi::xpath_exception const & e)
-      {
-         std::cout << e.result().description() << std::endl;
+      catch (xpath_exception const & e) {
+         cout << e.result().description() << endl;
       }
-
-      try
-      {
-         auto titles = doc.select_nodes("/ArrayOfExchangeRatesTable/ExchangeRatesTable/Rates/Rate/Code");
+      
+      try {
+         auto titles = doc.select_nodes(CODE_NODE);
 
          for (auto it : titles)
          {
-            std::cout << it.node().text().as_string() << std::endl;
+            cout << it.node().text().as_string() << endl;
          }
       }
-      catch (pugi::xpath_exception const & e)
-      {
-         std::cout << e.result().description() << std::endl;
+      catch (xpath_exception const & e) {
+         cout << e.result().description() << endl;
       }
-   }
+   //}
    /*
    stringstream strstream;
    strstream.str(DOC);
@@ -134,8 +123,8 @@ void process_xml_document(const string & STR) {
 
 
 
-/*
-int main()
+
+void process_xml_document()
 {
    std::string text = R"(
 <?xml version="1.0"?>
@@ -175,7 +164,8 @@ int main()
 )";
 
    pugi::xml_document doc;
-   if (doc.load_string(text.c_str()))
+   pugi::xml_parse_result result = doc.load_string(text.c_str());
+   if (result)
    {
       try
       {
@@ -205,5 +195,11 @@ int main()
          std::cout << e.result().description() << std::endl;
       }
    }
+   else  {
+      std::cout << "XML [" << text << "] parsed with errors, attr value: [" << doc.child("node").attribute("attr").value() << "]\n";
+      std::cout << "Error description: " << result.description() << "\n";
+      std::cout << "Error offset: " << result.offset << " (error at [..." << (text.c_str() + result.offset) << "]\n\n";
+   }
+      
 }
-*/
+
