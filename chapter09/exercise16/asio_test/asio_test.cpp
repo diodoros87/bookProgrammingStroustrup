@@ -13,43 +13,73 @@
 
 using namespace std;
 
+template<class Type>
+inline bool is_valid(const int INDEX, const Type& object) {
+   constexpr size_t SIZE = std::tuple_size<Type>{};
+   if (INDEX < 0 || INDEX >= SIZE) {
+      assert(0 && "Unavailable index ");
+      return false;
+   }
+   return true;
+}
+
 enum class Cache_control { no_store, no_cache };
 inline ostream& operator<<(ostream& os, const Cache_control& x) {
    static const array<string, 2> AVAILABLE_CACHE_CONTROLS = { "no-store", "no-cache" };
    const int INDEX = static_cast<int>(x);
-   if (INDEX < 0 || INDEX >= AVAILABLE_CACHE_CONTROLS.size()){
-      assert(0 && "Unavailable cache control type ");
-      return os << AVAILABLE_CACHE_CONTROLS[0];
-   }
-   return os << AVAILABLE_CACHE_CONTROLS[INDEX];
+   if (is_valid(INDEX, AVAILABLE_CACHE_CONTROLS))
+      return os << AVAILABLE_CACHE_CONTROLS[INDEX];
+   return os << AVAILABLE_CACHE_CONTROLS[0];
 }
 
 enum class Connection { keep_alive, close };
 inline ostream& operator<<(ostream& os, const Connection& x) {
    static const array<string, 2> AVAILABLE_CONNECTIONS = { "keep-alive", "close" };
    const int INDEX = static_cast<int>(x);
-   if (INDEX < 0 || INDEX >= AVAILABLE_CONNECTIONS.size()) {
-      assert(0 && "Unavailable connection type ");
-      return os << AVAILABLE_CONNECTIONS[1];
-   }
-   return os << AVAILABLE_CONNECTIONS[INDEX];
+   if (is_valid(INDEX, AVAILABLE_CONNECTIONS))
+      return os << AVAILABLE_CONNECTIONS[INDEX];
+   return os << AVAILABLE_CONNECTIONS[1];
 }
 
-void process_json_document(const string & CURRENCY, const string & DOC);
-string get_json_document(const string & HOST, const string & DIRECTORY, const Cache_control & CACHE_CONTROL, const Connection & CONNECTION);
+enum class Method { get, head, options };
+inline ostream& operator<<(ostream& os, const Method& x) {
+   static const array<string, 3> AVAILABLE_METHODS = { "GET", "HEAD", "OPTIONS" };
+   const int INDEX = static_cast<int>(x);
+   if (is_valid(INDEX, AVAILABLE_METHODS))
+      return os << AVAILABLE_METHODS[INDEX];
+   return os << AVAILABLE_METHODS[0];
+}
+
+void process_document(const string & CURRENCY, const string & DOC);
+string get_document(const string & HOST, const Method & METHOD, const string & DIRECTORY, 
+                         const Cache_control & CACHE_CONTROL, const Connection & CONNECTION);
+
+class Asio_Exception : public exception { 
+   string msg {"!!! Asio Exception: "};
+public:
+   Asio_Exception() {}
+   Asio_Exception(const string& message) { msg += message; }
+   const char* what() {
+      return msg.c_str();
+   }
+};
 
 int main() {
    try {
       const string CURRENCY = "PLN";
       const string HOST = "www.floatrates.com";
+      const Method METHOD = Method::get;
       const string DIRECTORY = "/daily/" + CURRENCY + ".json";
       const Cache_control CACHE_CONTROL = Cache_control::no_store;
       const Connection CONNECTION = Connection::close;
-      const string DOC = get_json_document(HOST, DIRECTORY, CACHE_CONTROL, CONNECTION);
+      const string DOC = get_document(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
       
-      process_json_document(CURRENCY, DOC);
+      process_document(CURRENCY, DOC);
    }
-   catch (const exception & e) {
+   catch (Asio_Exception & e) {
+      cerr << e.what() << endl;
+   }
+   catch (exception & e) {
       cerr << "Exception: " << e.what() << endl;
    }
    catch (...) {
@@ -59,50 +89,47 @@ int main() {
 
 struct float_rates_info {
    string code;
-   //string alpha_code;    // unused
-   //string numeric_code;  // unused
-   //string name;          // unused
    double rate;
-   //string date;          // unused
    double inverse_rate;
 };
 
-void from_json(const nlohmann::json& jdata, float_rates_info& info) {
-   info.code = jdata.at("code").get<string>();
-   //info.alpha_code = jdata.at("alphaCode").get<string>();      // unused
-   //info.numeric_code = jdata.at("numericCode").get<string>();  // unused
-   //info.name = jdata.at("name").get<string>();                 // unused
-   info.rate = jdata.at("rate").get<double>();
-   //info.date = jdata.at("date").get<string>();                 // unused
-   info.inverse_rate = jdata.at("inverseRate").get<double>();
+void from_json(const nlohmann::json& json_data, float_rates_info& info) {
+   info.code = json_data.at("code").get<string>();
+   info.rate = json_data.at("rate").get<double>();
+   info.inverse_rate = json_data.at("inverseRate").get<double>();
 }
 
-void modify_downloaded_document(string & doc);
+void modify_document(string & doc);
 
-string get_json_document(const string & HOST, const string & DIRECTORY, const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
+string get_document(const string & HOST, const Method & METHOD, const string & DIRECTORY,
+                         const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
    asio::ip::tcp::iostream stream;
    stream.connect(HOST, "http");
-   stream    << "GET " << DIRECTORY << " HTTP/2.0\r\n";
+   stream    << METHOD << " " << DIRECTORY << " HTTP/1.1\r\n";
    stream    << "Host: " + HOST + "\r\n";
-   stream    << "Accept: application/json\r\n";
+   stream    << "Accept-Charset: utf-8\r\n";
    stream    << "Cache-Control: " << CACHE_CONTROL << "\r\n";
    stream    << "Connection: " << CONNECTION  << "\r\n\r\n";
-
+   if (! stream)
+      throw Asio_Exception(stream.error().message());
    ostringstream os;
    os << stream.rdbuf();
+   stream.close();
    string result = os.str();
-   modify_downloaded_document(result);
+   //cout << result;
+   //cout << "EEEEEEEEEEEEEEEEEEEE\n";
+   modify_document(result);
    return result;
 }
 
-void process_json_document(const string & CURRENCY, const string & DOC) {
+void process_document(const string & CURRENCY, const string & DOC) {
    stringstream strstream;
    strstream.str(DOC);
    
-   nlohmann::json jdata;
-   strstream >> jdata;
+   nlohmann::json json_data;
+   strstream >> json_data;
 
-   map<string, float_rates_info> rates = jdata;
+   map<string, float_rates_info> rates = json_data;
    for (const pair<string, float_rates_info> &p : rates) {
       cout << " 1 " << CURRENCY << " = " << p.second.rate << " " << p.second.code << " and "
            << " 1 " << p.second.code << " = " << p.second.inverse_rate << " " << CURRENCY << endl;
@@ -125,7 +152,7 @@ void erase(string & result, const char C, const char A) {
    }
 }
 
-void modify_downloaded_document(string & doc) {
+void modify_document(string & doc) {
    size_t first = doc.find("{");
    doc = doc.substr(first);
    size_t last = doc.rfind("}");
