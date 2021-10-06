@@ -26,7 +26,7 @@ inline bool is_valid(const int INDEX, const Type& object) {
 }
 
 enum class Cache_control { no_store, no_cache };
-inline ostream& operator<<(ostream& os, const Cache_control& x) {
+ostream& operator<<(ostream& os, const Cache_control& x) {
    static const array<string, 2> AVAILABLE_CACHE_CONTROLS = { "no-store", "no-cache" };
    const int INDEX = static_cast<int>(x);
    if (is_valid(INDEX, AVAILABLE_CACHE_CONTROLS))
@@ -35,7 +35,7 @@ inline ostream& operator<<(ostream& os, const Cache_control& x) {
 }
 
 enum class Connection { keep_alive, close };
-inline ostream& operator<<(ostream& os, const Connection& x) {
+ostream& operator<<(ostream& os, const Connection& x) {
    static const array<string, 2> AVAILABLE_CONNECTIONS = { "keep-alive", "close" };
    const int INDEX = static_cast<int>(x);
    if (is_valid(INDEX, AVAILABLE_CONNECTIONS))
@@ -44,7 +44,7 @@ inline ostream& operator<<(ostream& os, const Connection& x) {
 }
 
 enum class Method { get, options, post };
-inline ostream& operator<<(ostream& os, const Method& x) {
+ostream& operator<<(ostream& os, const Method& x) {
    static const array<string, 3> AVAILABLE_METHODS = { "GET", "OPTIONS", "POST" };
    const int INDEX = static_cast<int>(x);
    if (is_valid(INDEX, AVAILABLE_METHODS))
@@ -105,7 +105,7 @@ struct float_rates_info {
    double inverse_rate;
 };
 
-void from_json(const nlohmann::json& json_data, float_rates_info& info) {
+inline void from_json(const nlohmann::json& json_data, float_rates_info& info) {
    info.code = json_data.at("code").get<string>();
    info.rate = json_data.at("rate").get<double>();
    info.inverse_rate = json_data.at("inverseRate").get<double>();
@@ -122,7 +122,6 @@ string get_document(const string & HOST, const Method & METHOD, const string & D
    socket_iostream.expires_from_now(chrono::seconds(10));
    socket_iostream    << METHOD << " " << DIRECTORY << " " << HTTP_VERSION << "\r\n";
    socket_iostream    << "Host: " + HOST + "\r\n";
-   socket_iostream    << "Accept-Charset: utf-8\r\n";
    socket_iostream    << "Cache-Control: " << CACHE_CONTROL << "\r\n";
    socket_iostream    << "Connection: " << CONNECTION  << "\r\n\r\n";
    socket_iostream.flush();
@@ -146,13 +145,12 @@ void process_response_headers(asio::ip::tcp::iostream & socket_iostream, const s
    cout << " http_version = " << http_version;
    unsigned int status_code;
    socket_iostream >> status_code;
-   cout << "\n status code of response =  " << status_code;
+   cout << "\n status code of response = " << status_code;
    string status_message;
    getline(socket_iostream, status_message);
    cout << "\n status message = " << status_message;
    if (socket_iostream.fail() || http_version != HTTP_VERSION) 
       throw Asio_IO_Stream_Exception("Invalid response ");
-
    // Process the response headers, which are terminated by a blank line.
    string header;
    while (getline(socket_iostream, header) && header != "\r")
@@ -168,11 +166,9 @@ void process_document(const string & CURRENCY, const string & DOC) {
    strstream >> json_data;
 
    map<string, float_rates_info> rates = json_data;
-   for (const pair<string, float_rates_info> &p : rates) {
+   for (const pair<string, float_rates_info> &p : rates) 
       cout << " 1 " << CURRENCY << " = " << p.second.rate << " " << p.second.code << " and "
            << " 1 " << p.second.code << " = " << p.second.inverse_rate << " " << CURRENCY << endl;
-                  
-   }
 }
 
 void erase(string & result, const char C, const char A) {
