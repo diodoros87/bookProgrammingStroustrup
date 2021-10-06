@@ -1,6 +1,5 @@
 //#define ASIO_STANDALONE 
 #include "asio.hpp"
-//#include "asio/system_error.hpp"
 #include <iostream>
 #include <sstream>
 #include <utility>
@@ -9,6 +8,8 @@
 #include <array> 
 //#define NDEBUG
 #include <cassert>
+#include <tuple>
+#include <chrono>
 
 #include "nlohmann/json.hpp"
 
@@ -16,7 +17,7 @@ using namespace std;
 
 template<class Type>
 inline bool is_valid(const int INDEX, const Type& object) {
-   constexpr size_t SIZE = tuple_size<Type>{};
+   static constexpr size_t SIZE = tuple_size<Type>{};
    if (INDEX < 0 || INDEX >= SIZE) {
       assert(0 && "Unavailable index ");
       return false;
@@ -71,13 +72,15 @@ int main() {
       const string HOST = "www.floatrates.com";
       const Method METHOD = Method::get;
       const string DIRECTORY = "/daily/" + CURRENCY + ".json";
-      //const string DIRECTORY = "/";            // "/" is root and "" has result 400 Bad Request
+      //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
       const Cache_control CACHE_CONTROL = Cache_control::no_store;
       const Connection CONNECTION = Connection::close;
       const string DOC = get_document(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
-      
       process_document(CURRENCY, DOC);
       return 0;
+   }
+   catch (const nlohmann::json::exception & e) {
+      cerr << "!!! Error json exception: " << e.what() << '\n';
    }
    catch (const Asio_IO_Stream_Exception & e) {
       cerr << e.what() << endl;
@@ -109,21 +112,23 @@ void from_json(const nlohmann::json& json_data, float_rates_info& info) {
 }
 
 void modify_document(string & doc);
+void process_response_headers(asio::ip::tcp::iostream & socket_iostream, const string& HTTP_VERSION);
 
 string get_document(const string & HOST, const Method & METHOD, const string & DIRECTORY,
                          const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
    asio::basic_socket_iostream<asio::ip::tcp> socket_iostream;
+   const string HTTP_VERSION("HTTP/1.1");
    socket_iostream.connect(HOST, "http");
-   
-   socket_iostream    << METHOD << " " << DIRECTORY << " HTTP/1.1\r\n";
+   socket_iostream.expires_from_now(chrono::seconds(10));
+   socket_iostream    << METHOD << " " << DIRECTORY << " " << HTTP_VERSION << "\r\n";
    socket_iostream    << "Host: " + HOST + "\r\n";
    socket_iostream    << "Accept-Charset: utf-8\r\n";
    socket_iostream    << "Cache-Control: " << CACHE_CONTROL << "\r\n";
    socket_iostream    << "Connection: " << CONNECTION  << "\r\n\r\n";
    socket_iostream.flush();
    
-   if (socket_iostream.fail())
-      throw Asio_IO_Stream_Exception(socket_iostream.error().message());
+   process_response_headers(socket_iostream, HTTP_VERSION);
+   
    stringstream strstream;
    strstream << socket_iostream.rdbuf();
    
@@ -133,6 +138,26 @@ string get_document(const string & HOST, const Method & METHOD, const string & D
    string result = strstream.str();
    modify_document(result);
    return result;
+}
+
+void process_response_headers(asio::ip::tcp::iostream & socket_iostream, const string& HTTP_VERSION) {
+   string http_version;
+   socket_iostream >> http_version;
+   cout << " http_version = " << http_version;
+   unsigned int status_code;
+   socket_iostream >> status_code;
+   cout << "\n status code of response =  " << status_code;
+   string status_message;
+   getline(socket_iostream, status_message);
+   cout << "\n status message = " << status_message;
+   if (socket_iostream.fail() || http_version != HTTP_VERSION) 
+      throw Asio_IO_Stream_Exception("Invalid response ");
+
+   // Process the response headers, which are terminated by a blank line.
+   string header;
+   while (getline(socket_iostream, header) && header != "\r")
+      cout << header << "\n";
+   cout << "\n";
 }
 
 void process_document(const string & CURRENCY, const string & DOC) {
