@@ -25,8 +25,8 @@ static inline void validate_size(const vector<digit_type> & vec) {
 template <typename Container>
 static inline void validate_size(const Container& TABLE) {
    const size_t SIZE = TABLE.size();
-   if (0 == SIZE)
-      throw invalid_argument("Requirement: length > 0");
+   //if (0 == SIZE)
+   //   throw invalid_argument("Requirement: length > 0");
    if (MAX_ARRAY_LENGTH < SIZE)
       throw invalid_argument("Requirement: length <= " + to_string(MAX_ARRAY_LENGTH));
 }
@@ -385,101 +385,85 @@ Integer Integer::divide_absolute_values(const Integer& DIVIDEND, const Integer& 
    const array<digit_type, MAX_ARRAY_LENGTH> DIVIDEND_ARRAY = DIVIDEND.get_integer_array();
    short current_dividend_index = get_mismatch_value_index(DIVIDEND_ARRAY, 0, (byte)0);
    const array<digit_type, MAX_ARRAY_LENGTH> DIVISOR_ARRAY  = DIVISOR.get_integer_array();
-   final int DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX = get_mismatch_value_index(DIVISOR_ARRAY, 0, (byte)0);
+   const short DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX = get_mismatch_value_index(DIVISOR_ARRAY, 0, 0);
    
    if (0 > current_dividend_index || current_dividend_index > DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX) 
       return Integer();   // default constructor initialized by zero
    else {
-      const array<digit_type, MAX_ARRAY_LENGTH> resultArray = calculate_dividing(DIVIDEND_ARRAY, current_dividend_index, DIVISOR, DIVISOR_ARRAY, 
+      const array<digit_type, MAX_ARRAY_LENGTH> result_array = calculate_dividing(DIVIDEND_ARRAY, current_dividend_index, DIVISOR, DIVISOR_ARRAY, 
                                                 DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX);
-      return new Integer(resultArray);
+      return new Integer(result_array);
    }
 }
-
-static array<digit_type, MAX_ARRAY_LENGTH> calculate_dividing(const array<digit_type, MAX_ARRAY_LENGTH> & DIVIDEND_ARRAY, 
-               const short current_dividend_index, const Integer & DIVISOR,
-               const array<digit_type, MAX_ARRAY_LENGTH> & DIVISOR_ARRAY, const short DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX) {
-   byte[] resultArray            = array<digit_type, MAX_ARRAY_LENGTH>;
-   const short DIVISOR_DIGITS_LENGTH = DIVISOR_ARRAY.size() - DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX;
-   vector<digit_type> temporary_dividend_array;
-   Integer temporaryDividend;
-   digit_type next_dividend_digit;
-                     
-   while (current_dividend_index < MAX_ARRAY_LENGTH) {
-      next_dividend_digit = DIVIDEND_ARRAY[current_dividend_index];
-      temporary_dividend_array = modifyDividendArray(temporary_dividend_array, next_dividend_digit);
-      temporaryDividend.set_integer_array(temporary_dividend_array);
-      
-      if (true == Integer.is_absolute_value_less(temporaryDividend, DIVISOR)) {
-         resultArray[current_dividend_index] = 0;
-      }
-      else {
-         temporary_dividend_array = multiplyDivisor(resultArray, current_dividend_index,
-                                             temporaryDividend, temporary_dividend_array, DIVISOR);
-      }
-      
-      current_dividend_index++;
-   }
-                                                         
-                                                         
-   return resultArray;                                                       
-}
-
-private static byte[] modifyDividendArray(byte[] temporary_dividend_array, byte next_dividend_digit) {
-   final int LENGTH = temporary_dividend_array.length + 1;
+/*
+static vector<digit_type> modify_dividend_array(const vector<digit_type> & temporary_dividend_array, const digit_type next_dividend_digit) {
+   const size_t LENGTH = temporary_dividend_array.length + 1;
    temporary_dividend_array = Arrays.copyOf(temporary_dividend_array, LENGTH);
    temporary_dividend_array[LENGTH - 1] = next_dividend_digit;
    
    return temporary_dividend_array;
 }
+*/
+static array<digit_type, MAX_ARRAY_LENGTH> calculate_dividing(const array<digit_type, MAX_ARRAY_LENGTH> & DIVIDEND_ARRAY, 
+               const short current_dividend_index, const Integer & DIVISOR,
+               const array<digit_type, MAX_ARRAY_LENGTH> & DIVISOR_ARRAY, const short DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX) {
+   array<digit_type, MAX_ARRAY_LENGTH> result_array;
+   const short DIVISOR_DIGITS_LENGTH = DIVISOR_ARRAY.size() - DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX;
+   vector<digit_type> temporary_dividend_array;
+   Integer temporary_dividend;
+   digit_type next_dividend_digit;
+   for (; current_dividend_index < MAX_ARRAY_LENGTH; current_dividend_index++) {
+      next_dividend_digit = DIVIDEND_ARRAY[current_dividend_index];
+      temporary_dividend_array.push_back(next_dividend_digit);
+      temporary_dividend.set_integer_array(temporary_dividend_array);
+      
+      if (true == Integer::is_absolute_value_less(temporary_dividend, DIVISOR))
+         result_array[current_dividend_index] = 0;
+      else
+         temporary_dividend_array = multiply_divisor(result_array, current_dividend_index,
+                                             temporary_dividend, temporary_dividend_array, DIVISOR);
+   }
+   return result_array;                                                       
+}
 
-private static byte[] multiplyDivisor(byte[] resultArray, int current_dividend_index,
-                                       final Integer DIVIDEND, byte[] dividendArray,
-                                       final Integer DIVISOR) throws Exception {
-   Integer multiple_of_divisor = new Integer(DIVISOR.get_integer_array());
-   
-   int multiple = 1;
-   
-   while (true == Integer.is_absolute_value_less(multiple_of_divisor, DIVIDEND)) {
+static vector<digit_type> multiply_divisor(array<digit_type, MAX_ARRAY_LENGTH> & result_array, const short current_dividend_index,
+       const Integer & DIVIDEND, vector<digit_type> & dividend_array, const Integer & DIVISOR) {
+   Integer multiple_of_divisor = Integer(DIVISOR.get_integer_array());
+   int_fast8_t multiple = 1;
+   while (true == is_absolute_value_less(multiple_of_divisor, DIVIDEND)) {
       multiple_of_divisor = add_absolute_values(multiple_of_divisor, DIVISOR);
       multiple++;
    }
-   
-   if (true == Integer.is_absolute_value_greater(multiple_of_divisor, DIVIDEND)) {  // if true, remainder != 0
+   if (true == is_absolute_value_greater(multiple_of_divisor, DIVIDEND)) {  // if true, remainder != 0
       multiple_of_divisor = subtract_absolute_values(multiple_of_divisor, DIVISOR);
       multiple--;
-      dividendArray = assignRemainder(DIVIDEND, multiple_of_divisor, dividendArray);
+      dividend_array = assign_remainder(DIVIDEND, multiple_of_divisor, dividend_array);
    }
-   else {    // if Integer.isEqualTo(multiple_of_divisor, DIVIDEND)
-      final byte[] EMPTY_ARRAY = new byte[0];
-      dividendArray = Arrays.copyOf(EMPTY_ARRAY, 0);
-   }
+   else    // if multiple_of_divisor == DIVIDEND
+      dividend_array = vector<digit_type>; // empty vector
    
-   if (multiple > 9) {
-      throw new ArithmeticException("Unexpected multiple greater than 9");
-   }
-   
-   resultArray[current_dividend_index] = (byte)multiple;
-   
-   return dividendArray;
+   if (multiple > 9) 
+      throw runtime_error("Unexpected multiple greater than 9");
+   result_array[current_dividend_index] = multiple;
+   return dividend_array;
 }
 
-private static byte[] assignRemainder(final Integer DIVIDEND, final Integer MULTIPLE_OF_DIVISOR, 
-                                       byte[] dividendArray) {
+static vector<digit_type> assign_remainder(const Integer & DIVIDEND, const Integer & MULTIPLE_OF_DIVISOR, 
+                                       byte[] dividend_array) {
    final Integer REMAINDER = Integer.subtract_absolute_values(DIVIDEND, MULTIPLE_OF_DIVISOR);
    final byte[] REMAINDER_ARRAY  = REMAINDER.get_integer_array();
    final int REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX = ArraysOperations.get_mismatch_value_index(REMAINDER_ARRAY, 0, (byte)0);
    final int REMAINDER_DIGITS_LENGTH = REMAINDER_ARRAY.length - REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX;
    
-   dividendArray = Arrays.copyOf(dividendArray, REMAINDER_DIGITS_LENGTH);
+   dividend_array = Arrays.copyOf(dividend_array, REMAINDER_DIGITS_LENGTH);
    System.arraycopy(REMAINDER_ARRAY, REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX, 
-                     dividendArray, 0, REMAINDER_DIGITS_LENGTH);
+                     dividend_array, 0, REMAINDER_DIGITS_LENGTH);
                      
-   return dividendArray;
+   return dividend_array;
 }
 
 public static Integer add_absolute_values(Integer first, Integer second) {
-   byte[] resultArray = new byte[MAX_ARRAY_LENGTH];
+   byte[] result_array = new byte[MAX_ARRAY_LENGTH];
    int firstIntegerDigit;
    int secondIntegerDigit;
    int sumOfDigits = 0;
@@ -490,7 +474,7 @@ public static Integer add_absolute_values(Integer first, Integer second) {
       sumOfDigits = firstIntegerDigit + secondIntegerDigit;
       sumOfDigits += carrying;
       
-      resultArray[index] = (byte)(sumOfDigits % 10);
+      result_array[index] = (byte)(sumOfDigits % 10);
       carrying = sumOfDigits / 10 ;
    }
 
@@ -499,7 +483,7 @@ public static Integer add_absolute_values(Integer first, Integer second) {
                (String.format("Arithmetic overflow while adding absolute value of %s and %s", first , second));
    }
 
-   Integer result = new Integer(resultArray);
+   Integer result = new Integer(result_array);
    return result;
 }
 
@@ -507,7 +491,7 @@ public static Integer subtract_absolute_values(Integer first, Integer second) {
    Integer minuend    = getMaxOfAbsoluteValues(first, second);
    Integer subtrahend = (first == minuend) ? second : first;
 
-   byte[] resultArray = new byte[MAX_ARRAY_LENGTH];
+   byte[] result_array = new byte[MAX_ARRAY_LENGTH];
    int minuendDigit;
    int subtrahendDigit;
    int differenceOfDigits = 0;
@@ -526,17 +510,17 @@ public static Integer subtract_absolute_values(Integer first, Integer second) {
          carrying = 0;
       }
       
-      resultArray[index] = (byte)(differenceOfDigits % 10);
+      result_array[index] = (byte)(differenceOfDigits % 10);
    }
 
-   Integer result = new Integer(resultArray);
+   Integer result = new Integer(result_array);
    return result;
 }
 
 public static Integer multiply_absolute_values(Integer first, Integer second) {
    detectMultiplicationArithmeticOverflow(first, second);
 
-   byte[][] resultArray = new byte[MAX_ARRAY_LENGTH][MAX_ARRAY_LENGTH];
+   byte[][] result_array = new byte[MAX_ARRAY_LENGTH][MAX_ARRAY_LENGTH];
    Integer[] hugeIntegersArray = new Integer[MAX_ARRAY_LENGTH];
    int firstIntegerDigit;
    int secondIntegerDigit;
@@ -560,12 +544,12 @@ public static Integer multiply_absolute_values(Integer first, Integer second) {
          productOfDigits = firstIntegerDigit * secondIntegerDigit;
          productOfDigits += carrying;
 
-         resultArray[firstIndex][columnInResultArray] = (byte)(productOfDigits % 10);
+         result_array[firstIndex][columnInResultArray] = (byte)(productOfDigits % 10);
          carrying = productOfDigits / 10;
       }
 
 
-      hugeIntegersArray[firstIndex] = new Integer(resultArray[firstIndex]);
+      hugeIntegersArray[firstIndex] = new Integer(result_array[firstIndex]);
       orderOfMagnitude++;
    }
 
