@@ -22,8 +22,8 @@ static inline void validate_size(const vector<digit_type> & vec) {
       throw invalid_argument("Requirement: vector.length <= " + to_string(MAX_ARRAY_LENGTH));
 }
 */
-template <typename T>
-static inline void validate_size(const T& TABLE) {
+template <typename Container>
+static inline void validate_size(const Container& TABLE) {
    const size_t SIZE = TABLE.size();
    if (0 == SIZE)
       throw invalid_argument("Requirement: length > 0");
@@ -31,8 +31,8 @@ static inline void validate_size(const T& TABLE) {
       throw invalid_argument("Requirement: length <= " + to_string(MAX_ARRAY_LENGTH));
 }
 
-template <typename T>   // private
-void Integer::validate(const T& TABLE, const char signum) {
+template <typename Container>   // private
+void Integer::validate(const Container& TABLE, const char signum) {
    //validate_size(TABLE);
    const size_t SIZE = TABLE.size();
    validate(signum);
@@ -99,7 +99,7 @@ void set(const Integer& integer) {
 }
 */
 
-public void set_integer_array(const vector<digit_type> & VEC) {  // assume that integerArray is positive number, change of signum is allowed by setSignum()
+void Integer::set_integer_array(const vector<digit_type> & VEC) {  // assume that integerArray is positive number, change of signum is allowed by setSignum()
    validate_size(VEC);
    this->integer_array->fill(0);  // not call reset_number_to_zero() due to change signum (in set_integer_array() save previous signum)
    digit_type number;
@@ -120,16 +120,16 @@ public void set_integer_array(const vector<digit_type> & VEC) {  // assume that 
       this->signum = NEUTRAL_SIGNUM;
 }
 
-public void parse(const string& STR) {
+void Integer::parse(const string& STR) {
    Integer_Parsing::validateString(STR);
    reset_number_to_zero();
-   short iterationStopIndex = 0;
+   short iteration_stop_index = 0;
    if (STR[0] == PLUS_SIGNUM || STR[0] == MINUS_SIGNUM) {
       this->signum = STR[0];
-      iterationStopIndex++;
+      iteration_stop_index++;
    }
    for (size_t string_index = STR.length() - 1, array_index = MAX_ARRAY_LENGTH - 1;
-                        string_index >= iterationStopIndex; string_index--, array_index--) 
+                        string_index >= iteration_stop_index; string_index--, array_index--) 
       this->integer_array[array_index] = STR[string_index] - '0';
 
    if (is_zero()) 
@@ -149,14 +149,14 @@ bool Integer::is_zero(const Integer& integer) {
 }
 
 int_fast8_t Integer::compare_signum(const Integer& first, const Integer& second) {
-   if (first->signum == PLUS_SIGNUM) {
-      if (second->signum == PLUS_SIGNUM)
+   if (first.signum == PLUS_SIGNUM) {
+      if (second.signum == PLUS_SIGNUM)
          return 0;
       else   
          return +1;
    }
-   else if (first->signum == NEUTRAL_SIGNUM) {
-      switch (second->signum) {
+   else if (first.signum == NEUTRAL_SIGNUM) {
+      switch (second.signum) {
          case PLUS_SIGNUM:
             return -1;
          case NEUTRAL_SIGNUM:
@@ -166,378 +166,291 @@ int_fast8_t Integer::compare_signum(const Integer& first, const Integer& second)
       }
    }
    else {  // first->signum  == MINUS_SIGNUM
-      if (second->signum == MINUS_SIGNUM) 
+      if (second.signum == MINUS_SIGNUM) 
          return 0;
       else 
          return -1;
    }
 }
 
-public boolean isEqualTo(Integer integer) {
-   return Integer.isEqualTo(this, integer);
-}
-
-public static boolean isEqualTo(Integer first, Integer second) {
-   byte firstIntegerDigit;
-   byte secondIntegerDigit;
-   for (byte index = 0; index < first.integerArray.length; index++) {
-      firstIntegerDigit  = first.integerArray[index];
-      secondIntegerDigit = second.integerArray[index];
-
-      if (firstIntegerDigit != secondIntegerDigit) {
+bool operator==(const Integer& first, const Integer& second) {
+   for (short index = 0; index < first.integer_array.size(); index++) 
+      if (first.integer_array[index] != second.integer_array[index]) 
          return false;
-      }
-   }
 
-   byte comparingSignumResult = Integer.compare_signum(first, second);
-   if (0 != comparingSignumResult) {
+   int_fast8_t comparing_signum_result = Integer::compare_signum(first, second);
+   if (0 != comparing_signum_result) 
       return false;
-   }
-
-   //assert(0 == comparingSignumResult);
+   //assert(0 == comparing_signum_result);
    return true;
 }
 
-public boolean isNotEqualTo(Integer integer) {
-   return Integer.isNotEqualTo(this, integer);
-}
-
-public static boolean isNotEqualTo(Integer first, Integer second) {
-   boolean notEquality = ! isEqualTo(first, second);
-
-   return notEquality;
-}
-
-public boolean isGreaterThan(Integer integer) throws Exception {
-   return Integer.isGreaterThan(this, integer);
-}
-
-public static boolean isGreaterThan(Integer first, Integer second) throws Exception {
-   byte comparingSignumResult = Integer.compare_signum(first, second);
-   if (-1 == comparingSignumResult) {
+bool operator>(const Integer& first, const Integer& second) {
+   int_fast8_t comparing_signum_result = Integer::compare_signum(first, second);
+   if (-1 == comparing_signum_result) 
       return false;
-   }
-   else if (+1 == comparingSignumResult) {
+   else if (+1 == comparing_signum_result) 
       return true;
-   }
-   // after calling Integer.compare_signum recognize both integers with identical nonzero signum
+   // after calling Integer::compare_signum recognize both integers with identical nonzero signum
 
    assert(first.signum == second.signum);
    assert(first.signum != 0);
-   byte identicalIntegersSignum = first.signum;
-
-   if (identicalIntegersSignum > 0) {
-      return isAbsoluteValueGreaterThan(first, second);
-   }
-   else if (identicalIntegersSignum < 0) {
-      return isAbsoluteValueLessThan(first, second);
-   }
-   else {  // identicalIntegersSignum == 0
-      throw new Exception("signum of integer = 0");
-   }
-}
-
-public static boolean isAbsoluteValueGreaterThan(Integer first, Integer second) {
-   byte firstIntegerDigit;
-   byte secondIntegerDigit;
-   for (byte index = 0; index < first.integerArray.length; index++) {
-      firstIntegerDigit  = first.integerArray[index];
-      secondIntegerDigit = second.integerArray[index];
-
-      if (firstIntegerDigit > secondIntegerDigit) {
-         return true;
-      }
-      else if (firstIntegerDigit < secondIntegerDigit) {
-         return false;
-      }
-   }
-
-   return false;
-}
-
-public static boolean isAbsoluteValueLessThan(Integer first, Integer second) {
-   byte firstIntegerDigit;
-   byte secondIntegerDigit;
-   for (byte index = 0; index < first.integerArray.length; index++) {
-      firstIntegerDigit  = first.integerArray[index];
-      secondIntegerDigit = second.integerArray[index];
-
-      if (firstIntegerDigit < secondIntegerDigit) {
-         return true;
-      }
-      else if (firstIntegerDigit > secondIntegerDigit) {
-         return false;
-      }
-   }
-
-   return false;
-}
-
-public boolean isLessThanOrEqualTo(Integer integer) throws Exception {
-   return Integer.isLessThanOrEqualTo(this, integer);
-}
-
-public static boolean isLessThanOrEqualTo(Integer first, Integer second) throws Exception {
-   boolean notGreaterThan = ! isGreaterThan(first, second);
-
-   return notGreaterThan;
-}
-
-public boolean isLessThan(Integer integer) throws Exception {
-   return Integer.isLessThan(this, integer);
-}
-
-public static boolean isLessThan(Integer first, Integer second) throws Exception {
-   byte comparingSignumResult = Integer.compare_signum(first, second);
-   if (-1 == comparingSignumResult) {
-      return true;
-   }
-   else if (+1 == comparingSignumResult) {
-      return false;
-   }
-   // after calling Integer.compare_signum recognize both integers with identical nonzero signum
-
-   assert(first.signum == second.signum);
-   assert(first.signum != 0);
-   byte identicalIntegersSignum = first.signum;
-
-   if (identicalIntegersSignum < 0) {
-      return isAbsoluteValueGreaterThan(first, second);
-   }
-   else if (identicalIntegersSignum > 0) {
-      return isAbsoluteValueLessThan(first, second);
-   }
-   else {  // identicalIntegersSignum == 0
-      throw new Exception("signum of integer = 0");
-   }
-}
-
-public boolean isGreaterThanOrEqualTo(Integer integer) throws Exception {
-   return Integer.isGreaterThanOrEqualTo(this, integer);
-}
-
-public static boolean isGreaterThanOrEqualTo(Integer first, Integer second) throws Exception {
-   boolean notLessThan = ! isLessThan(first, second);
-
-   return notLessThan;
-}
-
-public void add(Integer integer) {
-   set(Integer.add(this, integer));
-}
-
-public static Integer add(Integer first, Integer second) {
-   Integer result;
-   byte comparingSignumResult = Integer.compare_signum(first, second);
-
-   if (0 == comparingSignumResult) {    // integers with identical signums
-      result = Integer.addAbsoluteValues(first, second);
-   }
-   else {  // integers with different signums
-      result = Integer.subtractAbsoluteValues(first, second);
-   }
-
-   setSignumForAddingNonZeroResult(first, second, result, comparingSignumResult);
-
-   return result;
-}
-
-private static void setSignumForAddingNonZeroResult(Integer first, Integer second,
-                                       Integer result, byte comparingSignumResult) {
-   if (result.signum == 0) {   // skip setSignum() for zero, zero has correct signum = 0 in private Integer(byte[]) constructor
-      return;
-   }
-
-   if (0 == comparingSignumResult) {        // integers with identical signums
-      result.setSignum(first.signum);
-   }
-   else {  // integers with different signums
-      if (true == isAbsoluteValueGreaterThan(first, second)) {
-         result.setSignum(first.signum);
-      }
-      else {
-         result.setSignum(second.signum);
-      }
-   }
-}
-
-public void subtract(Integer integer) {
-   set(Integer.subtract(this, integer));
-}
-
-public static Integer subtract(Integer first, Integer second) {
-   Integer result;
-   byte comparingSignumResult = Integer.compare_signum(first, second);
-
-   if (0 == comparingSignumResult) {    // integers with identical sigmums
-      result = Integer.subtractAbsoluteValues(first, second);
-   }
-   else {  // integers with different sigmums
-      result = Integer.addAbsoluteValues(first, second);
-   }
-
-   setSignumForSubtractingNonZeroResult(first, second, result, comparingSignumResult);
-
-   return result;
-}
-
-private static void setSignumForSubtractingNonZeroResult(Integer first, Integer second,
-                                       Integer result, byte comparingSignumResult) {
-   if (result.signum == 0) {   // skip setSignum() for zero, zero has correct signum = 0 in private Integer(byte[]) constructor
-      return;
-   }
-
-   if (0 == comparingSignumResult) {        // integers with identical signums
-      if (true == isAbsoluteValueGreaterThan(first, second)) {
-         result.setSignum(first.signum);
-      }
-      else {
-         result.setSignum((byte)(-second.signum));
-      }
-   }
-   else {  // integers with different signums
-      if (0 == first.signum) {   // if minuend is zero (with signum zero), then signum's result is negate of subtrahend's signum
-         result.setSignum((byte)(-second.signum));
-      }
-      else {
-         result.setSignum(first.signum);
-      }
-   }
-}
-
-public static Integer multiply(Integer first, Integer second) {
-   Integer result = multiplyAbsoluteValues(first, second);
-   if (result.signum == 0) {   // skip setSignum() for zero, zero has correct signum = 0 in private Integer(byte[]) constructor
-      return result;
-   }
-
-   byte comparingSignumResult = Integer.compare_signum(first, second);
-   if (0 == comparingSignumResult) {        // integers with identical signums
-      result.setSignum((byte)(+1));
-   }
-   else {  // integers with different signums
-      result.setSignum((byte)(-1));
-   }
-
-   return result;
-}
-
-public static Integer remainder(final Integer DIVIDEND, final Integer DIVISOR) throws Exception {
-   if (true == DIVISOR.is_zero()) {
-      throw new ArithmeticException("Divisor can not be zero");
-   }
-
-   Integer dividingResult    = divideAbsoluteValues(DIVIDEND, DIVISOR);
-   Integer multipleOfDivisor = multiplyAbsoluteValues(dividingResult, DIVISOR);
-   Integer remainder         = subtractAbsoluteValues(DIVIDEND, multipleOfDivisor);
+   int_fast8_t identical_integers_signum = first.signum;
    
+   if (identical_integers_signum > 0) 
+      return is_absolute_value_greater(first, second);
+   else if (identical_integers_signum < 0) 
+      return is_absolute_value_less(first, second);
+   else  // identical_integers_signum == 0
+      throw runtime_error("signum of integer = 0");
+}
+
+bool Integer::is_absolute_value_greater(const Integer& first, const Integer& second) {
+   digit_type first_digit;
+   digit_type second_digit;
+   for (byte index = 0; index < first.integer_array.length; index++) {
+      first_digit  = first.integer_array[index];
+      second_digit = second.integer_array[index];
+      if (first_digit > second_digit) 
+         return true;
+      else if (first_digit < second_digit) 
+         return false;
+   }
+   return false;
+}
+
+bool Integer:: is_absolute_value_less(const Integer& first, const Integer& second) {
+   digit_type first_digit;
+   digit_type second_digit;
+   for (byte index = 0; index < first.integer_array.length; index++) {
+      first_digit  = first.integer_array[index];
+      second_digit = second.integer_array[index];
+      if (first_digit < second_digit) 
+         return true;
+      else if (first_digit > second_digit) 
+         return false;
+   }
+   return false;
+}
+
+bool operator<(const Integer& first, const Integer& second) {
+   int_fast8_t comparing_signum_result = Integer::compare_signum(first, second);
+   if (-1 == comparing_signum_result) 
+      return true;
+   else if (+1 == comparing_signum_result) 
+      return false;
+   // after calling Integer.compare_signum recognize both integers with identical nonzero signum
+
+   assert(first.signum == second.signum);
+   assert(first.signum != 0);
+   int_fast8_t identical_integers_signum = first.signum;
+
+   if (identical_integers_signum < 0) 
+      return is_absolute_value_greater(first, second);
+   else if (identical_integers_signum > 0) 
+      return is_absolute_value_less(first, second);
+   else {  // identical_integers_signum == 0
+      throw runtime_error("signum of integer = 0");
+}
+
+static void set_signum_adding_Non_Zero_result(const Integer& first, const Integer& second,
+                                       Integer & result, int_fast8_t comparing_signum_result) {
+   if (result.signum == 0)   // skip setSignum() for zero, zero has correct signum = 0 in private Integer(byte[]) constructor
+      return;
+   if (0 == comparing_signum_result)        // integers with identical signums
+      result.signum = first.signum;
+   else {  // integers with different signums
+      if (true == is_absolute_value_greater(first, second))
+         result.signum = first.signum;
+      else 
+         result.signum = second.signum;
+   }
+}
+
+Integer operator+(const Integer& first, const Integer& second) {
+   Integer result;
+   byte comparing_signum_result = Integer::compare_signum(first, second);
+   if (0 == comparing_signum_result)     // integers with identical signums
+      result = Integer::add_absolute_values(first, second);
+   else  // integers with different signums
+      result = Integer::subtract_absolute_values(first, second);
+
+   set_signum_adding_Non_Zero_result(first, second, result, comparing_signum_result);
+
+   return result;
+}
+
+static void get_opposite_signum(const char signum) {
+   switch(signum) {
+      case MINUS_SIGNUM:
+         return PLUS_SIGNUM;
+         break;
+      case NEUTRAL_SIGNUM:
+         return NEUTRAL_SIGNUM;
+         break;
+      case PLUS_SIGNUM:
+         return MINUS_SIGNUM;
+      default:
+         throw runtime_error("Unrecognized signum");
+   }
+}
+
+inline static void set_opposite_signum(Integer & result, const char signum) {
+   const char opposite = get_opposite_signum(second.signum);
+   result.signum = opposite;
+}
+
+static void set_signum_subtracting_Non_Zero_result(const Integer& first, const Integer& second,
+                                       Integer & result, int_fast8_t comparing_signum_result) {
+   if (result.signum == 0)   // skip setSignum() for zero, zero has correct signum = 0 in private Integer(byte[]) constructor
+      return;
+   if (0 == comparing_signum_result) {        // integers with identical signums
+      if (true == is_absolute_value_greater(first, second)) 
+         result.signum = first.signum;
+      else 
+         set_opposite_signum(result, second.signum);  
+   }
+   else {  // integers with different signums
+      if (0 == first.signum)   // if minuend is zero (with signum zero), then signum's result is negate of subtrahend's signum
+         set_opposite_signum(result, second.signum);
+      else 
+         result.signum = first.signum;
+   }
+}
+
+Integer operator-(const Integer& first, const Integer& second) {
+   Integer result;
+   byte comparing_signum_result = Integer::compare_signum(first, second);
+   if (0 == comparing_signum_result)    // integers with identical sigmums
+      result = Integer::subtract_absolute_values(first, second);
+   else  // integers with different sigmums
+      result = Integer::add_absolute_values(first, second);
+
+   set_signum_subtracting_Non_Zero_result(first, second, result, comparing_signum_result);
+   return result;
+}
+
+Integer operator*(const Integer& first, const Integer& second) {
+   Integer result = Integer::multiply_absolute_values(first, second);
+   if (result.signum == 0)   // skip set_signum() for zero, zero has correct signum = 0 in private Integer(byte[]) constructor
+      return result;
+
+   int_fast8_t comparing_signum_result = Integer::compare_signum(first, second);
+   if (0 == comparing_signum_result)        // integers with identical signums
+      result.signum = PLUS_SIGNUM;
+   else   // integers with different signums
+      result.signum = MINUS_SIGNUM;
+   return result;
+}
+
+Integer Integer::remainder(const Integer& DIVIDEND, const Integer& DIVISOR) {
+   if (true == DIVISOR.is_zero()) 
+      throw invalid_argument("Divisor can not be zero");
+   Integer dividing_result     = divide_absolute_values(DIVIDEND, DIVISOR);
+   Integer multiple_of_divisor = multiply_absolute_values(dividing_result, DIVISOR);
+   Integer remainder           = subtract_absolute_values(DIVIDEND, multiple_of_divisor);
    if (remainder.signum == 0) {   // skip setSignum() for zero, zero has correct signum = 0 in private Integer(byte[]) constructor
       return remainder;
-   }
-   
-   remainder.setSignum(DIVIDEND.signum);
-
+   remainder.signum = DIVIDEND.signum;
    return remainder;
 }
 
-public static Integer divide(Integer dividend, Integer divisor) throws Exception {
-   if (true == divisor.is_zero()) {
-      throw new ArithmeticException("Divisor can not be zero");
-   }
-
-   Integer result = divideAbsoluteValues(dividend, divisor);
-   if (result.signum == 0) {   // skip setSignum() for zero, zero has correct signum = 0 in private Integer(byte[]) constructor
+Integer operator/(const Integer& dividend, const Integer& divisor) {
+   if (true == DIVISOR.is_zero()) 
+      throw invalid_argument("Divisor can not be zero");   
+   Integer result = Integer::divide_absolute_values(dividend, divisor);
+   if (result.signum == 0)    // skip setSignum() for zero, zero has correct signum = 0 in private Integer(byte[]) constructor
       return result;
-   }
-
-   byte comparingSignumResult = Integer.compare_signum(dividend, divisor);
-   if (0 == comparingSignumResult) {        // integers with identical signums
-      result.setSignum((byte)(+1));
-   }
-   else {  // integers with different signums
-      result.setSignum((byte)(-1));
-   }
-
+   int_fast8_t comparing_signum_result = Integer::compare_signum(dividend, divisor);
+   if (0 == comparing_signum_result)        // integers with identical signums
+      result.signum = PLUS_SIGNUM;
+   else   // integers with different signums
+      result.signum = MINUS_SIGNUM;
    return result;
 }
 
-public static Integer divideAbsoluteValues(final Integer DIVIDEND, final Integer DIVISOR) throws Exception {
-   if (true == DIVISOR.is_zero()) {
-      throw new ArithmeticException("Divisor can not be zero");
-   }
+constexpr short INCORRECT_INDEX = -99;
+
+template<typename Container>
+static short get_mismatch_value_index(const Container& ARRAY, const int fromIndex, const digit_type value) {
+   for (short index = fromIndex; index < ARRAY.size(); index++)
+      if (value != ARRAY[index]) 
+         return index;
+   return INCORRECT_INDEX;
+}
+
+Integer Integer::divide_absolute_values(const Integer& DIVIDEND, const Integer& DIVISOR) {
+   if (true == DIVISOR.is_zero()) 
+      throw invalid_argument("Divisor can not be zero");
+   const array<digit_type, MAX_ARRAY_LENGTH> DIVIDEND_ARRAY = DIVIDEND.get_integer_array();
+   short current_dividend_index = get_mismatch_value_index(DIVIDEND_ARRAY, 0, (byte)0);
+   const array<digit_type, MAX_ARRAY_LENGTH> DIVISOR_ARRAY  = DIVISOR.get_integer_array();
+   final int DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX = get_mismatch_value_index(DIVISOR_ARRAY, 0, (byte)0);
    
-   final byte[] DIVIDEND_ARRAY = DIVIDEND.getIntegerArray();
-   int currentDividendIndex = ArraysOperations.getMismatchValueIndex(DIVIDEND_ARRAY, 0, (byte)0);
-   final byte[] DIVISOR_ARRAY  = DIVISOR.getIntegerArray();
-   final int DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX = ArraysOperations.getMismatchValueIndex(DIVISOR_ARRAY, 0, (byte)0);
-   
-   if (0 > currentDividendIndex || currentDividendIndex > DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX) {
-      return new Integer();   // default constructor initialized by zero
-   }
+   if (0 > current_dividend_index || current_dividend_index > DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX) 
+      return Integer();   // default constructor initialized by zero
    else {
-      byte[] resultArray = calculateDividing(DIVIDEND_ARRAY, currentDividendIndex, DIVISOR, DIVISOR_ARRAY, 
+      const array<digit_type, MAX_ARRAY_LENGTH> resultArray = calculate_dividing(DIVIDEND_ARRAY, current_dividend_index, DIVISOR, DIVISOR_ARRAY, 
                                                 DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX);
       return new Integer(resultArray);
    }
 }
 
-private static byte[] calculateDividing(final byte[] DIVIDEND_ARRAY, int currentDividendIndex, 
-               final Integer DIVISOR, final byte[] DIVISOR_ARRAY, final int DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX)
-                                                      throws Exception {
-   byte[] resultArray            = new byte[MAX_ARRAY_LENGTH];
-   
-   final int DIVISOR_DIGITS_LENGTH = DIVISOR_ARRAY.length - DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX;
-   
-   byte[] temporaryDividendArray = {};
-   Integer temporaryDividend = new Integer();
-   byte nextDividendDigit;
+static array<digit_type, MAX_ARRAY_LENGTH> calculate_dividing(const array<digit_type, MAX_ARRAY_LENGTH> & DIVIDEND_ARRAY, 
+               const short current_dividend_index, const Integer & DIVISOR,
+               const array<digit_type, MAX_ARRAY_LENGTH> & DIVISOR_ARRAY, const short DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX) {
+   byte[] resultArray            = array<digit_type, MAX_ARRAY_LENGTH>;
+   const short DIVISOR_DIGITS_LENGTH = DIVISOR_ARRAY.size() - DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX;
+   vector<digit_type> temporary_dividend_array;
+   Integer temporaryDividend;
+   digit_type next_dividend_digit;
                      
-   while (currentDividendIndex < MAX_ARRAY_LENGTH) {
-      nextDividendDigit = DIVIDEND_ARRAY[currentDividendIndex];
-      temporaryDividendArray = modifyDividendArray(temporaryDividendArray, nextDividendDigit);
-      temporaryDividend.set_integer_array(temporaryDividendArray);
+   while (current_dividend_index < MAX_ARRAY_LENGTH) {
+      next_dividend_digit = DIVIDEND_ARRAY[current_dividend_index];
+      temporary_dividend_array = modifyDividendArray(temporary_dividend_array, next_dividend_digit);
+      temporaryDividend.set_integer_array(temporary_dividend_array);
       
-      if (true == Integer.isAbsoluteValueLessThan(temporaryDividend, DIVISOR)) {
-         resultArray[currentDividendIndex] = 0;
+      if (true == Integer.is_absolute_value_less(temporaryDividend, DIVISOR)) {
+         resultArray[current_dividend_index] = 0;
       }
       else {
-         temporaryDividendArray = multiplyDivisor(resultArray, currentDividendIndex,
-                                             temporaryDividend, temporaryDividendArray, DIVISOR);
+         temporary_dividend_array = multiplyDivisor(resultArray, current_dividend_index,
+                                             temporaryDividend, temporary_dividend_array, DIVISOR);
       }
       
-      currentDividendIndex++;
+      current_dividend_index++;
    }
                                                          
                                                          
    return resultArray;                                                       
 }
 
-private static byte[] modifyDividendArray(byte[] temporaryDividendArray, byte nextDividendDigit) {
-   final int LENGTH = temporaryDividendArray.length + 1;
-   temporaryDividendArray = Arrays.copyOf(temporaryDividendArray, LENGTH);
-   temporaryDividendArray[LENGTH - 1] = nextDividendDigit;
+private static byte[] modifyDividendArray(byte[] temporary_dividend_array, byte next_dividend_digit) {
+   final int LENGTH = temporary_dividend_array.length + 1;
+   temporary_dividend_array = Arrays.copyOf(temporary_dividend_array, LENGTH);
+   temporary_dividend_array[LENGTH - 1] = next_dividend_digit;
    
-   return temporaryDividendArray;
+   return temporary_dividend_array;
 }
 
-private static byte[] multiplyDivisor(byte[] resultArray, int currentDividendIndex,
+private static byte[] multiplyDivisor(byte[] resultArray, int current_dividend_index,
                                        final Integer DIVIDEND, byte[] dividendArray,
                                        final Integer DIVISOR) throws Exception {
-   Integer multipleOfDivisor = new Integer(DIVISOR.getIntegerArray());
+   Integer multiple_of_divisor = new Integer(DIVISOR.get_integer_array());
    
    int multiple = 1;
    
-   while (true == Integer.isAbsoluteValueLessThan(multipleOfDivisor, DIVIDEND)) {
-      multipleOfDivisor = addAbsoluteValues(multipleOfDivisor, DIVISOR);
+   while (true == Integer.is_absolute_value_less(multiple_of_divisor, DIVIDEND)) {
+      multiple_of_divisor = add_absolute_values(multiple_of_divisor, DIVISOR);
       multiple++;
    }
    
-   if (true == Integer.isAbsoluteValueGreaterThan(multipleOfDivisor, DIVIDEND)) {  // if true, remainder != 0
-      multipleOfDivisor = subtractAbsoluteValues(multipleOfDivisor, DIVISOR);
+   if (true == Integer.is_absolute_value_greater(multiple_of_divisor, DIVIDEND)) {  // if true, remainder != 0
+      multiple_of_divisor = subtract_absolute_values(multiple_of_divisor, DIVISOR);
       multiple--;
-      dividendArray = assignRemainder(DIVIDEND, multipleOfDivisor, dividendArray);
+      dividendArray = assignRemainder(DIVIDEND, multiple_of_divisor, dividendArray);
    }
-   else {    // if Integer.isEqualTo(multipleOfDivisor, DIVIDEND)
+   else {    // if Integer.isEqualTo(multiple_of_divisor, DIVIDEND)
       final byte[] EMPTY_ARRAY = new byte[0];
       dividendArray = Arrays.copyOf(EMPTY_ARRAY, 0);
    }
@@ -546,16 +459,16 @@ private static byte[] multiplyDivisor(byte[] resultArray, int currentDividendInd
       throw new ArithmeticException("Unexpected multiple greater than 9");
    }
    
-   resultArray[currentDividendIndex] = (byte)multiple;
+   resultArray[current_dividend_index] = (byte)multiple;
    
    return dividendArray;
 }
 
 private static byte[] assignRemainder(final Integer DIVIDEND, final Integer MULTIPLE_OF_DIVISOR, 
                                        byte[] dividendArray) {
-   final Integer REMAINDER = Integer.subtractAbsoluteValues(DIVIDEND, MULTIPLE_OF_DIVISOR);
-   final byte[] REMAINDER_ARRAY  = REMAINDER.getIntegerArray();
-   final int REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX = ArraysOperations.getMismatchValueIndex(REMAINDER_ARRAY, 0, (byte)0);
+   final Integer REMAINDER = Integer.subtract_absolute_values(DIVIDEND, MULTIPLE_OF_DIVISOR);
+   final byte[] REMAINDER_ARRAY  = REMAINDER.get_integer_array();
+   final int REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX = ArraysOperations.get_mismatch_value_index(REMAINDER_ARRAY, 0, (byte)0);
    final int REMAINDER_DIGITS_LENGTH = REMAINDER_ARRAY.length - REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX;
    
    dividendArray = Arrays.copyOf(dividendArray, REMAINDER_DIGITS_LENGTH);
@@ -565,7 +478,7 @@ private static byte[] assignRemainder(final Integer DIVIDEND, final Integer MULT
    return dividendArray;
 }
 
-public static Integer addAbsoluteValues(Integer first, Integer second) {
+public static Integer add_absolute_values(Integer first, Integer second) {
    byte[] resultArray = new byte[MAX_ARRAY_LENGTH];
    int firstIntegerDigit;
    int secondIntegerDigit;
@@ -590,7 +503,7 @@ public static Integer addAbsoluteValues(Integer first, Integer second) {
    return result;
 }
 
-public static Integer subtractAbsoluteValues(Integer first, Integer second) {
+public static Integer subtract_absolute_values(Integer first, Integer second) {
    Integer minuend    = getMaxOfAbsoluteValues(first, second);
    Integer subtrahend = (first == minuend) ? second : first;
 
@@ -620,7 +533,7 @@ public static Integer subtractAbsoluteValues(Integer first, Integer second) {
    return result;
 }
 
-public static Integer multiplyAbsoluteValues(Integer first, Integer second) {
+public static Integer multiply_absolute_values(Integer first, Integer second) {
    detectMultiplicationArithmeticOverflow(first, second);
 
    byte[][] resultArray = new byte[MAX_ARRAY_LENGTH][MAX_ARRAY_LENGTH];
@@ -673,14 +586,14 @@ private static void detectMultiplicationArithmeticOverflow(int carrying, Integer
 private static Integer sumOfMultiplicationResults(Integer[] hugeIntegersArray) {
    Integer result = new Integer();
    for (int index = hugeIntegersArray.length - 1; index >= 0; index--) {
-      result = addAbsoluteValues(result, hugeIntegersArray[index]);
+      result = add_absolute_values(result, hugeIntegersArray[index]);
    }
 
    return result;
 }
 
 private static Integer getMaxOfAbsoluteValues(Integer first, Integer second) {
-   boolean firstGreaterThanSecond = isAbsoluteValueGreaterThan(first, second);
+   boolean firstGreaterThanSecond = is_absolute_value_greater(first, second);
    if (true == firstGreaterThanSecond) {
       return first;
    }

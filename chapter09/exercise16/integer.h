@@ -4,6 +4,14 @@ typedef short digit_type;
 
 namespace integer_space {
    
+inline bool operator<=(const Integer& first, const Integer& second) {
+   return ! (first > second);
+}
+
+inline bool operator>=(const Integer& first, const Integer& second) {
+   return ! (first < second);
+}
+   
 class Integer {
 private:
    array<digit_type, MAX_ARRAY_LENGTH> integer_array;
@@ -28,14 +36,12 @@ public:
    static constexpr char PLUS_SIGNUM      = '+';
    static constexpr char MINUS_SIGNUM     = '-';
 private:
-   
    array<digit_type, MAX_ARRAY_LENGTH> get_integer_array() const {
-      array<digit_type, MAX_ARRAY_LENGTH> copy(integer_array);
-      return copy;
+      return integer_array;
    }
    
-   template <typename T>
-   void validate(const T& obj, char signum);
+   template <typename Container>
+   void validate(const Container& obj, char signum);
 
 public:
    void set_integer_array(const vector<digit_type> & integer_array);
@@ -68,206 +74,18 @@ public:
       return Integer::compare_signum(*this, integer);
    }
    static int_fast8_t compare_signum(const Integer& first, const Integer& second);
-   Integer(byte[] integerArray, byte signum) {
-      this();
-
-      if (null == integerArray) {
-         throw new NullPointerException("Requirement: reference to array can not be null");
-      }
-      if (MAX_ARRAY_LENGTH < integerArray.length) {
-         throw new IllegalArgumentException(String.format("Requirement: array.length <= %d", MAX_ARRAY_LENGTH));
-      }
-
-      byte number;
-      byte numberOfZeros = 0;
-      for (int sourceIndex = integerArray.length - 1; sourceIndex >= 0 ; sourceIndex--) {
-         number = integerArray[sourceIndex];
-         if (number == 0) {
-            numberOfZeros++;
-         }
-         else if (number < 0 || number > 9) {
-            throw new IllegalArgumentException("Requirement: in array must be only integers from 0 to 9");
-         }
-      }
-      if (numberOfZeros == integerArray.length && signum != 0) {
-         throw new IllegalArgumentException("Requirement: signum must be zero for array with only zeros");
-      }
-      if (numberOfZeros < integerArray.length && signum == 0) {
-         throw new IllegalArgumentException("Requirement: signum can not be zero for array with element other than zero");
-      }
-
-      byte destIndex = MAX_ARRAY_LENGTH - 1;
-      for (int sourceIndex = integerArray.length - 1; sourceIndex >= 0 ; sourceIndex--) {
-         number = integerArray[sourceIndex];
-         this.integerArray[destIndex] = number;
-         destIndex--;
-      }
-
-      this.signum = signum;
-   }
    
-   // private constructor with automatically signum's inserting, using in absolute values calculation
-   private Integer(byte[] integerArray) {
-      this();
-
-      if (null == integerArray) {
-         throw new NullPointerException("Requirement: reference to array can not be null");
-      }
-      if (MAX_ARRAY_LENGTH < integerArray.length) {
-         throw new IllegalArgumentException(String.format("Requirement: array.length <= %d", MAX_ARRAY_LENGTH));
-      }
-
-      byte number;
-      byte numberOfZeros = 0;
-      byte destIndex = MAX_ARRAY_LENGTH - 1;
-      for (int sourceIndex = integerArray.length - 1; sourceIndex >= 0 ; sourceIndex--) {
-         number = integerArray[sourceIndex];
-         if (number == 0) {
-            numberOfZeros++;
-         }
-         else if (number < 0 || number > 9) {
-            throw new IllegalArgumentException("Requirement: in array must be only integers from 0 to 9, number is: "
-                                                  + number);
-         }
-
-         this.integerArray[destIndex] = number;
-         destIndex--;
-      }
-      if (numberOfZeros == integerArray.length) {
-         this.signum = 0;
-      }
-      if (numberOfZeros < integerArray.length) {
-         this.signum = +1;
-      }
-   }
-
-   public Integer(Integer hugeInteger) {
-      this(hugeInteger.integerArray, hugeInteger.signum);
-   }
-
-   public void set(Integer hugeInteger) {
-      if (null == hugeInteger) {
-         throw new NullPointerException("Requirement: reference to Integer can not be null");
-      }
-
-      System.arraycopy(hugeInteger.integerArray, 0, this.integerArray, 0, integerArray.length);
-      this.signum = hugeInteger.signum;
-   }
-
-   public void setIntegerArray(byte[] integerArray) {  // assume that integerArray is positive number, change of signum is allowed by setSignum()
-      if (null == integerArray) {
-         throw new NullPointerException("Requirement: reference to array can not be null");
-      }
-      if (MAX_ARRAY_LENGTH < integerArray.length) {
-         throw new IllegalArgumentException(String.format("Requirement: array.length <= %d", MAX_ARRAY_LENGTH));
-      }
-
-      Arrays.fill(this.integerArray, (byte)0);  // not call resetNumberToZero() due to change signum (in setIntegerArray() save previous signum)
-
-      byte number;
-      byte destIndex = MAX_ARRAY_LENGTH - 1;
-      for (int sourceIndex = integerArray.length - 1; sourceIndex >= 0 ; sourceIndex--) {
-         number = integerArray[sourceIndex];
-
-         if (number < 0 || number > 9) {
-
-            resetNumberToZero();    // similar to constructor, reset to zero
-            throw new IllegalArgumentException("Requirement: in array must be only integers from 0 to 9");
-         }
-         this.integerArray[destIndex] = number;
-         destIndex--;
-      }
-
-      if (this.signum == 0 && false == isZero()) {
-         this.signum = +1;
-      }
-      else if (this.signum != 0 && true == isZero()) {
-         this.signum = 0;
-      }
-   }
-
-   public byte[] getIntegerArrayCopy() {
-      byte[] integerArrayCopy = new byte[MAX_ARRAY_LENGTH];
-      System.arraycopy(this.integerArray, 0, integerArrayCopy, 0, MAX_ARRAY_LENGTH);
-
-      return integerArrayCopy;
-   }
-
-   private byte[] getIntegerArray() {
-      return this.integerArray;
-   }
-
-   public void validateSignum(byte signum) {
-      if (signum == 0 && false == isZero()) {
-         throw new IllegalArgumentException("Requirement: can not set signum to zero for nonzero integer");
-      }
-      else if (signum != 0 && true == isZero()) {
-         throw new IllegalArgumentException("Requirement: can not set signum to other than zero for zero integer");
-      }
-   }
-
-   public void setSignum(byte signum) {
-      validateSignum(signum);
-
-      this.signum = signum;
-   }
-
-   public byte getSignum() {
-      return signum;
-   }
-
-   public void resetNumberToZero() {
-      signum = 0;
-      Arrays.fill(integerArray, (byte)0);
-   }
-
-   public void parse(String string) {
-      HugeIntegerParsing.validateString(string);
-
-      resetNumberToZero();
-      byte iterationStopIndex = 0;
-      char character = string.charAt(0);
-      if (character == '+') {
-         this.signum = +1;
-         iterationStopIndex++;
-      }
-      else if (character == '-') {
-         this.signum = -1;
-         iterationStopIndex++;
-      }
-
-      for (int stringIndex = string.length() - 1, arrayIndex = MAX_ARRAY_LENGTH - 1;
-                           stringIndex >= iterationStopIndex; stringIndex--, arrayIndex--) {
-
-         character = string.charAt(stringIndex);
-         this.integerArray[arrayIndex] = (byte)(character - '0');
-      }
-
-      if (true == isZero()) {
-         this.signum = 0;
-      }
-      else if (this.signum != -1) {   // string without leading char '+' or '-' is '+'
-         this.signum = +1;
-      }
-   }
-
-   public boolean isZero() {
-      return Integer.isZero(this);
-   }
-
-   public static boolean isZero(Integer hugeInteger) {
-      for (byte digit : hugeInteger.integerArray) {
-         if (0 != digit) {
-            //assert(hugeInteger.signum != 0);
-
-            return false;
-         }
-      }
-
-      //assert(hugeInteger.signum == 0);
-      return true;
-   }
-
+   bool operator==(const Integer& other) const { return operator==(*this, other); }
+   bool operator!=(const Integer& other) const { return !(*this == other); } ;
+   
+   bool operator>(const Integer& other) const ;
+   bool operator>(const Integer& other) const ;
+   static bool is_absolute_value_greater(const Integer& first, const Integer& second);
+   static bool is_absolute_value_less(const Integer& first, const Integer& second);
+   
+   static Integer remainder(const Integer& DIVIDEND, const Integer& DIVISOR);
+   static Integer divide_absolute_values(const Integer& DIVIDEND, const Integer& DIVISOR);
+   
    public byte compareSignum(Integer hugeInteger) {
       return Integer.compareSignum(this, hugeInteger);
    }
