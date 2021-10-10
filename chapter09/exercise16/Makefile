@@ -1,14 +1,14 @@
-CC = g++
-CFLAGS = -Wall -std=c++14 -fcompare-debug-second
+CXX = g++
+CPPFLAGS = -Wfatal-errors -Wall -Wextra -std=c++14 -fcompare-debug-second
 	
-main: main.o money.o
-	$(CC) $(CFLAGS) -o main main.o money.o
+integer_test: integer_test.o integer.o
+	$(CXX) $(CPPFLAGS) -o integer_test integer_test.o integer.o
     
-main.o: main.cpp money.h
-	$(CC) $(CFLAGS) -c main.cpp
+integer_test.o: integer_test.cpp integer.hpp
+	$(CXX) $(CPPFLAGS) -c integer_test.cpp
 	
-money.o: money.cpp money.h
-	$(CC) $(CFLAGS) -c money.cpp
+integer.o: integer.cpp integer.hpp
+	$(CXX) $(CPPFLAGS) -c integer.cpp
 
 clean :
-	rm *.o main
+	rm *.o integer_test

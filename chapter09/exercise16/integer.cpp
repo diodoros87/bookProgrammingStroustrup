@@ -1,9 +1,10 @@
-#include "integer.h"
+#include "integer.hpp"
 
 #include <cassert>
 #include <string>
 #include <cstdint>
 #include <climits>
+#include <vector>
 
 namespace integer_space {
    
@@ -12,6 +13,7 @@ static inline void validate(const char signum) {
       throw invalid_argument("Accepted signum: '" + string(1, MINUS_SIGNUM) + "', '" + string(1, NEUTRAL_SIGNUM) 
          + "', " string(1, PLUS_SIGNUM) + "'\n");
 }
+
 /*
 template <typename T>
 static inline void validate_size(const vector<digit_type> & vec) {
@@ -21,7 +23,7 @@ static inline void validate_size(const vector<digit_type> & vec) {
    if (MAX_ARRAY_LENGTH < VEC_SIZE)
       throw invalid_argument("Requirement: vector.length <= " + to_string(MAX_ARRAY_LENGTH));
 }
-*/
+
 template <typename Container>
 static inline void validate_size(const Container& TABLE) {
    const size_t SIZE = TABLE.size();
@@ -30,7 +32,7 @@ static inline void validate_size(const Container& TABLE) {
    if (MAX_ARRAY_LENGTH < SIZE)
       throw invalid_argument("Requirement: length <= " + to_string(MAX_ARRAY_LENGTH));
 }
-
+*/
 template <typename Container>   // private
 void Integer::validate(const Container& TABLE, const char signum) {
    //validate_size(TABLE);
@@ -65,14 +67,12 @@ Integer::Integer(const vector<digit_type> & vec, const char signum) {
 }
 */
 // private constructor with automatically signum's inserting, using only in absolute values calculation
-Integer::Integer(const vector<digit_type> & vec) {    // private
-   validate_size(vec);
-   const size_t VEC_SIZE = vec.size();
+Integer::Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY) {    // private
    digit_type number;
    int_fast8_t zeros = 0;
    size_t dest_index = MAX_ARRAY_LENGTH - 1;
-   for (size_t source_index = VEC_SIZE - 1; source_index >= 0 ; source_index--) {
-      number = vec[source_index];
+   for (size_t source_index = MAX_ARRAY_LENGTH - 1; source_index >= 0 ; source_index--) {
+      number = ARRAY[source_index];
       if (number == 0) 
          zeros++;
       else if (number < 0 || number > 9)
@@ -81,12 +81,12 @@ Integer::Integer(const vector<digit_type> & vec) {    // private
       integer_array[dest_index] = number;
       dest_index--;
    }
-   this->signum = zeros == VEC_SIZE ? NEUTRAL_SIGNUM : PLUS_SIGNUM;
+   this->signum = zeros == MAX_ARRAY_LENGTH ? NEUTRAL_SIGNUM : PLUS_SIGNUM;
 }
 
 /* own copy constructor or default  copy constructor ?
 public Integer(Integer integer) {
-   this(integer.integerArray, integer.signum);
+   this(integer.integer_array, integer.signum);
 }
 
 void set(const Integer& integer) {
@@ -94,13 +94,14 @@ void set(const Integer& integer) {
       throw new NullPointerException("Requirement: reference to Integer can not be null");
    }
 
-   System.arraycopy(integer.integerArray, 0, this.integerArray, 0, integerArray.length);
+   System.arraycopy(integer.integer_array, 0, this.integer_array, 0, integer_array.length);
    this.signum = integer.signum;
 }
 */
 
-void Integer::set_integer_array(const vector<digit_type> & VEC) {  // assume that integerArray is positive number, change of signum is allowed by setSignum()
-   validate_size(VEC);
+void Integer::set_integer_array(const vector<digit_type> & VEC) {  // assume that integer_array is positive number, change of signum is allowed by setSignum()
+   if (MAX_ARRAY_LENGTH < VEC.size())
+      throw invalid_argument("Requirement: elements <= " + to_string(MAX_ARRAY_LENGTH));
    this->integer_array->fill(0);  // not call reset_number_to_zero() due to change signum (in set_integer_array() save previous signum)
    digit_type number;
    size_t dest_index = MAX_ARRAY_LENGTH - 1;
@@ -111,7 +112,7 @@ void Integer::set_integer_array(const vector<digit_type> & VEC) {  // assume tha
          throw invalid_argument("Requirement: in array must be only integers from 0 to 9, but input number is: "
             + to_string(number));
       }
-      this->integerArray[dest_index] = number;
+      this->integer_array[dest_index] = number;
       dest_index--;
    }
    if (this->signum == NEUTRAL_SIGNUM && false == is_zero())
@@ -280,7 +281,7 @@ Integer operator+(const Integer& first, const Integer& second) {
    return result;
 }
 
-static void get_opposite_signum(const char signum) {
+static char get_opposite_signum(const char signum) {
    switch(signum) {
       case MINUS_SIGNUM:
          return PLUS_SIGNUM;
@@ -293,6 +294,11 @@ static void get_opposite_signum(const char signum) {
       default:
          throw runtime_error("Unrecognized signum");
    }
+}
+
+Integer operator-(const Integer& integer) {
+   char signum = get_opposite_signum(integer.signum);
+   return Integer(integer.integer_array, signum);
 }
 
 inline static void set_opposite_signum(Integer & result, const char signum) {
@@ -345,7 +351,7 @@ Integer operator*(const Integer& first, const Integer& second) {
 
 Integer Integer::remainder(const Integer& DIVIDEND, const Integer& DIVISOR) {
    if (true == DIVISOR.is_zero()) 
-      throw invalid_argument("Divisor can not be zero");
+      throw Arithmetic_Error("Divisor can not be zero");
    Integer dividing_result     = divide_absolute_values(DIVIDEND, DIVISOR);
    Integer multiple_of_divisor = multiply_absolute_values(dividing_result, DIVISOR);
    Integer remainder           = subtract_absolute_values(DIVIDEND, multiple_of_divisor);
@@ -357,7 +363,7 @@ Integer Integer::remainder(const Integer& DIVIDEND, const Integer& DIVISOR) {
 
 Integer operator/(const Integer& dividend, const Integer& divisor) {
    if (true == DIVISOR.is_zero()) 
-      throw invalid_argument("Divisor can not be zero");   
+      throw Arithmetic_Error("Divisor can not be zero");   
    Integer result = Integer::divide_absolute_values(dividend, divisor);
    if (result.signum == 0)    // skip setSignum() for zero, zero has correct signum = 0 in private Integer(byte[]) constructor
       return result;
@@ -381,7 +387,7 @@ static short get_mismatch_value_index(const Container& ARRAY, const int fromInde
 
 Integer Integer::divide_absolute_values(const Integer& DIVIDEND, const Integer& DIVISOR) {
    if (true == DIVISOR.is_zero()) 
-      throw invalid_argument("Divisor can not be zero");
+      throw Arithmetic_Error("Divisor can not be zero");
    const array<digit_type, MAX_ARRAY_LENGTH> DIVIDEND_ARRAY = DIVIDEND.get_integer_array();
    short current_dividend_index = get_mismatch_value_index(DIVIDEND_ARRAY, 0, (byte)0);
    const array<digit_type, MAX_ARRAY_LENGTH> DIVISOR_ARRAY  = DIVISOR.get_integer_array();
@@ -404,29 +410,8 @@ static vector<digit_type> modify_dividend_array(const vector<digit_type> & tempo
    return temporary_dividend_array;
 }
 */
-static array<digit_type, MAX_ARRAY_LENGTH> calculate_dividing(const array<digit_type, MAX_ARRAY_LENGTH> & DIVIDEND_ARRAY, 
-               const short current_dividend_index, const Integer & DIVISOR,
-               const array<digit_type, MAX_ARRAY_LENGTH> & DIVISOR_ARRAY, const short DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX) {
-   array<digit_type, MAX_ARRAY_LENGTH> result_array;
-   const short DIVISOR_DIGITS_LENGTH = DIVISOR_ARRAY.size() - DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX;
-   vector<digit_type> temporary_dividend_array;
-   Integer temporary_dividend;
-   digit_type next_dividend_digit;
-   for (; current_dividend_index < MAX_ARRAY_LENGTH; current_dividend_index++) {
-      next_dividend_digit = DIVIDEND_ARRAY[current_dividend_index];
-      temporary_dividend_array.push_back(next_dividend_digit);
-      temporary_dividend.set_integer_array(temporary_dividend_array);
-      
-      if (true == Integer::is_absolute_value_less(temporary_dividend, DIVISOR))
-         result_array[current_dividend_index] = 0;
-      else
-         temporary_dividend_array = multiply_divisor(result_array, current_dividend_index,
-                                             temporary_dividend, temporary_dividend_array, DIVISOR);
-   }
-   return result_array;                                                       
-}
 
-static vector<digit_type> multiply_divisor(array<digit_type, MAX_ARRAY_LENGTH> & result_array, const short current_dividend_index,
+static void multiply_divisor(array<digit_type, MAX_ARRAY_LENGTH> & result_array, const short current_dividend_index,
        const Integer & DIVIDEND, vector<digit_type> & dividend_array, const Integer & DIVISOR) {
    Integer multiple_of_divisor = Integer(DIVISOR.get_integer_array());
    int_fast8_t multiple = 1;
@@ -445,203 +430,165 @@ static vector<digit_type> multiply_divisor(array<digit_type, MAX_ARRAY_LENGTH> &
    if (multiple > 9) 
       throw runtime_error("Unexpected multiple greater than 9");
    result_array[current_dividend_index] = multiple;
-   return dividend_array;
 }
 
-static vector<digit_type> assign_remainder(const Integer & DIVIDEND, const Integer & MULTIPLE_OF_DIVISOR, 
-                                       byte[] dividend_array) {
-   final Integer REMAINDER = Integer.subtract_absolute_values(DIVIDEND, MULTIPLE_OF_DIVISOR);
-   final byte[] REMAINDER_ARRAY  = REMAINDER.get_integer_array();
-   final int REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX = ArraysOperations.get_mismatch_value_index(REMAINDER_ARRAY, 0, (byte)0);
-   final int REMAINDER_DIGITS_LENGTH = REMAINDER_ARRAY.length - REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX;
+static array<digit_type, MAX_ARRAY_LENGTH> calculate_dividing(const array<digit_type, MAX_ARRAY_LENGTH> & DIVIDEND_ARRAY, 
+               const short current_dividend_index, const Integer & DIVISOR,
+               const array<digit_type, MAX_ARRAY_LENGTH> & DIVISOR_ARRAY, const short DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX) {
+   array<digit_type, MAX_ARRAY_LENGTH> result_array;
+   const short DIVISOR_DIGITS_LENGTH = DIVISOR_ARRAY.size() - DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX;
+   vector<digit_type> temporary_dividend_array;
+   Integer temporary_dividend;
+   digit_type next_dividend_digit;
+   for (; current_dividend_index < MAX_ARRAY_LENGTH; current_dividend_index++) {
+      next_dividend_digit = DIVIDEND_ARRAY[current_dividend_index];
+      temporary_dividend_array.push_back(next_dividend_digit);
+      temporary_dividend.set_integer_array(temporary_dividend_array);
+      
+      if (true == Integer::is_absolute_value_less(temporary_dividend, DIVISOR))
+         result_array[current_dividend_index] = 0;
+      else
+         multiply_divisor(result_array, current_dividend_index,
+                          temporary_dividend, temporary_dividend_array, DIVISOR);
+   }
+   return result_array;                                                       
+}
+
+static void assign_remainder(const Integer & DIVIDEND, const Integer & MULTIPLE_OF_DIVISOR, 
+                                       vector<digit_type> & dividend_array) {
+   const Integer REMAINDER = Integer::subtract_absolute_values(DIVIDEND, MULTIPLE_OF_DIVISOR);
+   const array<digit_type, MAX_ARRAY_LENGTH> REMAINDER_ARRAY  = REMAINDER.get_integer_array();
+   const short REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX = get_mismatch_value_index(REMAINDER_ARRAY, 0, 0);
+   const short REMAINDER_DIGITS_LENGTH = MAX_ARRAY_LENGTH - REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX;
    
-   dividend_array = Arrays.copyOf(dividend_array, REMAINDER_DIGITS_LENGTH);
-   System.arraycopy(REMAINDER_ARRAY, REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX, 
-                     dividend_array, 0, REMAINDER_DIGITS_LENGTH);
-                     
-   return dividend_array;
+   //dividend_array = Arrays.copyOf(dividend_array, REMAINDER_DIGITS_LENGTH);
+   //System.arraycopy(REMAINDER_ARRAY, REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX, 
+   //                  dividend_array, 0, REMAINDER_DIGITS_LENGTH);
+   dividend_array.assign(REMAINDER_ARRAY.begin() + REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX, REMAINDER_ARRAY.end());
 }
 
-public static Integer add_absolute_values(Integer first, Integer second) {
-   byte[] result_array = new byte[MAX_ARRAY_LENGTH];
-   int firstIntegerDigit;
-   int secondIntegerDigit;
-   int sumOfDigits = 0;
-   int carrying = 0;
-   for (int index = first.integerArray.length - 1; index >= 0; index--) {
-      firstIntegerDigit  = first.integerArray[index];
-      secondIntegerDigit = second.integerArray[index];
-      sumOfDigits = firstIntegerDigit + secondIntegerDigit;
-      sumOfDigits += carrying;
-      
-      result_array[index] = (byte)(sumOfDigits % 10);
-      carrying = sumOfDigits / 10 ;
+Integer Integer::add_absolute_values(const Integer & first, const Integer & second) {
+   array<digit_type, MAX_ARRAY_LENGTH> result_array;
+   digit_type first_integer_digit;
+   digit_type second_integer_digit;
+   short sum_of_digits = 0;
+   digit_type carrying = 0;
+   for (short index = first.integer_array.size() - 1; index >= 0; index--) {
+      first_integer_digit  = first.integer_array[index];
+      second_integer_digit = second.integer_array[index];
+      sum_of_digits = first_integer_digit + second_integer_digit;
+      sum_of_digits += carrying;
+      result_array[index] = sum_of_digits % 10;
+      carrying = sum_of_digits / 10 ;
    }
-
-   if (carrying > 0) {
-      throw new ArithmeticException
-               (String.format("Arithmetic overflow while adding absolute value of %s and %s", first , second));
-   }
-
-   Integer result = new Integer(result_array);
-   return result;
+   if (carrying > 0) 
+      throw Arithmetic_Error
+            ("Arithmetic overflow while adding absolute values of " + string(first) " and " + string(second));
+   return Integer{result_array};
 }
 
-public static Integer subtract_absolute_values(Integer first, Integer second) {
-   Integer minuend    = getMaxOfAbsoluteValues(first, second);
-   Integer subtrahend = (first == minuend) ? second : first;
-
-   byte[] result_array = new byte[MAX_ARRAY_LENGTH];
-   int minuendDigit;
-   int subtrahendDigit;
-   int differenceOfDigits = 0;
-   int carrying = 0;
-   for (int index = first.integerArray.length - 1; index >= 0; index--) {
-      minuendDigit    = minuend.integerArray[index];
-      subtrahendDigit = subtrahend.integerArray[index];
-      differenceOfDigits  = minuendDigit - subtrahendDigit;
-      differenceOfDigits -= carrying;
-      
-      if (differenceOfDigits < 0) {
-         differenceOfDigits += 10;
+Integer Integer::subtract_absolute_values(const Integer & first, const Integer & second) {
+   Integer minuend    = is_absolute_value_greater(first, second) ? first : second;
+   Integer subtrahend = (&first == &minuend) ? second : first;
+   array<digit_type, MAX_ARRAY_LENGTH> result_array;
+   digit_type minuend_digit;
+   digit_type subtrahend_digit;
+   short difference_digits = 0;
+   digit_type carrying = 0;
+   for (short index = first.integer_array.size() - 1; index >= 0; index--) {
+      minuend_digit      = minuend.integer_array[index];
+      subtrahend_digit   = subtrahend.integer_array[index];
+      difference_digits  = minuend_digit - subtrahend_digit;
+      difference_digits -= carrying;
+      if (difference_digits < 0) {
+         difference_digits += 10;
          carrying = 1;
       }
-      else {
+      else 
          carrying = 0;
-      }
-      
-      result_array[index] = (byte)(differenceOfDigits % 10);
+      result_array[index] = difference_digits % 10;
    }
-
-   Integer result = new Integer(result_array);
-   return result;
+   return Integer{result_array};
 }
 
-public static Integer multiply_absolute_values(Integer first, Integer second) {
-   detectMultiplicationArithmeticOverflow(first, second);
-
-   byte[][] result_array = new byte[MAX_ARRAY_LENGTH][MAX_ARRAY_LENGTH];
-   Integer[] hugeIntegersArray = new Integer[MAX_ARRAY_LENGTH];
-   int firstIntegerDigit;
-   int secondIntegerDigit;
-   int productOfDigits = 0;
-   int carrying = 0;
-   int orderOfMagnitude = 0;
-   int columnInResultArray;
-
-   for (int firstIndex = first.integerArray.length - 1; firstIndex >= 0; firstIndex--) {
-      carrying = 0;
-      firstIntegerDigit = first.integerArray[firstIndex];
-
-      for (int secondIndex = second.integerArray.length - 1; secondIndex >= 0; secondIndex--) {
-         columnInResultArray = secondIndex - orderOfMagnitude;
-         if (columnInResultArray < 0) {
-            detectMultiplicationArithmeticOverflow(carrying, first, second);
-            break;
-         }
-
-         secondIntegerDigit = second.integerArray[secondIndex];
-         productOfDigits = firstIntegerDigit * secondIntegerDigit;
-         productOfDigits += carrying;
-
-         result_array[firstIndex][columnInResultArray] = (byte)(productOfDigits % 10);
-         carrying = productOfDigits / 10;
-      }
-
-
-      hugeIntegersArray[firstIndex] = new Integer(result_array[firstIndex]);
-      orderOfMagnitude++;
-   }
-
-   detectMultiplicationArithmeticOverflow(carrying, first, second);
-
-   Integer result = sumOfMultiplicationResults(hugeIntegersArray);
-
-   return result;
-}
-
-private static void detectMultiplicationArithmeticOverflow(int carrying, Integer first, Integer second) {
+inline static void detect_multiplication_overflow(const int carrying, const Integer & first, const Integer & second) {
    if (carrying > 0) {
-      throw new ArithmeticException
-            (String.format("Arithmetic overflow while multiplying absolute value of %s and %s", first , second));
+      throw Arithmetic_Error
+            ("Arithmetic overflow while multiplying absolute values of " + string(first) " and " + string(second));
    }
 }
 
-private static Integer sumOfMultiplicationResults(Integer[] hugeIntegersArray) {
-   Integer result = new Integer();
-   for (int index = hugeIntegersArray.length - 1; index >= 0; index--) {
-      result = add_absolute_values(result, hugeIntegersArray[index]);
-   }
-
-   return result;
-}
-
-private static Integer getMaxOfAbsoluteValues(Integer first, Integer second) {
-   boolean firstGreaterThanSecond = is_absolute_value_greater(first, second);
-   if (true == firstGreaterThanSecond) {
-      return first;
-   }
-   else {
-      return second;
-   }
-}
-
-public static void detectMultiplicationArithmeticOverflow(Integer first, Integer second) {
-   int firstIntegerDigit;
-   int secondIntegerDigit;
-
-   for (int firstIndex = 0; firstIndex < first.integerArray.length; firstIndex++) {
-      firstIntegerDigit = first.integerArray[firstIndex];
-      if (firstIntegerDigit > 0) {
-
-         for (int secondIndex = 0; secondIndex < second.integerArray.length; secondIndex++) {
-            secondIntegerDigit = second.integerArray[secondIndex];
-
-            if (secondIntegerDigit > 0) {
-               int firstOrderOfMagnitude  = first.integerArray.length - 1 - firstIndex;
-               int secondOrderOfMagnitude = second.integerArray.length - 1 - secondIndex;
-
-               if (firstOrderOfMagnitude + secondOrderOfMagnitude >= MAX_ARRAY_LENGTH) {
-                  throw new ArithmeticException
-                     (String.format("Arithmetic overflow while multiplying absolute value of %s and %s", first , second));
-               }
+static void Integer::detect_multiplication_overflow(const Integer & first, const Integer & second) {
+   digit_type first_integer_digit;
+   digit_type second_integer_digit;
+   for (short first_index = 0; first_index < first.integer_array.size(); first_index++) {
+      first_integer_digit = first.integer_array[first_index];
+      if (first_integer_digit > 0) {
+         for (short second_index = 0; second_index < second.integer_array.size(); second_index++) {
+            second_integer_digit = second.integer_array[second_index];
+            if (second_integer_digit > 0) {
+               short first_magnitude_order  = first.integer_array.size() - 1 - first_index;
+               short second_magnitude_order = second.integer_array.size() - 1 - second_index;
+               if (first_magnitude_order + second_magnitude_order >= MAX_ARRAY_LENGTH) 
+                  throw Arithmetic_Error
+                     ("Arithmetic overflow while multiplying absolute value of " + string(first) " and " + string(second));
             }
          }
-
       }
    }
 }
 
-public void negate() {
-   this.signum = (byte)(-this.signum);
-}
-
-public static Integer negate(Integer integer) {
-   byte negateSignum = (byte)(-integer.signum);
-
-   return new Integer(integer.integerArray, negateSignum);
-}
-
-@Override
-public String toString() {
-   String result = "";
-
-   if (this.signum > 0) {
-      result += "+";
-   } else if (this.signum < 0) {
-      result += "-";
-   }
-
-   Byte number;
-   byte skippedValue = 0;
-   byte index = Integer_Parsing.skipLeadingIntegersWithValue(this.integerArray, skippedValue);
-
-   while (index < MAX_ARRAY_LENGTH) {
-      number = this.integerArray[index];
-      result += number.toString();
-      index++;
-   }
-
+static Integer sum_multiplication_results(array<digit_type, MAX_ARRAY_LENGTH> & integers_array) {
+   Integer result;
+   for (short index = integers_array.size() - 1; index >= 0; index--)
+      result = add_absolute_values(result, integers_array[index]);
    return result;
 }
+
+Integer Integer:: multiply_absolute_values(const Integer & first, const Integer & second) {
+   detect_multiplication_overflow(first, second);
+   array< array<digit_type, MAX_ARRAY_LENGTH> > result_array;
+   array<digit_type, MAX_ARRAY_LENGTH> integers_array;
+   digit_type first_integer_digit;
+   digit_type second_integer_digit;
+   short product = 0;
+   digit_type carrying = 0;
+   digit_type magnitude_order = 0;
+   short column;
+   for (int first_index = first.integer_array.length - 1; first_index >= 0; first_index--) {
+      carrying = 0;
+      first_integer_digit = first.integer_array[first_index];
+      for (int second_index = second.integer_array.length - 1; second_index >= 0; second_index--) {
+         column = second_index - magnitude_order;
+         if (column < 0) {
+            detect_multiplication_overflow(carrying, first, second);
+            break;
+         }
+         second_integer_digit = second.integer_array[second_index];
+         product = first_integer_digit * second_integer_digit;
+         product += carrying;
+         result_array[first_index][column] = product % 10;
+         carrying = product / 10;
+      }
+      integers_array[first_index] = Integer(result_array[first_index]);
+      magnitude_order++;
+   }
+   detect_multiplication_overflow(carrying, first, second);
+   return sum_multiplication_results(integers_array);
+}
+
+operator string() const {
+   string result;
+   if (signum != NEUTRAL_SIGNUM)
+      result += string(1, signum);
+   digit_type number;
+   digit_type skipped = 0;
+   short index = Integer_Parsing::skip_leading_integers(this.integer_array, skipped);
+   for (; index < MAX_ARRAY_LENGTH; index++) {
+      number = *this.integer_array[index];
+      result += to_string(number);
+   }
+   return result;
+}
+
 }
