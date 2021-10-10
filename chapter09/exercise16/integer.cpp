@@ -1,4 +1,5 @@
 #include "integer.hpp"
+#include "integer_parsing.hpp"
 
 #include <cassert>
 #include <string>
@@ -6,18 +7,19 @@
 #include <climits>
 #include <vector>
 
+
 namespace integer_space {
-   
+
 static inline void validate(const char signum) {
-   if (PLUS_SIGNUM != signum && MINUS_SIGNUM != signum && NEUTRAL_SIGNUM != signum )
-      throw invalid_argument("Accepted signum: '" + string(1, MINUS_SIGNUM) + "', '" + string(1, NEUTRAL_SIGNUM) 
-         + "', " string(1, PLUS_SIGNUM) + "'\n");
+   if (Integer::PLUS != signum && Integer::MINUS != signum && Integer::NEUTRAL != signum )
+      throw invalid_argument("Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
+         + "', " + string(1, Integer::PLUS) + "'\n");
 }
 
 /*
 template <typename T>
 static inline void validate_size(const vector<digit_type> & vec) {
-   const size_t VEC_SIZE = vec.size();
+   const short VEC_SIZE = vec.size();
    if (0 == VEC_SIZE)
       throw invalid_argument("Requirement: vector.length > 0");
    if (MAX_ARRAY_LENGTH < VEC_SIZE)
@@ -26,7 +28,7 @@ static inline void validate_size(const vector<digit_type> & vec) {
 
 template <typename Container>
 static inline void validate_size(const Container& TABLE) {
-   const size_t SIZE = TABLE.size();
+   const short SIZE = TABLE.size();
    //if (0 == SIZE)
    //   throw invalid_argument("Requirement: length > 0");
    if (MAX_ARRAY_LENGTH < SIZE)
@@ -34,28 +36,28 @@ static inline void validate_size(const Container& TABLE) {
 }
 */
 template <typename Container>   // private
-void Integer::validate(const Container& TABLE, const char signum) {
+void Integer::validate_init(const Container& TABLE, const char signum) {
    //validate_size(TABLE);
    const size_t SIZE = TABLE.size();
    validate(signum);
    digit_type number;
    int_fast8_t zeros = 0;
-   for (size_t source_index = SIZE - 1; source_index >= 0 ; source_index--) {
-      number = vec[source_index];
+   for (short source_index = SIZE - 1; source_index >= 0 ; source_index--) {
+      number = TABLE[source_index];
       if (number == 0) 
          zeros++;
       else if (number < 0 || number > 9)
          throw invalid_argument("Requirement: in array must be only integers from 0 to 9, but input number is: "
             + to_string(number));
    }
-   if (zeros == SIZE && signum != NEUTRAL_SIGNUM) 
+   if (zeros == SIZE && signum != NEUTRAL) 
       throw invalid_argument("Requirement: signum must be zero for array with only zeros");
-   if (zeros < SIZE && signum == NEUTRAL_SIGNUM) 
+   if (zeros < SIZE && signum == NEUTRAL) 
       throw invalid_argument("Requirement: signum can not be zero for array with element other than zero");
-   size_t dest_index = MAX_ARRAY_LENGTH - 1;
-   for (size_t source_index = SIZE - 1; source_index >= 0 ; source_index--) {
+   short dest_index = MAX_ARRAY_LENGTH - 1;
+   for (short source_index = SIZE - 1; source_index >= 0 ; source_index--) {
       number = integer_array[source_index];
-      this.integer_array[dest_index] = number;
+      (*this).integer_array[dest_index] = number;
       dest_index--;
    }
    this->signum = signum;
@@ -70,8 +72,8 @@ Integer::Integer(const vector<digit_type> & vec, const char signum) {
 Integer::Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY) {    // private
    digit_type number;
    int_fast8_t zeros = 0;
-   size_t dest_index = MAX_ARRAY_LENGTH - 1;
-   for (size_t source_index = MAX_ARRAY_LENGTH - 1; source_index >= 0 ; source_index--) {
+   short dest_index = MAX_ARRAY_LENGTH - 1;
+   for (short source_index = MAX_ARRAY_LENGTH - 1; source_index >= 0 ; source_index--) {
       number = ARRAY[source_index];
       if (number == 0) 
          zeros++;
@@ -81,7 +83,7 @@ Integer::Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY) {    // priv
       integer_array[dest_index] = number;
       dest_index--;
    }
-   this->signum = zeros == MAX_ARRAY_LENGTH ? NEUTRAL_SIGNUM : PLUS_SIGNUM;
+   this->signum = zeros == MAX_ARRAY_LENGTH ? NEUTRAL : PLUS;
 }
 
 /* own copy constructor or default  copy constructor ?
@@ -99,13 +101,34 @@ void set(const Integer& integer) {
 }
 */
 
+template <typename Container>   // private
+void Integer::validate_set(const Container & TABLE) {  // assume that integer_array is positive number, change of signum is allowed by setSignum()
+   this->integer_array.fill(0);  // not call reset_number_to_zero() due to change signum (in set_integer_array() save previous signum)
+   digit_type number;
+   short dest_index = MAX_ARRAY_LENGTH - 1;
+   for (short source_index = TABLE.size() - 1; source_index >= 0 ; source_index--) {
+      number = TABLE[source_index];
+      if (number < 0 || number > 9) {
+         reset_number_to_zero();    // similar to constructor, reset to zero
+         throw invalid_argument("Requirement: in array must be only integers from 0 to 9, but input number is: "
+            + to_string(number));
+      }
+      this->integer_array[dest_index] = number;
+      dest_index--;
+   }
+   if (this->signum == NEUTRAL && false == is_zero())
+      this->signum = PLUS;
+   else if (this->signum != NEUTRAL && is_zero()) 
+      this->signum = NEUTRAL;
+}
+/*
 void Integer::set_integer_array(const vector<digit_type> & VEC) {  // assume that integer_array is positive number, change of signum is allowed by setSignum()
    if (MAX_ARRAY_LENGTH < VEC.size())
       throw invalid_argument("Requirement: elements <= " + to_string(MAX_ARRAY_LENGTH));
    this->integer_array->fill(0);  // not call reset_number_to_zero() due to change signum (in set_integer_array() save previous signum)
    digit_type number;
-   size_t dest_index = MAX_ARRAY_LENGTH - 1;
-   for (size_t source_index = VEC.size() - 1; source_index >= 0 ; source_index--) {
+   short dest_index = MAX_ARRAY_LENGTH - 1;
+   for (short source_index = VEC.size() - 1; source_index >= 0 ; source_index--) {
       number = VEC[source_index];
       if (number < 0 || number > 9) {
          reset_number_to_zero();    // similar to constructor, reset to zero
@@ -115,28 +138,29 @@ void Integer::set_integer_array(const vector<digit_type> & VEC) {  // assume tha
       this->integer_array[dest_index] = number;
       dest_index--;
    }
-   if (this->signum == NEUTRAL_SIGNUM && false == is_zero())
-      this->signum = PLUS_SIGNUM;
-   else if (this->signum != NEUTRAL_SIGNUM && is_zero()) 
-      this->signum = NEUTRAL_SIGNUM;
+   if (this->signum == NEUTRAL && false == is_zero())
+      this->signum = PLUS;
+   else if (this->signum != NEUTRAL && is_zero()) 
+      this->signum = NEUTRAL;
 }
-
+*/
+//using integer_parsing::validate_string
 void Integer::parse(const string& STR) {
-   Integer_Parsing::validateString(STR);
+   integer_parsing::validate_string(STR);
    reset_number_to_zero();
    short iteration_stop_index = 0;
-   if (STR[0] == PLUS_SIGNUM || STR[0] == MINUS_SIGNUM) {
+   if (STR[0] == PLUS || STR[0] == MINUS) {
       this->signum = STR[0];
       iteration_stop_index++;
    }
-   for (size_t string_index = STR.length() - 1, array_index = MAX_ARRAY_LENGTH - 1;
+   for (short string_index = STR.length() - 1, array_index = MAX_ARRAY_LENGTH - 1;
                         string_index >= iteration_stop_index; string_index--, array_index--) 
       this->integer_array[array_index] = STR[string_index] - '0';
 
    if (is_zero()) 
-      this->signum = NEUTRAL_SIGNUM;
-   else if (this->signum != MINUS_SIGNUM)   // string without leading char '+' or '-' is '+'
-      this->signum = PLUS_SIGNUM;
+      this->signum = NEUTRAL;
+   else if (this->signum != MINUS)   // string without leading char '+' or '-' is '+'
+      this->signum = PLUS;
 }
 
 bool Integer::is_zero(const Integer& integer) {
@@ -150,33 +174,61 @@ bool Integer::is_zero(const Integer& integer) {
 }
 
 int_fast8_t Integer::compare_signum(const Integer& first, const Integer& second) {
-   if (first.signum == PLUS_SIGNUM) {
-      if (second.signum == PLUS_SIGNUM)
+   if (first.signum == PLUS) {
+      if (second.signum == PLUS)
          return 0;
       else   
          return +1;
    }
-   else if (first.signum == NEUTRAL_SIGNUM) {
+   else if (first.signum == NEUTRAL) {
       switch (second.signum) {
-         case PLUS_SIGNUM:
+         case PLUS:
             return -1;
-         case NEUTRAL_SIGNUM:
+         case NEUTRAL:
             return 0;
-         case MINUS_SIGNUM:
+         case MINUS:
             return +1;
       }
    }
-   else {  // first->signum  == MINUS_SIGNUM
-      if (second.signum == MINUS_SIGNUM) 
+   else {  // first->signum  == MINUS
+      if (second.signum == MINUS) 
          return 0;
       else 
          return -1;
    }
 }
 
+bool Integer::is_absolute_value_greater(const Integer& first, const Integer& second) {
+   digit_type first_digit;
+   digit_type second_digit;
+   for (short index = 0; index < first.integer_array.length; index++) {
+      first_digit  = first.integer_array[index];
+      second_digit = second.integer_array[index];
+      if (first_digit > second_digit) 
+         return true;
+      else if (first_digit < second_digit) 
+         return false;
+   }
+   return false;
+}
+
+bool Integer:: is_absolute_value_less(const Integer& first, const Integer& second) {
+   digit_type first_digit;
+   digit_type second_digit;
+   for (short index = 0; index < first.integer_array.length; index++) {
+      first_digit  = first.integer_array[index];
+      second_digit = second.integer_array[index];
+      if (first_digit < second_digit) 
+         return true;
+      else if (first_digit > second_digit) 
+         return false;
+   }
+   return false;
+}
+
 bool operator==(const Integer& first, const Integer& second) {
-   for (short index = 0; index < first.integer_array.size(); index++) 
-      if (first.integer_array[index] != second.integer_array[index]) 
+   for (short index = 0; index < Integer::MAX_ARRAY_LENGTH; index++) 
+      if (first[index] != second[index]) 
          return false;
 
    int_fast8_t comparing_signum_result = Integer::compare_signum(first, second);
@@ -194,9 +246,9 @@ bool operator>(const Integer& first, const Integer& second) {
       return true;
    // after calling Integer::compare_signum recognize both integers with identical nonzero signum
 
-   assert(first.signum == second.signum);
-   assert(first.signum != 0);
-   int_fast8_t identical_integers_signum = first.signum;
+   assert(first.get_signum() == second.get_signum());
+   assert(first.get_signum() != 0);
+   int_fast8_t identical_integers_signum = first.get_signum();
    
    if (identical_integers_signum > 0) 
       return is_absolute_value_greater(first, second);
@@ -204,34 +256,6 @@ bool operator>(const Integer& first, const Integer& second) {
       return is_absolute_value_less(first, second);
    else  // identical_integers_signum == 0
       throw runtime_error("signum of integer = 0");
-}
-
-bool Integer::is_absolute_value_greater(const Integer& first, const Integer& second) {
-   digit_type first_digit;
-   digit_type second_digit;
-   for (byte index = 0; index < first.integer_array.length; index++) {
-      first_digit  = first.integer_array[index];
-      second_digit = second.integer_array[index];
-      if (first_digit > second_digit) 
-         return true;
-      else if (first_digit < second_digit) 
-         return false;
-   }
-   return false;
-}
-
-bool Integer:: is_absolute_value_less(const Integer& first, const Integer& second) {
-   digit_type first_digit;
-   digit_type second_digit;
-   for (byte index = 0; index < first.integer_array.length; index++) {
-      first_digit  = first.integer_array[index];
-      second_digit = second.integer_array[index];
-      if (first_digit < second_digit) 
-         return true;
-      else if (first_digit > second_digit) 
-         return false;
-   }
-   return false;
 }
 
 bool operator<(const Integer& first, const Integer& second) {
@@ -283,14 +307,14 @@ Integer operator+(const Integer& first, const Integer& second) {
 
 static char get_opposite_signum(const char signum) {
    switch(signum) {
-      case MINUS_SIGNUM:
-         return PLUS_SIGNUM;
+      case MINUS:
+         return PLUS;
          break;
-      case NEUTRAL_SIGNUM:
-         return NEUTRAL_SIGNUM;
+      case NEUTRAL:
+         return NEUTRAL;
          break;
-      case PLUS_SIGNUM:
-         return MINUS_SIGNUM;
+      case PLUS:
+         return MINUS;
       default:
          throw runtime_error("Unrecognized signum");
    }
@@ -343,9 +367,9 @@ Integer operator*(const Integer& first, const Integer& second) {
 
    int_fast8_t comparing_signum_result = Integer::compare_signum(first, second);
    if (0 == comparing_signum_result)        // integers with identical signums
-      result.signum = PLUS_SIGNUM;
+      result.signum = PLUS;
    else   // integers with different signums
-      result.signum = MINUS_SIGNUM;
+      result.signum = MINUS;
    return result;
 }
 
@@ -369,9 +393,9 @@ Integer operator/(const Integer& dividend, const Integer& divisor) {
       return result;
    int_fast8_t comparing_signum_result = Integer::compare_signum(dividend, divisor);
    if (0 == comparing_signum_result)        // integers with identical signums
-      result.signum = PLUS_SIGNUM;
+      result.signum = PLUS;
    else   // integers with different signums
-      result.signum = MINUS_SIGNUM;
+      result.signum = MINUS;
    return result;
 }
 
@@ -403,7 +427,7 @@ Integer Integer::divide_absolute_values(const Integer& DIVIDEND, const Integer& 
 }
 /*
 static vector<digit_type> modify_dividend_array(const vector<digit_type> & temporary_dividend_array, const digit_type next_dividend_digit) {
-   const size_t LENGTH = temporary_dividend_array.length + 1;
+   const short LENGTH = temporary_dividend_array.length + 1;
    temporary_dividend_array = Arrays.copyOf(temporary_dividend_array, LENGTH);
    temporary_dividend_array[LENGTH - 1] = next_dividend_digit;
    
@@ -545,7 +569,7 @@ static Integer sum_multiplication_results(array<digit_type, MAX_ARRAY_LENGTH> & 
    return result;
 }
 
-Integer Integer:: multiply_absolute_values(const Integer & first, const Integer & second) {
+Integer Integer::multiply_absolute_values(const Integer & first, const Integer & second) {
    detect_multiplication_overflow(first, second);
    array< array<digit_type, MAX_ARRAY_LENGTH> > result_array;
    array<digit_type, MAX_ARRAY_LENGTH> integers_array;
@@ -577,14 +601,14 @@ Integer Integer:: multiply_absolute_values(const Integer & first, const Integer 
    return sum_multiplication_results(integers_array);
 }
 
-operator string() const {
+operator Integer::string() const {
    string result;
-   if (signum != NEUTRAL_SIGNUM)
+   if (signum != NEUTRAL)
       result += string(1, signum);
    digit_type number;
    digit_type skipped = 0;
-   short index = Integer_Parsing::skip_leading_integers(this.integer_array, skipped);
-   for (; index < MAX_ARRAY_LENGTH; index++) {
+   short index = integer_parsing::skip_leading_integers(this.integer_array, skipped);
+   for (; index < this.integer_array.size(); index++) {
       number = *this.integer_array[index];
       result += to_string(number);
    }

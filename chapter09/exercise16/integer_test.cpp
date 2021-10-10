@@ -1,5 +1,7 @@
 #include "integer.hpp"
 
+#include<iostream>
+
 using namespace std;
 using namespace integer_space;
 
@@ -11,7 +13,7 @@ void test() {
 int main() {
    try {
       test();
-      incorrect_test();
+      //incorrect_test();
       return 0;
    }
    catch (const Arithmetic_Error & e) {
@@ -21,9 +23,6 @@ int main() {
       cerr << __func__ << " exception: " << e.what() << endl;
    }
    catch (const runtime_error& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
-   }
-   catch (const exception& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
    }
    catch (const exception& e) {
