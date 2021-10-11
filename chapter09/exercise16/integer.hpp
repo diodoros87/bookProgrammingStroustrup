@@ -107,7 +107,7 @@ public:
       validate_size(table);
       //if (MAX_ARRAY_LENGTH < table.size())
       //   throw invalid_argument("Requirement: elements <= " + std::to_string(MAX_ARRAY_LENGTH));
-      validate_set(table, signum);
+      validate_set(table);
    }
    //void set(const Integer& integer);
    void reset_number_to_zero() {
@@ -203,12 +203,28 @@ void Integer::validate_init(const Container& TABLE, const char signum) {
       (*this).integer_array[dest_index] = number;
       dest_index--;
    }
-   //for (short source_index = 0; source_index < SIZE ; source_index++) {
-   //   number = TABLE[source_index];
-   //   (*this).integer_array[dest_index] = number;
-   //   dest_index--;
-   //}
    this->signum = signum;
+}
+
+template <typename Container>   // private
+void Integer::validate_set(const Container & TABLE) {  // assume that integer_array is positive number, change of signum is allowed by setSignum()
+   this->integer_array.fill(0);  // not call reset_number_to_zero() due to change signum (in set_integer_array() save previous signum)
+   digit_type number;
+   short dest_index = MAX_ARRAY_LENGTH - 1;
+   for (short source_index = TABLE.size() - 1; source_index >= 0 ; source_index--) {
+      number = TABLE[source_index];
+      if (number < 0 || number > 9) {
+         reset_number_to_zero();    // similar to constructor, reset to zero
+         throw invalid_argument("Requirement: in array must be only integers from 0 to 9, but input number is: "
+            + to_string(number));
+      }
+      this->integer_array[dest_index] = number;
+      dest_index--;
+   }
+   if (this->signum == NEUTRAL && false == is_zero())
+      this->signum = PLUS;
+   else if (this->signum != NEUTRAL && is_zero()) 
+      this->signum = NEUTRAL;
 }
    
 }

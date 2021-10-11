@@ -50,11 +50,16 @@ void validate_string(const string & STR) {
    }
 }
 
-template<typename Container>
-static short skip_leading(const Container& CONTAINER, const digit_type & skipped) {
+// template<typename Container>
+// static short skip_leading(const Container& CONTAINER, const digit_type & skipped) {
+//    
+// }
+
+short skip_leading_integers(const array<digit_type, Integer::MAX_ARRAY_LENGTH> & ARRAY, const digit_type & skipped) {
+   //return skip_leading(ARRAY, skipped);
    short index = 0;
-   while (index < CONTAINER.size()) 
-      if (skipped == CONTAINER[index])
+   while (index < Integer::MAX_ARRAY_LENGTH) 
+      if (skipped == ARRAY[index])
          index++;
       else 
          break;
@@ -62,15 +67,11 @@ static short skip_leading(const Container& CONTAINER, const digit_type & skipped
    return index;
 }
 
-short skip_leading_integers(const array<digit_type, Integer::MAX_ARRAY_LENGTH> & ARRAY, const digit_type & skipped) {
-   return skip_leading(ARRAY, skipped);
-}
-
-template <unsigned int N>
-short skip_leading_integers(const array<digit_type, N> & ARRAY, const digit_type & skipped) {
-   if (0 == N)
-      throw invalid_argument("Requirement: array can not be empty");
-   return skip_leading(ARRAY, skipped);
-} 
+// template <unsigned int N>
+// short skip_leading_integers(const array<digit_type, N> & ARRAY, const digit_type & skipped) {
+//    if (0 == N)
+//       throw invalid_argument("Requirement: array can not be empty");
+//    return skip_leading(ARRAY, skipped);
+// } 
    
 } 

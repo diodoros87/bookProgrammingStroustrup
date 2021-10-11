@@ -2,23 +2,26 @@
 #include "integer_parsing.hpp"
 
 #include<iostream>
+#include <cassert>
 
 using namespace std;
 using namespace integer_space;
 
-template <unsigned int N>
-static Integer set_integer_array(const array<digit_type, N> & table, Integer & integer) {
+template <size_t SIZE>
+static Integer set(const array<digit_type, SIZE> & table, Integer & integer) {
    cout << __func__ << "\n";
-   integer.set_integer_array<table.size()>(table);
+   integer.set_integer_array<SIZE>(table);
    cout << integer << '\n';
+   assert(table.size()==integer.size());
    return integer;
 }
 
 template <unsigned int N>
-static Integer constructor_test(const array<digit_type, Integer::MAX_ARRAY_LENGTH> & table, const char signum) {
+static Integer constructor_test(const array<digit_type, N> & table, const char signum) {
    cout << __func__ << '\n';
-   Integer i (table, signum);
+   Integer i =  Integer  (table, signum) <N> ;
    cout << i << '\n';
+   assert(table.size()==i.size());
    return i;
 }
 
@@ -26,6 +29,7 @@ static Integer constructor_test(const vector<digit_type> & vec, const char signu
    cout << __func__ << '\n';
    Integer i (vec, signum);
    cout << i << '\n';
+   assert(vec.size()==i.size());
    return i;
 }
 // void constructor_test(const array<digit_type, Integer::MAX_ARRAY_LENGTH> & integer_array) { 
@@ -33,9 +37,10 @@ static Integer constructor_test(const vector<digit_type> & vec, const char signu
 //    cout << i << '\n';
 // }
 
-void set_integer_array_test(const Integer & integer) {
-   static const array<digit_type, 5> a = { 7, 2, 7, 0};
-   set_integer_array<a.size()>(a, integer);
+void set_integer_array_test(Integer & integer) {
+   array<digit_type, 5> a = { 7, 2, 7, 0};
+   set(a, integer);
+   assert(a.size()==integer.size());
 }
 
 void constructor_test() {
@@ -46,7 +51,10 @@ void constructor_test() {
    vector<digit_type> vec = { 7, 5, 8, 0};
    Integer v = constructor_test(vec, Integer::PLUS);
    set_integer_array_test(v);
-   //set_integer_array
+   
+   const array<digit_type, 7> seven = { 0, 1, 3, 2};
+   Integer i7 = constructor_test<7>(seven, Integer::PLUS);
+   set_integer_array_test(i7);
 }
 
 void print(const array<digit_type, Integer::MAX_ARRAY_LENGTH> & integer_array) {
