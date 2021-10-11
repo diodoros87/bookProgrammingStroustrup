@@ -1,6 +1,9 @@
 #include "integer_parsing.hpp"
 #include "integer.hpp" 
 
+#include<iostream>
+using std::cerr;
+
 #include <cctype> 
 
 namespace integer_parsing {
@@ -48,9 +51,9 @@ void validate_string(const string & STR) {
 }
 
 template<typename Container>
-static short skip_leading_integers(const Container& CONTAINER, const digit_type & skipped) {
+static short skip_leading(const Container& CONTAINER, const digit_type & skipped) {
    short index = 0;
-   while (index < CONTAINER.size() - 1) 
+   while (index < CONTAINER.size()) 
       if (skipped == CONTAINER[index])
          index++;
       else 
@@ -60,15 +63,14 @@ static short skip_leading_integers(const Container& CONTAINER, const digit_type 
 }
 
 short skip_leading_integers(const array<digit_type, Integer::MAX_ARRAY_LENGTH> & ARRAY, const digit_type & skipped) {
-   return skip_leading_integers(ARRAY, skipped);
+   return skip_leading(ARRAY, skipped);
 }
 
 template <unsigned int N>
 short skip_leading_integers(const array<digit_type, N> & ARRAY, const digit_type & skipped) {
    if (0 == N)
       throw invalid_argument("Requirement: array can not be empty");
-   return skip_leading_integers(ARRAY, skipped);
-}
-   
+   return skip_leading(ARRAY, skipped);
+} 
    
 } 

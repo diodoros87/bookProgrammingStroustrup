@@ -1,5 +1,5 @@
 CXX = g++
-CPPFLAGS = -Wfatal-errors -Wall -Wextra -std=c++14 -fcompare-debug-second 
+CPPFLAGS =  -Wall -Wextra -std=c++14 -fcompare-debug-second 
 	
 integer_test: integer_test.o integer.o integer_parsing.o
 	$(CXX) $(CPPFLAGS) -o integer_test integer_test.o integer.o integer_parsing.o

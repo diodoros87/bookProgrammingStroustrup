@@ -32,8 +32,10 @@ public:
    static constexpr char  NEUTRAL   = ' ';
    static constexpr char  PLUS      = '+';
    static constexpr char  MINUS     = '-';
+   static const char* SIZE_INCORRECT;
+   static const char* SIGNUM_INCORRECT;
 private:
-   array<digit_type, MAX_ARRAY_LENGTH> integer_array;
+   array<digit_type, MAX_ARRAY_LENGTH> integer_array { 0 };
    char signum { NEUTRAL };   // less than 0 for integers < 0, more than 0 for integers > 0, 0 for 0   
    //Integer(const vector<digit_type> & vec);
    Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY);
@@ -59,7 +61,8 @@ private:
    template <typename Container>
    static void validate_size(const Container& obj) {
       if (MAX_ARRAY_LENGTH < obj.size())
-         throw invalid_argument("Requirement: elements <= " + to_string(MAX_ARRAY_LENGTH));
+         throw invalid_argument(Integer::SIZE_INCORRECT);
+         //throw invalid_argument("Requirement: elements <= " + to_string(MAX_ARRAY_LENGTH));
    }
    array<digit_type, MAX_ARRAY_LENGTH> get_integer_array() const { return integer_array; }
    
@@ -77,6 +80,12 @@ private:
        const Integer & DIVIDEND, vector<digit_type> & dividend_array, const Integer & DIVISOR);
    static array<digit_type, MAX_ARRAY_LENGTH> calculate_dividing(const array<digit_type, MAX_ARRAY_LENGTH> & DIVIDEND_ARRAY, 
                short current_dividend_index, const Integer & DIVISOR);
+   static void validate(const char signum) {
+      if (Integer::PLUS != signum && Integer::MINUS != signum && Integer::NEUTRAL != signum )
+         throw invalid_argument(SIGNUM_INCORRECT);
+         //throw invalid_argument("Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
+         //   + "', " + string(1, Integer::PLUS) + "'\n");
+   }
    
    friend void set_signum_adding_Non_Zero_result(const Integer& first, const Integer& second,
                                        Integer & result, int_fast8_t comparing_signum_result);
@@ -123,6 +132,7 @@ public:
       this->signum = signum;
    }
    char get_signum() const { return signum; }
+   size_t size() const { return integer_array.size(); }
    
    void parse(const string& STR);
    bool is_zero() const { return is_zero(*this); }
@@ -166,6 +176,39 @@ inline bool operator!=(const Integer& first, const Integer& second) {
 
 inline std::ostream& operator<<(std::ostream& os, const Integer & integer) {
    return os << string(integer);
+}
+
+template <typename Container>   // private
+void Integer::validate_init(const Container& TABLE, const char signum) {
+   //validate_size(TABLE);
+   const size_t SIZE = TABLE.size();
+   validate(signum);
+   digit_type number;
+   unsigned short zeros = 0;
+   for (short source_index = SIZE - 1; source_index >= 0 ; source_index--) {
+      number = TABLE[source_index];
+      if (number == 0) 
+         zeros++;
+      else if (number < 0 || number > 9)
+         throw invalid_argument("Requirement: in array must be only integers from 0 to 9, but input number is: "
+            + to_string(number));
+   }
+   if (zeros == SIZE && signum != NEUTRAL) 
+      throw invalid_argument("Requirement: signum must be zero for array with only zeros");
+   if (zeros < SIZE && signum == NEUTRAL) 
+      throw invalid_argument("Requirement: signum can not be zero for array with element other than zero");
+   short dest_index = MAX_ARRAY_LENGTH - 1;
+   for (short source_index = SIZE - 1; source_index >= 0 ; source_index--) {
+      number = TABLE[source_index];
+      (*this).integer_array[dest_index] = number;
+      dest_index--;
+   }
+   //for (short source_index = 0; source_index < SIZE ; source_index++) {
+   //   number = TABLE[source_index];
+   //   (*this).integer_array[dest_index] = number;
+   //   dest_index--;
+   //}
+   this->signum = signum;
 }
    
 }

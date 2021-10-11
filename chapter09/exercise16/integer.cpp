@@ -7,16 +7,24 @@
 #include <climits>
 #include <vector>
 
+#include<iostream>
+using std::cerr;
+
 using std::runtime_error;
 
 namespace integer_space {
-
+   
+const char* Integer::SIZE_INCORRECT = ("Requirement: elements <= " + to_string(Integer::MAX_ARRAY_LENGTH)).c_str();
+const char* Integer::SIGNUM_INCORRECT = ("Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
+         + "', " + string(1, Integer::PLUS) + "'\n").c_str();
+/*
 static inline void validate(const char signum) {
    if (Integer::PLUS != signum && Integer::MINUS != signum && Integer::NEUTRAL != signum )
-      throw invalid_argument("Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
-         + "', " + string(1, Integer::PLUS) + "'\n");
+      throw invalid_argument(SIGNUM_INCORRECT);
+      //throw invalid_argument("Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
+      //   + "', " + string(1, Integer::PLUS) + "'\n");
 }
-
+*/
 /*
 template <typename T>
 static inline void validate_size(const vector<digit_type> & vec) {
@@ -36,6 +44,7 @@ static inline void validate_size(const Container& TABLE) {
       throw invalid_argument("Requirement: length <= " + to_string(MAX_ARRAY_LENGTH));
 }
 */
+/*
 template <typename Container>   // private
 void Integer::validate_init(const Container& TABLE, const char signum) {
    //validate_size(TABLE);
@@ -63,6 +72,7 @@ void Integer::validate_init(const Container& TABLE, const char signum) {
    }
    this->signum = signum;
 }
+*/
 /*
 Integer::Integer(const vector<digit_type> & vec, const char signum) {
    validate_size(vec);
@@ -607,11 +617,12 @@ Integer::operator string () const {
    digit_type number;
    digit_type skipped = 0;
    short index = integer_parsing::skip_leading_integers(this->integer_array, skipped);
+   cerr << " index = " << index << '\n';
    for (; index < (*this).integer_array.size(); index++) {
       number = integer_array[index];
       result += to_string(number);
    }
-   return result;
+   return result.empty() ? "0" : result;
 }
 
 }
