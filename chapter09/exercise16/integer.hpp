@@ -38,7 +38,7 @@ private:
    //Integer(const vector<digit_type> & vec);
    Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY);
 public:
-   Integer();
+   Integer() { }
    Integer(const array<digit_type, MAX_ARRAY_LENGTH> & table, const char signum) {
       validate_init(table, signum);
    }
@@ -68,7 +68,21 @@ private:
    
    template <typename Container>
    void validate_set(const Container & TABLE);
-
+   
+   digit_type & operator[](const size_t i) { return integer_array[i]; }
+   
+   static void assign_remainder(const Integer & DIVIDEND, const Integer & MULTIPLE_OF_DIVISOR, 
+                                       vector<digit_type> & dividend_array);
+   static void multiply_divisor(array<digit_type, MAX_ARRAY_LENGTH> & result_array, const short current_dividend_index,
+       const Integer & DIVIDEND, vector<digit_type> & dividend_array, const Integer & DIVISOR);
+   static array<digit_type, MAX_ARRAY_LENGTH> calculate_dividing(const array<digit_type, MAX_ARRAY_LENGTH> & DIVIDEND_ARRAY, 
+               short current_dividend_index, const Integer & DIVISOR);
+   
+   friend void set_signum_adding_Non_Zero_result(const Integer& first, const Integer& second,
+                                       Integer & result, int_fast8_t comparing_signum_result);
+   friend void set_opposite_signum(Integer & result, const char signum);
+   friend void set_signum_subtracting_Non_Zero_result(const Integer& first, const Integer& second,
+                                       Integer & result, int_fast8_t comparing_signum_result);
 public:
    operator string() const;
    void set_integer_array(const vector<digit_type> & vec) {
@@ -119,7 +133,6 @@ public:
    static int_fast8_t compare_signum(const Integer& first, const Integer& second);
    static bool is_absolute_value_greater(const Integer& first, const Integer& second);
    static bool is_absolute_value_less(const Integer& first, const Integer& second);
-   static Integer remainder(const Integer& DIVIDEND, const Integer& DIVISOR);
    static Integer divide_absolute_values(const Integer& DIVIDEND, const Integer& DIVISOR);
    static Integer add_absolute_values(const Integer & first, const Integer & second);
    static Integer subtract_absolute_values(const Integer & first, const Integer & second);
@@ -127,13 +140,13 @@ public:
    static void detect_multiplication_overflow(const Integer & first, const Integer & second);
    
    const digit_type & operator[](const size_t i) const { return integer_array[i]; }
-   digit_type & operator[](const size_t i) { return integer_array[i]; }
+   friend Integer operator-(const Integer& integer);
+   friend Integer operator*(const Integer& first, const Integer& second);
+   friend Integer operator%(const Integer& DIVIDEND, const Integer& DIVISOR);
+   friend Integer operator/(const Integer& dividend, const Integer& divisor);
 };
 
-Integer operator/(const Integer& dividend, const Integer& divisor);
-Integer operator*(const Integer& first, const Integer& second) ;
 Integer operator-(const Integer& first, const Integer& second);
-Integer operator-(const Integer& integer);
 Integer operator+(const Integer& first, const Integer& second);
 bool operator<(const Integer& first, const Integer& second);
 bool operator>(const Integer& first, const Integer& second);

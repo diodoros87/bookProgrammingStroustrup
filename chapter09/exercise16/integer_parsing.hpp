@@ -1,6 +1,9 @@
 #ifndef INTEGER_PARSING_HPP
 #define INTEGER_PARSING_HPP
 
+#include "integer.hpp"
+//#include "integer_parsing.hpp"
+
 namespace integer_parsing {
    
 using integer_space::Integer;

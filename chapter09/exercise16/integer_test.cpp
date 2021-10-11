@@ -1,4 +1,5 @@
 #include "integer.hpp"
+#include "integer_parsing.hpp"
 
 #include<iostream>
 
@@ -7,7 +8,7 @@ using namespace integer_space;
 
 void test() { 
    Integer i;
-   cout << i;
+   cout << i << '\n';
 }
 
 int main() {

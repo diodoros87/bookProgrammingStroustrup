@@ -22,7 +22,7 @@ bool string_contain_only_value(const string & STR, const char value) {
 }
 
 static void validate_signum(const string & STR, const char first_character) {
-   bool contain_only_zeros = string_contain_only_value(string, '0');
+   bool contain_only_zeros = string_contain_only_value(STR, '0');
    if (true == contain_only_zeros && (Integer::PLUS == first_character || Integer::MINUS == first_character))
       throw invalid_argument("Requirement: string can not contain signum for zero integer");
 }
@@ -51,7 +51,7 @@ template<typename Container>
 static short skip_leading_integers(const Container& CONTAINER, const digit_type & skipped) {
    short index = 0;
    while (index < CONTAINER.size() - 1) 
-      if (skippedValue == CONTAINER[index])
+      if (skipped == CONTAINER[index])
          index++;
       else 
          break;
@@ -59,7 +59,7 @@ static short skip_leading_integers(const Container& CONTAINER, const digit_type 
    return index;
 }
 
-short skip_leading_integers(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY, const digit_type & skipped) {
+short skip_leading_integers(const array<digit_type, Integer::MAX_ARRAY_LENGTH> & ARRAY, const digit_type & skipped) {
    return skip_leading_integers(ARRAY, skipped);
 }
 
