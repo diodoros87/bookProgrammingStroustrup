@@ -89,7 +89,7 @@ Integer::Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY) {    // priv
       if (number == 0) 
          zeros++;
       else if (number < 0 || number > 9)
-         throw invalid_argument("Requirement: in array must be only integers from 0 to 9, but input number is: "
+         throw invalid_argument("Requirement: in array must be only integers from 0 to 9, number is: "
             + to_string(number));
       integer_array[dest_index] = number;
       dest_index--;

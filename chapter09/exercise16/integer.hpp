@@ -45,19 +45,22 @@ public:
       validate_init(table, signum);
    }
    
-   template <unsigned int N>
+   template <const unsigned int N>
    static Integer create_Integer(const array<digit_type, N> & table, const char signum) {
       validate_size(table);
       Integer integer;
-      //if (MAX_ARRAY_LENGTH < table.size())
-      //   throw invalid_argument("Requirement: elements <= " + std::to_string(MAX_ARRAY_LENGTH));
       integer.validate_init(table, signum);
       return integer;
    }
+   
+   static Integer parse_create(const string& STR) {
+      Integer integer;
+      integer.parse(STR);
+      return integer;
+   }
+   
    Integer(const vector<digit_type> & vec, const char signum) {
       validate_size(vec);
-      //if (MAX_ARRAY_LENGTH < vec.size())
-      //   throw invalid_argument("Requirement: elements <= " + std::to_string(MAX_ARRAY_LENGTH));
       validate_init(vec, signum);
    }
 private:
@@ -65,7 +68,6 @@ private:
    static void validate_size(const Container& obj) {
       if (MAX_ARRAY_LENGTH < obj.size())
          throw invalid_argument(Integer::SIZE_INCORRECT);
-         //throw invalid_argument("Requirement: elements <= " + to_string(MAX_ARRAY_LENGTH));
    }
    array<digit_type, MAX_ARRAY_LENGTH> get_integer_array() const { return integer_array; }
    
@@ -86,8 +88,6 @@ private:
    static void validate(const char signum) {
       if (Integer::PLUS != signum && Integer::MINUS != signum && Integer::NEUTRAL != signum )
          throw invalid_argument(Integer::SIGNUM_INCORRECT);
-         //throw invalid_argument("Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
-         //   + "', " + string(1, Integer::PLUS) + "'\n");
    }
    
    friend void set_signum_adding_Non_Zero_result(const Integer& first, const Integer& second,
@@ -105,11 +105,9 @@ public:
       validate_set(table);
    }
    
-   template <unsigned int N>
+   template <const unsigned int N>
    void set_integer_array(const array<digit_type, N> & table) {
       validate_size(table);
-      //if (MAX_ARRAY_LENGTH < table.size())
-      //   throw invalid_argument("Requirement: elements <= " + std::to_string(MAX_ARRAY_LENGTH));
       validate_set(table);
    }
    //void set(const Integer& integer);
@@ -193,8 +191,7 @@ void Integer::validate_init(const Container& TABLE, const char signum) {
       if (number == 0) 
          zeros++;
       else if (number < 0 || number > 9)
-         throw invalid_argument("Requirement: in array must be only integers from 0 to 9, but input number is: "
-            + to_string(number));
+         throw invalid_argument("Requirement: in array must be only integers from 0 to 9");
    }
    if (zeros == SIZE && signum != NEUTRAL) 
       throw invalid_argument("Requirement: signum must be zero for array with only zeros");
@@ -218,8 +215,7 @@ void Integer::validate_set(const Container & TABLE) {  // assume that integer_ar
       number = TABLE[source_index];
       if (number < 0 || number > 9) {
          reset_number_to_zero();    // similar to constructor, reset to zero
-         throw invalid_argument("Requirement: in array must be only integers from 0 to 9, but input number is: "
-            + to_string(number));
+         throw invalid_argument("Requirement: in array must be only integers from 0 to 9");
       }
       this->integer_array[dest_index] = number;
       dest_index--;

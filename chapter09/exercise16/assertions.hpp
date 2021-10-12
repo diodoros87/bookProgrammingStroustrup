@@ -42,9 +42,9 @@ void GENERAL_ASSERT(const char* expr_str, const bool expr, const char* file, con
     if (! expr) {
       cerr << "\nAssert failed:\t" << msg << "\n"
             << "Expected:\t" << expr_str << "\n"
-            << "Source:\t\t" << file << ", line " << line << "\n";
-            cerr << "Date:\t\t" << date  << "\n";
-            cerr << "Time:\t\t" << time  << "\n";
+            << "Source:\t\t" << file << ", line " << line << "\n"
+            << "Date:\t\t"   << date  << "\n"
+            << "Time:\t\t"   << time  << "\n";
       exit(EXIT_FAILURE);
    }
 }
