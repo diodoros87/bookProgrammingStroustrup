@@ -4,6 +4,7 @@
 #include<string>
 
 #include "integer.hpp"
+#include "parsing_test.hpp"
 
 using std::string;
 using integer_space::Integer;

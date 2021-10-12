@@ -13,7 +13,7 @@ using std::string;
 using std::to_string;
 using std::size_t;
 
-typedef short digit_type;
+typedef int_fast8_t digit_type;
 
 namespace integer_space {
    

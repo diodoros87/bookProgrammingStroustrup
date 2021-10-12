@@ -68,6 +68,9 @@ void Parsing_Test::test_parsing(const string & integer_name, Integer & integer) 
 
    parse_incorrect_string(integer_name, integer, "-0");
    assert(static_cast<string>(integer) == ("+345"));
+   
+   parse_incorrect_string(integer_name, integer, "+0");
+   assert(static_cast<string>(integer) == ("+345"));
 
    parse_string(integer_name, integer, "000");
    assert(static_cast<string>(integer) == ("0"));

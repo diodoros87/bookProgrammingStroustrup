@@ -1,6 +1,7 @@
 #include "integer.hpp"
 #include "integer_parsing.hpp"
 #include "assertions.hpp"
+#include "parsing_test.hpp"
 
 #include<iostream>
 //#define NDEBUG
@@ -158,14 +159,43 @@ void constructor_test() {
    test_set_and_fail_set(i2);
    
    parsing_test();
+   Parsing_Test::test_parsing("i2", i2);
 }
 
 }
 
 using namespace main_integer_test;
 
+// static const vector<string>& get_allowed_types() {
+//    static vector<string> types = {vector<digit_type>()};  // must be static to exist in program all time running
+//    unsigned int size = numbers.size();
+//    int next;
+//    while (false == is_sum_int_overflow(numbers[size - 1], numbers[size - 2])) {
+//       next = numbers[size - 1] + numbers[size - 2];
+//       numbers.push_back(next);
+//       size++;
+//    } 
+//    return numbers;
+// }
+
+template<class T>
+void print_type_name(const T & x) {
+   const string NAME = typeid(T).name();
+   cout << NAME << '\n';
+   const size_t CODE = typeid(T).hash_code();
+   cout << CODE << '\n';
+}
+
 int main() {
    try {
+      //const string TYPE_NAME       = typeid(array<digit_type, Integer::MAX_ARRAY_LENGTH>).name();
+      print_type_name(array<digit_type, Integer::MAX_ARRAY_LENGTH>());
+      print_type_name(array<digit_type, 6>());
+      print_type_name(vector<digit_type>());
+      digit_type * p;
+      print_type_name(p);
+      digit_type  f;
+      print_type_name(f);
       constructor_test();
       return 0;
    }
