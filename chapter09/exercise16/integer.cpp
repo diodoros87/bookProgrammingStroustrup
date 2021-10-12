@@ -14,9 +14,9 @@ using std::runtime_error;
 
 namespace integer_space {
    
-const char* Integer::SIZE_INCORRECT = ("Requirement: elements <= " + to_string(Integer::MAX_ARRAY_LENGTH)).c_str();
-const char* Integer::SIGNUM_INCORRECT = ("Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
-         + "', " + string(1, Integer::PLUS) + "'\n").c_str();
+const string Integer::SIZE_INCORRECT = "Requirement: elements <= " + to_string(Integer::MAX_ARRAY_LENGTH);
+const string Integer::SIGNUM_INCORRECT = "Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
+         + "', " + string(1, Integer::PLUS) + "'\n";
 /*
 static inline void validate(const char signum) {
    if (Integer::PLUS != signum && Integer::MINUS != signum && Integer::NEUTRAL != signum )
@@ -596,7 +596,6 @@ Integer::operator string () const {
    digit_type number;
    digit_type skipped = 0;
    short index = integer_parsing::skip_leading_integers(this->integer_array, skipped);
-   cerr << " index = " << index << '\n';
    for (; index < (*this).integer_array.size(); index++) {
       number = integer_array[index];
       result += to_string(number);

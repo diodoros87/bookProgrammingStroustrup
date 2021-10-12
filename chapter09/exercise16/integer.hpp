@@ -32,8 +32,8 @@ public:
    static constexpr char  NEUTRAL   = ' ';
    static constexpr char  PLUS      = '+';
    static constexpr char  MINUS     = '-';
-   static const char* SIZE_INCORRECT;
-   static const char* SIGNUM_INCORRECT;
+   static const string SIZE_INCORRECT;
+   static const string SIGNUM_INCORRECT;
 private:
    array<digit_type, MAX_ARRAY_LENGTH> integer_array { 0 };
    char signum { NEUTRAL };   // less than 0 for integers < 0, more than 0 for integers > 0, 0 for 0   
@@ -44,12 +44,15 @@ public:
    Integer(const array<digit_type, MAX_ARRAY_LENGTH> & table, const char signum) {
       validate_init(table, signum);
    }
+   
    template <unsigned int N>
-   Integer(const array<digit_type, N> & table, const char signum) {
+   static Integer create_Integer(const array<digit_type, N> & table, const char signum) {
       validate_size(table);
+      Integer integer;
       //if (MAX_ARRAY_LENGTH < table.size())
       //   throw invalid_argument("Requirement: elements <= " + std::to_string(MAX_ARRAY_LENGTH));
-      validate_init(table, signum);
+      integer.validate_init(table, signum);
+      return integer;
    }
    Integer(const vector<digit_type> & vec, const char signum) {
       validate_size(vec);
@@ -82,7 +85,7 @@ private:
                short current_dividend_index, const Integer & DIVISOR);
    static void validate(const char signum) {
       if (Integer::PLUS != signum && Integer::MINUS != signum && Integer::NEUTRAL != signum )
-         throw invalid_argument(SIGNUM_INCORRECT);
+         throw invalid_argument(Integer::SIGNUM_INCORRECT);
          //throw invalid_argument("Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
          //   + "', " + string(1, Integer::PLUS) + "'\n");
    }

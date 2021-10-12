@@ -4,7 +4,7 @@ CPPFLAGS =  -Wall -Wextra -std=c++14 -fcompare-debug-second
 integer_test: integer_test.o integer.o integer_parsing.o
 	$(CXX) $(CPPFLAGS) -o integer_test integer_test.o integer.o integer_parsing.o
     
-integer_test.o: integer_test.cpp integer.hpp integer_parsing.hpp
+integer_test.o: integer_test.cpp integer.hpp integer_parsing.hpp assertions.hpp
 	$(CXX) $(CPPFLAGS) -c integer_test.cpp
 	
 integer.o: integer.cpp integer.hpp integer_parsing.hpp
