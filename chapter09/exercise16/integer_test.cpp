@@ -49,19 +49,12 @@ namespace integer_test {
 namespace constructor_test {
    template <typename Container, const unsigned int SIZE>
    void test_incorrect_construct(const string & exception_info, const Container & ARRAY, const char signum) {
-      //static_assert( SIZE < MAX_ARRAY_LENGTH && SIZE > 0 && "create_Integer requires 0 < SIZE < MAX_ARRAY_LENGTH");
       const string TYPE = typeid(Container).name();
       if (TYPE.find("array") == string::npos)
          throw invalid_argument(string(__func__) + " only std::array is acceptable argument");
       try {
-//          if (TYPE.find(to_string(Integer::MAX_ARRAY_LENGTH))) {
-//             Integer(ARRAY, signum);
-//             assert(false);
-//          }
-//          else {
             Integer::create_Integer<SIZE>(ARRAY, signum);
             assert(false);
-         //}
       } catch (const invalid_argument & e) {
          cerr << __func__ << " Exception while construct integer '" << exception_info << "' : " << e.what() << "\n";
       }
@@ -74,6 +67,16 @@ namespace constructor_test {
       } catch (const invalid_argument & e) {
          cerr << __func__ << " Exception while construct integer '" << exception_info << "' : " << e.what() << "\n";
       }
+   }
+   
+   template <typename Container, const unsigned int SIZE>
+   inline void array_to_vector_fail_construct(const string & exception_info, const Container & ARRAY, const char signum) {
+      static_assert( SIZE <= Integer::MAX_ARRAY_LENGTH && SIZE > 0 && "create_Integer requires 0 < SIZE <= MAX_ARRAY_LENGTH");
+      const string TYPE = typeid(Container).name();
+      if (TYPE.find("array") == string::npos)
+         throw invalid_argument(string(__func__) + " only std::array is acceptable argument");
+      vector<digit_type> vec = { ARRAY.begin(), ARRAY.end() };
+      test_incorrect_construct(exception_info, vec, signum);
    }
    
    void test_constructors() {
@@ -95,10 +98,13 @@ namespace constructor_test {
       cout << "\n INCORRECT ATTEMPTS TO CONSTRUCT OF OBJECTS:\n";
 
       vector<digit_type> too_large_vector_size(Integer::MAX_ARRAY_LENGTH + 3);
+      assert(too_large_vector_size.size() == Integer::MAX_ARRAY_LENGTH + 3);
       test_incorrect_construct("with too large vector's size", too_large_vector_size, Integer::NEUTRAL);
 
       array<digit_type, 5> non_digits_array = {11, 2, 5, 0, 8};
       test_incorrect_construct<array<digit_type, 5>, 5>("with non digit element in array", non_digits_array, Integer::NEUTRAL);
+      //vector<digit_type> non_digits_vec (non_digits_array.begin(), non_digits_array.end() );
+      array_to_vector_fail_construct<array<digit_type, 5>, 5>("with non digit element in vector", non_digits_array, Integer::NEUTRAL);
 
       array<digit_type, 5> minus_array = {1, -2, 5, 0, 8};
       test_incorrect_construct<array<digit_type, 5>, 5>("with minus digit element in array", minus_array, Integer::NEUTRAL);
@@ -111,7 +117,7 @@ namespace constructor_test {
 
       array<digit_type, 5> non_zero_array = {0, 0, 0, 0, 1};
       signum = Integer::NEUTRAL;
-      test_incorrect_construct<array<digit_type, 5>, 5>("with incorrect signum " + string(1, signum) + " for non-zero array", non_zero_array, signum);
+      test_incorrect_construct<array<digit_type, 5>, 5>("with incorrect signum '" + string(1, signum) + "' for non-zero array", non_zero_array, signum);
 
       cout << "\n ------------------------\n";
    }

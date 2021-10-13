@@ -48,7 +48,7 @@ public:
    
    template <const unsigned int N>
    static Integer create_Integer(const array<digit_type, N> & table, const char signum) {
-      static_assert( N <= MAX_ARRAY_LENGTH && N > 0 && "create_Integer requires 0 < N < MAX_ARRAY_LENGTH");
+      static_assert( N <= MAX_ARRAY_LENGTH && N > 0 && "create_Integer requires 0 < N <= MAX_ARRAY_LENGTH");
       Integer integer;
       integer.validate_init(table, signum);
       return integer;
@@ -195,9 +195,9 @@ void Integer::validate_init(const Container& TABLE, const char signum) {
          throw invalid_argument("Requirement: in array must be only integers from 0 to 9");
    }
    if (zeros == SIZE && signum != NEUTRAL) 
-      throw invalid_argument("Requirement: signum must be zero for array with only zeros");
+      throw invalid_argument("Requirement: signum must be neutral for array with only zeros");
    if (zeros < SIZE && signum == NEUTRAL) 
-      throw invalid_argument("Requirement: signum can not be zero for array with element other than zero");
+      throw invalid_argument("Requirement: signum can not be neutral for array with element other than zero");
    short dest_index = MAX_ARRAY_LENGTH - 1;
    for (short source_index = SIZE - 1; source_index >= 0 ; source_index--) {
       number = TABLE[source_index];
