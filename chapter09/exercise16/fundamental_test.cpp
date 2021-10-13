@@ -6,74 +6,11 @@
 #include<iostream>
 //#define NDEBUG
 #include <cassert>
-#include <algorithm>
 
 using namespace std;
 using namespace integer_space;
 
-namespace integer_test {
-   
-namespace constructor_test {
-   const array<string, 2> ALLOWED = {"vector", "array"};  // must be static to exist in program all time running
-   const array<string, 2>::iterator BEGIN = ALLOWED.begin();
-   const array<string, 2>::iterator END = ALLOWED.end();
-   template <typename Container>
-   void test_incorrect_construct(const string & exception_info, Container & c, const char signum) {
-      const string TYPE = typeid(Container).name();
-      if (find (BEGIN, END) == ALLOWED.end())
-         throw invalid_argument(__func__ + " acceptable type");
-      try {
-         HugeInteger hugeInteger = new HugeInteger(integerArray, signum);
-         System.out.printf("???  number after construct %s: %s%n", exceptionInfo, hugeInteger);
-         assert(false);
-      } catch (NullPointerException exception) {
-         System.out.printf("%nException while construct integer \'%s\': %s%n", exceptionInfo, exception.getMessage());
-         exception.printStackTrace();
-      } catch (IllegalArgumentException exception) {
-         System.out.printf("%nException while construct integer \'%s\': %s%n", exceptionInfo, exception.getMessage());
-         exception.printStackTrace();
-      }
-   }
-   
-   void test_constructors() {
-      cout << "\n CORRECT CONSTRUCT OF OBJECTS:\n";
-      Integer first  = {};
-      cout << "After construct by default constructor: " + static_cast<string>(first) + "\n";
-      assert(static_cast<string>(first) == ("0"));
-
-      array<digit_type, 5> numbers = {1, 2, 3, 0, 6};
-      char signum = Integer::PLUS;
-      Integer second  = {numbers, signum};
-      cout << "After construct by array and signum's byte of '" + signum + "' : " + second + "\n";
-      assert(static_cast<string>(second)==("+12306"));
-
-      Integer third  = second;
-      cout << "After construct by other integer: " + static_cast<string>(third) + "\n";
-      assert(static_cast<string>(third)==("+12306"));
-
-      cout << "\n INCORRECT ATTEMPTS TO CONSTRUCT OF OBJECTS:\n";
-      //test_incorrect_construct("with null array", null, (byte)0);
-
-      byte[] tooLargeArraySize = new byte[HugeInteger.MAX_ARRAY_LENGTH + 3];
-      testIncorrectConstruct("with too large array's size", tooLargeArraySize, (byte)0);
-
-      byte[] nonDigitsArray = {11, 2, 5, 0, 8};
-      testIncorrectConstruct("with non digit element in array", nonDigitsArray, (byte)0);
-
-      byte[] minusArray = {1, -2, 5, 0, 8};
-      testIncorrectConstruct("with minus digit element in array", minusArray, (byte)0);
-
-      byte[] zeroArray = {0, 0, 0, 0, 0};
-      signum = +1;
-      testIncorrectConstruct(String.format("with incorrect signum %+d for zero array", signum), zeroArray, signum);
-
-      byte[] nonZeroArray = {0, 0, 0, 0, 1};
-      signum = 0;
-      testIncorrectConstruct(String.format("with incorrect signum %+d for non-zero array", signum), nonZeroArray, signum);
-
-      System.out.printf("%n ------------------------%n");
-   }
-}
+namespace main_integer_test {
 
 template <const size_t SIZE>
 static Integer set(const array<digit_type, SIZE> & table, Integer & integer) {
@@ -227,20 +164,7 @@ void constructor_test() {
 
 }
 
-using namespace integer_test;
-
-static const vector<string>& get_allowed_types() {
-   
-   return types;
-}
-
-template<class T>
-void print_type_name(const T & x) {
-   const string NAME = typeid(T).name();
-   cout << NAME << '\n';
-   const size_t CODE = typeid(T).hash_code();
-   cout << CODE << '\n';
-}
+using namespace main_integer_test;
 
 int main() {
    try {

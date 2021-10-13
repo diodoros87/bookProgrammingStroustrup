@@ -13,7 +13,8 @@ using std::string;
 using std::to_string;
 using std::size_t;
 
-typedef int_fast8_t digit_type;
+//typedef int_fast8_t digit_type;
+using digit_type = int_fast8_t;
 
 namespace integer_space {
    
@@ -206,7 +207,7 @@ void Integer::validate_init(const Container& TABLE, const char signum) {
    this->signum = signum;
 }
 
-template <typename Container>   // private
+template <typename Container>  // private
 void Integer::validate_set(const Container & TABLE) {  // assume that integer_array is positive number, change of signum is allowed by setSignum()
    this->integer_array.fill(0);  // not call reset_number_to_zero() due to change signum (in set_integer_array() save previous signum)
    digit_type number;
