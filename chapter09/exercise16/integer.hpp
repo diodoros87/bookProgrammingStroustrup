@@ -48,7 +48,7 @@ public:
    
    template <const unsigned int N>
    static Integer create_Integer(const array<digit_type, N> & table, const char signum) {
-      validate_size(table);
+      static_assert( N <= MAX_ARRAY_LENGTH && N > 0 && "create_Integer requires 0 < N < MAX_ARRAY_LENGTH");
       Integer integer;
       integer.validate_init(table, signum);
       return integer;
@@ -108,7 +108,7 @@ public:
    
    template <const unsigned int N>
    void set_integer_array(const array<digit_type, N> & table) {
-      validate_size(table);
+      static_assert( N < MAX_ARRAY_LENGTH && N > 0 && "set_integer_array requires 0 < N < MAX_ARRAY_LENGTH");
       validate_set(table);
    }
    //void set(const Integer& integer);

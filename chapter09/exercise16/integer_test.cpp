@@ -6,75 +6,119 @@
 #include<iostream>
 //#define NDEBUG
 #include <cassert>
-#include <algorithm>
+//#include <algorithm>
+#include <array>
 
 using namespace std;
 using namespace integer_space;
 
 namespace integer_test {
+   const array<string, 2> ALLOWED = {"vector", "array"};  // must be static to exist in program all time running
+   const array<string, 2>::const_iterator BEGIN = ALLOWED.begin();
+   const array<string, 2>::const_iterator END = ALLOWED.end();
+   constexpr int INCORRECT_INDEX = -44;
+   
+   string get_allowed() {
+      string result = " Only acceptable type: ";
+      for (auto type : ALLOWED) 
+         result += " " + type;
+      return result;
+   }
+   
+   template <typename Container>
+   inline int get_type_index(const Container &) {
+      const string TYPE = typeid(Container).name();
+      for (int i = 0; i < ALLOWED.size(); i++) 
+         if (TYPE.find(ALLOWED[i]) != string::npos)
+            return i;
+      //const array<string, 2>::iterator it = find (BEGIN, END, TYPE);
+      //return it != ALLOWED.end();
+      return INCORRECT_INDEX;
+   }
+   
+   template <typename Container>
+   string print_container(const string & title, const Container & C) {
+      if (INCORRECT_INDEX == get_type_index(C))
+         throw invalid_argument(__func__ + get_allowed());
+      cout << title;
+      for (auto elem : C)
+         cout << " " << elem;
+      cout << "\nEnd of container printing\n";
+   }
    
 namespace constructor_test {
-   const array<string, 2> ALLOWED = {"vector", "array"};  // must be static to exist in program all time running
-   const array<string, 2>::iterator BEGIN = ALLOWED.begin();
-   const array<string, 2>::iterator END = ALLOWED.end();
-   template <typename Container>
-   void test_incorrect_construct(const string & exception_info, Container & c, const char signum) {
+   template <typename Container, const unsigned int SIZE>
+   void test_incorrect_construct(const string & exception_info, const Container & ARRAY, const char signum) {
+      //static_assert( SIZE < MAX_ARRAY_LENGTH && SIZE > 0 && "create_Integer requires 0 < SIZE < MAX_ARRAY_LENGTH");
       const string TYPE = typeid(Container).name();
-      if (find (BEGIN, END) == ALLOWED.end())
-         throw invalid_argument(__func__ + " acceptable type");
+      if (TYPE.find("array") == string::npos)
+         throw invalid_argument(string(__func__) + " only std::array is acceptable argument");
       try {
-         HugeInteger hugeInteger = new HugeInteger(integerArray, signum);
-         System.out.printf("???  number after construct %s: %s%n", exceptionInfo, hugeInteger);
+//          if (TYPE.find(to_string(Integer::MAX_ARRAY_LENGTH))) {
+//             Integer(ARRAY, signum);
+//             assert(false);
+//          }
+//          else {
+            Integer::create_Integer<SIZE>(ARRAY, signum);
+            assert(false);
+         //}
+      } catch (const invalid_argument & e) {
+         cerr << __func__ << " Exception while construct integer '" << exception_info << "' : " << e.what() << "\n";
+      }
+   }
+   
+   void test_incorrect_construct(const string & exception_info, const vector<digit_type> & vec, const char signum) {
+      try {
+         Integer(vec, signum);
          assert(false);
-      } catch (NullPointerException exception) {
-         System.out.printf("%nException while construct integer \'%s\': %s%n", exceptionInfo, exception.getMessage());
-         exception.printStackTrace();
-      } catch (IllegalArgumentException exception) {
-         System.out.printf("%nException while construct integer \'%s\': %s%n", exceptionInfo, exception.getMessage());
-         exception.printStackTrace();
+      } catch (const invalid_argument & e) {
+         cerr << __func__ << " Exception while construct integer '" << exception_info << "' : " << e.what() << "\n";
       }
    }
    
    void test_constructors() {
       cout << "\n CORRECT CONSTRUCT OF OBJECTS:\n";
       Integer first  = {};
-      cout << "After construct by default constructor: " + static_cast<string>(first) + "\n";
+      cout << "After construct by default constructor: " << static_cast<string>(first) << "\n";
       assert(static_cast<string>(first) == ("0"));
 
       array<digit_type, 5> numbers = {1, 2, 3, 0, 6};
       char signum = Integer::PLUS;
-      Integer second  = {numbers, signum};
-      cout << "After construct by array and signum's byte of '" + signum + "' : " + second + "\n";
+      Integer second  = Integer::create_Integer<5>(numbers, signum);
+      cout << "After construct by array and signum's byte of '" << signum << "' : " << second << "\n";
       assert(static_cast<string>(second)==("+12306"));
 
       Integer third  = second;
-      cout << "After construct by other integer: " + static_cast<string>(third) + "\n";
+      cout << "After construct by other integer: " << static_cast<string>(third) << "\n";
       assert(static_cast<string>(third)==("+12306"));
 
       cout << "\n INCORRECT ATTEMPTS TO CONSTRUCT OF OBJECTS:\n";
-      //test_incorrect_construct("with null array", null, (byte)0);
 
-      byte[] tooLargeArraySize = new byte[HugeInteger.MAX_ARRAY_LENGTH + 3];
-      testIncorrectConstruct("with too large array's size", tooLargeArraySize, (byte)0);
+      vector<digit_type> too_large_vector_size(Integer::MAX_ARRAY_LENGTH + 3);
+      test_incorrect_construct("with too large vector's size", too_large_vector_size, Integer::NEUTRAL);
 
-      byte[] nonDigitsArray = {11, 2, 5, 0, 8};
-      testIncorrectConstruct("with non digit element in array", nonDigitsArray, (byte)0);
+      array<digit_type, 5> non_digits_array = {11, 2, 5, 0, 8};
+      test_incorrect_construct<array<digit_type, 5>, 5>("with non digit element in array", non_digits_array, Integer::NEUTRAL);
 
-      byte[] minusArray = {1, -2, 5, 0, 8};
-      testIncorrectConstruct("with minus digit element in array", minusArray, (byte)0);
+      array<digit_type, 5> minus_array = {1, -2, 5, 0, 8};
+      test_incorrect_construct<array<digit_type, 5>, 5>("with minus digit element in array", minus_array, Integer::NEUTRAL);
 
-      byte[] zeroArray = {0, 0, 0, 0, 0};
-      signum = +1;
-      testIncorrectConstruct(String.format("with incorrect signum %+d for zero array", signum), zeroArray, signum);
+      array<digit_type, 5> zero_array = {0, 0, 0, 0, 0};
+      signum = Integer::PLUS;
+      test_incorrect_construct<array<digit_type, 5>, 5>("with incorrect signum " + string(1, signum) + " for zero array", zero_array, signum);
+      signum = Integer::MINUS;
+      test_incorrect_construct<array<digit_type, 5>, 5>("with incorrect signum " + string(1, signum) + " for zero array", zero_array, signum);
 
-      byte[] nonZeroArray = {0, 0, 0, 0, 1};
-      signum = 0;
-      testIncorrectConstruct(String.format("with incorrect signum %+d for non-zero array", signum), nonZeroArray, signum);
+      array<digit_type, 5> non_zero_array = {0, 0, 0, 0, 1};
+      signum = Integer::NEUTRAL;
+      test_incorrect_construct<array<digit_type, 5>, 5>("with incorrect signum " + string(1, signum) + " for non-zero array", non_zero_array, signum);
 
-      System.out.printf("%n ------------------------%n");
+      cout << "\n ------------------------\n";
    }
 }
-
+}
+/*
+{
 template <const size_t SIZE>
 static Integer set(const array<digit_type, SIZE> & table, Integer & integer) {
    cout << __func__ << " tests set_integer_array <" << SIZE <<  "> \n";
@@ -226,25 +270,13 @@ void constructor_test() {
 }
 
 }
+*/
 
 using namespace integer_test;
 
-static const vector<string>& get_allowed_types() {
-   
-   return types;
-}
-
-template<class T>
-void print_type_name(const T & x) {
-   const string NAME = typeid(T).name();
-   cout << NAME << '\n';
-   const size_t CODE = typeid(T).hash_code();
-   cout << CODE << '\n';
-}
-
 int main() {
    try {
-      constructor_test();
+      constructor_test::test_constructors();
       return 0;
    }
    catch (const Arithmetic_Error & e) {

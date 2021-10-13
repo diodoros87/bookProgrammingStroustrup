@@ -2,6 +2,7 @@ CXX = g++
 CPPFLAGS = -Wfatal-errors -Wall -Wextra -std=c++14 -fcompare-debug-second 
 
 PROGRAMS  = integer_test fundamental_test
+#PROGRAMS  =  fundamental_test
 
 .PHONY: clean all
 

@@ -72,6 +72,7 @@ void set_integer_array_test(Integer & integer) {
 }
 
 void fail_set_integer_array_test(Integer & integer) {
+   const string STR = static_cast<string>(integer);
    try {
       cout << __func__ << " tests FAIL of set_integer_array <vector> \n";
       vector<digit_type> vec = { 0, 4 , 5};
@@ -80,16 +81,18 @@ void fail_set_integer_array_test(Integer & integer) {
       assert(false);
    }
    catch (const invalid_argument& e) {
+      assert( static_cast<string>(integer) == STR);
       cerr << __func__ << " exception: " << e.what() << endl;
    }
    
    try {
-      const array<digit_type, Integer::MAX_ARRAY_LENGTH + 1> integer_array = { 5, 0};
+      const array<digit_type, 2> integer_array = { 55, 0};
       cout << __func__ << " tests FAIL of set_integer_array <" << integer_array.size() <<  "> \n";
       set(integer_array, integer);
       assert(false);
    }
    catch (const invalid_argument& e) {
+      assert( static_cast<string>(integer) == "0");
       cerr << __func__ << " exception: " << e.what() << endl;
    }
 }
@@ -97,7 +100,7 @@ void fail_set_integer_array_test(Integer & integer) {
 static void incorrect_parsing_test(const string & STR) {
    try {
       cout << __func__ << " tests FAIL of Integer::parse_create by: '" << STR << "' \n";
-      Integer integer = Integer::parse_create(STR);
+      Integer::parse_create(STR);
       assert(false);
    }
    catch (const invalid_argument& e) {
@@ -105,11 +108,9 @@ static void incorrect_parsing_test(const string & STR) {
    }
 }
 
-void test_set_and_fail_set(Integer & integer) {
+inline void test_set_and_fail_set(Integer & integer) {
    set_integer_array_test(integer);
-   const string STR = static_cast<string>(integer);
    fail_set_integer_array_test(integer);
-   assert( static_cast<string>(integer) == STR);
 }
 
 static Integer parsing_test() {
@@ -168,6 +169,7 @@ using namespace main_integer_test;
 
 int main() {
    try {
+      //cout << typeid(array<digit_type, Integer::MAX_ARRAY_LENGTH>()).name() << '\n';
       constructor_test();
       return 0;
    }
