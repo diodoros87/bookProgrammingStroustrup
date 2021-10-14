@@ -182,7 +182,7 @@ void set(const digit_type TABLE[], Integer & integer) {
 
 namespace setters_test {
    using namespace integer_test;
-   void testSetArray(const string & integer_name, Integer integer) {
+   void test_set_array(const string & integer_name, Integer integer) {
       cout << "\n TESTS OF SET ARRAY OR SIGNUM :\n";
       constexpr digit_type array1 [] = {4, 9};
       set<2>(array1, integer);
@@ -216,36 +216,35 @@ namespace setters_test {
       constexpr digit_type  array5[] = {3, 5, 7};
       set<3>(array5, integer);
       cout << integer_name << " integer after set other table: " << integer << '\n';
-      assert_Integer(integer, "+357");
+      assert("+357" == static_cast<string> (integer));
 
-      signum = +1;
+      signum = Integer::PLUS;
       integer.set_signum(signum);
       cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer;
-      assert_Integer(integer, "+357");
+      assert("+357" == static_cast<string> (integer));
 
-      signum = -1;
+      signum = Integer::MINUS;
       integer.set_signum(signum);
       cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer;
-      assert_Integer(integer, "-357");
+      assert("-357" == static_cast<string> (integer));
 
       try {
-         signum = 0;
+         signum = Integer::NEUTRAL;
          integer.set_signum(signum);
          cerr << "??? " << integer_name << " integer after set signum to '" << signum << "' : " << integer;
          assert(false);
-      } catch (const invalid_argument & exception) {
-         System.out.printf("%nException while set signum to %+d: %s%n", signum, exception.getMessage());
-         exception.printStackTrace();
-         assert_Integer(integer, "-357");
+      } catch (const invalid_argument & e) {
+         cerr << "Exception while set signum to '" << signum << "' : " << e.what() << "\n";
+         assert("-357" == static_cast<string> (integer));
       }
 
-      integer.setIntegerArray(array4);
+      set<1>(array4, integer);
       cout << integer_name << " integer after set other table: " << integer << '\n';
       assert_Integer(integer, "0");
-      signum = 0;
+      signum = Integer::NEUTRAL;
       integer.set_signum(signum);
       cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer;
-      assert_Integer(integer, "0");
+      integer_assert(integer, Integer::NEUTRAL, "0");
 
       cout << "\n ------------------------\n";
    }
@@ -285,16 +284,16 @@ int main() {
       first_integer_array_copy[14] = first_integer_array_copy[11] = first_integer_array_copy[12] = 9;
       print_container("Copy of first integer array after change:", first_integer_array_copy);
       print_container("First integer array:", first.get_integer_array_copy());
-      /*
-      setters_test.testSetArray("first", first);
+      
+      setters_test::test_set_array("first", first);
 
-      Integer second  = new Integer(numbers, (byte)-1);
-      assert(second.toString().equals("-2306"));
-      setters_test.testSetArray("second", second);
+      Integer second  = create_construct<5>(Integer::MINUS, NUMBERS);
+      assert(static_cast<string>(second) == ("-2306"));
+      setters_test::test_set_array("second", second);
 
-      ParsingTest.testOfParsing("first", first);
-      ParsingTest.testOfParsing("second", second);
-
+      Parsing_Test::test_parsing("first", first);
+      Parsing_Test::test_parsing("second", second);
+/*
       ComparingTest.compare(first, second);
       assert(first.isZero() == false);
       assert(second.isZero() == false);

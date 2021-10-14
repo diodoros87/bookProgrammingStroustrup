@@ -52,8 +52,9 @@ void GENERAL_ASSERT(const char* expr_str, const bool expr, const char* file, con
 void INTEGER_ASSERT(const Integer& x, const char expected_signum, const string& expected_number,
                   const char* file, const int line,
                   const char* date, const char* time) {
-   if (static_cast<string>(x) != string(1, expected_signum) + expected_number) {
-      const string EXPECTED = string(1, expected_signum) + expected_number;
+   const string signum_str = expected_signum == Integer::NEUTRAL ? "" : string(1, expected_signum);
+   if (static_cast<string>(x) != signum_str + expected_number) {
+      const string EXPECTED = signum_str + expected_number;
       const string message = " " + static_cast<string>(x) +
                         " != expected " + EXPECTED;
       GENERAL_ASSERT(EXPECTED.c_str(), static_cast<string>(x) == EXPECTED, file, line, date, time, message);
@@ -63,8 +64,9 @@ void INTEGER_ASSERT(const Integer& x, const char expected_signum, const string& 
 void ASSERT_INTEGER(const Integer& x, const string& expected_number,
                   const char* file, const int line,
                   const char* date, const char* time) {
-   if (static_cast<string>(x) != string(1, x.get_signum()) + expected_number) {
-      const string EXPECTED = string(1, x.get_signum()) + expected_number;
+   const string signum_str = expected_number == "0" ? "" : string(1, x.get_signum());
+   if (static_cast<string>(x) != signum_str + expected_number) {
+      const string EXPECTED = signum_str + expected_number;
       const string message = " " + static_cast<string>(x) +
                         " != expected " + EXPECTED;
       GENERAL_ASSERT(EXPECTED.c_str(), static_cast<string>(x) == EXPECTED, file, line, date, time, message);

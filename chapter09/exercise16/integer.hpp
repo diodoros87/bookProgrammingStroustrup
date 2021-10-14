@@ -102,13 +102,13 @@ public:
       validate_size(vec);
       validate_set(vec);
    }
-   void set_integer_array(const array<digit_type, MAX_ARRAY_LENGTH> & table) {
-      validate_set(table);
-   }
+   //void set_integer_array(const array<digit_type, MAX_ARRAY_LENGTH> & table) {
+   //   validate_set(table);
+   //}
    
    template <const unsigned int N>
    void set_integer_array(const array<digit_type, N> & table) {
-      static_assert( N < MAX_ARRAY_LENGTH && N > 0 && "set_integer_array requires 0 < N < MAX_ARRAY_LENGTH");
+      static_assert( N <= MAX_ARRAY_LENGTH && N >= 0 && "set_integer_array requires 0 <= N <= MAX_ARRAY_LENGTH");
       validate_set(table);
    }
    //void set(const Integer& integer);
