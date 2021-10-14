@@ -62,7 +62,7 @@ void set_integer_array_test(Integer & integer) {
    char sign = integer.get_signum();
    if (Integer::NEUTRAL == sign)
       sign = Integer::PLUS;
-   array<digit_type, 5> a = { 7, 2, 7, 0};
+   constexpr array<digit_type, 5> a = { 7, 2, 7, 0};
    set(a, integer);
 
    integer_assert(integer, sign, "72700");
@@ -86,7 +86,18 @@ void fail_set_integer_array_test(Integer & integer) {
    }
    
    try {
-      const array<digit_type, 2> integer_array = { 55, 0};
+      constexpr array<digit_type, 2> integer_array = { 55, 0};
+      cout << __func__ << " tests FAIL of set_integer_array <" << integer_array.size() <<  "> \n";
+      set(integer_array, integer);
+      assert(false);
+   }
+   catch (const invalid_argument& e) {
+      assert( static_cast<string>(integer) == "0");
+      cerr << __func__ << " exception: " << e.what() << endl;
+   }
+   
+   try {
+      constexpr array<digit_type, 2> integer_array = { -5, 0};
       cout << __func__ << " tests FAIL of set_integer_array <" << integer_array.size() <<  "> \n";
       set(integer_array, integer);
       assert(false);
@@ -144,7 +155,7 @@ static Integer parsing_test() {
 
 void constructor_test() {
    default_constructor_test();
-   const array<digit_type, Integer::MAX_ARRAY_LENGTH> integer_array = { 7, 2};
+   constexpr array<digit_type, Integer::MAX_ARRAY_LENGTH> integer_array = { 7, 2};
    Integer ia = constructor_test(integer_array, Integer::PLUS);
    assert(string(ia) == "+7200000000000000000000000000000000000000");
    test_set_and_fail_set(ia);
@@ -154,7 +165,7 @@ void constructor_test() {
    assert(string(iv) == "+7580");
    test_set_and_fail_set(iv);
    
-   const array<digit_type, 1> a2 = { 2 };
+   constexpr array<digit_type, 1> a2 = { 2 };
    Integer i2 = creation_test<1>(a2, Integer::MINUS);
    assert(string(i2) == "-2");
    test_set_and_fail_set(i2);

@@ -14,7 +14,7 @@ using std::to_string;
 using std::size_t;
 
 //typedef int_fast8_t digit_type;
-using digit_type = int_fast8_t;
+using digit_type = short;
 
 namespace integer_space {
    
@@ -152,6 +152,7 @@ public:
    static void detect_multiplication_overflow(const Integer & first, const Integer & second);
    
    const digit_type & operator[](const size_t i) const { return integer_array[i]; }
+   
    friend Integer operator-(const Integer& integer);
    friend Integer operator*(const Integer& first, const Integer& second);
    friend Integer operator%(const Integer& DIVIDEND, const Integer& DIVISOR);

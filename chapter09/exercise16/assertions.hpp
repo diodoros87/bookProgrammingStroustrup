@@ -27,14 +27,14 @@ using integer_space::Integer;
 #  define integer_assert(Integer, Signum_Char, Number_String) \
    INTEGER_ASSERT(Integer, Signum_Char, Number_String, __FILE__, __LINE__, __DATE__, __TIME__)
 #else
-#   define integer_assert(Integer, String) ;
+#   define integer_assert(Integer, Signum_Char, String) ;
 #endif
-    
+   
 #ifndef NDEBUG
-#  define my_assertion_double(double1, double2) \
-   __my_assertion_double(double1, double2, __FILE__, __LINE__)
+#  define assert_Integer(Integer, Number_String) \
+   ASSERT_INTEGER(Integer, Number_String, __FILE__, __LINE__, __DATE__, __TIME__)
 #else
-#   define my_assertion_double(double1, double2) ;
+#   define assert_Integer(Integer, String) ;
 #endif
 
 void GENERAL_ASSERT(const char* expr_str, const bool expr, const char* file, const int line, 
@@ -54,6 +54,17 @@ void INTEGER_ASSERT(const Integer& x, const char expected_signum, const string& 
                   const char* date, const char* time) {
    if (static_cast<string>(x) != string(1, expected_signum) + expected_number) {
       const string EXPECTED = string(1, expected_signum) + expected_number;
+      const string message = " " + static_cast<string>(x) +
+                        " != expected " + EXPECTED;
+      GENERAL_ASSERT(EXPECTED.c_str(), static_cast<string>(x) == EXPECTED, file, line, date, time, message);
+   }
+}
+
+void ASSERT_INTEGER(const Integer& x, const string& expected_number,
+                  const char* file, const int line,
+                  const char* date, const char* time) {
+   if (static_cast<string>(x) != string(1, x.get_signum()) + expected_number) {
+      const string EXPECTED = string(1, x.get_signum()) + expected_number;
       const string message = " " + static_cast<string>(x) +
                         " != expected " + EXPECTED;
       GENERAL_ASSERT(EXPECTED.c_str(), static_cast<string>(x) == EXPECTED, file, line, date, time, message);

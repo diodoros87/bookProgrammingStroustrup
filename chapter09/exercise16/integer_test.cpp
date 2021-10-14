@@ -8,6 +8,8 @@
 #include <cassert>
 //#include <algorithm>
 #include <array>
+#include <algorithm>
+#include <cstring>
 
 using namespace std;
 using namespace integer_space;
@@ -36,8 +38,18 @@ namespace integer_test {
       return INCORRECT_INDEX;
    }
    
+//    template <typename Array, const unsigned int SIZE>   // SIZE necessary for std::array
+//    void print_array(const string & title, const Array & ARRAY) {
+//       if (INCORRECT_INDEX == get_type_index(ARRAY))
+//          throw invalid_argument(__func__ + get_allowed());
+//       cout << title;
+//       for (auto elem : ARRAY)
+//          cout << " " << elem;
+//       cout << "\nEnd of array printing\n";
+//    }
+   
    template <typename Container>
-   string print_container(const string & title, const Container & C) {
+   void print_container(const string & title, const Container & C) {
       if (INCORRECT_INDEX == get_type_index(C))
          throw invalid_argument(__func__ + get_allowed());
       cout << title;
@@ -56,7 +68,7 @@ namespace constructor_test {
             Integer::create_Integer<SIZE>(ARRAY, signum);
             assert(false);
       } catch (const invalid_argument & e) {
-         cerr << __func__ << " Exception while construct integer '" << exception_info << "' : " << e.what() << "\n";
+         cerr << __func__ << " Exception while create_Integer integer '" << exception_info << "' : " << e.what() << "\n";
       }
    }
    
@@ -70,7 +82,7 @@ namespace constructor_test {
    }
    
    template <typename Container, const unsigned int SIZE>
-   inline void array_to_vector_fail_construct(const string & exception_info, const Container & ARRAY, const char signum) {
+   void array_to_vector_fail_construct(const string & exception_info, const Container & ARRAY, const char signum) {
       static_assert( SIZE <= Integer::MAX_ARRAY_LENGTH && SIZE > 0 && "create_Integer requires 0 < SIZE <= MAX_ARRAY_LENGTH");
       const string TYPE = typeid(Container).name();
       if (TYPE.find("array") == string::npos)
@@ -103,186 +115,203 @@ namespace constructor_test {
 
       array<digit_type, 5> non_digits_array = {11, 2, 5, 0, 8};
       test_incorrect_construct<array<digit_type, 5>, 5>("with non digit element in array", non_digits_array, Integer::NEUTRAL);
-      //vector<digit_type> non_digits_vec (non_digits_array.begin(), non_digits_array.end() );
       array_to_vector_fail_construct<array<digit_type, 5>, 5>("with non digit element in vector", non_digits_array, Integer::NEUTRAL);
-
+      try {
+         array_to_vector_fail_construct<vector<digit_type>, 5>("with non digit element in vector", too_large_vector_size, Integer::NEUTRAL);
+      } catch (const invalid_argument & e) {
+         cerr << __func__ << " : " << e.what() << "\n";
+      }
+      
       array<digit_type, 5> minus_array = {1, -2, 5, 0, 8};
       test_incorrect_construct<array<digit_type, 5>, 5>("with minus digit element in array", minus_array, Integer::NEUTRAL);
+      array_to_vector_fail_construct<array<digit_type, 5>, 5>("with minus digit element in vector", minus_array, Integer::NEUTRAL);
 
       array<digit_type, 5> zero_array = {0, 0, 0, 0, 0};
       signum = Integer::PLUS;
       test_incorrect_construct<array<digit_type, 5>, 5>("with incorrect signum " + string(1, signum) + " for zero array", zero_array, signum);
+      array_to_vector_fail_construct<array<digit_type, 5>, 5>("with incorrect signum " + string(1, signum) + " for zero vector", zero_array, signum);
       signum = Integer::MINUS;
       test_incorrect_construct<array<digit_type, 5>, 5>("with incorrect signum " + string(1, signum) + " for zero array", zero_array, signum);
+      array_to_vector_fail_construct<array<digit_type, 5>, 5>("with incorrect signum " + string(1, signum) + " for zero vector", zero_array, signum);
 
       array<digit_type, 5> non_zero_array = {0, 0, 0, 0, 1};
       signum = Integer::NEUTRAL;
       test_incorrect_construct<array<digit_type, 5>, 5>("with incorrect signum '" + string(1, signum) + "' for non-zero array", non_zero_array, signum);
+      array_to_vector_fail_construct<array<digit_type, 5>, 5>("with incorrect signum '" + string(1, signum) + "' for non-zero vector", non_zero_array, signum);
 
       cout << "\n ------------------------\n";
    }
 }
-}
-/*
-{
-template <const size_t SIZE>
-static Integer set(const array<digit_type, SIZE> & table, Integer & integer) {
-   cout << __func__ << " tests set_integer_array <" << SIZE <<  "> \n";
-   integer.set_integer_array<SIZE>(table);
-   cout << integer << '\n';
-   return integer;
-}
 
-static Integer set(const vector<digit_type> & vec, Integer & integer) {
-   cout << __func__ << " tests set_integer_array <vector> \n";
-   integer.set_integer_array(vec);
-   cout << integer << '\n';
-   return integer;
-}
+constexpr size_t DIGIT_SIZE = sizeof(digit_type);
+template <const unsigned int N>
+Integer create_construct(const char SIGNUM, const digit_type * TABLE) {
+   static_assert( N <= Integer::MAX_ARRAY_LENGTH && N > 0 && "create_construct requires 0 < N <= MAX_ARRAY_LENGTH");
 
-static Integer constructor_test(const array<digit_type, Integer::MAX_ARRAY_LENGTH> & table, const char signum) {
-   cout << __func__ << " tests construct Integer by array<digit_type, Integer::MAX_ARRAY_LENGTH> \n";
-   Integer i = Integer(table, signum);
-   cout << i << '\n';
-   return i;
+   const vector<digit_type> VEC = { TABLE, TABLE + N };
+   Integer integer_vec = {VEC, SIGNUM};
+   cerr << "integer construct by vector: " << integer_vec;
+   
+   array<digit_type, N> ARRAY;
+   static constexpr size_t COPY_SIZE =  N * DIGIT_SIZE;
+   memcpy(ARRAY.data(), TABLE, COPY_SIZE);
+   Integer integer_array = Integer::create_Integer<N>(ARRAY, SIGNUM);
+   cerr << "\ninteger after construct by array: " << integer_array << '\n';
+   
+   assert(integer_array == integer_vec);
+   return integer_vec;
 }
 
 template <const unsigned int N>
-static Integer creation_test(const array<digit_type, N> & table, const char signum) {
-   cout << __func__ << " tests Integer::create_Integer <" << N <<  "> \n";
-   Integer i =  Integer::create_Integer<N>(table, signum);
-   cout << i << '\n';
-   return i;
+void set(const digit_type TABLE[], Integer & integer) {
+   static_assert( N <= Integer::MAX_ARRAY_LENGTH && N > 0 && "set requires 0 < N <= MAX_ARRAY_LENGTH");
+
+   const vector<digit_type> VEC = { TABLE, TABLE + N };
+   integer.set_integer_array(VEC);
+   cerr << " integer after set by vector: " << integer;
+   const string integer_string = static_cast<string> (integer);
+   
+   array<digit_type, N> ARRAY;
+   copy(TABLE, TABLE + N, ARRAY.begin());
+   integer.set_integer_array<N>(ARRAY);
+   cerr << "\ninteger after set by array: " << integer << '\n';
+   assert(integer_string == static_cast<string> (integer));
 }
 
-static Integer constructor_test(const vector<digit_type> & vec, const char signum) {
-   cout << __func__ << " tests construct Integer by <vector> \n";
-   Integer i (vec, signum);
-   cout << i << '\n';
-   return i;
 }
 
-static Integer default_constructor_test() {
-   cout << __func__ << " tests construct Integer by default constructor \n";
-   Integer i ;
-   cout << i << '\n';
-   assert( static_cast<string>(i) == "0");
-   return i;
-}
+namespace setters_test {
+   using namespace integer_test;
+   void testSetArray(const string & integer_name, Integer integer) {
+      cout << "\n TESTS OF SET ARRAY OR SIGNUM :\n";
+      constexpr digit_type array1 [] = {4, 9};
+      set<2>(array1, integer);
+      cout << integer_name << " integer after set other table: " << integer << '\n';
+      assert_Integer(integer, "49");
 
-void set_integer_array_test(Integer & integer) {
-   cout << __func__ << "\n";
-   char sign = integer.get_signum();
-   if (Integer::NEUTRAL == sign)
-      sign = Integer::PLUS;
-   array<digit_type, 5> a = { 7, 2, 7, 0};
-   set(a, integer);
+      constexpr digit_type array2[] = {4, 2, 3};
+      set<3>(array2, integer);
+      cout << integer_name << " integer after set other table: " << integer << '\n';
+      assert_Integer(integer, "423");
 
-   integer_assert(integer, sign, "72700");
-   vector<digit_type> vec = { 0, 4 , 5};
-   set(vec, integer);
-   integer_assert(integer, sign, "45");
-}
+      constexpr digit_type  array3[] = {4};
+      set<1>(array3, integer);
+      cout << integer_name << " integer after set other table: " << integer << '\n';
+      assert_Integer(integer, "4");
 
-void fail_set_integer_array_test(Integer & integer) {
-   try {
-      cout << __func__ << " tests FAIL of set_integer_array <vector> \n";
-      vector<digit_type> vec = { 0, 4 , 5};
-      vec.resize(45, 9);
-      set(vec, integer);
-      assert(false);
+      constexpr digit_type  array4[] = {0};
+      set<1>(array4, integer);
+      cout << integer_name << " integer after set other table: " << integer << '\n';
+      assert_Integer(integer, "0");
+
+      char signum = Integer::PLUS;
+      try {
+         integer.set_signum(signum);
+         cerr << "??? " << integer_name << " integer after set signum to '" << signum << "' : " << integer;
+         assert(false);
+      } catch (const invalid_argument & e) {
+         cerr << "Exception while set signum to '" << signum << "' : " << e.what() << "\n";
+      }
+
+      constexpr digit_type  array5[] = {3, 5, 7};
+      set<3>(array5, integer);
+      cout << integer_name << " integer after set other table: " << integer << '\n';
+      assert_Integer(integer, "+357");
+
+      signum = +1;
+      integer.set_signum(signum);
+      cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer;
+      assert_Integer(integer, "+357");
+
+      signum = -1;
+      integer.set_signum(signum);
+      cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer;
+      assert_Integer(integer, "-357");
+
+      try {
+         signum = 0;
+         integer.set_signum(signum);
+         cerr << "??? " << integer_name << " integer after set signum to '" << signum << "' : " << integer;
+         assert(false);
+      } catch (const invalid_argument & exception) {
+         System.out.printf("%nException while set signum to %+d: %s%n", signum, exception.getMessage());
+         exception.printStackTrace();
+         assert_Integer(integer, "-357");
+      }
+
+      integer.setIntegerArray(array4);
+      cout << integer_name << " integer after set other table: " << integer << '\n';
+      assert_Integer(integer, "0");
+      signum = 0;
+      integer.set_signum(signum);
+      cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer;
+      assert_Integer(integer, "0");
+
+      cout << "\n ------------------------\n";
    }
-   catch (const invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
-   }
-   
-   try {
-      const array<digit_type, Integer::MAX_ARRAY_LENGTH + 1> integer_array = { 5, 0};
-      cout << __func__ << " tests FAIL of set_integer_array <" << integer_array.size() <<  "> \n";
-      set(integer_array, integer);
-      assert(false);
-   }
-   catch (const invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
-   }
 }
-
-static void incorrect_parsing_test(const string & STR) {
-   try {
-      cout << __func__ << " tests FAIL of Integer::parse_create by: '" << STR << "' \n";
-      Integer integer = Integer::parse_create(STR);
-      assert(false);
-   }
-   catch (const invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
-   }
-}
-
-void test_set_and_fail_set(Integer & integer) {
-   set_integer_array_test(integer);
-   const string STR = static_cast<string>(integer);
-   fail_set_integer_array_test(integer);
-   assert( static_cast<string>(integer) == STR);
-}
-
-static Integer parsing_test() {
-   cout << __func__ << " tests Integer::parse_create \n";
-   Integer integer = Integer::parse_create("999");
-   cout << integer << '\n'; 
-   assert(static_cast<string>(integer) == ("+999"));
-   
-   integer = Integer::parse_create("-78999");
-   cout << integer << '\n'; 
-   assert(static_cast<string>(integer) == ("-78999"));
-   
-   integer = Integer::parse_create("0");
-   cout << integer << '\n'; 
-   assert(static_cast<string>(integer) == ("0"));
-   
-   integer = Integer::parse_create("7");
-   cout << integer << '\n'; 
-   assert(static_cast<string>(integer) == ("+7"));
-   
-   incorrect_parsing_test("888888888888888888888888888888888888888888888888888888888888888");
-   incorrect_parsing_test("-99999eee");
-   incorrect_parsing_test("-99999edf");
-   incorrect_parsing_test("99999 ");
-   incorrect_parsing_test("t");
-   incorrect_parsing_test(" 5");
-   
-   assert(static_cast<string>(integer) == ("+7"));
-   return integer;
-}
-
-void constructor_test() {
-   default_constructor_test();
-   const array<digit_type, Integer::MAX_ARRAY_LENGTH> integer_array = { 7, 2};
-   Integer ia = constructor_test(integer_array, Integer::PLUS);
-   assert(string(ia) == "+7200000000000000000000000000000000000000");
-   test_set_and_fail_set(ia);
-   
-   vector<digit_type> vec = { 7, 5, 8, 0};
-   Integer iv = constructor_test(vec, Integer::PLUS);
-   assert(string(iv) == "+7580");
-   test_set_and_fail_set(iv);
-   
-   const array<digit_type, 1> a2 = { 2 };
-   Integer i2 = creation_test<1>(a2, Integer::MINUS);
-   assert(string(i2) == "-2");
-   test_set_and_fail_set(i2);
-   
-   parsing_test();
-   Parsing_Test::test_parsing("i2", i2);
-}
-
-}
-*/
 
 using namespace integer_test;
+
+using Array_max = array<digit_type, Integer::MAX_ARRAY_LENGTH>; 
 
 int main() {
    try {
       constructor_test::test_constructors();
+      constexpr digit_type NUMBERS[] = {0, 2, 3, 0, 6};
+      char signum = Integer::MINUS;
+      Integer first  = create_construct<5>(signum, NUMBERS);
+      cout << "First integer after construct by table and signum's '" << signum << "' : " << first << '\n';
+      assert(static_cast<string>(first) == ("-2306"));
+
+      constexpr digit_type TABLE[] = {4, 2, 3, 0, 7, 4};
+      set<6>(TABLE, first);
+      cout << "First integer after set other table: " << first << '\n';
+      assert(static_cast<string>(first) == ("-423074"));
+
+      try {
+         constexpr digit_type minus_number_array[] = {4, -2, 3, 0, 7, 4};
+         set<6>(minus_number_array, first);
+         cout << "??? First integer after set minus_number_array: " << first << '\n';
+         assert(false);
+      } catch (const invalid_argument & e) {
+         cerr << "Exception while set minus_number_array: " << e.what() << "\n";
+         cout << "First integer after exception catch: " << first << '\n';
+         assert(static_cast<string>(first) == ("0"));
+      }
+      
+      Array_max first_integer_array_copy = first.get_integer_array_copy();
+      print_container("Copy of first integer array:", first_integer_array_copy);
+      first_integer_array_copy[14] = first_integer_array_copy[11] = first_integer_array_copy[12] = 9;
+      print_container("Copy of first integer array after change:", first_integer_array_copy);
+      print_container("First integer array:", first.get_integer_array_copy());
+      /*
+      setters_test.testSetArray("first", first);
+
+      Integer second  = new Integer(numbers, (byte)-1);
+      assert(second.toString().equals("-2306"));
+      setters_test.testSetArray("second", second);
+
+      ParsingTest.testOfParsing("first", first);
+      ParsingTest.testOfParsing("second", second);
+
+      ComparingTest.compare(first, second);
+      assert(first.isZero() == false);
+      assert(second.isZero() == false);
+
+      assert(first.isEqualTo(second) == true);
+      assert(first.isNotEqualTo(second) == false);
+
+      assert(first.isGreaterThan(second) == false);
+      assert(first.isLessThanOrEqualTo(second) == true);
+
+      assert(first.isLessThan(second) == false);
+      assert(first.isGreaterThanOrEqualTo(second) == true);
+
+      ComparingTest.assertOfComparingDifferentSignum(first, second);
+      ComparingTest.assertOfComparingIdenticalSignum(first, second);
+      ComparingTest.assertOfComparingDifferentSignumZero(first, second);
+      */
       return 0;
    }
    catch (const Arithmetic_Error & e) {
