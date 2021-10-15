@@ -112,7 +112,7 @@ void set(const Integer& integer) {
 }
 */
 /*
-void Integer::set_integer_array(const vector<digit_type> & VEC) {  // assume that integer_array is positive number, change of signum is allowed by setSignum()
+void Integer::set_integer_array(const vector<digit_type> & VEC) {  // assume that integer_array is positive number, change of signum is allowed by set_signum()
    if (MAX_ARRAY_LENGTH < VEC.size())
       throw invalid_argument("Requirement: elements <= " + to_string(MAX_ARRAY_LENGTH));
    this->integer_array->fill(0);  // not call reset_number_to_zero() due to change signum (in set_integer_array() save previous signum)
@@ -237,7 +237,7 @@ bool operator>(const Integer& first, const Integer& second) {
    // after calling Integer::compare_signum recognize both integers with identical nonzero signum
 
    assert(first.get_signum() == second.get_signum());
-   assert(first.get_signum() != 0);
+   assert(first.get_signum() != Integer::NEUTRAL);
    const char identical_integers_signum = first.get_signum();
    switch (identical_integers_signum) {
       case Integer::PLUS : 
@@ -245,7 +245,7 @@ bool operator>(const Integer& first, const Integer& second) {
       case Integer::MINUS :
          return Integer::is_absolute_value_less(first, second);
       default:  // identical_integers_signum == NEUTRAL
-         throw runtime_error("signum of integer = 0");
+         throw runtime_error("signum of integer is NEUTRAL");
    }
 }
 
@@ -258,7 +258,7 @@ bool operator<(const Integer& first, const Integer& second) {
    // after calling Integer.compare_signum recognize both integers with identical nonzero signum
 
    assert(first.get_signum() == second.get_signum());
-   assert(first.get_signum() != 0);
+   assert(first.get_signum() != Integer::NEUTRAL);
    const char identical_integers_signum = first.get_signum();
    switch (identical_integers_signum) {
       case Integer::MINUS : 
@@ -266,13 +266,13 @@ bool operator<(const Integer& first, const Integer& second) {
       case Integer::PLUS :
          return Integer::is_absolute_value_less(first, second);
       default:  // identical_integers_signum == NEUTRAL
-         throw runtime_error("signum of integer = 0");
+         throw runtime_error("signum of integer is NEUTRAL");
    }
 }
 
 void set_signum_adding_Non_Zero_result(const Integer& first, const Integer& second,
-                                       Integer & result, int_fast8_t comparing_signum_result) {
-   if (result.signum == 0)   // skip setSignum() for zero, zero has correct signum = 0 in private Integer constructor
+                                       Integer & result, const int_fast8_t comparing_signum_result) {
+   if (result.signum == Integer::NEUTRAL)   // skip set_signum() for zero, zero has correct signum = NEUTRAL in private Integer constructor
       return;
    if (0 == comparing_signum_result)        // integers with identical signums
       result.signum = first.signum;
@@ -327,8 +327,8 @@ inline void set_opposite_signum(Integer & integer, const char signum) {
 }
 
 void set_signum_subtracting_Non_Zero_result(const Integer& first, const Integer& second,
-                                       Integer & result, int_fast8_t comparing_signum_result) {
-   if (result.signum == 0)   // skip setSignum() for zero, zero has correct signum = 0 in private Integer constructor
+                                       Integer & result, const int_fast8_t comparing_signum_result) {
+   if (result.signum == Integer::NEUTRAL)   // skip set_signum() for zero, zero has correct signum = 0 in private Integer constructor
       return;
    if (0 == comparing_signum_result) {        // integers with identical signums
       if (true == Integer::is_absolute_value_greater(first, second)) 
@@ -337,7 +337,7 @@ void set_signum_subtracting_Non_Zero_result(const Integer& first, const Integer&
          set_opposite_signum(result, second.signum);  
    }
    else {  // integers with different signums
-      if (0 == first.signum)   // if minuend is zero (with signum zero), then signum's result is negate of subtrahend's signum
+      if (Integer::NEUTRAL == first.signum)   // if minuend is zero (with signum zero), then signum's result is negate of subtrahend's signum
          set_opposite_signum(result, second.signum);
       else 
          result.signum = first.signum;
@@ -358,7 +358,7 @@ Integer operator-(const Integer& first, const Integer& second) {
 
 Integer operator*(const Integer& first, const Integer& second) {
    Integer result = Integer::multiply_absolute_values(first, second);
-   if (result.signum == 0)   // skip set_signum() for zero, zero has correct signum = 0 in private Integer constructor
+   if (result.signum == Integer::NEUTRAL)   // skip set_signum() for zero, zero has correct signum = NEUTRAL in private Integer constructor
       return result;
 
    int_fast8_t comparing_signum_result = Integer::compare_signum(first, second);
@@ -375,7 +375,7 @@ Integer operator%(const Integer& DIVIDEND, const Integer& DIVISOR) {
    Integer dividing_result     = Integer::divide_absolute_values(DIVIDEND, DIVISOR);
    Integer multiple_of_divisor = Integer::multiply_absolute_values(dividing_result, DIVISOR);
    Integer remainder           = Integer::subtract_absolute_values(DIVIDEND, multiple_of_divisor);
-   if (remainder.signum == 0)   // skip set signum for zero, zero has correct signum = 0 in private Integer constructor
+   if (remainder.signum == Integer::NEUTRAL)   // skip set signum for zero, zero has correct signum = NEUTRAL in private Integer constructor
       return remainder;
    remainder.signum = DIVIDEND.signum;
    return remainder;
@@ -385,7 +385,7 @@ Integer operator/(const Integer& DIVIDEND, const Integer& DIVISOR) {
    if (true == DIVISOR.is_zero()) 
       throw Arithmetic_Error("Divisor can not be zero");   
    Integer result = Integer::divide_absolute_values(DIVIDEND, DIVISOR);
-   if (result.signum == 0)    // skip setSignum() for zero, zero has correct signum = 0 in private Integer constructor
+   if (result.signum == Integer::NEUTRAL)    // skip set_signum() for zero, zero has correct signum = NEUTRAL in private Integer constructor
       return result;
    int_fast8_t comparing_signum_result = Integer::compare_signum(DIVIDEND, DIVISOR);
    if (0 == comparing_signum_result)        // integers with identical signums
@@ -489,11 +489,11 @@ Integer Integer::add_absolute_values(const Integer & first, const Integer & seco
    array<digit_type, MAX_ARRAY_LENGTH> result_array;
    digit_type first_integer_digit;
    digit_type second_integer_digit;
-   short sum_of_digits = 0;
+   int_fast8_t sum_of_digits = 0;
    int_fast8_t carrying = 0;
    for (short index = first.integer_array.size() - 1; index >= 0; index--) {
-      first_integer_digit  = first.integer_array[index];
-      second_integer_digit = second.integer_array[index];
+      first_integer_digit  = first[index];
+      second_integer_digit = second[index];
       sum_of_digits = first_integer_digit + second_integer_digit;
       sum_of_digits += carrying;
       result_array[index] = sum_of_digits % 10;
@@ -506,16 +506,19 @@ Integer Integer::add_absolute_values(const Integer & first, const Integer & seco
 }
 
 Integer Integer::subtract_absolute_values(const Integer & first, const Integer & second) {
-   Integer minuend    = is_absolute_value_greater(first, second) ? first : second;
-   Integer subtrahend = (&first == &minuend) ? second : first;
+   const Integer & minuend    = is_absolute_value_greater(first, second) ? first : second;
+   const Integer & subtrahend = (&first == &minuend) ? second : first;
+   //cerr << __func__ << " &first == " << &first << "  &minuend == " << &minuend << '\n';
+   //cerr << __func__ << " &second == " << &second << "  &subtrahend == " << &subtrahend << '\n';
+   //Integer subtrahend = is_absolute_value_greater(first, second) ? second : first;
    array<digit_type, MAX_ARRAY_LENGTH> result_array;
    digit_type minuend_digit;
    digit_type subtrahend_digit;
-   short difference_digits = 0;
+   int_fast8_t difference_digits = 0;
    int_fast8_t carrying = 0;
-   for (short index = first.integer_array.size() - 1; index >= 0; index--) {
-      minuend_digit      = minuend.integer_array[index];
-      subtrahend_digit   = subtrahend.integer_array[index];
+   for (short index = first.size() - 1; index >= 0; index--) {
+      minuend_digit      = minuend[index];
+      subtrahend_digit   = subtrahend[index];
       difference_digits  = minuend_digit - subtrahend_digit;
       difference_digits -= carrying;
       if (difference_digits < 0) {
@@ -556,8 +559,9 @@ void Integer::detect_multiplication_overflow(const Integer & first, const Intege
    }
 }
 
-static Integer sum_multiplication_results(array<Integer, Integer::MAX_ARRAY_LENGTH> & integers_array) {
-   Integer result;
+static Integer sum_multiplication_results(const array<Integer, Integer::MAX_ARRAY_LENGTH> & integers_array) {
+   Integer result = {};
+   cerr << "\n integers_array.size() = " << integers_array.size() << '\n';
    for (short index = integers_array.size() - 1; index >= 0; index--)
       result = Integer::add_absolute_values(result, integers_array[index]);
    return result;
@@ -566,16 +570,24 @@ static Integer sum_multiplication_results(array<Integer, Integer::MAX_ARRAY_LENG
 Integer Integer::multiply_absolute_values(const Integer & first, const Integer & second) {
    detect_multiplication_overflow(first, second);
    array< array<digit_type, MAX_ARRAY_LENGTH>, MAX_ARRAY_LENGTH > result_array;
+   for (short first_index = MAX_ARRAY_LENGTH - 1; first_index >= 0; first_index--) {
+      for (short second_index = MAX_ARRAY_LENGTH - 1; second_index >= 0; second_index--) {
+         result_array[first_index][second_index] = 0;
+         //cerr << "\nresult_array[" << first_index << "][" << second_index << "] = " << result_array[first_index][second_index] << '\n';
+      }
+   }
    array<Integer, MAX_ARRAY_LENGTH> integers_array;
    digit_type first_integer_digit;
    digit_type second_integer_digit;
    short product = 0;
    int_fast8_t carrying = 0;
-   digit_type magnitude_order = 0;
-   short column;
+   int_fast8_t magnitude_order = 0;
+   int_fast8_t column;
    for (short first_index = MAX_ARRAY_LENGTH - 1; first_index >= 0; first_index--) {
       carrying = 0;
       first_integer_digit = first[first_index];
+      //cerr << "\nfirst_integer_digit = " << first_integer_digit << '\n';
+      //cerr << "\nfirst_index = " << first_index << '\n';
       for (short second_index = MAX_ARRAY_LENGTH - 1; second_index >= 0; second_index--) {
          column = second_index - magnitude_order;
          if (column < 0) {
@@ -583,12 +595,17 @@ Integer Integer::multiply_absolute_values(const Integer & first, const Integer &
             break;
          }
          second_integer_digit = second[second_index];
+         //cerr << "\nsecond_integer_digit = " << second_integer_digit << '\n';
          product = first_integer_digit * second_integer_digit;
          product += carrying;
          result_array[first_index][column] = product % 10;
          carrying = product / 10;
       }
+//       for (short second_index = MAX_ARRAY_LENGTH - 1; second_index >= 0; second_index--) {
+//          cerr << "\nintegers_array[" << first_index << "] = " << integers_array[first_index] << '\n';
+//       }
       integers_array[first_index] = Integer(result_array[first_index]);
+      //cerr << "\nintegers_array[" << first_index << "] = " << integers_array[first_index] << '\n';
       magnitude_order++;
    }
    check_multiplication_overflow(carrying, first, second);

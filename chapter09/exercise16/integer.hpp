@@ -93,10 +93,10 @@ private:
    }
    
    friend void set_signum_adding_Non_Zero_result(const Integer& first, const Integer& second,
-                                       Integer & result, int_fast8_t comparing_signum_result);
+                                       Integer & result, const int_fast8_t comparing_signum_result);
    friend void set_opposite_signum(Integer & result, const char signum);
    friend void set_signum_subtracting_Non_Zero_result(const Integer& first, const Integer& second,
-                                       Integer & result, int_fast8_t comparing_signum_result);
+                                       Integer & result, const int_fast8_t comparing_signum_result);
 public:
    operator string() const;
    void set_integer_array(const vector<digit_type> & vec) {
