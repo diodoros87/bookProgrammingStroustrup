@@ -252,11 +252,11 @@ namespace setters_test {
 
 namespace comparing_test {
    
-   extern "C" bool is_zero (const Integer * const integer) {
+   extern "C" bool is_zero_C (const Integer * const integer) {
       return Integer::is_zero(*integer);
    }
    
-   inline string bool_string(bool (* function) (const Integer * const ), const Integer& integer) {
+   inline string bool_string_C(bool (* function) (const Integer * const ), const Integer& integer) {
       return function ( &integer) ? " TRUE " : " FALSE ";
    }
    
@@ -276,8 +276,8 @@ namespace comparing_test {
       cout << first << " is zero: " << bool_string(Integer::is_zero, first) << " \n";
       cout << second << " is zero: " << bool_string(Integer::is_zero, second) << " \n";
       
-      cout << first << " is zero: " << bool_string(is_zero, first) << " \n";
-      cout << second << " is zero: " << bool_string(is_zero, second) << " \n";
+      cout << first << " is zero (C): " << bool_string_C(is_zero_C, first) << " \n";
+      cout << second << "C is zero (C): " << bool_string_C(is_zero_C, second) << " \n";
 
       cout << first << " == " << second << " : " << bool_string(operator==, first, second) << " \n";
       cout << first << " != " << second << " : " << bool_string(operator!=, first, second) << " \n";
@@ -432,7 +432,7 @@ int main() {
          cout << "??? First integer after set minus_number_array: " << first << '\n';
          assert(false);
       } catch (const invalid_argument & e) {
-         cerr << "Exception while set minus_number_array: " << e.what() << "\n";
+         cerr << __func__ <<  " : Exception while set minus_number_array: " << e.what() << "\n";
          cout << "First integer after exception catch: " << first << '\n';
          assert(static_cast<string>(first) == ("0"));
       }

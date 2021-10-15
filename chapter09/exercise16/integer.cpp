@@ -238,14 +238,15 @@ bool operator>(const Integer& first, const Integer& second) {
 
    assert(first.get_signum() == second.get_signum());
    assert(first.get_signum() != 0);
-   int_fast8_t identical_integers_signum = first.get_signum();
-   
-   if (identical_integers_signum > 0) 
-      return Integer::is_absolute_value_greater(first, second);
-   else if (identical_integers_signum < 0) 
-      return Integer::is_absolute_value_less(first, second);
-   else  // identical_integers_signum == 0
-      throw runtime_error("signum of integer = 0");
+   const char identical_integers_signum = first.get_signum();
+   switch (identical_integers_signum) {
+      case Integer::PLUS : 
+         return Integer::is_absolute_value_greater(first, second);
+      case Integer::MINUS :
+         return Integer::is_absolute_value_less(first, second);
+      default:  // identical_integers_signum == NEUTRAL
+         throw runtime_error("signum of integer = 0");
+   }
 }
 
 bool operator<(const Integer& first, const Integer& second) {
@@ -258,14 +259,15 @@ bool operator<(const Integer& first, const Integer& second) {
 
    assert(first.get_signum() == second.get_signum());
    assert(first.get_signum() != 0);
-   int_fast8_t identical_integers_signum = first.get_signum();
-
-   if (identical_integers_signum < 0) 
-      return Integer::is_absolute_value_greater(first, second);
-   else if (identical_integers_signum > 0) 
-      return Integer::is_absolute_value_less(first, second);
-   else  // identical_integers_signum == 0
-      throw runtime_error("signum of integer = 0");
+   const char identical_integers_signum = first.get_signum();
+   switch (identical_integers_signum) {
+      case Integer::MINUS : 
+         return Integer::is_absolute_value_greater(first, second);
+      case Integer::PLUS :
+         return Integer::is_absolute_value_less(first, second);
+      default:  // identical_integers_signum == NEUTRAL
+         throw runtime_error("signum of integer = 0");
+   }
 }
 
 void set_signum_adding_Non_Zero_result(const Integer& first, const Integer& second,
