@@ -250,6 +250,164 @@ namespace setters_test {
    }
 }
 
+namespace comparing_test {
+   
+   extern "C" bool is_zero (const Integer * const integer) {
+      return Integer::is_zero(*integer);
+   }
+   
+   inline string bool_string(bool (* function) (const Integer * const ), const Integer& integer) {
+      return function ( &integer) ? " TRUE " : " FALSE ";
+   }
+   
+   inline string bool_string(bool (* function) (const Integer& ), const Integer& integer) {
+      return function (integer) ? " TRUE " : " FALSE ";
+   }
+   inline string bool_string(bool (* function) (const Integer&, const Integer& ), const Integer& first, const Integer& second) {
+      return function (first, second) ? " TRUE " : " FALSE ";
+   }
+   using namespace integer_test;
+   
+   void compare(const Integer &first, const Integer &second) {
+      cout << "\n COMPARE OF INTEGERS:\n";
+      cout << first << "\n";
+      cout << second << "\n";
+
+      cout << first << " is zero: " << bool_string(Integer::is_zero, first) << " \n";
+      cout << second << " is zero: " << bool_string(Integer::is_zero, second) << " \n";
+      
+      cout << first << " is zero: " << bool_string(is_zero, first) << " \n";
+      cout << second << " is zero: " << bool_string(is_zero, second) << " \n";
+
+      cout << first << " == " << second << " : " << bool_string(operator==, first, second) << " \n";
+      cout << first << " != " << second << " : " << bool_string(operator!=, first, second) << " \n";
+      cout << first << " > " << second << " : " << bool_string(operator>, first, second) << " \n";
+      cout << first << " <= " << second << " : " << bool_string(operator<=, first, second) << " \n";
+      cout << first << " < " << second << " : " << bool_string(operator<, first, second) << " \n";
+      cout << first << " >= " << second << " : " << bool_string(operator>=, first, second) << " \n";
+   }
+
+   void assert_comparing_different_signum(Integer & first, Integer & second) {
+      Parsing_Test::parse_string("first", first, "554");
+      assert(static_cast<string> (first) == ("+554"));
+
+      Parsing_Test::parse_string("second", second, "-8890");
+      assert(static_cast<string> (second) == ("-8890"));
+
+      compare(first, second);
+      assert(first.is_zero() == false);
+      assert(second.is_zero() == false);
+
+      assert((first == second) == false);
+      assert((first != second) == true);
+
+      assert((first > second) == true);
+      assert((first <= second) == false);
+
+      assert((first <  second) == false);
+      assert((first >=  second) == true);
+
+      first = -first;
+      assert(static_cast<string> (first) == ("-554"));
+
+      second = -second;
+      assert(static_cast<string> (second) == ("+8890"));
+
+      compare(first, second);
+      assert(first.is_zero() == false);
+      assert(second.is_zero() == false);
+
+      assert((first == second) == false);
+      assert((first != second) == true);
+
+      assert((first > second) == false);
+      assert((first <= second) == true);
+
+      assert((first <  second) == true);
+      assert((first >=  second) == false);
+   }
+
+   void assert_comparing_different_signumZero(Integer & first, Integer & second) {
+      Parsing_Test::parse_string("first", first, "+7");
+      assert(static_cast<string> (first) == ("+7"));
+
+      Parsing_Test::parse_string("second", second, "0");
+      assert(static_cast<string> (second) == ("0"));
+
+      compare(first, second);
+      assert(first.is_zero() == false);
+      assert(second.is_zero() == true);
+
+      assert((first == second) == false);
+      assert((first != second) == true);
+
+      assert((first > second) == true);
+      assert((first <= second) == false);
+
+      assert((first <  second) == false);
+      assert((first >=  second) == true);
+
+      first = -first;
+      assert(static_cast<string> (first) == ("-7"));
+
+      second = - second;
+      assert(static_cast<string> (second) == ("0"));
+
+      compare(first, second);
+      assert(first.is_zero() == false);
+      assert(second.is_zero() == true);
+
+      assert((first == second) == false);
+      assert((first != second) == true);
+
+      assert((first > second) == false);
+      assert((first <= second) == true);
+
+      assert((first <  second) == true);
+      assert((first >=  second) == false);
+   }
+
+   void assert_comparing_identical_signum(Integer & first, Integer & second) {
+      Parsing_Test::parse_string("first", first, "99787");
+      assert(static_cast<string> (first) == ("+99787"));
+
+      Parsing_Test::parse_string("second", second, "+87");
+      assert(static_cast<string> (second) == ("+87"));
+
+      compare(first, second);
+      assert(first.is_zero() == false);
+      assert(second.is_zero() == false);
+
+      assert((first == second) == false);
+      assert((first != second) == true);
+
+      assert((first > second) == true);
+      assert((first <= second) == false);
+
+      assert((first <  second) == false);
+      assert((first >=  second) == true);
+
+      first = -first;
+      assert(static_cast<string> (first) == ("-99787"));
+
+      second = -second;
+      assert(static_cast<string> (second) == ("-87"));
+
+      compare(first, second);
+      assert(first.is_zero() == false);
+      assert(second.is_zero() == false);
+
+      assert((first == second) == false);
+      assert((first != second) == true);
+
+      assert((first > second) == false);
+      assert((first <= second) == true);
+
+      assert((first <  second) == true);
+      assert((first >=  second) == false);
+   }
+}
+
 using namespace integer_test;
 
 using Array_max = array<digit_type, Integer::MAX_ARRAY_LENGTH>; 
@@ -293,24 +451,24 @@ int main() {
 
       Parsing_Test::test_parsing("first", first);
       Parsing_Test::test_parsing("second", second);
-/*
-      ComparingTest.compare(first, second);
-      assert(first.isZero() == false);
-      assert(second.isZero() == false);
 
-      assert(first.isEqualTo(second) == true);
-      assert(first.isNotEqualTo(second) == false);
+      comparing_test::compare(first, second);
+      assert(first.is_zero() == false);
+      assert(second.is_zero() == false);
 
-      assert(first.isGreaterThan(second) == false);
-      assert(first.isLessThanOrEqualTo(second) == true);
+      assert((first == second) == true);
+      assert((first != second) == false);
 
-      assert(first.isLessThan(second) == false);
-      assert(first.isGreaterThanOrEqualTo(second) == true);
+      assert((first > second) == false);
+      assert((first <= second) == true);
 
-      ComparingTest.assertOfComparingDifferentSignum(first, second);
-      ComparingTest.assertOfComparingIdenticalSignum(first, second);
-      ComparingTest.assertOfComparingDifferentSignumZero(first, second);
-      */
+      assert((first <  second) == false);
+      assert((first >=  second) == true);
+
+      comparing_test::assert_comparing_different_signum(first, second);
+      comparing_test::assert_comparing_identical_signum(first, second);
+      comparing_test::assert_comparing_different_signumZero(first, second);
+      
       return 0;
    }
    catch (const Arithmetic_Error & e) {

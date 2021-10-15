@@ -310,6 +310,10 @@ static char get_opposite_signum(const char signum) {
    }
 }
 
+// void Integer::operator-() {
+//    signum = get_opposite_signum(integer.get_signum());
+// }
+
 Integer operator-(const Integer& integer) {
    const char opposite = get_opposite_signum(integer.get_signum());
    return Integer(integer.get_integer_array(), opposite);
