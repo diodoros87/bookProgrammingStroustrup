@@ -5,6 +5,7 @@
 #include<string>
 #include<array>
 #include<vector>
+#include<iostream>
 
 using std::array;
 using std::vector;
@@ -67,7 +68,7 @@ public:
 private:
    template <typename Container>
    static void validate_size(const Container& obj) {
-      if (MAX_ARRAY_LENGTH < obj.size())
+      if (MAX_ARRAY_LENGTH < obj.size() || obj.size() <= 0)
          throw invalid_argument(Integer::SIZE_INCORRECT);
    }
    array<digit_type, MAX_ARRAY_LENGTH> get_integer_array() const { return integer_array; }
@@ -108,7 +109,7 @@ public:
    
    template <const unsigned int N>
    void set_integer_array(const array<digit_type, N> & table) {
-      static_assert( N <= MAX_ARRAY_LENGTH && N >= 0 && "set_integer_array requires 0 <= N <= MAX_ARRAY_LENGTH");
+      static_assert( N <= MAX_ARRAY_LENGTH && N > 0 && "set_integer_array requires 0 < N <= MAX_ARRAY_LENGTH");
       validate_set(table);
    }
    //void set(const Integer& integer);
@@ -123,9 +124,9 @@ public:
    
    void validate_signum(const char signum) const {
       if (signum == NEUTRAL && false == is_zero()) 
-         throw invalid_argument("Requirement: can not set signum to zero for nonzero integer");
-      else if (signum != 0 && true == is_zero()) {
-         throw invalid_argument("Requirement: can not set signum to other than zero for zero integer");
+         throw invalid_argument("Requirement: can not set signum to neutral for nonzero integer");
+      else if (signum != NEUTRAL && true == is_zero()) {
+         throw invalid_argument("Requirement: can not set signum to other than neutral for zero integer");
       }
    }
 
@@ -213,6 +214,8 @@ void Integer::validate_set(const Container & TABLE) {  // assume that integer_ar
    this->integer_array.fill(0);  // not call reset_number_to_zero() due to change signum (in set_integer_array() save previous signum)
    digit_type number;
    short dest_index = MAX_ARRAY_LENGTH - 1;
+   if (TABLE.size() == 0)
+      std::cerr << "\n                          TABLE.size() = " << TABLE.size() << '\n';
    for (short source_index = TABLE.size() - 1; source_index >= 0 ; source_index--) {
       number = TABLE[source_index];
       if (number < 0 || number > 9) {

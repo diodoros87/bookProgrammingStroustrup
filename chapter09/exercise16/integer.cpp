@@ -14,7 +14,7 @@ using std::runtime_error;
 
 namespace integer_space {
    
-const string Integer::SIZE_INCORRECT = "Requirement: elements <= " + to_string(Integer::MAX_ARRAY_LENGTH);
+const string Integer::SIZE_INCORRECT = "Requirement: 0 < elements <= " + to_string(Integer::MAX_ARRAY_LENGTH);
 const string Integer::SIGNUM_INCORRECT = "Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
          + "', " + string(1, Integer::PLUS) + "'\n";
 /*

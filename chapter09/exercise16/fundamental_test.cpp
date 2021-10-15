@@ -66,19 +66,19 @@ void set_integer_array_test(Integer & integer) {
    set(a, integer);
    integer_assert(integer, sign, "72700");
    
-   constexpr array<digit_type, Integer::MAX_ARRAY_LENGTH> i40 = { 7, 2, 9};
+   constexpr array<digit_type, Integer::MAX_ARRAY_LENGTH> i40 = { 1, 2, 5};
    set(i40, integer);
-   integer_assert(integer, sign, "7290000000000000000000000000000000000000");
+   integer_assert(integer, sign, "1250000000000000000000000000000000000000");
    
-   constexpr array<digit_type, 0> empty = { };
-   set<0>(empty, integer);
+   vector<digit_type> vec(Integer::MAX_ARRAY_LENGTH);
+   set(vec, integer);
    integer_assert(integer, Integer::NEUTRAL, "0");
    
-   vector<digit_type> vec = { 0, 4 , 5};
+   vec = { 0, 4 , 5};
    set(vec, integer);
    integer_assert(integer, Integer::PLUS, "45");
    
-   vec = { };
+   vec = { 0 };
    set(vec, integer);
    integer_assert(integer, Integer::NEUTRAL, "0");
 }
@@ -112,6 +112,18 @@ void fail_set_integer_array_test(Integer & integer) {
       constexpr array<digit_type, 2> integer_array = { -5, 0};
       cout << __func__ << " tests FAIL of set_integer_array <" << integer_array.size() <<  "> \n";
       set(integer_array, integer);
+      assert(false);
+   }
+   catch (const invalid_argument& e) {
+      assert( static_cast<string>(integer) == "0");
+      cerr << __func__ << " exception: " << e.what() << endl;
+   }
+   
+   try {
+      const vector<digit_type> vec = { };
+      set(vec, integer);
+      cout << __func__ << " tests FAIL of set_integer_array <vector> \n";
+      set(vec, integer);
       assert(false);
    }
    catch (const invalid_argument& e) {

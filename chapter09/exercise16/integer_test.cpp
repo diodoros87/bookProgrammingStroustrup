@@ -210,7 +210,7 @@ namespace setters_test {
          cerr << "??? " << integer_name << " integer after set signum to '" << signum << "' : " << integer;
          assert(false);
       } catch (const invalid_argument & e) {
-         cerr << "Exception while set signum to '" << signum << "' : " << e.what() << "\n";
+         cerr << "\nException while set signum to '" << signum << "' : " << e.what() << "\n";
       }
 
       constexpr digit_type  array5[] = {3, 5, 7};
@@ -220,21 +220,21 @@ namespace setters_test {
 
       signum = Integer::PLUS;
       integer.set_signum(signum);
-      cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer;
+      cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer << '\n';
       assert("+357" == static_cast<string> (integer));
 
       signum = Integer::MINUS;
       integer.set_signum(signum);
-      cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer;
+      cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer << '\n';
       assert("-357" == static_cast<string> (integer));
-
+      
+      signum = Integer::NEUTRAL;
       try {
-         signum = Integer::NEUTRAL;
          integer.set_signum(signum);
-         cerr << "??? " << integer_name << " integer after set signum to '" << signum << "' : " << integer;
+         cerr << "??? " << integer_name << " integer after set signum to '" << signum << "' : " << integer << '\n';
          assert(false);
       } catch (const invalid_argument & e) {
-         cerr << "Exception while set signum to '" << signum << "' : " << e.what() << "\n";
+         cerr << "\nException while set signum to '" << signum << "' : " << e.what() << "\n";
          assert("-357" == static_cast<string> (integer));
       }
 
@@ -243,7 +243,7 @@ namespace setters_test {
       assert_Integer(integer, "0");
       signum = Integer::NEUTRAL;
       integer.set_signum(signum);
-      cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer;
+      cout <<  integer_name << " integer after set signum to '" << signum << "' : " << integer << '\n';
       integer_assert(integer, Integer::NEUTRAL, "0");
 
       cout << "\n ------------------------\n";
