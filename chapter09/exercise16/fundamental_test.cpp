@@ -206,6 +206,9 @@ Integer& move_test (Integer&& param) {
    return param;
 }
 
+Integer& move_test_void (Integer&& param) {
+   return param;
+}
 
 void assignment_test() {
    static constexpr array<digit_type, Integer::MAX_ARRAY_LENGTH> a1 = { 7, 2, 8, 5};
@@ -231,6 +234,12 @@ void assignment_test() {
    assert(static_cast<string>(i1) == ("-7285"));
    assert(static_cast<string>(i2) == ("-7285"));
    assert(static_cast<string>(i3) == ("-7285"));
+   
+   move_test_void({vector<digit_type> { 4, 7, 9, 2}, Integer::MINUS });
+   cout << " after call move_test_void({ vector<digit_type>{ 4, 7, 9, 2}, Integer::MINUS }) => i2 = " << i2 << '\n';
+   i2 = move_test_void({vector<digit_type> { 4, 7, 9, 2}, Integer::MINUS });
+   cout << " after return from i2 = move_test_void({vector<digit_type>{ 4, 7, 9, 2}, Integer::MINUS }) => i2 = " << i2 << '\n';
+   assert(static_cast<string>(i2) == ("-4792"));
    
    move_test({ });
    cout << " after call move_test({ }) => i3 = " << i3 << '\n';

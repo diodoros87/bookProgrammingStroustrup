@@ -14,8 +14,8 @@ fundamental_test: fundamental_test.o integer.o integer_parsing.o parsing_test.o
 arithmetic_test: arithmetic_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o arithmetic_test arithmetic_test.o integer.o integer_parsing.o parsing_test.o
 	
-random_tests: random_tests.o integer.o
-	$(CXX) $(CPPFLAGS) -o random_tests random_tests.o integer.o
+random_tests: random_tests.o integer.o integer_parsing.o
+	$(CXX) $(CPPFLAGS) -o random_tests random_tests.o integer.o integer_parsing.o
 	
 integer_test: integer_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o integer_test integer_test.o integer.o integer_parsing.o parsing_test.o
@@ -28,7 +28,7 @@ fundamental_test.o: fundamental_test.cpp integer.hpp integer_parsing.hpp asserti
 arithmetic_test.o: arithmetic_test.cpp integer.hpp integer_parsing.hpp parsing_test.hpp
 	$(CXX) $(CPPFLAGS) -c arithmetic_test.cpp
 	
-random_tests.o: random_tests.cpp integer.hpp random_numbers.hpp
+random_tests.o: random_tests.cpp integer.hpp random_numbers.hpp integer_parsing.hpp
 	$(CXX) $(CPPFLAGS) -c random_tests.cpp
     
 integer_test.o: integer_test.cpp integer.hpp integer_parsing.hpp assertions.hpp

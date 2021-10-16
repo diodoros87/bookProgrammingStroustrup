@@ -13,17 +13,22 @@ using namespace std;
 using namespace integer_space;
 
 namespace random_tests {
+   template <typename T>
    void run() {
-      constexpr long long MIN = numeric_limits<long long>::min();
-      constexpr long long MAX = numeric_limits<long long>::max();
-      Int_Generator<long long> generator = { MIN, MAX };
-      cerr << " random = " << generator() << '\n';
+      static_assert(is_integral<T>::value && "Integral required.");
+      constexpr T MIN = numeric_limits<T>::min();
+      constexpr T MAX = numeric_limits<T>::max();
+      Int_Generator<T> generator = { MIN, MAX };
+      cerr << " random = " << static_cast<T>(generator()) << '\n';
    }
 }
 
 int main() {
    try {
-      random_tests::run();
+      random_tests::run<long long>();
+      random_tests::run<int>();
+      random_tests::run<short>();
+      random_tests::run<unsigned>();
       return 0;
    }
    catch (const Arithmetic_Error & e) {
