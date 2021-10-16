@@ -19,7 +19,7 @@ namespace arithmetic_test {
 string get_number_string(const char character, const size_t length);
 
 class Adding_Subtracting_Test {
-public:
+private:
    static Integer first_static;
    static Integer second_static;
 public:

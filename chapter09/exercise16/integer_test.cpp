@@ -10,6 +10,7 @@
 #include <array>
 #include <algorithm>
 #include <cstring>
+#include <random>
 
 using namespace std;
 using namespace integer_space;
@@ -165,6 +166,8 @@ Integer create_construct(const char SIGNUM, const digit_type * TABLE) {
 template <const unsigned int N>
 void set(const digit_type TABLE[], Integer & integer) {
    static_assert( N <= Integer::MAX_ARRAY_LENGTH && N > 0 && "set requires 0 < N <= MAX_ARRAY_LENGTH");
+   if (TABLE == nullptr)
+      throw invalid_argument("Parameter TABLE can not be nullptr");
 
    const vector<digit_type> VEC = { TABLE, TABLE + N };
    integer.set_integer_array(VEC);
@@ -176,6 +179,25 @@ void set(const digit_type TABLE[], Integer & integer) {
    integer.set_integer_array<N>(ARRAY);
    cerr << "\ninteger after set by array: " << integer << '\n';
    assert(integer_string == static_cast<string> (integer));
+}
+
+void set_random_values(array<digit_type, Integer::MAX_ARRAY_LENGTH> & modified) {
+   random_device rd;
+   uniform_int_distribution<digit_type> dist(0, 9);
+   for (int_fast8_t n = 0; n < Integer::MAX_ARRAY_LENGTH; ++n)
+      modified[n] = dist(rd);
+}
+
+void test_get_copy_array(Integer & integer) {
+   cout << " \nTEST of GETTING INTEGER ARRAY COPY\n";
+   array<digit_type, Integer::MAX_ARRAY_LENGTH> copy = integer.get_integer_array_copy();
+   print_container("Copy of integer array:", copy);
+   set_random_values(copy);
+   print_container("Copy of integer array after set_random_values:", copy);
+   print_container("integer array:", integer.get_integer_array_copy());
+   integer.set_integer_array<Integer::MAX_ARRAY_LENGTH>(copy);
+   print_container("integer array after set modified previous copy:", integer.get_integer_array_copy());
+   assert(copy == integer.get_integer_array_copy());
 }
 
 }
@@ -410,7 +432,7 @@ namespace comparing_test {
 
 using namespace integer_test;
 
-using Array_max = array<digit_type, Integer::MAX_ARRAY_LENGTH>; 
+using Array_MAX = array<digit_type, Integer::MAX_ARRAY_LENGTH>; 
 
 int main() {
    try {
@@ -425,7 +447,17 @@ int main() {
       set<6>(TABLE, first);
       cout << "First integer after set other table: " << first << '\n';
       assert(static_cast<string>(first) == ("-423074"));
-
+      
+      try {
+         set<6>(nullptr, first);
+         cout << "??? First integer after set minus_number_array: " << first << '\n';
+         assert(false);
+      } catch (const invalid_argument & e) {
+         cerr << __func__ <<  " : Exception while set null_array: " << e.what() << "\n";
+         cout << "First integer after exception catch: " << first << '\n';
+         assert(static_cast<string>(first) == ("-423074"));
+      }
+      test_get_copy_array(first);
       try {
          constexpr digit_type minus_number_array[] = {4, -2, 3, 0, 7, 4};
          set<6>(minus_number_array, first);
@@ -437,7 +469,7 @@ int main() {
          assert(static_cast<string>(first) == ("0"));
       }
       
-      Array_max first_integer_array_copy = first.get_integer_array_copy();
+      Array_MAX first_integer_array_copy = first.get_integer_array_copy();
       print_container("Copy of first integer array:", first_integer_array_copy);
       first_integer_array_copy[14] = first_integer_array_copy[11] = first_integer_array_copy[12] = 9;
       print_container("Copy of first integer array after change:", first_integer_array_copy);

@@ -407,7 +407,7 @@ static short get_mismatch_value_index(const Container& ARRAY, const int fromInde
 
 array<digit_type, Integer::MAX_ARRAY_LENGTH> Integer::calculate_dividing(const array<digit_type, MAX_ARRAY_LENGTH> & DIVIDEND_ARRAY, 
                short current_dividend_index, const Integer & DIVISOR) {
-   array<digit_type, MAX_ARRAY_LENGTH> result_array;
+   array<digit_type, MAX_ARRAY_LENGTH> result_array { };
    //const short DIVISOR_DIGITS_LENGTH = DIVISOR_ARRAY.size() - DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX;
    vector<digit_type> temporary_dividend_array;
    Integer temporary_dividend;
@@ -570,12 +570,15 @@ static Integer sum_multiplication_results(const array<Integer, Integer::MAX_ARRA
 Integer Integer::multiply_absolute_values(const Integer & first, const Integer & second) {
    detect_multiplication_overflow(first, second);
    array< array<digit_type, MAX_ARRAY_LENGTH>, MAX_ARRAY_LENGTH > result_array;
-   for (short first_index = MAX_ARRAY_LENGTH - 1; first_index >= 0; first_index--) {
-      for (short second_index = MAX_ARRAY_LENGTH - 1; second_index >= 0; second_index--) {
-         result_array[first_index][second_index] = 0;
-         //cerr << "\nresult_array[" << first_index << "][" << second_index << "] = " << result_array[first_index][second_index] << '\n';
-      }
-   }
+//    for (short first_index = MAX_ARRAY_LENGTH - 1; first_index >= 0; first_index--) {
+//       for (short second_index = MAX_ARRAY_LENGTH - 1; second_index >= 0; second_index--) {
+//          result_array[first_index][second_index] = 0;
+//          cerr << "\nresult_array[" << first_index << "][" << second_index << "] = " << result_array[first_index][second_index] << '\n';
+//       }
+//    }
+   for (short first_index = MAX_ARRAY_LENGTH - 1; first_index >= 0; first_index--) 
+      result_array[first_index].fill(0);
+
    array<Integer, MAX_ARRAY_LENGTH> integers_array;
    digit_type first_integer_digit;
    digit_type second_integer_digit;

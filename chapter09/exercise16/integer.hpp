@@ -65,6 +65,12 @@ public:
       validate_size(vec);
       validate_init(vec, signum);
    }
+   
+   ~ Integer() = default;
+   Integer(const Integer &) = default;
+   Integer(Integer &&) = default;
+   Integer & operator=(const Integer &) = default;
+   Integer & operator=(Integer &&) = default;
 private:
    template <typename Container>
    static void validate_size(const Container& obj) {
