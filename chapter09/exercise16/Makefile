@@ -1,7 +1,7 @@
 CXX = g++
 CPPFLAGS = -Wfatal-errors -Wall -Wextra -std=c++14 -fcompare-debug-second 
 
-PROGRAMS  = integer_test fundamental_test arithmetic_test
+PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests
 #PROGRAMS  =  fundamental_test
 
 .PHONY: clean all
@@ -14,14 +14,22 @@ fundamental_test: fundamental_test.o integer.o integer_parsing.o parsing_test.o
 arithmetic_test: arithmetic_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o arithmetic_test arithmetic_test.o integer.o integer_parsing.o parsing_test.o
 	
+random_tests: random_tests.o integer.o
+	$(CXX) $(CPPFLAGS) -o random_tests random_tests.o integer.o
+	
 integer_test: integer_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o integer_test integer_test.o integer.o integer_parsing.o parsing_test.o
+	
+	
 	
 fundamental_test.o: fundamental_test.cpp integer.hpp integer_parsing.hpp assertions.hpp parsing_test.hpp
 	$(CXX) $(CPPFLAGS) -c fundamental_test.cpp
 	
-arithmetic_test.o: arithmetic_test.cpp integer.hpp integer_parsing.hpp assertions.hpp parsing_test.hpp
+arithmetic_test.o: arithmetic_test.cpp integer.hpp integer_parsing.hpp parsing_test.hpp
 	$(CXX) $(CPPFLAGS) -c arithmetic_test.cpp
+	
+random_tests.o: random_tests.cpp integer.hpp random_numbers.hpp
+	$(CXX) $(CPPFLAGS) -c random_tests.cpp
     
 integer_test.o: integer_test.cpp integer.hpp integer_parsing.hpp assertions.hpp
 	$(CXX) $(CPPFLAGS) -c integer_test.cpp

@@ -198,14 +198,55 @@ void constructor_test() {
    Parsing_Test::test_parsing("i2", i2);
 }
 
+Integer& move_test (Integer&& param) {
+   static const vector<digit_type> VEC = { 1, 1, 1};
+   param = Integer {VEC, Integer::PLUS};
+   cout << __func__ << " after param = Integer {VEC, Integer::PLUS} = " << param << '\n';
+   assert(static_cast<string>(param) == ("+111"));
+   return param;
+}
+
+
+void assignment_test() {
+   static constexpr array<digit_type, Integer::MAX_ARRAY_LENGTH> a1 = { 7, 2, 8, 5};
+   static constexpr array<digit_type, Integer::MAX_ARRAY_LENGTH> a2 = a1;
+   assert(a1 == a2);
+   assert(&a1 != &a2);
+   const vector<digit_type> v1 = { 7, 2, 8, 5};
+   const vector<digit_type> v2 = v1;
+   assert(v1 == v2);
+   assert(&v1 != &v2);
+   Integer i1 = { v1, Integer::MINUS };
+   cout << " i1 = " << i1 << '\n';
+   assert(static_cast<string>(i1) == ("-7285"));
+   Integer i2 = i1;
+   cout << " after i2 = i1 => i1 = " << i1 << '\n';
+   cout << " after i2 = i1 => i2 = " << i2 << '\n';
+   assert(static_cast<string>(i1) == ("-7285"));
+   assert(static_cast<string>(i2) == ("-7285"));
+   Integer i3(i2);
+   cout << " after i3(i2) => i1 = " << i1 << '\n';
+   cout << " after i3(i2) => i2 = " << i2 << '\n';
+   cout << " after i3(i2) => i3 = " << i3 << '\n';
+   assert(static_cast<string>(i1) == ("-7285"));
+   assert(static_cast<string>(i2) == ("-7285"));
+   assert(static_cast<string>(i3) == ("-7285"));
+   
+   move_test({ });
+   cout << " after call move_test({ }) => i3 = " << i3 << '\n';
+   i3 = move_test({ });
+   cout << " after return from i3 = move_test({ }) => i3 = " << i3 << '\n';
+   assert(static_cast<string>(i3) == ("+111"));
+}
+
 }
 
 using namespace main_integer_test;
 
 int main() {
    try {
-      //cout << typeid(array<digit_type, Integer::MAX_ARRAY_LENGTH>()).name() << '\n';
       constructor_test();
+      assignment_test();
       return 0;
    }
    catch (const Arithmetic_Error & e) {
