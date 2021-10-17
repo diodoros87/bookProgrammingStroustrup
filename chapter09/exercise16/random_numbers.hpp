@@ -2,6 +2,7 @@
 #include <type_traits>
 #include <functional>
 #include <chrono>
+#include<limits>
 
 using std::is_integral;
 using std::uniform_int_distribution;
@@ -13,11 +14,11 @@ using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::default_random_engine;
 
-template <typename T> class Int_Generator {
-   //static_assert(0 == 0 && "Integral required.");
+template <typename T> 
+class Generator {
    static_assert(is_integral<T>::value && "Integral required.");
 public:
-   Int_Generator(const T & MIN, const T & MAX) {
+   explicit Generator(const T & MIN, const T & MAX) {
       time_point<system_clock> point = system_clock::now();
       duration<long long> since_epoch = duration_cast<seconds>(point.time_since_epoch());
       long long seed = since_epoch.count();
@@ -27,6 +28,22 @@ public:
    }
    T operator()() { return generator(); }
 private:
-   //uniform_int_distribution<>::param_type param;
    function<T()> generator;
 };
+
+using std::numeric_limits;
+
+template <typename T> 
+struct Generator_MINMAX {
+   static_assert(is_integral<T>::value && "Integral required.");
+public:
+   static constexpr T MIN = numeric_limits<T>::min();
+   static constexpr T MAX = numeric_limits<T>::max();
+   const Generator<T> GENERATOR { Generator<T> { MIN, MAX } } ;
+};
+
+template <typename T>
+constexpr T Generator_MINMAX<T>::MIN ;
+
+template <typename T>
+constexpr T Generator_MINMAX<T>::MAX;

@@ -188,6 +188,10 @@ inline std::ostream& operator<<(std::ostream& os, const Integer & integer) {
    return os << string(integer);
 }
 
+inline Integer operator+(const Integer& integer) {
+   return integer;
+}
+
 template <typename Container>   // private
 void Integer::validate_init(const Container& TABLE, const char signum) {
    //validate_size(TABLE);
