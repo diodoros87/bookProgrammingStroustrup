@@ -561,7 +561,6 @@ void Integer::detect_multiplication_overflow(const Integer & first, const Intege
 
 static Integer sum_multiplication_results(const array<Integer, Integer::MAX_ARRAY_LENGTH> & integers_array) {
    Integer result = {};
-   cerr << "\n integers_array.size() = " << integers_array.size() << '\n';
    for (short index = integers_array.size() - 1; index >= 0; index--)
       result = Integer::add_absolute_values(result, integers_array[index]);
    return result;

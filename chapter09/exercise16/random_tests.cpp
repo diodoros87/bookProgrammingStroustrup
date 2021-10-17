@@ -20,6 +20,7 @@ class Random_Operations {
 static_assert(is_integral<T>::value && "Integral required.");
 private:
    Generator<T> generator;
+   bool overflow = false;
 public:
    explicit Random_Operations(const Generator<T> & gen) : generator(gen) { }
    
@@ -36,22 +37,67 @@ public:
    Integer construct_Integer (const T& NUMBER) { 
       const string STR = to_string(NUMBER);
       Integer i = Integer::parse_create(STR);
+      assert(static_cast<string>(i) == STR);
       return i;
    }
    
-   void check(const long long && NUMBER, const Integer && OBJECT) {
-      cout << showpos << "\n number  = " << NUMBER << "\n integer = " << OBJECT << '\n';
-      stringstream stream;
+//    constexpr bool may_overflow() {
+//       constexpr MIN = 
+//    }
+   
+   void check(const long long & NUMBER, const Integer & OBJECT) {
+      //cerr << showpos << "\n number  = " << NUMBER << "\n object = " << OBJECT;
+      ostringstream stream;
       if (0 != NUMBER)
-         stream.setf(showpos);
+         stream.setf(ios_base::showpos);
       stream << NUMBER;
       const string number_string = stream.str();
       const string object_string = string(OBJECT);
-      cout << "\n number  = " << number_string << "\n integer = " << object_string << '\n';
-      assert(number_string == object_string);
+      //cerr << "\n number  = " << number_string << "\n object = " << object_string << '\n';
+      //assert(number_string == object_string);
+      GENERAL_ASSERT(number_string == object_string, "\n number = " + number_string + "\n object = " + object_string);
+      //return number_string == object_string;
+   } 
+   
+   long long add_subtract_2(const long long & NUMBER, const Integer & OBJECT, const char SIGNUM) {
+      number_result = 2 * NUMBER;
+      cerr << showpos << "\n number:  2 * " << NUMBER << " = " << number_result;
+      static OBJECT_TWO = Integer::parse_create("2");
+      object_result   = OBJECT_TWO * OBJECT;
+      if (SIGNUM == Integer::MINUS) {
+         object_result = -object_result;
+         OBJECT_TWO = -OBJECT_TWO;
+      }
+      cerr << "\n object: " << OBJECT_TWO << " * " << OBJECT << " = " << object_result << '\n';
+      check(number_result, object_result);
+      return number_result;
    }
    
-   void run (const unsigned long long REPETITIONS) {
+   void add_subtract(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
+      long long number_result = N_1 + N_2;
+      cerr << showpos << "\n number: " << N_1 << " + " << N_2 << " = " << number_result;
+      Integer object_result   = O_1 + O_2;
+      cerr << "\n object: " << O_1 << " + " << O_2 << " = " << object_result << '\n';
+      check(number_result, object_result);
+      
+      number_result = - N_1 - N_2;
+      cerr << showpos << "\n number: " << - N_1 << " - " << N_2 << " = " << number_result;
+      object_result   = - O_1 - O_2;
+      cerr << "\n object: " << - O_1 << " - " << O_2 << " = " << object_result << '\n';
+      check(number_result, object_result);
+      
+      number_result = 2 * N_1;
+      cerr << showpos << "\n number:  2 * " << NUMBER << " = " << number_result;
+      static const OBJECT_TWO = Integer::parse_create("2");
+      object_result   = OBJECT_TWO * OBJECT;
+      cerr << "\n object: " << OBJECT_TWO << " * " << OBJECT << " = " << object_result << '\n';
+      check(number_result, object_result);
+      static const OBJECT_TWO = Integer::parse_create("+2");
+      check(number_result, object_result);
+   }
+   
+   void run_single_number (const unsigned long long REPETITIONS) {
+      cout << "\n\n ----------- Test run for type: " << typeid(T).name() << '\n';
       T number;
       Integer object;
       for (int i = 0; i < REPETITIONS; i++) {
@@ -59,10 +105,16 @@ public:
          object = construct_Integer(number);
          check(+number, +object);
          check(-number, -object);
-         check(number + number, object + object);
-         check(number - number, object - object);
-         check(number * number, object * object);
-         check(number / number, object / object);
+         check(static_cast<long long>(number) - number, object - object);
+         check(static_cast<long long>(-number) + number, -object + object);
+//          check(static_cast<long long>(number) + number, object + object);
+//          check(static_cast<long long>(number) - number, object - object);
+//          check(static_cast<long long>(number) * number, object * object);
+//          check(static_cast<long long>(-number) + number, -object + object);
+//          check(static_cast<long long>(-number) - number, -object - object);
+//          check(static_cast<long long>(-number) * number, -object * object);
+//          if (0 != number)
+//             check(static_cast<long long>(number) / number, object / object);
       }
    }
 };
@@ -70,8 +122,8 @@ public:
 template <typename T>
 void run(const Generator<T> & gen) {
    Random_Operations<T> operations (gen); 
-   static constexpr unsigned long long REPETITIONS = 10;
-   operations.run(REPETITIONS);
+   static constexpr unsigned long long REPETITIONS = 100;
+   operations.run_single_number(REPETITIONS);
 }
    //inline void run
 void run() {

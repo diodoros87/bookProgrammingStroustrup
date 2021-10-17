@@ -37,7 +37,7 @@ using integer_space::Integer;
 #   define assert_Integer(Integer, String) ;
 #endif
 
-void GENERAL_ASSERT(const char* expr_str, const bool expr, const char* file, const int line, 
+inline void GENERAL_ASSERT(const char* expr_str, const bool expr, const char* file, const int line, 
                 const char* date, const char* time, const string& msg) {
     if (! expr) {
       cerr << "\nAssert failed:\t" << msg << "\n"
