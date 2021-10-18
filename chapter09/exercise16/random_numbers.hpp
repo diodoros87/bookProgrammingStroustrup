@@ -1,3 +1,6 @@
+#ifndef RANDOM_NUMBERS_HPP
+#define RANDOM_NUMBERS_HPP
+
 #include <random>
 #include <type_traits>
 #include <functional>
@@ -28,20 +31,14 @@ public:
       default_random_engine engine (seed);
       uniform_int_distribution<>::param_type param {MIN, MAX};
       this->generator = bind(uniform_int_distribution<>{param}, engine);
-      (*this).min = engine.min() > MIN ? engine.min() : MIN;
-      //unsigned eng_min = engine.min();
-      //unsigned eng_max = engine.max();
-      //(*this).min = std::max(engine.min(), MIN);
-      //(*this).max = std::min(engine.max(), MAX);
-      (*this).max = engine.max() < MAX ? engine.max() : MAX;
    }
    T operator()() { return generator(); }
    T get_min() { return min; }
    T get_max() { return max; }
 private:
    function<T()> generator;
-   T min;
-   T max;
+   const T min;
+   const T max;
 };
 
 using std::numeric_limits;
@@ -52,7 +49,7 @@ struct Generator_MINMAX {
 public:
    static constexpr T MIN = numeric_limits<T>::min();
    static constexpr T MAX = numeric_limits<T>::max();
-   const Generator<T> GENERATOR { Generator<T> { MIN, MAX } } ;
+   Generator<T> GENERATOR { Generator<T> { MIN, MAX } } ;
 };
 
 template <typename T>
@@ -60,3 +57,5 @@ constexpr T Generator_MINMAX<T>::MIN ;
 
 template <typename T>
 constexpr T Generator_MINMAX<T>::MAX;
+
+#endif

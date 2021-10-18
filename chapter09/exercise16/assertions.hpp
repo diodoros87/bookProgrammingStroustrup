@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include<sstream>
 
 #include "integer.hpp"
 //#include "integer_parsing.hpp"
@@ -13,6 +14,8 @@
 
 using std::cerr;
 using std::string;
+using std::ostringstream;
+using std::ios_base;
 
 using integer_space::Integer;
 
@@ -35,6 +38,13 @@ using integer_space::Integer;
    ASSERT_INTEGER(Integer, Number_String, __FILE__, __LINE__, __DATE__, __TIME__)
 #else
 #   define assert_Integer(Integer, String) ;
+#endif
+   
+#ifndef NDEBUG
+#  define assert_number_Integer(LongLong, Integer) \
+   ASSERT_NUMBER_INTEGER(LongLong, Integer, __FILE__, __LINE__, __DATE__, __TIME__)
+#else
+#   define assert_number_Integer(LongLong, Integer) ;
 #endif
 
 inline void GENERAL_ASSERT(const char* expr_str, const bool expr, const char* file, const int line, 
@@ -73,14 +83,19 @@ void ASSERT_INTEGER(const Integer& x, const string& expected_number,
    }
 }
 
-/*
-void __my_assertion_double(double x, double expected_x, const char* file, const int line) {
-   if (x != expected_x) {
-      const string message = " " + to_string(x) +
-                        " != expected " + " " + to_string(expected_x);
-      GENERAL_ASSERT("x == expected_x", x == expected_x, file, line, message);
+void ASSERT_NUMBER_INTEGER(const long long & NUMBER, const Integer & OBJECT,
+                     const char* file, const int line,
+                     const char* date, const char* time) {
+   ostringstream stream;
+   if (0 != NUMBER)
+      stream.setf(ios_base::showpos);
+   stream << NUMBER;
+   const string number_string = stream.str();
+   const string object_string = string(OBJECT);
+   if (number_string != object_string) {
+      const string message = "\n number = " + number_string + "\n object = " + object_string;
+      GENERAL_ASSERT(object_string.c_str(), number_string == object_string, file, line, date, time, message);
    }
-}
-*/
+} 
 
 #endif
