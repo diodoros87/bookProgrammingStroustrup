@@ -37,7 +37,9 @@ public:
    Integer construct_Integer (const T& NUMBER) { 
       const string STR = to_string(NUMBER);
       Integer i = Integer::parse_create(STR);
-      assert(static_cast<string>(i) == STR);
+      //assert_Integer(i, STR);
+      //assert(static_cast<string>(i) == STR);
+      check(NUMBER, i);
       return i;
    }
    
@@ -55,22 +57,35 @@ public:
       const string object_string = string(OBJECT);
       //cerr << "\n number  = " << number_string << "\n object = " << object_string << '\n';
       //assert(number_string == object_string);
-      GENERAL_ASSERT(number_string == object_string, "\n number = " + number_string + "\n object = " + object_string);
+      //assert_Integer(i, STR);
+      general_assert(number_string == object_string, "\n number = " + number_string + "\n object = " + object_string);
       //return number_string == object_string;
    } 
    
-   long long add_subtract_2(const long long & NUMBER, const Integer & OBJECT, const char SIGNUM) {
-      number_result = 2 * NUMBER;
+//    Integer multiply_by_2(const long long & NUMBER, const Integer & OBJECT, const char&& SIGNUM) {
+//       long long number_result = 2 * NUMBER;
+//       static Integer OBJECT_TWO = Integer::parse_create("2");
+//       if (SIGNUM == Integer::MINUS) {
+//          number_result = -number_result;
+//          OBJECT_TWO = -OBJECT_TWO;
+//       }
+//       Integer object_result   = OBJECT_TWO * OBJECT;
+//       
+//       cerr << showpos << "\n number:  2 * " << NUMBER << " = " << number_result;
+//       cerr << "\n object: " << OBJECT_TWO << " * " << OBJECT << " = " << object_result << '\n';
+//       check(number_result, object_result);
+//       return object_result;
+//    }
+   
+   Integer multiply_by_2(const long long & NUMBER, const Integer & OBJECT) {
+      const long long number_result = 2 * NUMBER;
+      static const Integer OBJECT_TWO = Integer::parse_create("2");
+      const Integer object_result   = OBJECT_TWO * OBJECT;
+      
       cerr << showpos << "\n number:  2 * " << NUMBER << " = " << number_result;
-      static OBJECT_TWO = Integer::parse_create("2");
-      object_result   = OBJECT_TWO * OBJECT;
-      if (SIGNUM == Integer::MINUS) {
-         object_result = -object_result;
-         OBJECT_TWO = -OBJECT_TWO;
-      }
       cerr << "\n object: " << OBJECT_TWO << " * " << OBJECT << " = " << object_result << '\n';
       check(number_result, object_result);
-      return number_result;
+      return object_result;
    }
    
    void add_subtract(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
@@ -79,34 +94,38 @@ public:
       Integer object_result   = O_1 + O_2;
       cerr << "\n object: " << O_1 << " + " << O_2 << " = " << object_result << '\n';
       check(number_result, object_result);
+      if (N_1 == N_2 && multiply_by_2(N_1, O_1) != object_result)
+         assert(false && " 2 * x != x + x ");
       
       number_result = - N_1 - N_2;
       cerr << showpos << "\n number: " << - N_1 << " - " << N_2 << " = " << number_result;
       object_result   = - O_1 - O_2;
       cerr << "\n object: " << - O_1 << " - " << O_2 << " = " << object_result << '\n';
       check(number_result, object_result);
-      
-      number_result = 2 * N_1;
-      cerr << showpos << "\n number:  2 * " << NUMBER << " = " << number_result;
-      static const OBJECT_TWO = Integer::parse_create("2");
-      object_result   = OBJECT_TWO * OBJECT;
-      cerr << "\n object: " << OBJECT_TWO << " * " << OBJECT << " = " << object_result << '\n';
-      check(number_result, object_result);
-      static const OBJECT_TWO = Integer::parse_create("+2");
-      check(number_result, object_result);
+      if (-N_1 == -N_2 && multiply_by_2(-N_1, -O_1) != object_result)
+         assert(false && "- 2 * x != - x - x ");
    }
    
    void run_single_number (const unsigned long long REPETITIONS) {
       cout << "\n\n ----------- Test run for type: " << typeid(T).name() << '\n';
       T number;
       Integer object;
+      static const Integer ZERO = construct_Integer(0);
+      check(0, ZERO);
+      check(-0, construct_Integer(0));
+      check(+0, construct_Integer(+0));
       for (int i = 0; i < REPETITIONS; i++) {
+         cerr << "--- REPETITION " << i << '\n';
          number = generator();
          object = construct_Integer(number);
+         check(number, object);
          check(+number, +object);
          check(-number, -object);
          check(static_cast<long long>(number) - number, object - object);
          check(static_cast<long long>(-number) + number, -object + object);
+         add_subtract(number, number, object, object);
+         add_subtract(0, number, ZERO, object);
+         add_subtract(number, 0, object, ZERO);
 //          check(static_cast<long long>(number) + number, object + object);
 //          check(static_cast<long long>(number) - number, object - object);
 //          check(static_cast<long long>(number) * number, object * object);

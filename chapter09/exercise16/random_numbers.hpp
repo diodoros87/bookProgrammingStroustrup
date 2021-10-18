@@ -3,7 +3,7 @@
 #include <functional>
 #include <chrono>
 #include <limits>
-#include <cmath>
+//#include <algorithm>
 
 using std::is_integral;
 using std::uniform_int_distribution;
@@ -28,12 +28,12 @@ public:
       default_random_engine engine (seed);
       uniform_int_distribution<>::param_type param {MIN, MAX};
       this->generator = bind(uniform_int_distribution<>{param}, engine);
-      //(*this).min = engine.min() > MIN ? engine.min() : MIN;
+      (*this).min = engine.min() > MIN ? engine.min() : MIN;
       //unsigned eng_min = engine.min();
       //unsigned eng_max = engine.max();
-      (*this).min = fmax(engine.min(), MIN);
-      (*this).max = fmin(engine.max(), MAX);
-      //(*this).max = engine.max() < MAX ? engine.max() : MAX;
+      //(*this).min = std::max(engine.min(), MIN);
+      //(*this).max = std::min(engine.max(), MAX);
+      (*this).max = engine.max() < MAX ? engine.max() : MAX;
    }
    T operator()() { return generator(); }
    T get_min() { return min; }

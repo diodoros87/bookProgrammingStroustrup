@@ -18,7 +18,7 @@ using integer_space::Integer;
 
 #ifndef NDEBUG
 #  define general_assert(Expr, Msg) \
-   GENERAL_ASSERT(#Expr, Expr, __FILE__, __LINE__, __DATE__,  Msg)
+   GENERAL_ASSERT(#Expr, Expr, __FILE__, __LINE__, __DATE__, __TIME__,  Msg)
 #else
 #   define general_assert(Expr, Msg) ;
 #endif
