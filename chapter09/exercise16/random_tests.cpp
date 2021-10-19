@@ -137,31 +137,31 @@ public:
          test_by_position(number, 0, object, ZERO);
       }
    }
-   
-//    void run_two_random (const unsigned long long REPETITIONS) {
-//       cout << "\n\n ----------- Test run for type: " << typeid(T).name() << '\n';
-//       T number_1;
-//       T number_2;
-//       Integer object_1;
-//       Integer object_2;
-//       for (unsigned long long i = 0; i < REPETITIONS; i++) {
-//          cerr << "--- REPETITION " << i << '\n';
-//          number_1 = generator();
-//          number_2 = generator();
-//          cerr << " nnnnnnnnnnnnnnnnnnnnn Generate number = " << number << '\n';
-//          validate(number_1);
-//          validate(number_2);
-//          object_1 = construct_Integer(number_1);
-//          object_2 = construct_Integer(number_2);
-//          check_unary(number_1, object_1);
-//          check_unary(number_2, object_2);
-//          test_by_position(number_1, number_2, object_1, object_2);
-//       }
-//    }
 };
 
 template <typename T, typename U>
-void run_two_random (Generator<T> & gen_T, Generator<U> & gen_U, const unsigned long long REPETITIONS) {
+void run_two_random (const T & generator_T, const U & generator_U, const unsigned long long REPETITIONS) {
+   cout << "\n\n ----------- Test run for types: " << typeid(T).name() << " and " << typeid(U).name() << '\n';
+   long long number_T;
+   long long number_U;
+   Integer object_T;
+   Integer object_U;
+   for (unsigned long long i = 0; i < REPETITIONS; i++) {
+      cerr << "--- REPETITION " << i << '\n';
+      number_T = (&generator_T)->operator()(0);
+      number_U = (&generator_U)->operator()(0);
+      validate(number_T);
+      validate(number_U);
+      object_T = construct_Integer(number_T);
+      object_U = construct_Integer(number_U);
+      check_unary(number_T, object_T);
+      check_unary(number_U, object_U);
+      test_by_position(number_T, number_U, object_T, object_U);
+   }
+}
+/*
+template <typename T, typename U>
+void run_two_random (const Generator<T> & gen_T, const Generator<U> & gen_U, const unsigned long long REPETITIONS) {
    cout << "\n\n ----------- Test run for types: " << typeid(T).name() << " and " << typeid(U).name() << '\n';
    T number_T;
    U number_U;
@@ -181,45 +181,42 @@ void run_two_random (Generator<T> & gen_T, Generator<U> & gen_U, const unsigned 
       test_by_position(number_T, number_U, object_T, object_U);
    }
 }
-
+*/
 template <typename T>
-void run_by_single_type(Generator<T> & gen, const unsigned long long REPETITIONS) {
+void run_by_single_type(const Generator<T> & gen, const unsigned long long REPETITIONS) {
    Random_Operations<T> operations (gen); 
    //static constexpr unsigned long long REPETITIONS = 10000000;
    operations.run_one_random(REPETITIONS);
-   run_two_random<T, T>(gen, gen, REPETITIONS);
+   //run_two_random<T, T>(gen, gen, REPETITIONS);
+   run_two_random<Generator<T>, Generator<T>>(gen, gen, REPETITIONS);
 }
 
 void run_by_single_type(const unsigned long long REPETITIONS) {
-   struct Generator_set { 
-      Generator_MINMAX<long long> gen_long;
-      Generator_MINMAX<int> gen_int;
-      Generator_MINMAX<short>  gen_short;
-      Generator_MINMAX<char> gen_char;
-   };
-   Generator_set generator_set;
+struct Generator_set { 
+   Generator_MINMAX<long long> gen_long;
+   Generator_MINMAX<int> gen_int;
+   Generator_MINMAX<short>  gen_short;
+   Generator_MINMAX<char> gen_char;
+};
+   static const Generator_set generator_set;
    run_by_single_type<long long>(generator_set.gen_long.GENERATOR, REPETITIONS);
    run_by_single_type<int>(generator_set.gen_int.GENERATOR, REPETITIONS);
    run_by_single_type<short>(generator_set.gen_short.GENERATOR, REPETITIONS);
    run_by_single_type<char>(generator_set.gen_char.GENERATOR, REPETITIONS);
-}
+} 
 
-// void run_by_many_types(const unsigned long long REPETITIONS) {
-//    constexpr array<Operation_Ptr, 4> GENERATORS = {
-//       Generator_MINMAX<long long>,
-//       Generator_MINMAX<int>,
-//       Generator_MINMAX<short>,
-//       Generator_MINMAX<char>
-//    };
-//    for (int_fast8_t index = 0; index < GENERATORS.size(); index++) {
-//       
-//    }
-//    Generator_set generator_set;
-//    run<long long>(generator_set.gen_long.GENERATOR, REPETITIONS);
-//    run<int>(generator_set.gen_int.GENERATOR, REPETITIONS);
-//    run<short>(generator_set.gen_short.GENERATOR, REPETITIONS);
-//    run<char>(generator_set.gen_char.GENERATOR, REPETITIONS);
-// }
+void run_by_many_types(const unsigned long long REPETITIONS) {  
+   //static const Generators_Set<long long, int, short, char> generators_set;
+   static array<Base_Generator, 4> GENERATORS = {
+      Generator_MINMAX<int>().GENERATOR,
+      Generator_MINMAX<long long>().GENERATOR,
+      Generator_MINMAX<short>().GENERATOR,
+      Generator_MINMAX<char>().GENERATOR
+   };
+   for (int_fast8_t first = 0; first < GENERATORS.size() - 1; first++) 
+      for (int_fast8_t second = first + 1; second < GENERATORS.size(); second++) 
+         run_two_random<decltype(GENERATORS[first]), decltype(GENERATORS[second])>(GENERATORS[first], GENERATORS[second], REPETITIONS);
+}
 
 } // end of namespace random_tests
 
@@ -227,11 +224,13 @@ vector<string> to_vector_string(const int argc, const char * argv[]) {
    vector<string> vec;
    for (int i = 0; i < argc; i++)
       vec.push_back(argv[i]);
+   if (argc != vec.size())
+      throw runtime_error("argc must be equal to vec.size()");
    return vec;
 }
 
 unsigned long long examine_command_line(const int argc, const char * argv[]) {
-   long long repetitions = 1000;
+   long long repetitions = 100;
    switch (argc) {
       case 1:
          return repetitions;
@@ -248,8 +247,8 @@ unsigned long long examine_command_line(const int argc, const char * argv[]) {
 int main(const int argc, const char * argv[]) {
    try {
       const unsigned long long REPETITIONS = examine_command_line(argc, argv);
-      random_tests::run_by_single_type(REPETITIONS);
-      //random_tests::run_by_many_types(REPETITIONS);
+      //random_tests::run_by_single_type(REPETITIONS);
+      random_tests::run_by_many_types(REPETITIONS);
       return 0;
    }
    catch (const Arithmetic_Error & e) {

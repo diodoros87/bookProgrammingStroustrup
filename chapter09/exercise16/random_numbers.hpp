@@ -18,8 +18,15 @@ using std::chrono::duration_cast;
 using std::chrono::seconds;
 using std::default_random_engine;
 
+class Base_Generator {
+public:
+   virtual long long operator()(long long) const { return 0; }
+   //virtual long long operator()(long long) const = 0;
+   //virtual ~ Base_Generator() = default;
+};
+
 template <typename T> 
-class Generator {
+class Generator : public Base_Generator {
    static_assert(is_integral<T>::value && "Integral required.");
 public:
    explicit Generator(const T & MIN, const T & MAX) : min(MIN) , max(MAX) {
@@ -32,9 +39,13 @@ public:
       uniform_int_distribution<>::param_type param {MIN, MAX};
       this->generator = bind(uniform_int_distribution<>{param}, engine);
    }
-   T operator()() { return generator(); }
-   T get_min() { return min; }
-   T get_max() { return max; }
+   T operator()() const { return generator(); }
+   //void* operator()(void*) const { return generator(); }
+   long long operator()(long long) const { return generator(); }
+   T get_min() const { return min; }
+   T get_max() const { return max; }
+   
+   //virtual ~Generator() = default;
 private:
    function<T()> generator;
    const T min;
@@ -49,7 +60,10 @@ struct Generator_MINMAX {
 public:
    static constexpr T MIN = numeric_limits<T>::min();
    static constexpr T MAX = numeric_limits<T>::max();
-   Generator<T> GENERATOR { Generator<T> { MIN, MAX } } ;
+   const Generator<T> GENERATOR { Generator<T> { MIN, MAX } } ;
+//    Generator<T> get_generator() const { return GENERATOR; }
+// private:
+//    Generator<T> GENERATOR { Generator<T> { MIN, MAX } } ;
 };
 
 template <typename T>
