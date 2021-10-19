@@ -20,9 +20,9 @@ using std::default_random_engine;
 
 class Base_Generator {
 public:
-   virtual long long operator()(long long) const { return 0; }
-   //virtual long long operator()(long long) const = 0;
-   //virtual ~ Base_Generator() = default;
+   //virtual long long operator()(char &&) const { return 0; }  // argument of char to save memory
+   virtual long long operator()(char &&) const = 0;
+   virtual ~ Base_Generator() = default;
 };
 
 template <typename T> 
@@ -41,7 +41,7 @@ public:
    }
    T operator()() const { return generator(); }
    //void* operator()(void*) const { return generator(); }
-   long long operator()(long long) const { return generator(); }
+   long long operator()(char &&) const override final { return generator(); }
    T get_min() const { return min; }
    T get_max() const { return max; }
    
