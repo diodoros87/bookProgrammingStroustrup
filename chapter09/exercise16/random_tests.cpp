@@ -121,7 +121,8 @@ public:
    
    
    void run_one_random (const unsigned long long REPETITIONS) {
-      cout << "\n\n ----------- Test run for type: " << typeid(Number).name() << '\n';
+      cout << "\n\n ----------- Test run for integer type: " << typeid(Number).name() 
+           << " and generator type: " << typeid(Generator_Type<Number>).name() << '\n';
       Number number;
       Integer object;
       static const Integer ZERO = construct_Integer(0);
@@ -161,99 +162,69 @@ void run_two_random (const Generator_Interface * const gen_1, const Generator_In
       test_by_position(number_T, number_U, object_T, object_U);
    }
 }
-/*
-template <typename T>
-void run_by_one_type(const Generator<T> & gen, const unsigned long long REPETITIONS) {
-   Random_Operations<T> operations (gen); 
+
+template <typename Number, template<typename> class Generator_Type>
+void random_operations(const Generator_Type<Number> & gen, const unsigned long long REPETITIONS) {
+   Random_Operations<Number, Generator_Type> operations (gen); 
    operations.run_one_random(REPETITIONS);
    run_two_random(&gen, &gen, REPETITIONS);
 }
-*/
+
 template <typename Number>
 void run_by_one_type(const Base_Generator<Number> * const gen, const unsigned long long REPETITIONS) {
    Base_Generator<Number> * const ptr_base = const_cast<Base_Generator<Number> *> (gen);
-   Generator<Number> * ptr_generator = dynamic_cast< Generator<Number> *> (ptr_base);
-   if (const ptr_generator = dynamic_cast< Generator<Number> *> (ptr_base)) {
-      Random_Operations<Number, Generator> operations (* ptr_generator); 
-      //operations.run_one_random(REPETITIONS);
-      //run_two_random(ptr_generator, ptr_generator, REPETITIONS);
-   }
-   else {
-      ptr_generator = reinterpret_cast< Generator_64<Number> *> (ptr_generator);
-      if (ptr_generator = dynamic_cast<Generator_64<Number> *> (ptr_base)) {
-         Random_Operations<Number, Generator_64> operations (* ptr_generator); 
-         operations.run_one_random(REPETITIONS);
-         run_two_random(ptr_generator, ptr_generator, REPETITIONS);
-      }
-      else
-         throw invalid_argument("Pointer to Base_Generator<Number> is unacceptable - pointer value: "
-            + to_string(reinterpret_cast<unsigned long long> (gen)));
-   } /*
+   
+   if (const Generator<Number> * const ptr_generator = dynamic_cast< Generator<Number> *> (ptr_base))
+      random_operations(*ptr_generator, REPETITIONS);
+   else if (const Generator_64<Number> * const ptr_generator = dynamic_cast<Generator_64<Number> *> (ptr_base))
+      random_operations(*ptr_generator, REPETITIONS);
    else
       throw invalid_argument("Pointer to Base_Generator<Number> is unacceptable - pointer value: "
-         + to_string(reinterpret_cast<unsigned long long> (gen)));*/
+         + to_string(reinterpret_cast<unsigned long long> (gen)));
       
    cerr << hex << "Pointer to Base_Generator<Number> pointer value: "
          << reinterpret_cast<unsigned long long> (gen) << '\n';
    cerr << dec;
 }
 
-void run_by_one_type(const Generator_set & generator_set, const unsigned long long REPETITIONS) {
-   run_by_one_type<long long>(& generator_set.gen_long.GENERATOR, REPETITIONS);
-   run_by_one_type<int>(& generator_set.gen_int.GENERATOR, REPETITIONS);
-   run_by_one_type<short>(& generator_set.gen_short.GENERATOR, REPETITIONS);
-   run_by_one_type<char>(& generator_set.gen_char.GENERATOR, REPETITIONS);
+void run_by_one_type(const unsigned long long REPETITIONS) {
+   run_by_one_type<long long>(& Generator_set::generators.gen_long.GENERATOR, REPETITIONS);
+   run_by_one_type<int>(& Generator_set::generators.gen_int.GENERATOR, REPETITIONS);
+   run_by_one_type<short>(& Generator_set::generators.gen_short.GENERATOR, REPETITIONS);
+   run_by_one_type<char>(& Generator_set::generators.gen_char.GENERATOR, REPETITIONS);
    
-   run_by_one_type<long long>(& generator_set.gen_long.GENERATOR_64, REPETITIONS);
-   run_by_one_type<int>(& generator_set.gen_int.GENERATOR_64, REPETITIONS);
-   run_by_one_type<short>(& generator_set.gen_short.GENERATOR_64, REPETITIONS);
-   run_by_one_type<char>(& generator_set.gen_char.GENERATOR_64, REPETITIONS);
-   
-   run_by_one_type<char>(nullptr, REPETITIONS);
+   run_by_one_type<long long>(& Generator_set::generators.gen_long.GENERATOR_64, REPETITIONS);
+   run_by_one_type<int>(& Generator_set::generators.gen_int.GENERATOR_64, REPETITIONS);
+   run_by_one_type<short>(& Generator_set::generators.gen_short.GENERATOR_64, REPETITIONS);
+   run_by_one_type<char>(& Generator_set::generators.gen_char.GENERATOR_64, REPETITIONS);
 } 
 
-void run_by_many_types(const unsigned long long REPETITIONS) {  
-   static const Generator_set generator_set;
-   const Generator_set * p = & generator_set;
-  //static const Generator_set_64 generator_set_64;
-//    static const Generator_MINMAX<int> gen_int;
-//    static const Generator_MINMAX<long long> gen_long;
-//    static const Generator_MINMAX<short> gen_short;
-//    static const Generator_MINMAX<char> gen_char;
-//    static const Generator_MINMAX_64<int> gen_int;
-//    static const Generator_MINMAX<long long> gen_long;
-//    static const Generator_MINMAX<short> gen_short;
-//    static const Generator_MINMAX<char> gen_char;
-   
+void run_different_types(const unsigned long long REPETITIONS) {  
    static constexpr array<const Generator_Interface*, 8> GENERATORS = {
-      & generator_set.gen_int.GENERATOR,
-      & generator_set.gen_long.GENERATOR,
-      & generator_set.gen_short.GENERATOR,
-      & generator_set.gen_char.GENERATOR,
-      & generator_set.gen_int.GENERATOR_64,
-      & generator_set.gen_long.GENERATOR_64,
-      & generator_set.gen_short.GENERATOR_64,
-      & generator_set.gen_char.GENERATOR_64
+      & Generator_set::generators.gen_int.GENERATOR,
+      & Generator_set::generators.gen_long.GENERATOR,
+      & Generator_set::generators.gen_short.GENERATOR,
+      & Generator_set::generators.gen_char.GENERATOR,
+      & Generator_set::generators.gen_int.GENERATOR_64,
+      & Generator_set::generators.gen_long.GENERATOR_64,
+      & Generator_set::generators.gen_short.GENERATOR_64,
+      & Generator_set::generators.gen_char.GENERATOR_64
    };
-   
-   //for (int_fast8_t first = 0; first < GENERATORS.size(); first++) 
-   /*
+     /*
    static constexpr array<const Generator_Interface*, 8> GENERATORS = {
-      & Generator_MINMAX<long long>::GENERATOR,
-      & Generator_MINMAX<int>::GENERATOR,
-      & Generator_MINMAX<short>::GENERATOR,
-      & Generator_MINMAX<char>::GENERATOR,
-      & Generator_MINMAX<long long>::GENERATOR_64,
-      & Generator_MINMAX<int>::GENERATOR_64,
-      & Generator_MINMAX<short>::GENERATOR_64,
-      & Generator_MINMAX<char>::GENERATOR_64
-   };
-      */
+      & Generator_set::generators->gen_int.GENERATOR,
+      & Generator_set::generators->gen_long.GENERATOR,
+      & Generator_set::generators->gen_short.GENERATOR,
+      & Generator_set::generators->gen_char.GENERATOR,
+      & Generator_set::generators->gen_int.GENERATOR_64,
+      & Generator_set::generators->gen_long.GENERATOR_64,
+      & Generator_set::generators->gen_short.GENERATOR_64,
+      & Generator_set::generators->gen_char.GENERATOR_64
+   }; */
+
    for (int_fast8_t first = 0; first < GENERATORS.size() - 1; first++) 
       for (int_fast8_t second = first + 1; second < GENERATORS.size(); second++) 
          run_two_random(GENERATORS[first], GENERATORS[second], REPETITIONS);
-      
-   random_tests::run_by_one_type(generator_set, REPETITIONS);
 }
 
 } // end of namespace random_tests
@@ -285,7 +256,10 @@ unsigned long long examine_command_line(const int argc, const char * argv[]) {
 int main(const int argc, const char * argv[]) {
    try {
       const unsigned long long REPETITIONS = examine_command_line(argc, argv);
-      random_tests::run_by_many_types(REPETITIONS);
+      random_tests::run_different_types(REPETITIONS);
+      random_tests::run_by_one_type(REPETITIONS);
+      cerr << " Generator_set::generators.gen_int.GENERATOR.min = " << Generator_set::generators.gen_int.GENERATOR.min << '\n';
+      cerr << " Generator_set::generators.gen_int.GENERATOR.max = " << Generator_set::generators.gen_int.GENERATOR.max << '\n';
       return 0;
    }
    catch (const Arithmetic_Error & e) {
