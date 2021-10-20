@@ -129,7 +129,6 @@ public:
       for (unsigned long long i = 0; i < REPETITIONS; i++) {
          cerr << "--- REPETITION " << i << '\n';
          number = generator();
-         //cerr << " nnnnnnnnnnnnnnnnnnnnn Generate number = " << number << '\n';
          validate(number);
          object = construct_Integer(number);
          check_unary(number, object);
@@ -138,29 +137,8 @@ public:
       }
    }
 };
-/*
-template <typename T, typename U>
-void run_two_random (const T & generator_T, const U & generator_U, const unsigned long long REPETITIONS) {
-   cout << "\n\n ----------- Test run for types: " << typeid(T).name() << " and " << typeid(U).name() << '\n';
-   long long number_T;
-   long long number_U;
-   Integer object_T;
-   Integer object_U;
-   for (unsigned long long i = 0; i < REPETITIONS; i++) {
-      cerr << "--- REPETITION " << i << '\n';
-      number_T = (&generator_T)->operator()(0);
-      number_U = (&generator_U)->operator()(0);
-      validate(number_T);
-      validate(number_U);
-      object_T = construct_Integer(number_T);
-      object_U = construct_Integer(number_U);
-      check_unary(number_T, object_T);
-      check_unary(number_U, object_U);
-      test_by_position(number_T, number_U, object_T, object_U);
-   }
-}
-*/
-void run_two_random (const Base_Generator * const gen_1, const Base_Generator * const gen_2, const unsigned long long REPETITIONS) {
+
+void run_two_random (const Generator_Interface * const gen_1, const Generator_Interface * const gen_2, const unsigned long long REPETITIONS) {
    if (gen_1 == nullptr || gen_2 == nullptr )
       throw invalid_argument("Can not accept null pointer");
    cout << "\n\n ----------- Test run for types: " << typeid(*gen_1).name() << " and " << typeid(*gen_2).name() << '\n';
@@ -182,76 +160,82 @@ void run_two_random (const Base_Generator * const gen_1, const Base_Generator * 
    }
 }
 /*
-template <typename T, typename U>
-void run_two_random (const Generator<T> & gen_T, const Generator<U> & gen_U, const unsigned long long REPETITIONS) {
-   cout << "\n\n ----------- Test run for types: " << typeid(T).name() << " and " << typeid(U).name() << '\n';
-   T number_T;
-   U number_U;
-   Integer object_T;
-   Integer object_U;
-   for (unsigned long long i = 0; i < REPETITIONS; i++) {
-      cerr << "--- REPETITION " << i << '\n';
-      number_T = gen_T();
-      number_U = gen_U();
-      //cerr << " nnnnnnnnnnnnnnnnnnnnn Generate number = " << number << '\n';
-      validate(number_T);
-      validate(number_U);
-      object_T = construct_Integer(number_T);
-      object_U = construct_Integer(number_U);
-      check_unary(number_T, object_T);
-      check_unary(number_U, object_U);
-      test_by_position(number_T, number_U, object_T, object_U);
-   }
-}
-*/
 template <typename T>
 void run_by_one_type(const Generator<T> & gen, const unsigned long long REPETITIONS) {
    Random_Operations<T> operations (gen); 
-   //static constexpr unsigned long long REPETITIONS = 10000000;
    operations.run_one_random(REPETITIONS);
-   //run_two_random<T, T>(gen, gen, REPETITIONS);
-   //run_two_random<Generator<T>, Generator<T>>(gen, gen, REPETITIONS);
    run_two_random(&gen, &gen, REPETITIONS);
 }
+*/
+template <typename T>
+void run_by_one_type(const Base_Generator<T> * const gen, const unsigned long long REPETITIONS) {
+   Base_Generator<T> * ptr_base = const_cast<Base_Generator<T> *> (gen);
+   const Generator<T> * const ptr_generator = dynamic_cast<Generator<T> *> (ptr_base);
+   //if (ptr_generator = dynamic_cast<Generator<T> *> (gen)) {
+   if (ptr_generator) {
+      Random_Operations<T> operations (* ptr_generator); 
+      operations.run_one_random(REPETITIONS);
+      run_two_random(ptr_generator, ptr_generator, REPETITIONS);
+   }
+//    Random_Operations<T> operations (gen); 
+//    operations.run_one_random(REPETITIONS);
+//    run_two_random(&gen, &gen, REPETITIONS);
+}
 
-void run_by_one_type(const unsigned long long REPETITIONS) {
-struct Generator_set { 
-   Generator_MINMAX<long long> gen_long;
-   Generator_MINMAX<int> gen_int;
-   Generator_MINMAX<short>  gen_short;
-   Generator_MINMAX<char> gen_char;
-};
-   static const Generator_set generator_set;
-   run_by_one_type<long long>(generator_set.gen_long.GENERATOR, REPETITIONS);
-   run_by_one_type<int>(generator_set.gen_int.GENERATOR, REPETITIONS);
-   run_by_one_type<short>(generator_set.gen_short.GENERATOR, REPETITIONS);
-   run_by_one_type<char>(generator_set.gen_char.GENERATOR, REPETITIONS);
+void run_by_one_type(const Generator_set & generator_set, const unsigned long long REPETITIONS) {
+   run_by_one_type<long long>(& generator_set.gen_long.GENERATOR, REPETITIONS);
+   run_by_one_type<int>(& generator_set.gen_int.GENERATOR, REPETITIONS);
+   run_by_one_type<short>(& generator_set.gen_short.GENERATOR, REPETITIONS);
+   run_by_one_type<char>(& generator_set.gen_char.GENERATOR, REPETITIONS);
+   
+   run_by_one_type<long long>(& generator_set.gen_long.GENERATOR_64, REPETITIONS);
+   run_by_one_type<int>(& generator_set.gen_int.GENERATOR_64, REPETITIONS);
+   run_by_one_type<short>(& generator_set.gen_short.GENERATOR_64, REPETITIONS);
+   run_by_one_type<char>(& generator_set.gen_char.GENERATOR_64, REPETITIONS);
 } 
 
 void run_by_many_types(const unsigned long long REPETITIONS) {  
-   static const Generator_MINMAX<int> gen_int;
-   static const Generator_MINMAX<long long> gen_long;
-   static const Generator_MINMAX<short> gen_short;
-   static const Generator_MINMAX<char> gen_char;
-   static constexpr array<const Base_Generator*, 4> GENERATORS = {
-      & gen_int.GENERATOR,
-      & gen_long.GENERATOR,
-      & gen_short.GENERATOR,
-      & gen_char.GENERATOR
+   static const Generator_set generator_set;
+   const Generator_set * p = & generator_set;
+  //static const Generator_set_64 generator_set_64;
+//    static const Generator_MINMAX<int> gen_int;
+//    static const Generator_MINMAX<long long> gen_long;
+//    static const Generator_MINMAX<short> gen_short;
+//    static const Generator_MINMAX<char> gen_char;
+//    static const Generator_MINMAX_64<int> gen_int;
+//    static const Generator_MINMAX<long long> gen_long;
+//    static const Generator_MINMAX<short> gen_short;
+//    static const Generator_MINMAX<char> gen_char;
+   
+   static constexpr array<const Generator_Interface*, 8> GENERATORS = {
+      & generator_set.gen_int.GENERATOR,
+      & generator_set.gen_long.GENERATOR,
+      & generator_set.gen_short.GENERATOR,
+      & generator_set.gen_char.GENERATOR,
+      & generator_set.gen_int.GENERATOR_64,
+      & generator_set.gen_long.GENERATOR_64,
+      & generator_set.gen_short.GENERATOR_64,
+      & generator_set.gen_char.GENERATOR_64
    };
+   
+   //for (int_fast8_t first = 0; first < GENERATORS.size(); first++) 
    /*
-   static array<Base_Generator, 4> GENERATORS = {
-      Generator_MINMAX<int>().GENERATOR,
-      Generator_MINMAX<long long>().GENERATOR,
-      Generator_MINMAX<short>().GENERATOR,
-      Generator_MINMAX<char>().GENERATOR
+   static constexpr array<const Generator_Interface*, 8> GENERATORS = {
+      & Generator_MINMAX<long long>::GENERATOR,
+      & Generator_MINMAX<int>::GENERATOR,
+      & Generator_MINMAX<short>::GENERATOR,
+      & Generator_MINMAX<char>::GENERATOR,
+      & Generator_MINMAX<long long>::GENERATOR_64,
+      & Generator_MINMAX<int>::GENERATOR_64,
+      & Generator_MINMAX<short>::GENERATOR_64,
+      & Generator_MINMAX<char>::GENERATOR_64
    };
-   */
+      */
    for (int_fast8_t first = 0; first < GENERATORS.size() - 1; first++) 
       for (int_fast8_t second = first + 1; second < GENERATORS.size(); second++) 
-         //run_two_random<decltype(&GENERATORS[first]), decltype(GENERATORS[second])>(GENERATORS[first], GENERATORS[second], REPETITIONS);
-         //run_two_random(&(GENERATORS[first]), &(GENERATORS[second]), REPETITIONS);
          run_two_random(GENERATORS[first], GENERATORS[second], REPETITIONS);
+      
+   random_tests::run_by_one_type(generator_set, REPETITIONS);
 }
 
 } // end of namespace random_tests
@@ -266,7 +250,7 @@ vector<string> to_vector_string(const int argc, const char * argv[]) {
 }
 
 unsigned long long examine_command_line(const int argc, const char * argv[]) {
-   long long repetitions = 100;
+   long long repetitions = 0;
    switch (argc) {
       case 1:
          return repetitions;
@@ -283,7 +267,6 @@ unsigned long long examine_command_line(const int argc, const char * argv[]) {
 int main(const int argc, const char * argv[]) {
    try {
       const unsigned long long REPETITIONS = examine_command_line(argc, argv);
-      random_tests::run_by_one_type(REPETITIONS);
       random_tests::run_by_many_types(REPETITIONS);
       return 0;
    }
