@@ -68,6 +68,7 @@ constexpr array<Operation_Ptr, 5> Operations::OPERATIONS;
 
 template <typename T>
 Integer construct_Integer (const T& NUMBER) { 
+   static_assert(is_integral<T>::value && "Integral required.");
    const string STR = to_string(NUMBER);
    Integer i = Integer::parse_create(STR);
    assert_number_Integer(NUMBER, i);
@@ -94,13 +95,14 @@ inline void check_unary(const long long & number, const Integer & object) {
    assert_number_Integer(-number, -object);
 }
    
-template <typename T>
+template <typename Number, template<typename> class Generator_Type>
 class Random_Operations {
+   static_assert(is_integral<Number>::value && "Integral required.");
 private:
-   Generator<T> generator;
+   Generator_Type<Number> generator;
    bool overflow = false;
 public:
-   explicit Random_Operations(const Generator<T> & gen) : generator(gen) { }
+   explicit Random_Operations(const Generator_Type<Number> & gen) : generator(gen) { }
    
    ~ Random_Operations() = default;
    Random_Operations(const Random_Operations &) = default;
@@ -108,9 +110,9 @@ public:
    Random_Operations & operator=(const Random_Operations &) = default;
    Random_Operations & operator=(Random_Operations &&) = default;
    
-   const T get_random_number() { return generator(); }
-   Generator<T> get_generator() { return generator(); }
-   void set_generator(const Generator<T> &  gen) { generator = gen; }
+   const Number get_random_number() { return generator(); }
+   Generator_Type<Number> get_generator() { return generator(); }
+   void set_generator(const Generator_Type<Number> &  gen) { generator = gen; }
    
 //    constexpr bool may_overflow() {
 //       constexpr MIN = 
@@ -119,8 +121,8 @@ public:
    
    
    void run_one_random (const unsigned long long REPETITIONS) {
-      cout << "\n\n ----------- Test run for type: " << typeid(T).name() << '\n';
-      T number;
+      cout << "\n\n ----------- Test run for type: " << typeid(Number).name() << '\n';
+      Number number;
       Integer object;
       static const Integer ZERO = construct_Integer(0);
       assert_number_Integer(0, ZERO);
@@ -167,19 +169,33 @@ void run_by_one_type(const Generator<T> & gen, const unsigned long long REPETITI
    run_two_random(&gen, &gen, REPETITIONS);
 }
 */
-template <typename T>
-void run_by_one_type(const Base_Generator<T> * const gen, const unsigned long long REPETITIONS) {
-   Base_Generator<T> * ptr_base = const_cast<Base_Generator<T> *> (gen);
-   const Generator<T> * const ptr_generator = dynamic_cast<Generator<T> *> (ptr_base);
-   //if (ptr_generator = dynamic_cast<Generator<T> *> (gen)) {
-   if (ptr_generator) {
-      Random_Operations<T> operations (* ptr_generator); 
-      operations.run_one_random(REPETITIONS);
-      run_two_random(ptr_generator, ptr_generator, REPETITIONS);
+template <typename Number>
+void run_by_one_type(const Base_Generator<Number> * const gen, const unsigned long long REPETITIONS) {
+   Base_Generator<Number> * const ptr_base = const_cast<Base_Generator<Number> *> (gen);
+   Generator<Number> * ptr_generator = dynamic_cast< Generator<Number> *> (ptr_base);
+   if (const ptr_generator = dynamic_cast< Generator<Number> *> (ptr_base)) {
+      Random_Operations<Number, Generator> operations (* ptr_generator); 
+      //operations.run_one_random(REPETITIONS);
+      //run_two_random(ptr_generator, ptr_generator, REPETITIONS);
    }
-//    Random_Operations<T> operations (gen); 
-//    operations.run_one_random(REPETITIONS);
-//    run_two_random(&gen, &gen, REPETITIONS);
+   else {
+      ptr_generator = reinterpret_cast< Generator_64<Number> *> (ptr_generator);
+      if (ptr_generator = dynamic_cast<Generator_64<Number> *> (ptr_base)) {
+         Random_Operations<Number, Generator_64> operations (* ptr_generator); 
+         operations.run_one_random(REPETITIONS);
+         run_two_random(ptr_generator, ptr_generator, REPETITIONS);
+      }
+      else
+         throw invalid_argument("Pointer to Base_Generator<Number> is unacceptable - pointer value: "
+            + to_string(reinterpret_cast<unsigned long long> (gen)));
+   } /*
+   else
+      throw invalid_argument("Pointer to Base_Generator<Number> is unacceptable - pointer value: "
+         + to_string(reinterpret_cast<unsigned long long> (gen)));*/
+      
+   cerr << hex << "Pointer to Base_Generator<Number> pointer value: "
+         << reinterpret_cast<unsigned long long> (gen) << '\n';
+   cerr << dec;
 }
 
 void run_by_one_type(const Generator_set & generator_set, const unsigned long long REPETITIONS) {
@@ -192,6 +208,8 @@ void run_by_one_type(const Generator_set & generator_set, const unsigned long lo
    run_by_one_type<int>(& generator_set.gen_int.GENERATOR_64, REPETITIONS);
    run_by_one_type<short>(& generator_set.gen_short.GENERATOR_64, REPETITIONS);
    run_by_one_type<char>(& generator_set.gen_char.GENERATOR_64, REPETITIONS);
+   
+   run_by_one_type<char>(nullptr, REPETITIONS);
 } 
 
 void run_by_many_types(const unsigned long long REPETITIONS) {  
@@ -250,7 +268,7 @@ vector<string> to_vector_string(const int argc, const char * argv[]) {
 }
 
 unsigned long long examine_command_line(const int argc, const char * argv[]) {
-   long long repetitions = 0;
+   long long repetitions = 100;
    switch (argc) {
       case 1:
          return repetitions;
