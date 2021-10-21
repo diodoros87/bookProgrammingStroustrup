@@ -10,14 +10,42 @@
 //#define NDEBUG
 #include <cassert>
 
+#define MIN_LL numeric_limits<long long>::min()
+#define MAX_LL numeric_limits<long long>::max()
+
 using namespace std;
 using namespace integer_space;
 
 namespace random_tests {
 typedef void (* Operation_Ptr)(const long long & , const long long & , const Integer & , const Integer & );
 
+enum class Arithmetic { ADD, SUBTRACT, MULTIPLY, DIVIDE };
+
+bool is_overflow(const long long & N_1, const long long & N_2, const Arithmetic & arithmetic) {
+   switch (arithmetic) {
+      case Arithmetic::ADD:
+         return N_1 > 0 && N_2 > 0 && MAX_LL - N_1 < N_2   
+            ||  N_1 < 0 && N_2 < 0 && MIN_LL - N_1 > N_2 ;
+      case Arithmetic::SUBTRACT:
+         return N_1 < 0 && N_2 > 0 && MIN_LL + N_2 > N_1   
+            ||  N_1 > 0 && N_2 < 0 && MAX_LL + N_2 < N_1 
+            ||  N_1 == 0 && N_2 == MIN_LL ;
+      case Arithmetic::MULTIPLY:
+         return N_1 > +1 && N_2 > +1 && MAX_LL / N_2 < N_1   
+            ||  N_1 < -1 && N_2 < -1 && MAX_LL / N_2 > N_1 
+            ||  N_1 > +1 && N_2 < -1 && MIN_LL / N_2 < N_1   
+            ||  N_1 < -1 && N_2 > +1 && MIN_LL / N_2 > N_1 
+            ||  N_1 == -1 && N_2 == MIN_LL 
+            ||  N_1 == MIN_LL && N_2 == -1 ;
+      case Arithmetic::DIVIDE:
+         return N_1 == MIN_LL && N_2 == -1 ;
+   }
+}
+
 struct Operations {
    static void add(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
+      if (is_overflow(N_1, N_2, Arithmetic::ADD))
+         return;
       long long number_result = N_1 + N_2;
       cerr << showpos << "\n number: " << N_1 << " + " << N_2 << " = " << number_result;
       Integer object_result   = O_1 + O_2;
@@ -26,6 +54,8 @@ struct Operations {
    }
    
    static void subtract(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
+      if (is_overflow(N_1, N_2, Arithmetic::SUBTRACT))
+         return;
       long long number_result = N_1 - N_2;
       cerr << showpos << "\n number: " << N_1 << " - " << N_2 << " = " << number_result;
       Integer object_result   = O_1 - O_2;
@@ -34,6 +64,8 @@ struct Operations {
    }
    
    static void multiply(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
+      if (is_overflow(N_1, N_2, Arithmetic::MULTIPLY))
+         return;
       long long number_result = N_1 * N_2;
       cerr << showpos << "\n number: " << N_1 << " * " << N_2 << " = " << number_result;
       Integer object_result   = O_1 * O_2;
@@ -43,6 +75,8 @@ struct Operations {
    
    static void divide(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
       if (N_2 == 0)
+         return;
+      if (is_overflow(N_1, N_2, Arithmetic::DIVIDE))
          return;
       long long number_result = N_1 / N_2;
       cerr << showpos << "\n number: " << N_1 << " / " << N_2 << " = " << number_result;
@@ -76,23 +110,19 @@ Integer construct_Integer (const T& NUMBER) {
 }
 
 void test_by_position(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
-      for (auto operation : Operations::OPERATIONS) {
-         operation(N_1, N_2, O_1, O_2);
-         operation(-N_1, -N_2, -O_1, -O_2);
-         operation(N_1, -N_2, O_1, -O_2);
-         operation(-N_1, N_2, -O_1, O_2);
-      }
+   for (auto operation : Operations::OPERATIONS) {
+      operation(N_1, N_2, O_1, O_2);
+      operation(-N_1, -N_2, -O_1, -O_2);
+      operation(N_1, -N_2, O_1, -O_2);
+      operation(-N_1, N_2, -O_1, O_2);
    }
-   
-inline void validate(const long long NUMBER) {
-   if (NUMBER < numeric_limits<int>::min() || NUMBER > numeric_limits<int>::max())
-      throw invalid_argument(" number is " + NUMBER);
 }
 
 inline void check_unary(const long long & number, const Integer & object) {
    assert_number_Integer(number, object);
    assert_number_Integer(+number, +object);
-   assert_number_Integer(-number, -object);
+   if (number != numeric_limits<long long>::min()) // llabs(numeric_limits<long long>::min()) - 1 == llabs(numeric_limits<long long>::max())
+      assert_number_Integer(-number, -object);
 }
    
 template <typename Number, template<typename> class Generator_Type>
@@ -114,12 +144,6 @@ public:
    Generator_Type<Number> get_generator() { return generator(); }
    void set_generator(const Generator_Type<Number> &  gen) { generator = gen; }
    
-//    constexpr bool may_overflow() {
-//       constexpr MIN = 
-//    }
-   
-   
-   
    void run_one_random (const unsigned long long REPETITIONS) {
       cout << "\n\n ----------- Test run for integer type: " << typeid(Number).name() 
            << " and generator type: " << typeid(Generator_Type<Number>).name() << '\n';
@@ -132,7 +156,6 @@ public:
       for (unsigned long long i = 0; i < REPETITIONS; i++) {
          cerr << "--- REPETITION " << i << '\n';
          number = generator();
-         validate(number);
          object = construct_Integer(number);
          check_unary(number, object);
          test_by_position(number, number, object, object);
@@ -153,8 +176,6 @@ void run_two_random (const Generator_Interface * const gen_1, const Generator_In
       cerr << "--- REPETITION " << i << '\n';
       number_T = gen_1->operator()('A');
       number_U = gen_2->operator()('A');
-      validate(number_T);
-      validate(number_U);
       object_T = construct_Integer(number_T);
       object_U = construct_Integer(number_U);
       check_unary(number_T, object_T);
@@ -193,8 +214,8 @@ void run_by_one_type(const unsigned long long REPETITIONS) {
    run_by_one_type<short>(& Generator_set::generators.gen_short.GENERATOR, REPETITIONS);
    run_by_one_type<char>(& Generator_set::generators.gen_char.GENERATOR, REPETITIONS);
    
-   run_by_one_type<long long>(& Generator_set::generators.gen_long.GENERATOR_64, REPETITIONS);
    run_by_one_type<int>(& Generator_set::generators.gen_int.GENERATOR_64, REPETITIONS);
+   run_by_one_type<long long>(& Generator_set::generators.gen_long.GENERATOR_64, REPETITIONS);
    run_by_one_type<short>(& Generator_set::generators.gen_short.GENERATOR_64, REPETITIONS);
    run_by_one_type<char>(& Generator_set::generators.gen_char.GENERATOR_64, REPETITIONS);
 } 
@@ -205,6 +226,7 @@ void run_different_types(const unsigned long long REPETITIONS) {
       & Generator_set::generators.gen_long.GENERATOR,
       & Generator_set::generators.gen_short.GENERATOR,
       & Generator_set::generators.gen_char.GENERATOR,
+      
       & Generator_set::generators.gen_int.GENERATOR_64,
       & Generator_set::generators.gen_long.GENERATOR_64,
       & Generator_set::generators.gen_short.GENERATOR_64,
@@ -256,10 +278,18 @@ unsigned long long examine_command_line(const int argc, const char * argv[]) {
 int main(const int argc, const char * argv[]) {
    try {
       const unsigned long long REPETITIONS = examine_command_line(argc, argv);
-      random_tests::run_different_types(REPETITIONS);
       random_tests::run_by_one_type(REPETITIONS);
-      cerr << " Generator_set::generators.gen_int.GENERATOR.min = " << Generator_set::generators.gen_int.GENERATOR.min << '\n';
-      cerr << " Generator_set::generators.gen_int.GENERATOR.max = " << Generator_set::generators.gen_int.GENERATOR.max << '\n';
+      random_tests::run_different_types(REPETITIONS);
+      
+      cerr << " Generator_set::generators.gen_int.GENERATOR.min = " << Generator_set::generators.gen_int.GENERATOR_64.min << '\n';
+      cerr << " Generator_set::generators.gen_int.GENERATOR.max = " << Generator_set::generators.gen_int.GENERATOR_64.max << '\n';
+      cerr << " Generator_set::generators.gen_long.GENERATOR.min = " << Generator_set::generators.gen_long.GENERATOR_64.min << '\n';
+      cerr << " Generator_set::generators.gen_long.GENERATOR.max = " << Generator_set::generators.gen_long.GENERATOR_64.max << '\n';
+      cerr << "mt19937_64.min = " << mt19937_64::min();
+      cerr << "\nmt19937_64.max = " << mt19937_64::max();
+      cerr << "\nmt19937.min = " << mt19937::min();
+      cerr << "\nmt19937.max = " << mt19937::max();
+      cerr << '\n';
       return 0;
    }
    catch (const Arithmetic_Error & e) {
