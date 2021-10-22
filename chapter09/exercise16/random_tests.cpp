@@ -167,6 +167,7 @@ public:
       assert_number_Integer(0, ZERO);
       assert_number_Integer(-0, construct_Integer(-0));
       assert_number_Integer(+0, construct_Integer(+0));
+      Operations::compare(0, 0, ZERO, ZERO);
       for (unsigned long long i = 0; i < REPETITIONS; i++) {
          cerr << "--- REPETITION " << i << '\n';
          number = generator();

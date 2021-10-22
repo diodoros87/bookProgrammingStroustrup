@@ -135,16 +135,17 @@ bool operator>(const Integer& first, const Integer& second) {
       return false;
    else if (+1 == comparing_signum_result) 
       return true;
-   // after calling Integer::compare_signum recognize both integers with identical nonzero signum
-
+   //cerr << "first.get_signum() = " << (int)first.get_signum() << "   second.get_signum() = " << (int)second.get_signum() << '\n';
    assert(first.get_signum() == second.get_signum());
-   assert(first.get_signum() != Integer::NEUTRAL);
    const char identical_integers_signum = first.get_signum();
    switch (identical_integers_signum) {
       case Integer::PLUS : 
          return Integer::is_absolute_value_greater(first, second);
       case Integer::MINUS :
          return Integer::is_absolute_value_less(first, second);
+      case Integer::NEUTRAL :
+         if (first.is_zero() && second.is_zero())
+            return false;
       default:  // identical_integers_signum == NEUTRAL
          throw runtime_error("signum of integer is NEUTRAL");
    }
@@ -156,16 +157,17 @@ bool operator<(const Integer& first, const Integer& second) {
       return true;
    else if (+1 == comparing_signum_result) 
       return false;
-   // after calling Integer.compare_signum recognize both integers with identical nonzero signum
-
+   //cerr << "first.get_signum() = " << first.get_signum() << "   second.get_signum() = " << second.get_signum() << '\n';
    assert(first.get_signum() == second.get_signum());
-   assert(first.get_signum() != Integer::NEUTRAL);
    const char identical_integers_signum = first.get_signum();
    switch (identical_integers_signum) {
       case Integer::MINUS : 
          return Integer::is_absolute_value_greater(first, second);
       case Integer::PLUS :
          return Integer::is_absolute_value_less(first, second);
+      case Integer::NEUTRAL :
+         if (first.is_zero() && second.is_zero())
+            return false;
       default:  // identical_integers_signum == NEUTRAL
          throw runtime_error("signum of integer is NEUTRAL");
    }

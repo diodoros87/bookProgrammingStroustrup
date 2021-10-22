@@ -1,5 +1,8 @@
 #include <iostream>
 
+using std::ostream;
+using std::istream;
+
 namespace money {
 
 template <typename T>
@@ -35,7 +38,7 @@ public:
    static Money reverse(const Money& number) { 
       return Money (number.denominator, number.numerator);}
 
-   void set_numerator(long x) { reduce(x, denominator); numerator = x; }
+   void set(const string & dollars, const double cents = 0) { reduce(x, denominator); numerator = x; }
    void set_denominator(long x) { reduce(numerator, x); denominator = x; }
    long get_numerator() const { return numerator; }
    long get_denominator() const { return denominator; }
@@ -58,12 +61,13 @@ public:
    bool operator<(const Money& other) const ;
    bool operator>=(const Money& other) const { return !operator<(other); };
    
-   T dollars() const { return cents / CENTS_PER_DOLLAR; }
+   T get_dollars() const { return cents / CENTS_PER_DOLLAR; }
+   T get_cents() const { return cents % CENTS_PER_DOLLAR; }
    
    operator double() const { return static_cast<double>(numerator) / denominator; }
 private:
    
-   T cents {0};
+   T amount_in_cents {0};
 };
 
 template <typename T>
@@ -94,10 +98,9 @@ const string Money<T>::UNSIGNED_LONG_NAME = typeid(0uL).name();
 template <typename T>
 const string Money<T>::UNSIGNED_LONG_LONG_NAME = typeid(numeric_limits<unsigned long long>::max()).name();
 
-inline std::ostream& operator<<(std::ostream& os, const Money& number) {
-   return os << "(" << number.get_numerator() << " / " << number.get_denominator() << ")";
+inline std::ostream& operator<<(std::ostream& os, const Money& money) {
+   return os << get_dollars << std::use_facet<std::moneypunct<char>>(std::locale::classic()).decimal_point() << cents << " ";
+   //return os << std::showbase << std::put_money(money.amount_in_cents);
 }
-
-long gcd_algorithm(long a, long b);
 
 }

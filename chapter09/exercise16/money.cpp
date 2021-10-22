@@ -13,27 +13,37 @@ Money::get_amount(const string & STR) {
    T amount;
    if (is_floating_point<T>::value ) {
       switch(TYPE_NAME) {
-         case LONG_DOUBLE_NAME:   // long double
+         case LONG_DOUBLE_NAME:   
             amount = stold(dollars);
             break;
-         case DOUBLE_NAME:   // double
+         case DOUBLE_NAME:  
             amount = stod(dollars);
             break;
-         case FLOAT_NAME:   // float
+         case FLOAT_NAME:   
             amount = stof(dollars);
             break;
       }
    } 
    else if (numeric_limits<T>::is_integer) {
       switch(TYPE_NAME) {
-         case CHAR_NAME:   // double
-            this->cents = stod(dollars);
+         case UNSIGNED_LONG_LONG_NAME:   
+            amount = stoull(dollars);
             break;
-         case "ld":   // double
-            this->cents = stold(dollars);
+         case LONG_LONG_NAME:   
+            amount = stoll(dollars);
             break;
-         case "f":   // double
-            this->cents = stof(dollars);
+         case UNSIGNED_LONG_NAME:   
+            amount = stoul(dollars);
+            break;
+         case LONG_NAME:   
+            amount = stol(dollars);
+            break;
+         case INT_NAME:   
+            amount = stoi(dollars);
+            break;
+         case CHAR_NAME:   
+            int tmp = stoi(dollars);
+            if (tmp )
             break;
       }
    }
