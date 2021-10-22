@@ -6,7 +6,6 @@
 #include<iostream>
 //#define NDEBUG
 #include <cassert>
-//#include <algorithm>
 #include <array>
 #include <algorithm>
 #include <cstring>
@@ -34,20 +33,8 @@ namespace integer_test {
       for (int i = 0; i < ALLOWED.size(); i++) 
          if (TYPE.find(ALLOWED[i]) != string::npos)
             return i;
-      //const array<string, 2>::iterator it = find (BEGIN, END, TYPE);
-      //return it != ALLOWED.end();
       return INCORRECT_INDEX;
    }
-   
-//    template <typename Array, const unsigned int SIZE>   // SIZE necessary for std::array
-//    void print_array(const string & title, const Array & ARRAY) {
-//       if (INCORRECT_INDEX == get_type_index(ARRAY))
-//          throw invalid_argument(__func__ + get_allowed());
-//       cout << title;
-//       for (auto elem : ARRAY)
-//          cout << " " << elem;
-//       cout << "\nEnd of array printing\n";
-//    }
    
    template <typename Container>
    void print_container(const string & title, const Container & C) {

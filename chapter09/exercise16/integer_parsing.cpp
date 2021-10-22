@@ -50,13 +50,7 @@ void validate_string(const string & STR) {
    }
 }
 
-// template<typename Container>
-// static short skip_leading(const Container& CONTAINER, const digit_type & skipped) {
-//    
-// }
-
 short skip_leading_integers(const array<digit_type, Integer::MAX_ARRAY_LENGTH> & ARRAY, const digit_type & skipped) {
-   //return skip_leading(ARRAY, skipped);
    short index = 0;
    while (index < Integer::MAX_ARRAY_LENGTH) 
       if (skipped == ARRAY[index])
@@ -65,13 +59,6 @@ short skip_leading_integers(const array<digit_type, Integer::MAX_ARRAY_LENGTH> &
          break;
       
    return index;
-}
-
-// template <unsigned int N>
-// short skip_leading_integers(const array<digit_type, N> & ARRAY, const digit_type & skipped) {
-//    if (0 == N)
-//       throw invalid_argument("Requirement: array can not be empty");
-//    return skip_leading(ARRAY, skipped);
-// } 
+} 
    
 } 

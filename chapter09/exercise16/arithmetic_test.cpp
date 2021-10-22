@@ -9,10 +9,6 @@
 using namespace std;
 using namespace integer_space;
 
-// class Adding_Subtracting_Test;
-// class Multiplying_Test;
-// class Dividing_Remainder_Test;
-
 namespace arithmetic_test {
    
 string get_number_string(const char character, const size_t length);
@@ -722,8 +718,6 @@ void run() {
 string get_number_string(const char character, const size_t length) {
    if (character < '1' || character > '9') 
       throw  invalid_argument("Only digit from 1 to 9 is allowed");
-   //if (length < 0) 
-   //   throw  invalid_argument("requirement: length >= 1");
    string digit_string = string(1, character);
    string large_number_string = "";
    for (short counter = 1; counter <= length; counter++) {

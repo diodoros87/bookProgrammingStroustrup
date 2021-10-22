@@ -27,6 +27,26 @@ static Integer set(const vector<digit_type> & vec, Integer & integer) {
    return integer;
 }
 
+template <typename T,
+              std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline Integer construct_Integer (const T& NUMBER) { 
+   cerr << __func__ << " construct by Integral " << NUMBER << " : ";
+   Integer i = Integer(NUMBER);
+   cout << i << '\n';
+   assert_number_Integer(NUMBER, i);
+   return i;
+}
+
+template <typename Floating,
+              std::enable_if_t<std::is_floating_point<Floating>::value, bool> = true>
+inline Integer construct_Integer (const Floating& NUMBER) { 
+   cerr << __func__ << " construct by Float " << NUMBER << " : ";
+   Integer i = Integer(NUMBER);
+   cout << i << '\n';
+   assert_number_Integer(NUMBER, i);
+   return i;
+}
+
 static Integer constructor_test(const array<digit_type, Integer::MAX_ARRAY_LENGTH> & table, const char signum) {
    cout << __func__ << " tests construct Integer by array<digit_type, Integer::MAX_ARRAY_LENGTH> \n";
    Integer i = Integer(table, signum);
@@ -196,6 +216,24 @@ void constructor_test() {
    
    parsing_test();
    Parsing_Test::test_parsing("i2", i2);
+   /*
+   Integer id(3.4);
+   assert(string(id) == "+3");
+   id = 6;
+   assert(string(id) == "+6");
+   */
+   construct_Integer(3.4);
+   construct_Integer(+6.4);
+   construct_Integer(63.9);
+   construct_Integer(-7.1);
+   construct_Integer(0.);
+   construct_Integer(1.0);
+   construct_Integer(.7);
+   
+   construct_Integer(39);
+   construct_Integer(+69);
+   construct_Integer(-69);
+   construct_Integer(0);
 }
 
 Integer& move_test (Integer&& param) {

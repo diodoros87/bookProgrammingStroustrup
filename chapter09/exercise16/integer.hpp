@@ -39,12 +39,16 @@ public:
 private:
    array<digit_type, MAX_ARRAY_LENGTH> integer_array { 0 };
    char signum { NEUTRAL };   // less than 0 for integers < 0, more than 0 for integers > 0, 0 for 0   
-   //Integer(const vector<digit_type> & vec);
    Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY);
 public:
    Integer() { }
    Integer(const array<digit_type, MAX_ARRAY_LENGTH> & table, const char signum) {
       validate_init(table, signum);
+   }
+   
+   Integer(const long long x) { 
+      const string STR = to_string(x);
+      this->parse(STR); 
    }
    
    template <const unsigned int N>
@@ -109,16 +113,13 @@ public:
       validate_size(vec);
       validate_set(vec);
    }
-   //void set_integer_array(const array<digit_type, MAX_ARRAY_LENGTH> & table) {
-   //   validate_set(table);
-   //}
    
    template <const unsigned int N>
    void set_integer_array(const array<digit_type, N> & table) {
       static_assert( N <= MAX_ARRAY_LENGTH && N > 0 && "set_integer_array requires 0 < N <= MAX_ARRAY_LENGTH");
       validate_set(table);
    }
-   //void set(const Integer& integer);
+
    void reset_number_to_zero() {
       signum = NEUTRAL;
       integer_array.fill(0);
@@ -220,7 +221,7 @@ void Integer::validate_init(const Container& TABLE, const char signum) {
 }
 
 template <typename Container>  // private
-void Integer::validate_set(const Container & TABLE) {  // assume that integer_array is positive number, change of signum is allowed by setSignum()
+void Integer::validate_set(const Container & TABLE) {  // assume that integer_array is positive number, change of signum is allowed by set_signum()
    this->integer_array.fill(0);  // not call reset_number_to_zero() due to change signum (in set_integer_array() save previous signum)
    digit_type number;
    short dest_index = MAX_ARRAY_LENGTH - 1;

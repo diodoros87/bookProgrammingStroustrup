@@ -17,68 +17,7 @@ namespace integer_space {
 const string Integer::SIZE_INCORRECT = "Requirement: 0 < elements <= " + to_string(Integer::MAX_ARRAY_LENGTH);
 const string Integer::SIGNUM_INCORRECT = "Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
          + "', " + string(1, Integer::PLUS) + "'\n";
-/*
-static inline void validate(const char signum) {
-   if (Integer::PLUS != signum && Integer::MINUS != signum && Integer::NEUTRAL != signum )
-      throw invalid_argument(SIGNUM_INCORRECT);
-      //throw invalid_argument("Accepted signum: '" + string(1, Integer::MINUS) + "', '" + string(1, Integer::NEUTRAL) 
-      //   + "', " + string(1, Integer::PLUS) + "'\n");
-}
-*/
-/*
-template <typename T>
-static inline void validate_size(const vector<digit_type> & vec) {
-   const short VEC_SIZE = vec.size();
-   if (0 == VEC_SIZE)
-      throw invalid_argument("Requirement: vector.length > 0");
-   if (MAX_ARRAY_LENGTH < VEC_SIZE)
-      throw invalid_argument("Requirement: vector.length <= " + to_string(MAX_ARRAY_LENGTH));
-}
-
-template <typename Container>
-static inline void validate_size(const Container& TABLE) {
-   const short SIZE = TABLE.size();
-   //if (0 == SIZE)
-   //   throw invalid_argument("Requirement: length > 0");
-   if (MAX_ARRAY_LENGTH < SIZE)
-      throw invalid_argument("Requirement: length <= " + to_string(MAX_ARRAY_LENGTH));
-}
-*/
-/*
-template <typename Container>   // private
-void Integer::validate_init(const Container& TABLE, const char signum) {
-   //validate_size(TABLE);
-   const size_t SIZE = TABLE.size();
-   validate(signum);
-   digit_type number;
-   int_fast8_t zeros = 0;
-   for (short source_index = SIZE - 1; source_index >= 0 ; source_index--) {
-      number = TABLE[source_index];
-      if (number == 0) 
-         zeros++;
-      else if (number < 0 || number > 9)
-         throw invalid_argument("Requirement: in array must be only integers from 0 to 9, but input number is: "
-            + to_string(number));
-   }
-   if (zeros == SIZE && signum != NEUTRAL) 
-      throw invalid_argument("Requirement: signum must be zero for array with only zeros");
-   if (zeros < SIZE && signum == NEUTRAL) 
-      throw invalid_argument("Requirement: signum can not be zero for array with element other than zero");
-   short dest_index = MAX_ARRAY_LENGTH - 1;
-   for (short source_index = SIZE - 1; source_index >= 0 ; source_index--) {
-      number = TABLE[source_index];
-      (*this).integer_array[dest_index] = number;
-      dest_index--;
-   }
-   this->signum = signum;
-}
-*/
-/*
-Integer::Integer(const vector<digit_type> & vec, const char signum) {
-   validate_size(vec);
-   validate(vec, signum);
-}
-*/
+         
 // private constructor with automatically signum's inserting, using only in absolute values calculation
 Integer::Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY) {    // private
    digit_type number;
@@ -97,44 +36,6 @@ Integer::Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY) {    // priv
    this->signum = zeros == MAX_ARRAY_LENGTH ? NEUTRAL : PLUS;
 }
 
-/* own copy constructor or default  copy constructor ?
-public Integer(Integer integer) {
-   this(integer.integer_array, integer.signum);
-}
-
-void set(const Integer& integer) {
-   if (null == integer) {
-      throw new NullPointerException("Requirement: reference to Integer can not be null");
-   }
-
-   System.arraycopy(integer.integer_array, 0, this.integer_array, 0, integer_array.length);
-   this.signum = integer.signum;
-}
-*/
-/*
-void Integer::set_integer_array(const vector<digit_type> & VEC) {  // assume that integer_array is positive number, change of signum is allowed by set_signum()
-   if (MAX_ARRAY_LENGTH < VEC.size())
-      throw invalid_argument("Requirement: elements <= " + to_string(MAX_ARRAY_LENGTH));
-   this->integer_array->fill(0);  // not call reset_number_to_zero() due to change signum (in set_integer_array() save previous signum)
-   digit_type number;
-   short dest_index = MAX_ARRAY_LENGTH - 1;
-   for (short source_index = VEC.size() - 1; source_index >= 0 ; source_index--) {
-      number = VEC[source_index];
-      if (number < 0 || number > 9) {
-         reset_number_to_zero();    // similar to constructor, reset to zero
-         throw invalid_argument("Requirement: in array must be only integers from 0 to 9, but input number is: "
-            + to_string(number));
-      }
-      this->integer_array[dest_index] = number;
-      dest_index--;
-   }
-   if (this->signum == NEUTRAL && false == is_zero())
-      this->signum = PLUS;
-   else if (this->signum != NEUTRAL && is_zero()) 
-      this->signum = NEUTRAL;
-}
-*/
-//using integer_parsing::validate_string
 void Integer::parse(const string& STR) {
    integer_parsing::validate_string(STR);
    reset_number_to_zero();
@@ -312,10 +213,6 @@ static char get_opposite_signum(const char signum) {
    }
 }
 
-// void Integer::operator-() {
-//    signum = get_opposite_signum(integer.get_signum());
-// }
-
 Integer operator-(const Integer& integer) {
    const char opposite = get_opposite_signum(integer.get_signum());
    return Integer(integer.get_integer_array(), opposite);
@@ -408,7 +305,6 @@ static short get_mismatch_value_index(const Container& ARRAY, const int fromInde
 array<digit_type, Integer::MAX_ARRAY_LENGTH> Integer::calculate_dividing(const array<digit_type, MAX_ARRAY_LENGTH> & DIVIDEND_ARRAY, 
                short current_dividend_index, const Integer & DIVISOR) {
    array<digit_type, MAX_ARRAY_LENGTH> result_array { };
-   //const short DIVISOR_DIGITS_LENGTH = DIVISOR_ARRAY.size() - DIVISOR_OTHER_THAN_ZERO_VALUE_INDEX;
    vector<digit_type> temporary_dividend_array;
    Integer temporary_dividend;
    digit_type next_dividend_digit;
@@ -441,26 +337,13 @@ Integer Integer::divide_absolute_values(const Integer& DIVIDEND, const Integer& 
       return Integer(result_array);
    }
 }
-/*
-static vector<digit_type> modify_dividend_array(const vector<digit_type> & temporary_dividend_array, const digit_type next_dividend_digit) {
-   const short LENGTH = temporary_dividend_array.length + 1;
-   temporary_dividend_array = Arrays.copyOf(temporary_dividend_array, LENGTH);
-   temporary_dividend_array[LENGTH - 1] = next_dividend_digit;
-   
-   return temporary_dividend_array;
-}
-*/
 
 void Integer::assign_remainder(const Integer & DIVIDEND, const Integer & MULTIPLE_OF_DIVISOR, 
                                        vector<digit_type> & dividend_array) {
    const Integer REMAINDER = subtract_absolute_values(DIVIDEND, MULTIPLE_OF_DIVISOR);
    const array<digit_type, MAX_ARRAY_LENGTH> REMAINDER_ARRAY  = REMAINDER.get_integer_array();
    const short REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX = get_mismatch_value_index(REMAINDER_ARRAY, 0, 0);
-   //const short REMAINDER_DIGITS_LENGTH = MAX_ARRAY_LENGTH - REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX;
-   
-   //dividend_array = Arrays.copyOf(dividend_array, REMAINDER_DIGITS_LENGTH);
-   //System.arraycopy(REMAINDER_ARRAY, REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX, 
-   //                  dividend_array, 0, REMAINDER_DIGITS_LENGTH);
+
    dividend_array.assign(REMAINDER_ARRAY.begin() + REMAINDER_OTHER_THAN_ZERO_VALUE_INDEX, REMAINDER_ARRAY.end());
 }
 
@@ -508,9 +391,6 @@ Integer Integer::add_absolute_values(const Integer & first, const Integer & seco
 Integer Integer::subtract_absolute_values(const Integer & first, const Integer & second) {
    const Integer & minuend    = is_absolute_value_greater(first, second) ? first : second;
    const Integer & subtrahend = (&first == &minuend) ? second : first;
-   //cerr << __func__ << " &first == " << &first << "  &minuend == " << &minuend << '\n';
-   //cerr << __func__ << " &second == " << &second << "  &subtrahend == " << &subtrahend << '\n';
-   //Integer subtrahend = is_absolute_value_greater(first, second) ? second : first;
    array<digit_type, MAX_ARRAY_LENGTH> result_array;
    digit_type minuend_digit;
    digit_type subtrahend_digit;
@@ -569,12 +449,6 @@ static Integer sum_multiplication_results(const array<Integer, Integer::MAX_ARRA
 Integer Integer::multiply_absolute_values(const Integer & first, const Integer & second) {
    detect_multiplication_overflow(first, second);
    array< array<digit_type, MAX_ARRAY_LENGTH>, MAX_ARRAY_LENGTH > result_array;
-//    for (short first_index = MAX_ARRAY_LENGTH - 1; first_index >= 0; first_index--) {
-//       for (short second_index = MAX_ARRAY_LENGTH - 1; second_index >= 0; second_index--) {
-//          result_array[first_index][second_index] = 0;
-//          cerr << "\nresult_array[" << first_index << "][" << second_index << "] = " << result_array[first_index][second_index] << '\n';
-//       }
-//    }
    for (short first_index = MAX_ARRAY_LENGTH - 1; first_index >= 0; first_index--) 
       result_array[first_index].fill(0);
 
@@ -588,8 +462,6 @@ Integer Integer::multiply_absolute_values(const Integer & first, const Integer &
    for (short first_index = MAX_ARRAY_LENGTH - 1; first_index >= 0; first_index--) {
       carrying = 0;
       first_integer_digit = first[first_index];
-      //cerr << "\nfirst_integer_digit = " << first_integer_digit << '\n';
-      //cerr << "\nfirst_index = " << first_index << '\n';
       for (short second_index = MAX_ARRAY_LENGTH - 1; second_index >= 0; second_index--) {
          column = second_index - magnitude_order;
          if (column < 0) {
@@ -597,17 +469,12 @@ Integer Integer::multiply_absolute_values(const Integer & first, const Integer &
             break;
          }
          second_integer_digit = second[second_index];
-         //cerr << "\nsecond_integer_digit = " << second_integer_digit << '\n';
          product = first_integer_digit * second_integer_digit;
          product += carrying;
          result_array[first_index][column] = product % 10;
          carrying = product / 10;
       }
-//       for (short second_index = MAX_ARRAY_LENGTH - 1; second_index >= 0; second_index--) {
-//          cerr << "\nintegers_array[" << first_index << "] = " << integers_array[first_index] << '\n';
-//       }
       integers_array[first_index] = Integer(result_array[first_index]);
-      //cerr << "\nintegers_array[" << first_index << "] = " << integers_array[first_index] << '\n';
       magnitude_order++;
    }
    check_multiplication_overflow(carrying, first, second);

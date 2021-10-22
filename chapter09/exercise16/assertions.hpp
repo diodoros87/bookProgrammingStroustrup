@@ -9,8 +9,6 @@
 #include<sstream>
 
 #include "integer.hpp"
-//#include "integer_parsing.hpp"
-
 
 using std::cerr;
 using std::string;

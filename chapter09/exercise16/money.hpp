@@ -2,17 +2,34 @@
 
 namespace money {
 
+template <typename T>
 class Money {
 public:
-   static constexpr short ONE_CENT = 10;
    static constexpr short CENTS_PER_DOLLAR = 100;
-   static constexpr short ONE_DOLLAR = CENTS_PER_DOLLAR * ONE_CENT;
+   static const string TYPE_NAME;
    
-   static long round(long x) {
-      return x % 10 >= 5 ? x / 10 + 1 : x / 10;
+   static const string LONG_DOUBLE_NAME;
+   static const string DOUBLE_NAME;
+   static const string FLOAT_NAME;
+   
+   static const string CHAR_NAME;
+   static const string SIGNED_CHAR_NAME;
+   static const string UNSIGNED_CHAR_NAME;
+   static const string SHORT_NAME;
+   static const string UNSIGNED_SHORT_NAME;
+   static const string INT_NAME;
+   static const string UNSIGNED_INT_NAME;
+   static const string LONG_NAME;
+   static const string UNSIGNED_LONG_NAME;
+   static const string LONG_LONG_NAME;
+   static const string UNSIGNED_LONG_LONG_NAME;
+   static const string SIZE_T_NAME;
+   
+   static T round(double x) {
+      return static_cast<T>(x + 0.5);
    }
    
-   Money(const long dollars, const double cents) : amount(ONE_DOLLAR * dollars + ONE_CENT * cents)
+   Money(const string & dollars, const double cents = 0) : amount(CENTS_PER_DOLLAR * dollars + round(cents))
    //Money(const long cents);
    
    static Money reverse(const Money& number) { 
@@ -41,13 +58,41 @@ public:
    bool operator<(const Money& other) const ;
    bool operator>=(const Money& other) const { return !operator<(other); };
    
-   long int dollars() const { return cents / ONE_DOLLAR; }
+   T dollars() const { return cents / CENTS_PER_DOLLAR; }
    
    operator double() const { return static_cast<double>(numerator) / denominator; }
 private:
    
-   long int amount {0};
+   T cents {0};
 };
+
+template <typename T>
+const string Money<T>::TYPE_NAME = typeid(T).name();
+
+template <typename T>
+const string Money<T>::LONG_DOUBLE_NAME = typeid(0.0L).name();
+template <typename T>
+const string Money<T>::DOUBLE_NAME = typeid(0.0).name();
+template <typename T>
+const string Money<T>::FLOAT_NAME = typeid(0.0f).name();
+template <typename T>
+const string Money<T>::CHAR_NAME = typeid('A').name();
+template <typename T>
+const string Money<T>::SHORT_NAME = typeid(((short)0)).name();
+template <typename T>
+const string Money<T>::UNSIGNED_SHORT_NAME = typeid(((unsigned short)0)).name();
+template <typename T>
+const string Money<T>::INT_NAME = typeid(0).name();
+template <typename T>
+const string Money<T>::LONG_NAME = typeid(0L).name();
+template <typename T>
+const string Money<T>::LONG_LONG_NAME = typeid(numeric_limits<long long>::max()).name();
+template <typename T>
+const string Money<T>::UNSIGNED_INT_NAME = typeid(0u).name();
+template <typename T>
+const string Money<T>::UNSIGNED_LONG_NAME = typeid(0uL).name();
+template <typename T>
+const string Money<T>::UNSIGNED_LONG_LONG_NAME = typeid(numeric_limits<unsigned long long>::max()).name();
 
 inline std::ostream& operator<<(std::ostream& os, const Money& number) {
    return os << "(" << number.get_numerator() << " / " << number.get_denominator() << ")";

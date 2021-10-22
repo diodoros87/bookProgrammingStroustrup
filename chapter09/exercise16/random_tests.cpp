@@ -6,12 +6,10 @@
 
 #include<iostream>
 #include<limits>
+#include<climits>
 #include<array>
 //#define NDEBUG
 #include <cassert>
-
-#define MIN_LL numeric_limits<long long>::min()
-#define MAX_LL numeric_limits<long long>::max()
 
 using namespace std;
 using namespace integer_space;
@@ -24,21 +22,21 @@ enum class Arithmetic { ADD, SUBTRACT, MULTIPLY, DIVIDE };
 bool is_overflow(const long long & N_1, const long long & N_2, const Arithmetic & arithmetic) {
    switch (arithmetic) {
       case Arithmetic::ADD:
-         return N_1 > 0 && N_2 > 0 && MAX_LL - N_1 < N_2   
-            ||  N_1 < 0 && N_2 < 0 && MIN_LL - N_1 > N_2 ;
+         return N_1 > 0 && N_2 > 0 && LLONG_MAX - N_1 < N_2   
+            ||  N_1 < 0 && N_2 < 0 && LLONG_MIN - N_1 > N_2 ;
       case Arithmetic::SUBTRACT:
-         return N_1 < 0 && N_2 > 0 && MIN_LL + N_2 > N_1   
-            ||  N_1 > 0 && N_2 < 0 && MAX_LL + N_2 < N_1 
-            ||  N_1 == 0 && N_2 == MIN_LL ;
+         return N_1 < 0 && N_2 > 0 && LLONG_MIN + N_2 > N_1   
+            ||  N_1 > 0 && N_2 < 0 && LLONG_MAX + N_2 < N_1 
+            ||  N_1 == 0 && N_2 == LLONG_MIN ;
       case Arithmetic::MULTIPLY:
-         return N_1 > +1 && N_2 > +1 && MAX_LL / N_2 < N_1   
-            ||  N_1 < -1 && N_2 < -1 && MAX_LL / N_2 > N_1 
-            ||  N_1 > +1 && N_2 < -1 && MIN_LL / N_2 < N_1   
-            ||  N_1 < -1 && N_2 > +1 && MIN_LL / N_2 > N_1 
-            ||  N_1 == -1 && N_2 == MIN_LL 
-            ||  N_1 == MIN_LL && N_2 == -1 ;
+         return N_1 > +1 && N_2 > +1 && LLONG_MAX / N_2 < N_1   
+            ||  N_1 < -1 && N_2 < -1 && LLONG_MAX / N_2 > N_1 
+            ||  N_1 > +1 && N_2 < -1 && LLONG_MIN / N_2 < N_1   
+            ||  N_1 < -1 && N_2 > +1 && LLONG_MIN / N_2 > N_1 
+            ||  N_1 == -1 && N_2 == LLONG_MIN 
+            ||  N_1 == LLONG_MIN && N_2 == -1 ;
       case Arithmetic::DIVIDE:
-         return N_1 == MIN_LL && N_2 == -1 ;
+         return N_1 == LLONG_MIN && N_2 == -1 ;
    }
 }
 
@@ -95,10 +93,23 @@ struct Operations {
       assert_number_Integer(number_result, object_result);
    }
    
-   static constexpr array<Operation_Ptr, 5> OPERATIONS = { add, subtract, multiply, divide, modulo };
+   static void compare(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
+      assert(O_1.is_zero() == (N_1 == 0));
+      
+      assert((O_1 == O_2) == (N_1 == N_2));
+      assert((O_1 != O_2) == (N_1 != N_2));
+
+      assert((O_1 > O_2) == (N_1 > N_2));
+      assert((O_1 <= O_2) == (N_1 <= N_2));
+
+      assert((O_1 <  O_2) == (N_1 < N_2));
+      assert((O_1 >=  O_2) == (N_1 >= N_2));
+   }
+   
+   static constexpr array<Operation_Ptr, 6> OPERATIONS = { add, subtract, multiply, divide, modulo, compare };
 };
 
-constexpr array<Operation_Ptr, 5> Operations::OPERATIONS;
+constexpr array<Operation_Ptr, 6> Operations::OPERATIONS;
 
 template <typename T>
 Integer construct_Integer (const T& NUMBER) { 
@@ -112,9 +123,12 @@ Integer construct_Integer (const T& NUMBER) {
 void test_by_position(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
    for (auto operation : Operations::OPERATIONS) {
       operation(N_1, N_2, O_1, O_2);
-      operation(-N_1, -N_2, -O_1, -O_2);
-      operation(N_1, -N_2, O_1, -O_2);
-      operation(-N_1, N_2, -O_1, O_2);
+      if (N_1 != numeric_limits<long long>::min() && N_2 != numeric_limits<long long>::min())
+         operation(-N_1, -N_2, -O_1, -O_2);
+      if (N_2 != numeric_limits<long long>::min())
+         operation(N_1, -N_2, O_1, -O_2);
+      if (N_1 != numeric_limits<long long>::min())
+         operation(-N_1, N_2, -O_1, O_2);
    }
 }
 
@@ -215,9 +229,9 @@ void run_by_one_type(const unsigned long long REPETITIONS) {
    run_by_one_type<char>(& Generator_set::generators.gen_char.GENERATOR, REPETITIONS);
    
    run_by_one_type<int>(& Generator_set::generators.gen_int.GENERATOR_64, REPETITIONS);
-   run_by_one_type<long long>(& Generator_set::generators.gen_long.GENERATOR_64, REPETITIONS);
    run_by_one_type<short>(& Generator_set::generators.gen_short.GENERATOR_64, REPETITIONS);
    run_by_one_type<char>(& Generator_set::generators.gen_char.GENERATOR_64, REPETITIONS);
+   run_by_one_type<long long>(& Generator_set::generators.gen_long.GENERATOR_64, REPETITIONS);
 } 
 
 void run_different_types(const unsigned long long REPETITIONS) {  
@@ -245,7 +259,7 @@ void run_different_types(const unsigned long long REPETITIONS) {
    }; */
 
    for (int_fast8_t first = 0; first < GENERATORS.size() - 1; first++) 
-      for (int_fast8_t second = first + 1; second < GENERATORS.size(); second++) 
+      for (int_fast8_t second = first + 1; second < GENERATORS.size(); second++)
          run_two_random(GENERATORS[first], GENERATORS[second], REPETITIONS);
 }
 
@@ -280,16 +294,6 @@ int main(const int argc, const char * argv[]) {
       const unsigned long long REPETITIONS = examine_command_line(argc, argv);
       random_tests::run_by_one_type(REPETITIONS);
       random_tests::run_different_types(REPETITIONS);
-      
-      cerr << " Generator_set::generators.gen_int.GENERATOR.min = " << Generator_set::generators.gen_int.GENERATOR_64.min << '\n';
-      cerr << " Generator_set::generators.gen_int.GENERATOR.max = " << Generator_set::generators.gen_int.GENERATOR_64.max << '\n';
-      cerr << " Generator_set::generators.gen_long.GENERATOR.min = " << Generator_set::generators.gen_long.GENERATOR_64.min << '\n';
-      cerr << " Generator_set::generators.gen_long.GENERATOR.max = " << Generator_set::generators.gen_long.GENERATOR_64.max << '\n';
-      cerr << "mt19937_64.min = " << mt19937_64::min();
-      cerr << "\nmt19937_64.max = " << mt19937_64::max();
-      cerr << "\nmt19937.min = " << mt19937::min();
-      cerr << "\nmt19937.max = " << mt19937::max();
-      cerr << '\n';
       return 0;
    }
    catch (const Arithmetic_Error & e) {

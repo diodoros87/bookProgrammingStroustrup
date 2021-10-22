@@ -2,6 +2,44 @@
 
 namespace money {
    
+Money::Money(const string & dollars, const double cents) {
+   T amount = get_amount(dollars);
+   if (is_floating_point<T>::value && amount > T(amount)) 
+      throw invalid_argument("dollars can not be floating-point");
+   this->cents = amount * CENTS_PER_DOLLAR + round(cents);   
+}
+
+Money::get_amount(const string & STR) {
+   T amount;
+   if (is_floating_point<T>::value ) {
+      switch(TYPE_NAME) {
+         case LONG_DOUBLE_NAME:   // long double
+            amount = stold(dollars);
+            break;
+         case DOUBLE_NAME:   // double
+            amount = stod(dollars);
+            break;
+         case FLOAT_NAME:   // float
+            amount = stof(dollars);
+            break;
+      }
+   } 
+   else if (numeric_limits<T>::is_integer) {
+      switch(TYPE_NAME) {
+         case CHAR_NAME:   // double
+            this->cents = stod(dollars);
+            break;
+         case "ld":   // double
+            this->cents = stold(dollars);
+            break;
+         case "f":   // double
+            this->cents = stof(dollars);
+            break;
+      }
+   }
+}
+
+   
 long gcd_algorithm(long a, long b) {
    if (a == 0 && b == 0)
       throw "can not calculate gcd for two numbers equals zero!";

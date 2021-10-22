@@ -63,8 +63,6 @@ private:
    function<T()> generator;
 };
 
-//random_device rd;
-
 template <typename T> 
 class Generator_64 : public Base_Generator<T> {
 public:
@@ -81,6 +79,8 @@ public:
    T operator()() const override final { return dist(rd); }
    long long operator()(char &&) const override final { return dist(rd); }
    
+   uniform_int_distribution<long long> get_distribution() const { return dist; }
+   
 private:
    mutable uniform_int_distribution<long long> dist;
    static random_device rd;
@@ -89,74 +89,6 @@ private:
 template <typename T> 
 random_device Generator_64<T>::rd;
 
-/*
-template <typename T> 
-class Generator_64 : public Base_Generator<T> {
-   //using Base_Generator<T>::min;
-   //using Base_Generator<T>::max;
-public:
-   Generator_64(const T MIN, const T MAX) : Base_Generator<T>(MIN, MAX) {
-      //random_device device;
-      //const long long seed = Base_Generator<T>::generate_seed();
-      //std::mt19937_64 engine(seed);
-      //engine.seed(device());
-      uniform_int_distribution<long long>::param_type param {MIN, MAX};
-      dist.param (param);
-      //this->generator = bind(uniform_int_distribution<long long>{param}, engine);
-   }
-   
-   Generator_64(const Generator_64 & other) : Base_Generator<T>(other) {
-      engine = other.engine;
-      dist = other.dist;
-   }
-   
-   T operator()() const override final { return dist(engine);  }
-   long long operator()(char &&) const override final { 
-      return dist(engine); 
-   }
-private:
-   //function<T()> generator;
-   mutable mt19937_64 engine;
-   mutable uniform_int_distribution<long long> dist;
-};
-
-
-template <typename T> 
-class Generator_64 : public Base_Generator<T> {
-public:
-   explicit Generator_64(const T & MIN, const T & MAX) : Base_Generator<T>(MIN, MAX) {
-      const long long seed = Base_Generator<T>::generate_seed();
-      engine.seed(seed);
-      uniform_int_distribution<long long>::param_type param {MIN, MAX};
-      this->generator = bind(uniform_int_distribution<long long>{param}, engine);
-   }
-   T operator()() const override final { return generator(); }
-   long long operator()(char &&) const override final { return generator(); }
-private:
-   function<T()> generator;
-   mt19937_64 engine;
-};
-
-template <typename T> 
-class Generator_64 : public Base_Generator<T> {
-private:
-   std::random_device rd;
-   mt19937_64 engine(rd());
-   std::uniform_int_distribution<int> distr;
-   //uniform_int_distribution<unsigned long long> distribution;
-public:
-   explicit Generator_64(const T & MIN, const T & MAX) : Base_Generator<T>(MIN, MAX) {
-      //const long long seed = Base_Generator<T>::generate_seed();
-      distr(MIN, MAX);
-      //unsigned long long seed = (static_cast<unsigned long long>(device()) << 32) | device();
-      //engine.seed(seed);
-      //uniform_int_distribution<long long>::param_type param {MIN, MAX};
-      //this->generator = bind(uniform_int_distribution<long long>{param}, engine);
-   }
-   T operator()() const override final { return (T)(distr(engine)); }
-   long long operator()(char &&) const override final { return distr(engine); }
-};
-*/
 using std::numeric_limits;
 
 template <typename T> 
@@ -171,7 +103,7 @@ template <typename T>
 const Generator<T> Generator_MINMAX<T>::GENERATOR = Generator<T> { numeric_limits<T>::min(), numeric_limits<T>::max() }  ;
 
 template <typename T> 
-const Generator_64<T> Generator_MINMAX<T>::GENERATOR_64 = { numeric_limits<T>::min(), numeric_limits<T>::max()  } ;
+const Generator_64<T> Generator_MINMAX<T>::GENERATOR_64 = Generator_64<T> { numeric_limits<T>::min(), numeric_limits<T>::max()  } ;
 
 struct Generator_set final { 
    static const Generator_MINMAX<long long> gen_long;
