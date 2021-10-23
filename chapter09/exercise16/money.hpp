@@ -1,12 +1,24 @@
+#ifndef MONEY_HPP
+#define MONEY_HPP
+
 #include <iostream>
+#include <string>
+#include <type_traits>
 
 using std::ostream;
 using std::istream;
+using std::string;
+using std::is_integral;
+using std::is_floating_point;
 
 namespace money {
-
+/*
+template <typename T,
+              std::enable_if_t<
+              is_floating_point<T>::value || is_integral<T>::value, bool> = true>*/
 template <typename T>
 class Money {
+static_assert((is_integral<T>::value || is_floating_point<T>::value) && "Number required.");
 public:
    static constexpr short CENTS_PER_DOLLAR = 100;
    static const string TYPE_NAME;
@@ -16,8 +28,6 @@ public:
    static const string FLOAT_NAME;
    
    static const string CHAR_NAME;
-   static const string SIGNED_CHAR_NAME;
-   static const string UNSIGNED_CHAR_NAME;
    static const string SHORT_NAME;
    static const string UNSIGNED_SHORT_NAME;
    static const string INT_NAME;
@@ -26,34 +36,29 @@ public:
    static const string UNSIGNED_LONG_NAME;
    static const string LONG_LONG_NAME;
    static const string UNSIGNED_LONG_LONG_NAME;
-   static const string SIZE_T_NAME;
+   
+   static const string INTEGER_OBJECT_NAME;
    
    static T round(double x) {
       return static_cast<T>(x + 0.5);
    }
    
-   Money(const string & dollars, const double cents = 0) : amount(CENTS_PER_DOLLAR * dollars + round(cents))
-   //Money(const long cents);
-   
-   static Money reverse(const Money& number) { 
-      return Money (number.denominator, number.numerator);}
-
+   Money(const string & dollars, const double cents);
+   /*
    void set(const string & dollars, const double cents = 0) { reduce(x, denominator); numerator = x; }
    void set_denominator(long x) { reduce(numerator, x); denominator = x; }
-   long get_numerator() const { return numerator; }
-   long get_denominator() const { return denominator; }
-   
+   */
    Money& operator=(const Money& other);
    
-   Money operator-() const { return Money(-cents); }
+   Money operator-() const { return Money(-amount_in_cents); }  // unsigned ???
    Money operator+() const { return *this; }
    
    Money operator+(const Money& other) const;
    Money operator-(const Money& other) const { return operator+(-other); }
-   Money operator*(const long n) const;
-   Money operator/(const long n) const { return operator*(reverse(other)); }
+   Money operator*(const T n) const;
+   Money operator/(const T n) const;
    
-   bool operator==(const Money& other) const { return cents == other.cents; }
+   bool operator==(const Money& other) const { return amount_in_cents == other.amount_in_cents; }
    bool operator!=(const Money& other) const { return !(*this == other); } ;
    
    bool operator>(const Money& other) const ;
@@ -61,46 +66,35 @@ public:
    bool operator<(const Money& other) const ;
    bool operator>=(const Money& other) const { return !operator<(other); };
    
-   T get_dollars() const { return cents / CENTS_PER_DOLLAR; }
-   T get_cents() const { return cents % CENTS_PER_DOLLAR; }
+   T get_dollars() const { return amount_in_cents / CENTS_PER_DOLLAR; }
+   T get_cents() const { return amount_in_cents % CENTS_PER_DOLLAR; }
    
-   operator double() const { return static_cast<double>(numerator) / denominator; }
+   template <std::enable_if_t<is_integral<T>::value, bool> = true>
+   T get_cents() const() { return amount_in_cents % CENTS_PER_DOLLAR; }
+   
+   template <typename T,
+              std::enable_if_t<is_floating_point<T>::value, bool> = true>
+   T get_cents() const() { return remainder(amount_in_cents, CENTS_PER_DOLLAR); }
+   
+   static T get_amount(const string & STR);
+   
+   //operator double() const { return static_cast<double>(numerator) / denominator; }
 private:
    
    T amount_in_cents {0};
 };
 
 template <typename T>
-const string Money<T>::TYPE_NAME = typeid(T).name();
-
-template <typename T>
-const string Money<T>::LONG_DOUBLE_NAME = typeid(0.0L).name();
-template <typename T>
-const string Money<T>::DOUBLE_NAME = typeid(0.0).name();
-template <typename T>
-const string Money<T>::FLOAT_NAME = typeid(0.0f).name();
-template <typename T>
-const string Money<T>::CHAR_NAME = typeid('A').name();
-template <typename T>
-const string Money<T>::SHORT_NAME = typeid(((short)0)).name();
-template <typename T>
-const string Money<T>::UNSIGNED_SHORT_NAME = typeid(((unsigned short)0)).name();
-template <typename T>
-const string Money<T>::INT_NAME = typeid(0).name();
-template <typename T>
-const string Money<T>::LONG_NAME = typeid(0L).name();
-template <typename T>
-const string Money<T>::LONG_LONG_NAME = typeid(numeric_limits<long long>::max()).name();
-template <typename T>
-const string Money<T>::UNSIGNED_INT_NAME = typeid(0u).name();
-template <typename T>
-const string Money<T>::UNSIGNED_LONG_NAME = typeid(0uL).name();
-template <typename T>
-const string Money<T>::UNSIGNED_LONG_LONG_NAME = typeid(numeric_limits<unsigned long long>::max()).name();
-
-inline std::ostream& operator<<(std::ostream& os, const Money& money) {
-   return os << get_dollars << std::use_facet<std::moneypunct<char>>(std::locale::classic()).decimal_point() << cents << " ";
+inline std::ostream& operator<<(ostream& os, const Money<T>& money) {
+   //return os << money.get_dollars() << std::use_facet<std::moneypunct<char>>(std::locale::classic()).decimal_point() 
+   //            << money.get_cents() << " \n";
+   return os << money.get_dollars() << "." 
+               << money.get_cents() << " \n";
    //return os << std::showbase << std::put_money(money.amount_in_cents);
 }
 
 }
+
+#include "money.cpp"
+
+#endif

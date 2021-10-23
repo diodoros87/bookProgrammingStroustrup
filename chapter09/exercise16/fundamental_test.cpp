@@ -6,6 +6,8 @@
 #include<iostream>
 //#define NDEBUG
 #include <cassert>
+#include <climits>
+#include <cmath>
 
 using namespace std;
 using namespace integer_space;
@@ -294,6 +296,10 @@ int main() {
    try {
       constructor_test();
       assignment_test();
+      cerr << " numeric_limits<Integer>::max() = " << numeric_limits<Integer>::max() << '\n';
+      cerr << " numeric_limits<Integer>::min() = " << numeric_limits<Integer>::min() << '\n';
+      printf("trunc(NAN) = %+f    isfinite(NAN) = %d\n",   trunc(NAN), isfinite(NAN));
+      cerr << " 5 / 0 = " << Integer(5) / Integer(0) << '\n';
       return 0;
    }
    catch (const Arithmetic_Error & e) {

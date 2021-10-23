@@ -6,6 +6,8 @@
 #include<array>
 #include<vector>
 #include<iostream>
+#include <limits>
+#include <cmath>
 
 using std::array;
 using std::vector;
@@ -13,6 +15,10 @@ using std::invalid_argument;
 using std::string;
 using std::to_string;
 using std::size_t;
+using std::is_integral;
+using std::is_floating_point;
+using std::numeric_limits;
+using std::out_of_range;
 
 //typedef int_fast8_t digit_type;
 using digit_type = short;
@@ -36,6 +42,8 @@ public:
    static constexpr char  MINUS     = '-';
    static const string SIZE_INCORRECT;
    static const string SIGNUM_INCORRECT;
+   static const Integer MIN;
+   static const Integer MAX;
 private:
    array<digit_type, MAX_ARRAY_LENGTH> integer_array { 0 };
    char signum { NEUTRAL };   // less than 0 for integers < 0, more than 0 for integers > 0, 0 for 0   
@@ -118,6 +126,22 @@ public:
    void set_integer_array(const array<digit_type, N> & table) {
       static_assert( N <= MAX_ARRAY_LENGTH && N > 0 && "set_integer_array requires 0 < N <= MAX_ARRAY_LENGTH");
       validate_set(table);
+   }
+   
+   template <typename Number,
+              std::enable_if_t<
+              is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
+   operator Number() const {
+   //static_assert(std::is_arithmetic<Number>::value && !std::is_same<Number, string>::value &&
+   //         "arithmetic required"); 
+      //(is_floating_point<Number>::value || numeric_limits<Number>::is_integer::value || 
+      if (*this < numeric_limits<Number>::min() || *this > numeric_limits<Number>::max())
+         throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
+      Number number = 0;
+      int_fast8_t power = 0;
+      for (int_fast8_t i = MAX_ARRAY_LENGTH - 1; i >= 0; i--, power++)
+         number = (*this)[i] * pow(10, power);
+      return number;  
    }
 
    void reset_number_to_zero() {
@@ -242,6 +266,27 @@ void Integer::validate_set(const Container & TABLE) {  // assume that integer_ar
       this->signum = NEUTRAL;
 }
    
+}
+
+namespace std {
+using Integer = integer_space::Integer;
+template<> class numeric_limits<Integer> {
+public:
+   static constexpr bool is_specialized = true;
+   static constexpr bool is_signed = true;
+   static constexpr bool is_integer = true;
+   static constexpr bool is_exact = true;
+   static constexpr bool has_infinity = false;
+   static constexpr bool has_quiet_NaN = false;
+   static constexpr bool has_signaling_NaN = false;
+   static constexpr bool is_modulo = false;
+   static constexpr bool traps = true;
+   static constexpr bool tinyness_before = false;
+   
+   static Integer lowest() { return Integer::MIN; };
+   static Integer min() { return Integer::MIN; };
+   static Integer max() { return Integer::MAX; };
+};
 }
 
 #endif
