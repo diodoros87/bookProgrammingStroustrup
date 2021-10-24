@@ -7,13 +7,13 @@ using namespace integer_space;
 using namespace money;
 
 template <typename T> 
-void test() { 
-   Money<T> money("20t", 34);
+void construct(const string & DOLLARS, const double CENTS ) { 
+   Money<T> money(DOLLARS, CENTS);
    cout << "money = " << money << '\n';
 }
 
 template <typename T> 
-void incorrect_test(const string & DOLLARS, const double CENTS ) { 
+void construct_incorrect(const string & DOLLARS, const double CENTS ) { 
    try {
       Money<T> money(DOLLARS, 34);
       assert(0);
@@ -27,18 +27,44 @@ void incorrect_test(const string & DOLLARS, const double CENTS ) {
       cout << "money = " << money << '\n';
    } catch (const invalid_argument& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
-   }
+   }/*
+   try {
+      Money<T> money("6", CENTS);
+      assert(0);
+      cout << "money = " << money << '\n';
+   } catch (const invalid_argument& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
+   }*/
+}
+
+template <typename T> 
+void construct() {
+   construct<T>("20", 55);
+   construct<T>("577", 45.7);
+   construct<T>("-8577", 45.79);
+}
+
+template <typename T> 
+void construct_incorrect() {
+   construct_incorrect<T>("20.8", 5);
+   construct_incorrect<T>("20t", 7);
+   construct_incorrect<T>("-0", 4);
+}
+
+template <typename T>
+inline void test() {
+   construct<T>();
+   construct_incorrect<T>();
 }
 
 int main() {
    try {
       test<int>();
-      incorrect_test<int>();
       test<float>();
-      incorrect_test<float>("20.8");
-      incorrect_test<float>("20t");
+      test<long double>();
+      test<Integer>();
+      
       //test<string>();
-      //incorrect_test<string>();
       return 0;
    } catch (const Arithmetic_Error & e) {
       cerr << __func__ << " exception : " << e.what() << endl;

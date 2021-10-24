@@ -22,19 +22,19 @@ enum class Arithmetic { ADD, SUBTRACT, MULTIPLY, DIVIDE };
 bool is_overflow(const long long & N_1, const long long & N_2, const Arithmetic & arithmetic) {
    switch (arithmetic) {
       case Arithmetic::ADD:
-         return N_1 > 0 && N_2 > 0 && LLONG_MAX - N_1 < N_2   
-            ||  N_1 < 0 && N_2 < 0 && LLONG_MIN - N_1 > N_2 ;
+         return ( N_1 > 0 && N_2 > 0 && LLONG_MAX - N_1 < N_2 )   
+            ||  ( N_1 < 0 && N_2 < 0 && LLONG_MIN - N_1 > N_2 ) ;
       case Arithmetic::SUBTRACT:
-         return N_1 < 0 && N_2 > 0 && LLONG_MIN + N_2 > N_1   
-            ||  N_1 > 0 && N_2 < 0 && LLONG_MAX + N_2 < N_1 
-            ||  N_1 == 0 && N_2 == LLONG_MIN ;
+         return ( N_1 < 0 && N_2 > 0 && LLONG_MIN + N_2 > N_1 )   
+            ||  ( N_1 > 0 && N_2 < 0 && LLONG_MAX + N_2 < N_1 ) 
+            ||  ( N_1 == 0 && N_2 == LLONG_MIN ) ;
       case Arithmetic::MULTIPLY:
-         return N_1 > +1 && N_2 > +1 && LLONG_MAX / N_2 < N_1   
-            ||  N_1 < -1 && N_2 < -1 && LLONG_MAX / N_2 > N_1 
-            ||  N_1 > +1 && N_2 < -1 && LLONG_MIN / N_2 < N_1   
-            ||  N_1 < -1 && N_2 > +1 && LLONG_MIN / N_2 > N_1 
-            ||  N_1 == -1 && N_2 == LLONG_MIN 
-            ||  N_1 == LLONG_MIN && N_2 == -1 ;
+         return ( N_1 > +1 && N_2 > +1 && LLONG_MAX / N_2 < N_1 )  
+            ||  ( N_1 < -1 && N_2 < -1 && LLONG_MAX / N_2 > N_1 ) 
+            ||  ( N_1 > +1 && N_2 < -1 && LLONG_MIN / N_2 < N_1 )   
+            ||  ( N_1 < -1 && N_2 > +1 && LLONG_MIN / N_2 > N_1 ) 
+            ||  ( N_1 == -1 && N_2 == LLONG_MIN ) 
+            ||  ( N_1 == LLONG_MIN && N_2 == -1 ) ;
       case Arithmetic::DIVIDE:
          return N_1 == LLONG_MIN && N_2 == -1 ;
    }

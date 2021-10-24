@@ -217,6 +217,16 @@ inline Integer operator+(const Integer& integer) {
    return integer;
 }
 
+inline Integer& operator+=(Integer& first, const Integer& second) {
+   first = first + second;
+   return first;
+}
+
+inline Integer& operator-=(Integer& first, const Integer& second) {
+   first = first - second;
+   return first;
+}
+
 template <typename Container>   // private
 void Integer::validate_init(const Container& TABLE, const char signum) {
    //validate_size(TABLE);
