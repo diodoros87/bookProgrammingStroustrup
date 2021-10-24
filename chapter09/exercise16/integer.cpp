@@ -40,7 +40,7 @@ Integer::Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY) {    // priv
 }
 
 void Integer::parse(const string& STR) {
-   integer_parsing::validate_string(STR);
+   integer_parsing::validate_string(STR, MAX_ARRAY_LENGTH + 1); // numbers of elements in array + character of signum
    reset_number_to_zero();
    short iteration_stop_index = 0;
    if (STR[0] == PLUS || STR[0] == MINUS) {

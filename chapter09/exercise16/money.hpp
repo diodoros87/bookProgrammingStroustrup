@@ -10,6 +10,7 @@ using std::istream;
 using std::string;
 using std::is_integral;
 using std::is_floating_point;
+using std::enable_if_t;
 
 namespace money {
 /*
@@ -66,23 +67,55 @@ public:
    bool operator<(const Money& other) const ;
    bool operator>=(const Money& other) const { return !operator<(other); };
    
-   T get_dollars() const { return amount_in_cents / CENTS_PER_DOLLAR; }
-   T get_cents() const { return amount_in_cents % CENTS_PER_DOLLAR; }
+   template <typename Type, enable_if_t<is_integral<Type>::value, bool> = true>
+   Type get_dollars(Type) const { return amount_in_cents / CENTS_PER_DOLLAR; }
+   //T get_dollars() const { return amount_in_cents ; }
+   /*
+   T get_dollars() const { return amount_in_cents ; }
+   T get_cents() const { return amount_in_cents; }
+   */
+   template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
+   Type get_dollars(Type) const { return amount_in_cents - get_cents(Type(0)); }
+   ///T get_dollars() const { return amount_in_cents ; }
    
-   template <std::enable_if_t<is_integral<T>::value, bool> = true>
-   T get_cents() const() { return amount_in_cents % CENTS_PER_DOLLAR; }
+   template <typename Type, enable_if_t<is_integral<Type>::value, bool> = true>
+   Type get_cents(Type) const { return amount_in_cents % CENTS_PER_DOLLAR; }
+   ///T get_cents() const { return amount_in_cents ; }
    
-   template <typename T,
-              std::enable_if_t<is_floating_point<T>::value, bool> = true>
-   T get_cents() const() { return remainder(amount_in_cents, CENTS_PER_DOLLAR); }
+   template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
+   Type get_cents(Type) const { return fmod(amount_in_cents, CENTS_PER_DOLLAR); }
+   ///T get_cents() const { return amount_in_cents; }
    
    static T get_amount(const string & STR);
-   
-   //operator double() const { return static_cast<double>(numerator) / denominator; }
+   /*
+   template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
+   ostream& operator<<(ostream& os) {
+      return os << get_dollars() << "." 
+                  << get_cents() << " \n";
+   }
+   */
 private:
-   
    T amount_in_cents {0};
 };
+/*
+template <typename Number, template<typename> class Money, enable_if_t<is_integral<Type>::value, bool> = true>
+inline ostream& operator<<(ostream& os, Money<Type>& money) {
+   return os << static_cast<Type>(money.get_dollars()) << "." 
+               << static_cast<Type>(money.get_cents()) << " \n";
+}
+
+template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
+   ostream& operator<<(ostream& os) {
+      return os << get_dollars<Type>() << "." << get_cents<Type>() << " \n";
+      //return os << std::showbase << std::put_money(money.amount_in_cents);
+   }
+
+template <typename Type>
+inline ostream& operator<<(ostream& os, const Money<Type>& money) {
+   return os << money.get_dollars<Type>() << "." 
+               << money.get_cents() << " \n";
+}
+
 
 template <typename T>
 inline std::ostream& operator<<(ostream& os, const Money<T>& money) {
@@ -93,6 +126,55 @@ inline std::ostream& operator<<(ostream& os, const Money<T>& money) {
    //return os << std::showbase << std::put_money(money.amount_in_cents);
 }
 
+template <typename Number, template<typename> class Money_Template>
+inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
+   return os << money.get_dollars() << "." 
+               << money.get_cents() << " \n";
+}
+*/
+
+template <class Number, template<typename> class Money_Template, enable_if_t<is_integral<Number>::value, bool> = true>
+//typename std::enable_if<is_integral<Number>::value>::type 
+//enable_if_t<is_integral<Number>::value>
+inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
+   return os << money.get_dollars(Number(0)) << "." 
+               << money.get_cents(Number(0)) << " \n";
+}
+
+template <class Number, template<typename> class Money_Template, enable_if_t<is_floating_point<Number>::value, bool> = true>
+//typename std::enable_if<is_integral<Number>::value>::type 
+//enable_if_t<is_integral<Number>::value>
+inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
+   return os << money.get_dollars(Number(0)) << "." 
+               << money.get_cents(Number(0)) << " \n";
+}
+/*
+template<class T, class... Args>
+std::enable_if_t<std::is_constructible<T, Args&&...>::value> // Using helper type
+    construct(T* p, Args&&... args) 
+{
+    std::cout << "constructing T with operation\n";
+    ::new(detail::voidify(p)) T(static_cast<Args&&>(args)...);
+}
+
+template <typename Type, enable_if_t<is_integral<Type>::value, bool> = true>
+inline ostream& operator<<(ostream& os, const Money<Type>& money) {
+   //return os << money.get_dollars() << std::use_facet<std::moneypunct<char>>(std::locale::classic()).decimal_point() 
+   //            << money.get_cents() << " \n";
+   return os << money.get_dollars() << "." 
+               << money.get_cents() << " \n";
+   //return os << std::showbase << std::put_money(money.amount_in_cents);
+}
+
+template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
+inline ostream& operator<<(ostream& os, const Money<Type>& money) {
+   //return os << money.get_dollars() << std::use_facet<std::moneypunct<char>>(std::locale::classic()).decimal_point() 
+   //            << money.get_cents() << " \n";
+   return os << money.get_dollars() << "." 
+               << money.get_cents() << " \n";
+   //return os << std::showbase << std::put_money(money.amount_in_cents);
+}
+*/
 }
 
 #include "money.cpp"

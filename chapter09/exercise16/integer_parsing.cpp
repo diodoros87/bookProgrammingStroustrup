@@ -30,8 +30,8 @@ static void validate_signum(const string & STR, const char first_character) {
       throw invalid_argument("Requirement: string can not contain signum for zero integer");
 }
 
-void validate_string(const string & STR) {
-   const short MAX_STRING_LENGTH       = Integer::MAX_ARRAY_LENGTH + 1;
+void validate_string(const string & STR, const short MAX_STRING_LENGTH /* numeric_limits<short>::max() */ ) {
+   //const short MAX_STRING_LENGTH       = Integer::MAX_ARRAY_LENGTH + 1;
    const short VALIDATED_STRING_LENGTH = STR.length();
    if (VALIDATED_STRING_LENGTH > MAX_STRING_LENGTH) 
       throw invalid_argument("Requirement: integer's string.length <= " + to_string(MAX_STRING_LENGTH));

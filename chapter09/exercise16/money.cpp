@@ -1,10 +1,13 @@
 #include "money.hpp"
+#include "integer_parsing.hpp"
 
 #include <cmath>
 #include <limits>
 
+
 using std::numeric_limits;
 using std::enable_if_t;
+using std::isfinite;
 
 namespace money {
    
@@ -41,7 +44,7 @@ const string Money<T>::INTEGER_OBJECT_NAME = typeid(Integer(0)).name();
    
 template<typename T, typename U>
 inline bool is_overflow(const U x) {
-   static_assert(is_integral<T>::value && "Integral required.");
+   //static_assert(is_integral<T>::value && "Integral required.");
    return x < numeric_limits<T>::min() || x > numeric_limits<T>::max();
 }
 
@@ -49,7 +52,7 @@ template <typename Number,
               enable_if_t<
               is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
 inline bool equal_integer(const Number x) {
-   return std::isfinite(x) && x == trunc(x);
+   return isfinite(x) && x == trunc(x);
 }
 
 template <typename T>
@@ -96,8 +99,10 @@ T Money<T>::get_amount(const string & STR) {
 
 template <typename T>
 Money<T>::Money(const string & dollars, const double cents) {
+   integer_parsing::validate_string(dollars);
    T amount = get_amount(dollars);
-   if (is_floating_point<T>::value && ! equal_integer<T>(amount)) 
+   //if (is_floating_point<T>::value && ! equal_integer<T>(amount)) 
+   if (! equal_integer<T>(amount)) 
       throw invalid_argument("dollars can not be floating-point");
    this->amount_in_cents = amount * CENTS_PER_DOLLAR + round(cents);   
 }
