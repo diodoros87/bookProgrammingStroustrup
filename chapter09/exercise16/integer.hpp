@@ -8,6 +8,7 @@
 #include<iostream>
 #include <limits>
 #include <cmath>
+#include <sstream>
 
 using std::array;
 using std::vector;
@@ -19,6 +20,8 @@ using std::is_integral;
 using std::is_floating_point;
 using std::numeric_limits;
 using std::out_of_range;
+using std::ostream;
+using std::istream;
 
 //typedef int_fast8_t digit_type;
 using digit_type = short;
@@ -131,10 +134,7 @@ public:
    template <typename Number,
               std::enable_if_t<
               is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
-   operator Number() const {
-   //static_assert(std::is_arithmetic<Number>::value && !std::is_same<Number, string>::value &&
-   //         "arithmetic required"); 
-      //(is_floating_point<Number>::value || numeric_limits<Number>::is_integer::value || 
+   operator Number() const { 
       if (*this < numeric_limits<Number>::min() || *this > numeric_limits<Number>::max())
          throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
       Number number = 0;
@@ -209,8 +209,18 @@ inline bool operator!=(const Integer& first, const Integer& second) {
    return !(first == second);
 }
 
-inline std::ostream& operator<<(std::ostream& os, const Integer & integer) {
+inline ostream& operator<<(ostream& os, const Integer & integer) {
    return os << string(integer);
+}
+
+inline istream& operator>>(istream& is, Integer & integer) {
+   string integer_string;
+   is >> integer_string;
+   if (! is)
+      throw std::runtime_error("Istream error when reading Integer");
+   
+   integer.parse(integer_string);
+   return is;
 }
 
 inline Integer operator+(const Integer& integer) {
@@ -280,6 +290,9 @@ void Integer::validate_set(const Container & TABLE) {  // assume that integer_ar
 
 namespace std {
 using Integer = integer_space::Integer;
+
+string to_string(const Integer& integer);
+
 template<> class numeric_limits<Integer> {
 public:
    static constexpr bool is_specialized = true;

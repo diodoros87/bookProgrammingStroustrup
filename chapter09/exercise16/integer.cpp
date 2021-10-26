@@ -6,11 +6,21 @@
 #include <cstdint>
 #include <climits>
 #include <vector>
-
 #include<iostream>
-using std::cerr;
 
+using std::cerr;
+using std::ostringstream;
 using std::runtime_error;
+
+namespace std {
+//using Integer = integer_space::Integer;
+
+string to_string(const integer_space::Integer& integer) {
+  ostringstream os;
+  os << integer;
+  return os.str();
+}
+}
 
 namespace integer_space {
    

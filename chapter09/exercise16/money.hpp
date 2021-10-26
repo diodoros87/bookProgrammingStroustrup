@@ -11,6 +11,7 @@ using std::string;
 using std::is_integral;
 using std::is_floating_point;
 using std::enable_if_t;
+using std::is_same;
 
 namespace money {
    
@@ -26,6 +27,7 @@ public:
    static const string FLOAT_NAME;
    
    static const string CHAR_NAME;
+   static const string INT_FAST_8_T_NAME;
    static const string SHORT_NAME;
    static const string UNSIGNED_SHORT_NAME;
    static const string INT_NAME;
@@ -37,12 +39,15 @@ public:
    
    static const string INTEGER_OBJECT_NAME;
    
-   static T round(double x) {
+   inline static T round(long double x) {
       return static_cast<T>(x + 0.5);
    }
    
-   Money(const string & dollars, const double cents);
-   Money(const string & dollars);
+   Money(const string & dollars, const long double cents);   
+   Money(const string & dollars);            // constructors allow rounding of cents 
+   // create methods disallow rounding of cents and accept only cents without fraction
+   static Money create(const string & dollars, const long double cents);
+   static Money create(const string & dollars);
    /*
    void set(const string & dollars, const double cents = 0) { reduce(x, denominator); numerator = x; }
    void set_denominator(long x) { reduce(numerator, x); denominator = x; }
@@ -66,16 +71,16 @@ public:
    bool operator>=(const Money& other) const { return !operator<(other); };
    
    template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
-   Type get_dollars(Type) const { return amount_in_cents / CENTS_PER_DOLLAR; }
+   Type get_dollars(Type &&) const { return amount_in_cents / CENTS_PER_DOLLAR; }
    
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
-   Type get_dollars(Type) const { return trunc(amount_in_cents / CENTS_PER_DOLLAR); }
-   //- get_cents(Type(0)
+   Type get_dollars(Type &&) const { return trunc(amount_in_cents / CENTS_PER_DOLLAR); }
+
    template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
-   Type get_cents(Type) const { return amount_in_cents % CENTS_PER_DOLLAR; }
+   Type get_cents(Type &&) const { return amount_in_cents % CENTS_PER_DOLLAR; }
    
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
-   Type get_cents(Type) const { return trunc(fmod(amount_in_cents, CENTS_PER_DOLLAR)); }
+   Type get_cents(Type &&) const { return trunc(fmod(amount_in_cents, CENTS_PER_DOLLAR)); }
    
    static T get_amount(const string & STR);
    
@@ -142,6 +147,24 @@ private:
    T amount_in_cents {0};
 };
 
+inline ostream& operator<<(ostream& os, const Money<char>& money) {
+   return os << static_cast<int>(money.get_dollars(char(0))) << "," 
+               << static_cast<int>(money.get_cents(char(0))) << " \n";
+}
+
+inline ostream& operator<<(ostream& os, const Money<int_fast8_t>& money) {
+   return os << static_cast<int>(money.get_dollars(char(0))) << "," 
+               << static_cast<int>(money.get_cents(char(0))) << " \n";
+}
+
+/*
+template <class Number, template<typename> class Money_Template, enable_if_t<is_same<char, Number>::value ||
+                                            is_same<int_fast8_t, Number>::value, bool> = true>
+inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
+   return os << static_cast<int>(money.get_dollars(Number(0))) << "," 
+               << static_cast<int>(money.get_cents(Number(0))) << " \n";
+}
+*/
 template <class Number, template<typename> class Money_Template, enable_if_t<numeric_limits<Number>::is_integer, bool> = true>
 inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
    return os << money.get_dollars(Number(0)) << "," 

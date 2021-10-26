@@ -4,11 +4,14 @@
 #include <cmath>
 #include <limits>
 #include <regex>
+#include <sstream>
 
 using std::numeric_limits;
 using std::enable_if_t;
 using std::isfinite;
 using std::regex;
+using std::istringstream;
+using std::bad_cast;
 
 namespace money {
    
@@ -23,6 +26,8 @@ template <typename T>
 const string Money<T>::FLOAT_NAME = typeid(0.0f).name();
 template <typename T>
 const string Money<T>::CHAR_NAME = typeid('A').name();
+template <typename T>
+const string Money<T>::INT_FAST_8_T_NAME = typeid(((int_fast8_t)0)).name();
 template <typename T>
 const string Money<T>::SHORT_NAME = typeid(((short)0)).name();
 template <typename T>
@@ -53,13 +58,6 @@ template <typename Number, enable_if_t<
               is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
 inline bool equal_integer(const Number x) {
    return isfinite(x) && x == trunc(x);
-}
-
-template <typename T>
-string to_string(const T& value) {
-  ostringstream os;
-  os << value;
-  return os.str();
 }
 
 /*
@@ -143,6 +141,7 @@ T Money<T>::get_amount(const string & STR) {
 
 template <typename T>
 T Money<T>::get_amount(const string & STR) {
+   //cerr << string(("amount = " + std::to_string(T(0)) + " is overflow for type " + TYPE_NAME)) << '\n';
    if (is_floating_point<T>::value ) {
       if (TYPE_NAME == LONG_DOUBLE_NAME)   
          return stold(STR);
@@ -166,14 +165,15 @@ T Money<T>::get_amount(const string & STR) {
             || TYPE_NAME == UNSIGNED_SHORT_NAME) {
          T amount = stoul(STR);
          if (is_overflow<T, unsigned long>(amount))
-            throw invalid_argument("amount = " + to_string(amount) + " is overflow for type " + TYPE_NAME);
+            throw invalid_argument("amount = " + std::to_string(amount) + " is overflow for type " + TYPE_NAME);
          return amount;
       }
       else if (TYPE_NAME == SHORT_NAME
-            || TYPE_NAME == CHAR_NAME) {
+            || TYPE_NAME == CHAR_NAME
+            || TYPE_NAME == INT_FAST_8_T_NAME) {
          T amount = stoi(STR);
          if (is_overflow<T, int>(amount))
-            throw invalid_argument("amount = " + to_string(amount) + " is overflow for type " + TYPE_NAME);
+            throw invalid_argument("amount = " + std::to_string(amount) + " is overflow for type " + TYPE_NAME);
          return amount;
       }
       else if (TYPE_NAME == INTEGER_OBJECT_NAME)  
@@ -184,7 +184,7 @@ T Money<T>::get_amount(const string & STR) {
 }
 
 template <typename T>
-Money<T>::Money(const string & dollars, const double cents) {
+Money<T>::Money(const string & dollars, const long double cents) {
    try {
       integer_parsing::validate_string(dollars);
    } catch(const invalid_argument& e) {
@@ -200,19 +200,51 @@ Money<T>::Money(const string & dollars, const double cents) {
    this->amount_in_cents += amount > 0 ? round(cents) : -round(cents);   
 }
 
+struct bad_from_string : public bad_cast {
+   const char * what() const noexcept override {
+      return "Bad cast from string";
+   }
+};
+ 
+template <typename T, enable_if_t<is_floating_point<T>::value || numeric_limits<T>::is_integer, bool> = true>
+T from_string(const string & STR) {
+   istringstream stream { STR };
+   T result;
+   stream >> result;
+   if (!stream)
+      throw bad_from_string {};
+   if (is_floating_point<T>::value && ! stream.eof()) {
+      cerr << " T = " << typeid(T).name() << '\n';
+      throw invalid_argument(__func__ + string(" entered string is not floating-point format "));
+   }
+   return result;
+}
+/*
+template <typename T, enable_if_t<numeric_limits<T>::is_integer, bool> = true>
+T from_string(const string & STR) {
+   istringstream stream { STR };
+   T result;
+   stream >> result;
+   if (!stream)
+      throw bad_from_string {};
+   return result;
+}
+*/
 template <typename T>
 Money<T>::Money(const string & dollars) {
-   const regex float_point {R "[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)" };
-   //[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)
-   if (! regex_match(dollars, float_point))
-		throw invalid_argument("dollars can not be floating-point ");
+   //T amount = from_string<T>(dollars);
    
+   
+   const regex float_point = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)" } ;
+   if (! regex_match(dollars, float_point))
+		throw invalid_argument("entered string is not floating-point format ");
    T amount = get_amount(dollars);
+   
    cerr << " TYPE_NAME = " << TYPE_NAME << ' ' << amount << '\n';
-   //if (is_floating_point<T>::value && ! equal_integer<T>(amount)) 
-   //if (! equal_integer<T>(amount)) 
-   //  throw invalid_argument("dollars can not be floating-point");
+   
    this->amount_in_cents = amount * CENTS_PER_DOLLAR;  
+   if (is_floating_point<T>::value) 
+      this->amount_in_cents = round(this->amount_in_cents);
 }
    /*
 Money& Money::operator=(const Money& other) { 
