@@ -57,7 +57,7 @@ public:
       validate_init(table, signum);
    }
    
-   Integer(const long long x) { 
+   Integer(const long long int x) { 
       const string STR = to_string(x);
       this->parse(STR); 
    }
@@ -135,12 +135,13 @@ public:
               std::enable_if_t<
               is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
    operator Number() const { 
-      if (*this < numeric_limits<Number>::min() || *this > numeric_limits<Number>::max())
+      if (*this < numeric_limits<Number>::lowest() || *this > numeric_limits<Number>::max())
          throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
       Number number = 0;
       int_fast8_t power = 0;
-      for (int_fast8_t i = MAX_ARRAY_LENGTH - 1; i >= 0; i--, power++)
-         number = (*this)[i] * pow(10, power);
+      for (int_fast8_t i = MAX_ARRAY_LENGTH - 1; i >= 0; i--, power++) 
+         if ((*this)[i] != 0)
+            number += (*this)[i] * pow(10, power);
       return number;  
    }
 

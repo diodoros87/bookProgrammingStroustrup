@@ -14,32 +14,15 @@ using std::enable_if_t;
 using std::is_same;
 
 namespace money {
+constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
    
 template <typename T>
 class Money {
 static_assert((numeric_limits<T>::is_integer || is_floating_point<T>::value) && "Number required.");
 public:
-   static constexpr short CENTS_PER_DOLLAR = 100;
    static const string TYPE_NAME;
    
-   static const string LONG_DOUBLE_NAME;
-   static const string DOUBLE_NAME;
-   static const string FLOAT_NAME;
-   
-   static const string CHAR_NAME;
-   static const string INT_FAST_8_T_NAME;
-   static const string SHORT_NAME;
-   static const string UNSIGNED_SHORT_NAME;
-   static const string INT_NAME;
-   static const string UNSIGNED_INT_NAME;
-   static const string LONG_NAME;
-   static const string UNSIGNED_LONG_NAME;
-   static const string LONG_LONG_NAME;
-   static const string UNSIGNED_LONG_LONG_NAME;
-   
-   static const string INTEGER_OBJECT_NAME;
-   
-   inline static T round(long double x) {
+   static inline T round(long double x) {
       return static_cast<T>(x + 0.5);
    }
    
@@ -144,6 +127,9 @@ public:
    template <typename Number, enable_if_t<numeric_limits<Number>::is_integer, bool> = true>
    static Number get_amount(const string & STR);*/
 private:
+   template<typename Greater>
+   T calculate(const T & dollars, const long double & cents);
+
    T amount_in_cents {0};
 };
 

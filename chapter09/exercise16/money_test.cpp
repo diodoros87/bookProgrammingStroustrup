@@ -63,9 +63,18 @@ void construct_incorrect(const string & DOLLARS) {
 
 template <typename T> 
 void construct() {
+   construct<T>("1", 3);
    construct<T>("20", 55);
-   construct<T>("577", 45.7);
-   construct<T>("-8577", 45.79);
+   try {
+      construct<T>("577", 45.7);
+   } catch (const out_of_range & e) {
+       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
+   }
+   try {
+      construct<T>("-8577", 45.79);
+   } catch (const out_of_range & e) {
+       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
+   }   
    construct<T>("10");
    construct<T>("-8577e+03");
    construct<T>("10.67");
@@ -105,7 +114,7 @@ int main() {
    } catch (const invalid_argument& e) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    } catch (const out_of_range& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << endl;
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    } catch (const runtime_error& e) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    } catch (const exception& e) {
