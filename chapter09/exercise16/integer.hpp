@@ -9,6 +9,7 @@
 #include <limits>
 #include <cmath>
 #include <sstream>
+#include <cmath>
 
 using std::array;
 using std::vector;
@@ -23,6 +24,9 @@ using std::out_of_range;
 using std::ostream;
 using std::istream;
 using std::cerr;
+using std::enable_if_t;
+using std::isfinite;
+using std::is_same;
 
 //typedef int_fast8_t digit_type;
 using digit_type = short;
@@ -37,6 +41,20 @@ public:
       return msg.c_str();
    }
 };
+
+template <typename Number, enable_if_t<
+              is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
+inline bool equal_integer(const Number x) {
+   return isfinite(x) && x == trunc(x);
+}
+
+class Integer;
+
+Integer operator-(const Integer& first, const Integer& second);
+Integer operator+(const Integer& first, const Integer& second);
+bool operator<(const Integer& first, const Integer& second);
+bool operator>(const Integer& first, const Integer& second);
+bool operator==(const Integer& first, const Integer& second);
    
 class Integer {
 public:
@@ -48,6 +66,9 @@ public:
    static const string SIGNUM_INCORRECT;
    static const Integer MIN;
    static const Integer MAX;
+   static const long double FLOAT_MIN;
+   static const long double FLOAT_MAX;
+   static constexpr int_fast8_t BASE = 10;
 private:
    array<digit_type, MAX_ARRAY_LENGTH> integer_array { 0 };
    char signum { NEUTRAL };   // less than 0 for integers < 0, more than 0 for integers > 0, 0 for 0   
@@ -59,8 +80,61 @@ public:
    }
    
    Integer(const long long int x) { 
+      *this = create_Integer(x);
+      //const string STR = to_string(x);
+      //this->parse(STR); 
+   }
+   
+   static Integer create_Integer(const Integer & other) { 
+      Integer integer = other; 
+      return integer;
+   }
+   
+   static Integer create_Integer(const Integer && other) { 
+      Integer integer = other; 
+      return integer;
+   }
+   /*
+   explicit Integer(const long double x) { 
       const string STR = to_string(x);
       this->parse(STR); 
+   }
+   */
+   template <typename Number, enable_if_t<is_floating_point<Number>::value, bool> = true>
+   static Integer create_Integer(const Number x) { 
+      if (! isfinite(x))
+         throw invalid_argument(string(__func__) + ": Argument " + to_string(x) + " is not finite");
+      if (x < FLOAT_MIN || x > FLOAT_MAX)
+         throw out_of_range(string(" type: ") + typeid(Number).name() + " number: " + to_string(x) +
+                                    " is out of range for Integer class ");
+      long double truncated = trunc(x);
+      long double abs_truncated = fabs(truncated);
+      digit_type digit = 0;
+      //if (*this < numeric_limits<Number>::lowest() || *this > numeric_limits<Number>::max())
+      //   throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
+      array<digit_type, MAX_ARRAY_LENGTH> table { 0 };
+      int_fast8_t i = MAX_ARRAY_LENGTH - 1;
+      for (; abs_truncated > 0 && i >= 0; i--) {
+         table[i] = fmod(abs_truncated, BASE); 
+         abs_truncated /= 10;
+         abs_truncated = trunc(abs_truncated);
+      }
+      //if (i < 0 && truncated > 0)
+      //   throw out_of_range(" type: " + typeid(Number).name() + " number: " + to_string(x) + " is out of range for Integer class ");
+      char signum = NEUTRAL;
+      if (truncated < 0)
+         signum = MINUS;
+      else if(truncated > 0)
+         signum = PLUS;
+      Integer integer = Integer{ table, signum };  
+      return integer;
+   }
+   
+   template <typename Number, enable_if_t<is_integral<Number>::value, bool> = true>
+   static Integer create_Integer(const Number x) { 
+      const string STR = to_string(x);
+      Integer integer = parse_create(STR);  
+      return integer;
    }
    
    template <const unsigned int N>
@@ -132,14 +206,27 @@ public:
       validate_set(table);
    }
    
-   template <typename Number,std::enable_if_t<is_floating_point<Number>::value 
-                                 || is_integral<Number>::value, bool> = true>
+      template <typename Number, enable_if_t<(is_floating_point<Number>::value 
+                                 || is_integral<Number>::value), bool> = true>
+   //template <typename Number, enable_if_t<is_integral<Number>::value, bool> = true>
+   static bool is_overflow(const Integer & integer) {
+      static const Integer lowest = create_Integer(numeric_limits<Number>::lowest());
+      static const Integer max = create_Integer(numeric_limits<Number>::max());
+      return integer < lowest || integer > max;
+   }
+   
+   template <typename Number, enable_if_t<(is_floating_point<Number>::value 
+                                 || is_integral<Number>::value), bool> = true>
    operator Number() const { 
+      //static_assert(! is_same<float, Number>);
       cerr << " numeric_limits<Number>::lowest() = " << numeric_limits<Number>::lowest();
       cerr << " \nnumeric_limits<Number>::max() = " << numeric_limits<Number>::max() << '\n';
-      if (*this < numeric_limits<Number>::lowest() || *this > numeric_limits<Number>::max())
-         throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
-      static constexpr int_fast8_t BASE = 10;
+      if (is_integral<Number>::value) {
+         static const Integer lowest = create_Integer(numeric_limits<Number>::lowest());
+         static const Integer max = create_Integer(numeric_limits<Number>::max());
+         if (*this < lowest || *this > max)
+            throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
+      }
       Number number = (*this)[0];
       for (int_fast8_t i = 1; i < MAX_ARRAY_LENGTH; i++) 
          number = (*this)[i] + BASE * number;
@@ -194,12 +281,6 @@ public:
    friend Integer operator%(const Integer& DIVIDEND, const Integer& DIVISOR);
    friend Integer operator/(const Integer& dividend, const Integer& divisor);
 };
-
-Integer operator-(const Integer& first, const Integer& second);
-Integer operator+(const Integer& first, const Integer& second);
-bool operator<(const Integer& first, const Integer& second);
-bool operator>(const Integer& first, const Integer& second);
-bool operator==(const Integer& first, const Integer& second);
 
 inline bool operator<=(const Integer& first, const Integer& second) {
    return ! (first > second);

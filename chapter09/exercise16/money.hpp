@@ -73,7 +73,11 @@ public:
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
    Type get_cents(Type &&) const { return trunc(fmod(amount_in_cents, CENTS_PER_DOLLAR)); }
    
+   //template <typename T, enable_if_t<is_same<T, Integer>::value, bool> = false>
    static T get_amount(const string & STR);
+   
+   //template <typename Integer>
+   //static Integer get_amount(const string & STR);
    
    Money operator*(const Money & ) = delete;
    //Money operator*(const Money) = delete;
@@ -137,8 +141,9 @@ public:
 private:
    template<typename Greater>
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
+   T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
 
-   T amount_in_cents {0};
+   T amount_in_cents { };
 };
 
 inline ostream& operator<<(ostream& os, const Money<char>& money) {
@@ -161,14 +166,14 @@ inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
 */
 template <class Number, template<typename> class Money_Template, enable_if_t<numeric_limits<Number>::is_integer, bool> = true>
 inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
-   return os << money.get_dollars(Number(0)) << "," 
-               << money.get_cents(Number(0)) << " \n";
+   return os << money.get_dollars(Number()) << "," 
+               << money.get_cents(Number()) << " \n";
 }
 
 template <class Number, template<typename> class Money_Template, enable_if_t<is_floating_point<Number>::value, bool> = true>
 inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
-   return os << money.get_dollars(Number(0)) << "," 
-               << money.get_cents(Number(0)) << " \n";
+   return os << money.get_dollars(Number()) << "," 
+               << money.get_cents(Number()) << " \n";
 }
 
 }

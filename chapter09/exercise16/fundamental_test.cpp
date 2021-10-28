@@ -33,7 +33,7 @@ template <typename T,
               std::enable_if_t<std::is_integral<T>::value, bool> = true>
 inline Integer construct_Integer (const T& NUMBER) { 
    cerr << __func__ << " construct by Integral " << NUMBER << " : ";
-   Integer i = Integer(NUMBER);
+   Integer i = Integer::create_Integer(NUMBER);
    cout << i << '\n';
    assert_number_Integer(NUMBER, i);
    return i;
@@ -43,7 +43,7 @@ template <typename Floating,
               std::enable_if_t<std::is_floating_point<Floating>::value, bool> = true>
 inline Integer construct_Integer (const Floating& NUMBER) { 
    cerr << __func__ << " construct by Float " << NUMBER << " : ";
-   Integer i = Integer(NUMBER);
+   Integer i = Integer::create_Integer(NUMBER);
    cout << i << '\n';
    assert_number_Integer(NUMBER, i);
    return i;
@@ -299,7 +299,7 @@ int main() {
       cerr << " numeric_limits<Integer>::max() = " << numeric_limits<Integer>::max() << '\n';
       cerr << " numeric_limits<Integer>::min() = " << numeric_limits<Integer>::min() << '\n';
       printf("trunc(NAN) = %+f    isfinite(NAN) = %d\n",   trunc(NAN), isfinite(NAN));
-      cerr << " 5 / 0 = " << Integer(5) / Integer(0) << '\n';
+      cerr << " 5 / 0 = " << Integer::create_Integer(5) / Integer::create_Integer(0) << '\n';
       return 0;
    }
    catch (const Arithmetic_Error & e) {

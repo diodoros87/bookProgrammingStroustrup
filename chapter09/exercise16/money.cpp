@@ -31,23 +31,26 @@ const string LONG_LONG_NAME = typeid(numeric_limits<long long>::max()).name();
 const string UNSIGNED_INT_NAME = typeid(0u).name();
 const string UNSIGNED_LONG_NAME = typeid(0uL).name();
 const string UNSIGNED_LONG_LONG_NAME = typeid(numeric_limits<unsigned long long>::max()).name();
-const string INTEGER_OBJECT_NAME = typeid(Integer(0)).name();
+const string INTEGER_OBJECT_NAME = typeid(Integer{}).name();
+const string INTEGER_OBJECT_NAME_1 = typeid(Integer()).name();
 
 //const regex FLOAT_POINT_REGEX = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)" } ;
 const regex E_FLOAT_POINT_REGEX = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)" } ;
 const regex FLOAT_POINT_REGEX   = regex { R"(^[+-]?(\d+([.]\d*)?|[.]\d+)$)" } ;
-
+/*
 template <typename Number, enable_if_t<
               is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
 inline bool equal_integer(const Number x) {
    return isfinite(x) && x == trunc(x);
 }
-
+*/
 inline void validate_cents(const long double & cents) {
    if (0 > cents || cents >= CENTS_PER_DOLLAR) {
       static const string ERROR = "cents must be 0 - " + to_string(CENTS_PER_DOLLAR);
       throw invalid_argument(ERROR);
    }
+   cerr << " typeid(Integer{}).name(); = " << INTEGER_OBJECT_NAME << '\n';
+   cerr << " typeid(Integer()).name(); = " << INTEGER_OBJECT_NAME_1 << '\n';
 }
 
 /*
@@ -185,11 +188,16 @@ T Money<T>::get_amount(const string & STR) {
       else if (TYPE_NAME == INTEGER_OBJECT_NAME)  
          return Integer::parse_create(STR);
       else
-         throw invalid_argument("No implementation for type " + TYPE_NAME);  
+         throw invalid_argument("No implementation for type '" + TYPE_NAME + "'");  
       
    }
 }
 /*
+template <typename Integer>
+Integer Money<Integer>::get_amount(const string & STR) {
+   return Integer::parse_create(STR);
+}
+
 template<typename Smaller, typename Greater>
 Smaller calculate(const Smaller & dollars, const long double & cents) {
    static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
@@ -209,7 +217,8 @@ Smaller calculate(const Smaller & dollars, const long double & cents) {
 template <typename T>
 template<typename Greater>
 T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT_CENTS */) const {
-   static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
+   static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
+                        ! is_same<Greater, Integer>::value && "Number required.");
    Greater amount_in_cents = Greater(dollars) * Greater(CENTS_PER_DOLLAR);
    if (INCORRECT_CENTS == cents)
       amount_in_cents = round(amount_in_cents);
@@ -217,9 +226,31 @@ T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT
       T cents_round = dollars > 0 ? round(cents) : -round(cents);
       amount_in_cents += Greater(cents_round);
    }
-   if (! is_same<T, Integer>::value)
+   // if (! is_same<T, Integer>::value)
       if (is_overflow<T, Greater>(amount_in_cents))
          throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
+   T result = T(amount_in_cents);
+   return result;
+}
+
+template <typename T>
+//template<typename Integer>
+T Money<T>::calculate(const T & dollars, const long double cents ) const {
+   //static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
+   Integer amount_in_cents = Integer::create_Integer(dollars) * Integer::create_Integer(CENTS_PER_DOLLAR); /*
+   if (numeric_limits<T>::is_integer)
+      amount_in_cents = Greater(static_cast<long long>(dollars)) * Greater(static_cast<long double>(CENTS_PER_DOLLAR));
+   else if (is_floating_point<T>::value)
+      amount_in_cents = Greater(static_cast<long double>(dollars)) * Greater(static_cast<long double>(CENTS_PER_DOLLAR)); */
+   if (INCORRECT_CENTS == cents)
+      amount_in_cents = Money<Integer>::round(amount_in_cents);
+   else {
+      T cents_round = dollars > 0 ? round(cents) : -round(cents);
+      amount_in_cents += Integer::create_Integer(cents_round);
+   }
+   //if (! is_same<T, Integer>::value)
+   if (is_overflow<T, Integer>(amount_in_cents))
+      throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
    T result = T(amount_in_cents);
    return result;
 }
@@ -255,8 +286,8 @@ Money<T>::Money(const Smaller & dollars) {
 */
 template <typename T>
 Money<T>::Money(const string & dollars, const long double cents) {
-   cerr <<  "  LONG_DOUBLE_NAME =  " << LONG_DOUBLE_NAME << '\n';
-   cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
+   //cerr <<  "  LONG_DOUBLE_NAME =  " << LONG_DOUBLE_NAME << '\n';
+   cerr << __func__ << " TYPE_NAME = '" << TYPE_NAME << "' " << dollars << '\n';
    validate_cents(cents);
    try {
       integer_parsing::validate_string(dollars);
@@ -271,7 +302,7 @@ Money<T>::Money(const string & dollars, const long double cents) {
       this->amount_in_cents = calculate<long double>(amount, cents);
    //Money<T, long double>(amount);
    else if (numeric_limits<T>::is_integer)
-      this->amount_in_cents = calculate<Integer>(amount, cents);
+      this->amount_in_cents = calculate(amount, cents);
    /*
    else if (numeric_limits<T>::is_integer) {
       Integer amount_in_cents = Integer(amount) * Integer(CENTS_PER_DOLLAR);
@@ -341,14 +372,14 @@ Money<T>::Money(const string & dollars) {   // accept floating-point arguments
       size_t dot_position = dollars.find('.');
       cerr << __func__ << " dot_position = " << dot_position <<  '\n';
       if (dot_position == string::npos)
-         this->amount_in_cents = calculate<Integer>(dollars_part);
+         this->amount_in_cents = calculate(dollars_part);
       else {
          string cents_string = dollars.substr(dot_position + 1);
          if (cents_string.size() > 2)
             cents_string.insert(2, ".");
          cerr << __func__ << " cents_string = " << cents_string <<  '\n';
          long double cents_part = stold(cents_string);
-         this->amount_in_cents = calculate<Integer>(dollars_part, cents_part);
+         this->amount_in_cents = calculate(dollars_part, cents_part);
       }
    }
 }
