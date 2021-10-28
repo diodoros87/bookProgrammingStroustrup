@@ -63,31 +63,29 @@ void construct_incorrect(const string & DOLLARS) {
 
 template <typename T> 
 void construct() {
-   construct<T>("1", 3);
-   construct<T>("20", 55);
-   try {
+   cerr << __func__ << '\n';
+   construct<T>("-1", 3);
+   if (! is_same<T, char>::value && ! is_same<T, int_fast8_t>::value) {
+      construct<T>("20", 55);
       construct<T>("577", 45.7);
-   } catch (const out_of_range & e) {
-       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
+      construct<T>("-8577", 45.79);   
+      construct<T>("10");
+      construct<T>("-8577e+03");
+      construct<T>("10.67");
+      construct<T>("10.679");
+      construct<T>("10.6435");
    }
-   try {
-      construct<T>("-8577", 45.79);
-   } catch (const out_of_range & e) {
-       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   }   
-   construct<T>("10");
-   construct<T>("-8577e+03");
-   construct<T>("10.67");
-   construct<T>("10.679");
-   construct<T>("10.6435");
+   cerr << "END OF " << __func__ << '\n';
 }
 
 template <typename T> 
 void construct_incorrect() {
+   cerr << __func__ << '\n';
    construct_incorrect<T>("20.8", 5);
    construct_incorrect<T>("20t", 7);
    construct_incorrect<T>("-0", 4);
    //construct_incorrect<T>("57.7");
+   cerr << "END OF " << __func__ << '\n';
 }
 
 template <typename T>

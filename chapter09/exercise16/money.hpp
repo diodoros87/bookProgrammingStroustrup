@@ -15,6 +15,13 @@ using std::is_same;
 
 namespace money {
 constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
+constexpr int_fast8_t INCORRECT_CENTS = -99;
+
+template<typename Smaller, typename Greater>
+inline bool is_overflow(const Greater & x) {
+   static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
+   return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
+}
    
 template <typename T>
 class Money {
@@ -24,6 +31,7 @@ public:
    
    static inline T round(long double x) {
       return static_cast<T>(x + 0.5);
+      //return T(x + 0.5);
    }
    
    Money(const string & dollars, const long double cents);   
@@ -128,7 +136,7 @@ public:
    static Number get_amount(const string & STR);*/
 private:
    template<typename Greater>
-   T calculate(const T & dollars, const long double & cents);
+   T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
 
    T amount_in_cents {0};
 };

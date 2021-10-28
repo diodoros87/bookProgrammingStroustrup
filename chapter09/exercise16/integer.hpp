@@ -22,6 +22,7 @@ using std::numeric_limits;
 using std::out_of_range;
 using std::ostream;
 using std::istream;
+using std::cerr;
 
 //typedef int_fast8_t digit_type;
 using digit_type = short;
@@ -131,17 +132,19 @@ public:
       validate_set(table);
    }
    
-   template <typename Number,
-              std::enable_if_t<
-              is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
+   template <typename Number,std::enable_if_t<is_floating_point<Number>::value 
+                                 || is_integral<Number>::value, bool> = true>
    operator Number() const { 
+      cerr << " numeric_limits<Number>::lowest() = " << numeric_limits<Number>::lowest();
+      cerr << " \nnumeric_limits<Number>::max() = " << numeric_limits<Number>::max() << '\n';
       if (*this < numeric_limits<Number>::lowest() || *this > numeric_limits<Number>::max())
          throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
-      Number number = 0;
-      int_fast8_t power = 0;
-      for (int_fast8_t i = MAX_ARRAY_LENGTH - 1; i >= 0; i--, power++) 
-         if ((*this)[i] != 0)
-            number += (*this)[i] * pow(10, power);
+      static constexpr int_fast8_t BASE = 10;
+      Number number = (*this)[0];
+      for (int_fast8_t i = 1; i < MAX_ARRAY_LENGTH; i++) 
+         number = (*this)[i] + BASE * number;
+      if (this->signum == MINUS)
+         number = -number;
       return number;  
    }
 
