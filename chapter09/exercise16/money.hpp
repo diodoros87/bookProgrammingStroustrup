@@ -31,6 +31,7 @@ class Money {
 static_assert((numeric_limits<T>::is_integer || is_floating_point<T>::value) && "Number required.");
 public:
    static const string TYPE_NAME;
+   static const T TYPE_DEFAULT_OBJECT;
    
    static inline T round(long double x) {
       return static_cast<T>(x + 0.5);
@@ -65,16 +66,16 @@ public:
    bool operator>=(const Money& other) const { return !operator<(other); };
    
    template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
-   Type get_dollars(Type &&) const { return amount_in_cents / CENTS_PER_DOLLAR; }
+   Type get_dollars(Type &) const { return amount_in_cents / CENTS_PER_DOLLAR; }
    
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
-   Type get_dollars(Type &&) const { return trunc(amount_in_cents / CENTS_PER_DOLLAR); }
+   Type get_dollars(Type &) const { return trunc(amount_in_cents / CENTS_PER_DOLLAR); }
 
    template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
-   Type get_cents(Type &&) const { return amount_in_cents % CENTS_PER_DOLLAR; }
+   Type get_cents(Type &) const { return amount_in_cents % CENTS_PER_DOLLAR; }
    
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
-   Type get_cents(Type &&) const { return trunc(fmod(amount_in_cents, CENTS_PER_DOLLAR)); }
+   Type get_cents(Type &) const { return trunc(fmod(amount_in_cents, CENTS_PER_DOLLAR)); }
    /*
    template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
    inline operator string(Type &&) {
@@ -83,12 +84,20 @@ public:
       return stream.str();
    }
    */
+      
    operator string() {
       ostringstream stream;
-      stream << get_dollars(T{}) << "," << get_cents(T{});
-      cerr << " stream.str() = " <<  stream.str() << '\n';
-      //string out = stream.str();
-      string out = std::to_string(get_dollars(T{})) + "," + std::to_string(get_cents(T{}));
+      T d = get_dollars(TYPE_DEFAULT_OBJECT);
+      T c = get_cents(TYPE_DEFAULT_OBJECT);
+      if (c < 0)
+         c = -c;
+      if (is_same<T, char>::value || is_same<T, int_fast8_t>::value)
+         stream << static_cast<int>(d) << "," << static_cast<int>(c);
+      else
+         stream << d << "," << c;
+      //cerr << " stream.str() = " <<  stream.str() << '\n';
+      string out = stream.str();
+      //string out = std::to_string(get_dollars(T{})) + "," + std::to_string(get_cents(T{}));
       return out;
    }
    /*
@@ -172,35 +181,27 @@ private:
    T amount_in_cents { };
 };
 
-inline ostream& operator<<(ostream& os, const Money<char>& money) {
-   return os << static_cast<int>(money.get_dollars(char(0))) << "," 
-               << static_cast<int>(money.get_cents(char(0))) << " \n";
+template <class Number, template<typename> class Money_Template, enable_if_t<
+                  is_same<Number, char>::value || is_same<Number, int_fast8_t>::value, bool> = true>
+ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
+   int dollars = static_cast<int>(money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
+   int cents = static_cast<int>(money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
+   return os << dollars << "," << (cents < 0 ? -cents : cents) << " \n";
 }
 
-inline ostream& operator<<(ostream& os, const Money<int_fast8_t>& money) {
-   return os << static_cast<int>(money.get_dollars(int_fast8_t(0))) << "," 
-               << static_cast<int>(money.get_cents(int_fast8_t(0))) << " \n";
-}
-
-/*
-template <class Number, template<typename> class Money_Template, enable_if_t<is_same<char, Number>::value ||
-                                            is_same<int_fast8_t, Number>::value, bool> = true>
+template <class Number, template<typename> class Money_Template, enable_if_t<numeric_limits<Number>::is_integer &&
+                       ! is_same<Number, char>::value && ! is_same<Number, int_fast8_t>::value, bool> = true>
 inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
-   return os << static_cast<int>(money.get_dollars(Number(0))) << "," 
-               << static_cast<int>(money.get_cents(Number(0))) << " \n";
-}
-*/
-
-template <class Number, template<typename> class Money_Template, enable_if_t<numeric_limits<Number>::is_integer, bool> = true>
-inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
-   return os << money.get_dollars(Number{}) << "," 
-               << money.get_cents(Number{}) << " \n";
+   Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+   Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+   return os << dollars << "," << (cents < 0 ? -cents : cents) << " \n";
 }
 
 template <class Number, template<typename> class Money_Template, enable_if_t<is_floating_point<Number>::value, bool> = true>
 inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
-   return os << money.get_dollars(Number{}) << "," 
-               << money.get_cents(Number{}) << " \n";
+   Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+   Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+   return os << dollars << "," << (cents < 0 ? -cents : cents) << " \n";
 }
 
 }

@@ -18,6 +18,9 @@ namespace money {
 template <typename T>
 const string Money<T>::TYPE_NAME = typeid(T).name();
 
+template <typename T>
+const T Money<T>::TYPE_DEFAULT_OBJECT = T{};
+
 const string LONG_DOUBLE_NAME = typeid(0.0L).name();
 const string DOUBLE_NAME = typeid(0.0).name();
 const string FLOAT_NAME = typeid(0.0f).name();
@@ -31,7 +34,8 @@ const string LONG_LONG_NAME = typeid(numeric_limits<long long>::max()).name();
 const string UNSIGNED_INT_NAME = typeid(0u).name();
 const string UNSIGNED_LONG_NAME = typeid(0uL).name();
 const string UNSIGNED_LONG_LONG_NAME = typeid(numeric_limits<unsigned long long>::max()).name();
-const string INTEGER_OBJECT_NAME = typeid(Integer{}).name();
+const Integer INTEGER_OBJECT = Integer{};
+const string INTEGER_OBJECT_NAME = typeid(INTEGER_OBJECT).name();
 //const string INTEGER_OBJECT_NAME_1 = typeid(Integer()).name();
 
 //const regex FLOAT_POINT_REGEX = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)" } ;
