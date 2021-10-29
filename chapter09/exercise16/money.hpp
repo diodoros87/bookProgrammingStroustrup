@@ -12,6 +12,9 @@ using std::is_integral;
 using std::is_floating_point;
 using std::enable_if_t;
 using std::is_same;
+using std::ostringstream;
+
+using integer_space::Integer;
 
 namespace money {
 constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
@@ -43,7 +46,7 @@ public:
    void set(const string & dollars, const double cents = 0) { reduce(x, denominator); numerator = x; }
    void set_denominator(long x) { reduce(numerator, x); denominator = x; }
    */
-   Money& operator=(const Money& other);
+   Money& operator=(const Money& other) = default;
    
    Money operator-() const { return Money(-amount_in_cents); }  // unsigned ???
    Money operator+() const { return *this; }
@@ -56,9 +59,9 @@ public:
    bool operator==(const Money& other) const { return amount_in_cents == other.amount_in_cents; }
    bool operator!=(const Money& other) const { return !(*this == other); } ;
    
-   bool operator>(const Money& other) const ;
+   bool operator>(const Money& other) const { return amount_in_cents > other.amount_in_cents; }
    bool operator<=(const Money& other) const { return !operator>(other); };
-   bool operator<(const Money& other) const ;
+   bool operator<(const Money& other) const { return amount_in_cents < other.amount_in_cents; }
    bool operator>=(const Money& other) const { return !operator<(other); };
    
    template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
@@ -72,7 +75,29 @@ public:
    
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
    Type get_cents(Type &&) const { return trunc(fmod(amount_in_cents, CENTS_PER_DOLLAR)); }
-   
+   /*
+   template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
+   inline operator string(Type &&) {
+      ostringstream stream;
+      stream << money.get_dollars(Type{}) << "," << money.get_cents(Type{});
+      return stream.str();
+   }
+   */
+   operator string() {
+      ostringstream stream;
+      stream << get_dollars(T{}) << "," << get_cents(T{});
+      cerr << " stream.str() = " <<  stream.str() << '\n';
+      //string out = stream.str();
+      string out = std::to_string(get_dollars(T{})) + "," + std::to_string(get_cents(T{}));
+      return out;
+   }
+   /*
+   template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
+   inline operator string(Type &&) {
+      string out = std::to_string(money.get_dollars(Type{})) + "," + string(money.get_cents(Type{}));
+      return out;
+   }
+   */
    //template <typename T, enable_if_t<is_same<T, Integer>::value, bool> = false>
    static T get_amount(const string & STR);
    
@@ -89,6 +114,7 @@ public:
    Money operator%(const Money & ) = delete;
    Money operator%(Money) = delete;
    Money operator%(Money&&) = delete;
+   
    /*
    template <typename Number, enable_if_t<is_floating_point<Number>::value, bool> = true>
    static Number get_amount(const string & STR);
@@ -152,8 +178,8 @@ inline ostream& operator<<(ostream& os, const Money<char>& money) {
 }
 
 inline ostream& operator<<(ostream& os, const Money<int_fast8_t>& money) {
-   return os << static_cast<int>(money.get_dollars(char(0))) << "," 
-               << static_cast<int>(money.get_cents(char(0))) << " \n";
+   return os << static_cast<int>(money.get_dollars(int_fast8_t(0))) << "," 
+               << static_cast<int>(money.get_cents(int_fast8_t(0))) << " \n";
 }
 
 /*
@@ -164,16 +190,17 @@ inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
                << static_cast<int>(money.get_cents(Number(0))) << " \n";
 }
 */
+
 template <class Number, template<typename> class Money_Template, enable_if_t<numeric_limits<Number>::is_integer, bool> = true>
 inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
-   return os << money.get_dollars(Number()) << "," 
-               << money.get_cents(Number()) << " \n";
+   return os << money.get_dollars(Number{}) << "," 
+               << money.get_cents(Number{}) << " \n";
 }
 
 template <class Number, template<typename> class Money_Template, enable_if_t<is_floating_point<Number>::value, bool> = true>
 inline ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
-   return os << money.get_dollars(Number()) << "," 
-               << money.get_cents(Number()) << " \n";
+   return os << money.get_dollars(Number{}) << "," 
+               << money.get_cents(Number{}) << " \n";
 }
 
 }

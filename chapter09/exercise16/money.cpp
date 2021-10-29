@@ -32,7 +32,7 @@ const string UNSIGNED_INT_NAME = typeid(0u).name();
 const string UNSIGNED_LONG_NAME = typeid(0uL).name();
 const string UNSIGNED_LONG_LONG_NAME = typeid(numeric_limits<unsigned long long>::max()).name();
 const string INTEGER_OBJECT_NAME = typeid(Integer{}).name();
-const string INTEGER_OBJECT_NAME_1 = typeid(Integer()).name();
+//const string INTEGER_OBJECT_NAME_1 = typeid(Integer()).name();
 
 //const regex FLOAT_POINT_REGEX = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)" } ;
 const regex E_FLOAT_POINT_REGEX = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)" } ;
@@ -49,8 +49,6 @@ inline void validate_cents(const long double & cents) {
       static const string ERROR = "cents must be 0 - " + to_string(CENTS_PER_DOLLAR);
       throw invalid_argument(ERROR);
    }
-   cerr << " typeid(Integer{}).name(); = " << INTEGER_OBJECT_NAME << '\n';
-   cerr << " typeid(Integer()).name(); = " << INTEGER_OBJECT_NAME_1 << '\n';
 }
 
 /*
@@ -286,7 +284,6 @@ Money<T>::Money(const Smaller & dollars) {
 */
 template <typename T>
 Money<T>::Money(const string & dollars, const long double cents) {
-   //cerr <<  "  LONG_DOUBLE_NAME =  " << LONG_DOUBLE_NAME << '\n';
    cerr << __func__ << " TYPE_NAME = '" << TYPE_NAME << "' " << dollars << '\n';
    validate_cents(cents);
    try {
@@ -323,38 +320,28 @@ struct bad_from_string : public bad_cast {
    }
 };
  
-template <typename T, enable_if_t<is_floating_point<T>::value || numeric_limits<T>::is_integer, bool> = true>
-T from_string(const string & STR, bool eof_checking) {
+template <typename Type>
+Type from_string(const string & STR, bool eof_checking) {
    istringstream stream { STR };
-   T result;
+   Type result;
    stream >> result;
    if (!stream)
       throw bad_from_string {};
    if (eof_checking && ! stream.eof()) {
-      cerr << " T = " << typeid(T).name() << '\n';
+      cerr << " Type = " << typeid(Type).name() << '\n';
       throw invalid_argument(__func__ + string(" entered string is not accepted format "));
    }
    return result;
 }
 
-template <typename T, enable_if_t<is_floating_point<T>::value || numeric_limits<T>::is_integer, bool> = true>
-T get_amount_by_Integer(const string & STR) {
+template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
+Type get_amount_by_Integer(const string & STR) {
    Integer integer = Integer::parse_create(STR);
-   if (! is_same<T, Integer>::value)
-      return T(integer);
+   if (! is_same<Type, Integer>::value)
+      return Type(integer);
    return integer;
 }
-/*
-template <typename T, enable_if_t<numeric_limits<T>::is_integer, bool> = true>
-T from_string(const string & STR) {
-   istringstream stream { STR };
-   T result;
-   stream >> result;
-   if (!stream)
-      throw bad_from_string {};
-   return result;
-}
-*/
+
 template <typename T>
 Money<T>::Money(const string & dollars) {   // accept floating-point arguments
    //T amount = from_string<T>(dollars);
@@ -368,8 +355,10 @@ Money<T>::Money(const string & dollars) {   // accept floating-point arguments
    else if (numeric_limits<T>::is_integer) {
       if (! regex_match(dollars, FLOAT_POINT_REGEX))
          throw invalid_argument("Regex: entered string is not floating-point format ");
-      T dollars_part = get_amount(dollars);
+      
       size_t dot_position = dollars.find('.');
+      string dollars_string = dollars.substr(0, dot_position);
+      T dollars_part = get_amount(dollars_string);
       cerr << __func__ << " dot_position = " << dot_position <<  '\n';
       if (dot_position == string::npos)
          this->amount_in_cents = calculate(dollars_part);

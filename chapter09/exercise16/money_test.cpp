@@ -6,16 +6,27 @@ using namespace std;
 using namespace integer_space;
 using namespace money;
 
+using std::is_signed;
+using std::is_unsigned;
+
+
 template <typename T> 
-void construct(const string & DOLLARS, const double CENTS ) { 
+Money<T> construct(const string & DOLLARS, const double CENTS, const string & expected = "") { 
    Money<T> money(DOLLARS, CENTS);
-   cout << "money = " << money << '\n';
+   cout << "money = '" << money << "'\n";
+   auto t = std::make_tuple(static_cast<string>(money), " != ", expected); 
+   assert_many(string(money) == expected, t);
+   return money;
 }
 
 template <typename T> 
-void construct(const string & DOLLARS) { 
+Money<T> construct(const string & DOLLARS, const string & expected = "") { 
    Money<T> money(DOLLARS);
-   cout << "money = " << money << '\n';
+   cout << "money = '" << money << "'\n";;
+   auto t = std::make_tuple(static_cast<string>(money), " != ", expected); 
+   assert_many(static_cast<string>(money) == expected, t);
+   //assert_many(static_cast<string>(money) == expected, static_cast<string>(money), " != ", expected);
+   return money;
 }
 
 template <typename T> 
@@ -26,12 +37,16 @@ void construct_incorrect(const string & DOLLARS, const double CENTS ) {
       cerr << "money = " << money << '\n';
    } catch (const invalid_argument& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
+   } catch (const out_of_range& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
    }
    try {
       Money<T> money(DOLLARS, CENTS);
       assert(0);
       cout << "money = " << money << '\n';
    } catch (const invalid_argument& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
+   } catch (const out_of_range& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
    }/*
    try {
@@ -51,6 +66,8 @@ void construct_incorrect(const string & DOLLARS) {
       cout << "money = " << money << '\n';
    } catch (const invalid_argument& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
+   } catch (const out_of_range& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
    }/*
    try {
       Money<T> money("6", CENTS);
@@ -64,17 +81,20 @@ void construct_incorrect(const string & DOLLARS) {
 template <typename T> 
 void construct() {
    cerr << __func__ << '\n';
-   construct<T>("-1", 3);
+   if (is_signed<T>::value)
+      construct<T>("-1", 3, "-1,-3");
    if (! is_same<T, char>::value && ! is_same<T, int_fast8_t>::value) {
-      construct<T>("20", 55);
-      construct<T>("577", 45.7);
-      construct<T>("-8577", 45.79);   
-      construct<T>("10");
-      if (is_floating_point<T>::value)
-         construct<T>("-8577e+03");
-      construct<T>("10.67");
-      construct<T>("10.679");
-      construct<T>("10.6435");
+      construct<T>("20", 55, "20,55");
+      construct<T>("577", 45.7, "577,46");
+      if (is_signed<T>::value)
+         construct<T>("-8577", 45.79, "577,46");   
+      construct<T>("10", "10,0");
+      if (is_floating_point<T>::value) {
+         construct<T>("-8577e+03", "-8577e+03");
+      }
+      construct<T>("10.67", "10.67");
+      construct<T>("10.679", "10.68");
+      construct<T>("10.6435", "10.64");
    }
    cerr << "END OF " << __func__ << '\n';
 }
@@ -85,6 +105,13 @@ void construct_incorrect() {
    construct_incorrect<T>("20.8", 5);
    construct_incorrect<T>("20t", 7);
    construct_incorrect<T>("-0", 4);
+   if (is_unsigned<T>::value)
+      construct_incorrect<T>("-1", 4);
+   construct_incorrect<T>("+0", 4);
+   if (numeric_limits<T>::is_integer)
+      construct_incorrect<T>("-8577e+03");
+   construct_incorrect<T>("inf", 8);
+   construct_incorrect<T>("inf");
    //construct_incorrect<T>("57.7");
    cerr << "END OF " << __func__ << '\n';
 }
@@ -92,7 +119,7 @@ void construct_incorrect() {
 template <typename T>
 inline void test() {
    construct<T>();
-   //construct_incorrect<T>();
+   construct_incorrect<T>();
 }
 
 int main() {
@@ -103,6 +130,7 @@ int main() {
       test<float>();
       test<long double>();
       test<Integer>();
+      test<unsigned int>();
       
       //test<string>();
       return 0;

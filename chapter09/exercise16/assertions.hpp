@@ -6,7 +6,8 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
-#include<sstream>
+#include <sstream>
+#include <tuple>
 
 #include "integer.hpp"
 
@@ -14,6 +15,7 @@ using std::cerr;
 using std::string;
 using std::ostringstream;
 using std::ios_base;
+using std::tuple;
 
 using integer_space::Integer;
 
@@ -96,4 +98,89 @@ void ASSERT_NUMBER_INTEGER(const long long & NUMBER, const Integer & OBJECT,
    }
 } 
 
+#define ASSERT(expr) \
+    if (expr) \
+        {} \
+    else \
+        GENERAL_ASSERT(#expr, expr, __FILE__, __LINE__, __DATE__, __TIME__, "")
+      /*  
+template <typename ...Args>
+string print_tuple(tuple<Args...> tp) {
+  return ""; //print the tuple...
+}
+        
+void AsserT(const string & info, const char * msg, const char* file, const int line,
+                     const char * date, const char * time) {
+   cerr << "\nAssertion failed:\n"
+            << "Expression:\t" << msg << "\n"
+            << "Source file:\t\t" << file << ", line " << line << "\n"
+            << "Date:\t\t"   << date  << "\n"
+            << "Time:\t\t"   << time  << "\n"
+            << "  Info: " << info << '\n' ;
+   std::abort();
+}
+*/
+template<const unsigned int N>
+struct print_tuple {
+   template<typename... T>
+   static typename std::enable_if<(N<sizeof...(T))>::type
+   print(ostream& os, const tuple<T...>& t) {
+      os << " " << std::get<N>(t);
+      print_tuple<N + 1>::print(os, t);
+   }
+   
+   template<typename... T>
+   static typename std::enable_if<! (N<sizeof...(T))>::type
+   print(ostream& os, const tuple<T...>&) { }
+};
+
+inline ostream& operator<< (ostream & os, const tuple<> &) {
+   return os << "";
+}
+
+template<typename S, typename... T>
+inline ostream& operator<< (ostream & os, const tuple<S, T...> & t) {
+   os << std::get<0>(t);
+   print_tuple<1>::print(os, t);
+   return os;
+}
+/*
+template <typename ...Args>
+string print_tuple(tuple<Args...> tp) {
+  return ""; //print the tuple...
+}
+*/
+template <typename ...Args>
+void assert_tuples(tuple<Args...> info, const char *msg, const char *file, int line,
+                   const char * date, const char * time) {
+   cerr << "\nAssertion failed:\n"
+            << "Expression:\t" << msg << "\n"
+            << "Source file:\t\t" << file << ", line " << line << "\n"
+            << "Date:\t\t"   << date  << "\n"
+            << "Time:\t\t"   << time  << "\n"
+            << "  Info: " << info << '\n' ;
+   std::abort();
+}
+
+#define assert_many(EX,...) \
+  (void)((EX) || (assert_tuples (std::tie(__VA_ARGS__),#EX,__FILE__, __LINE__, __DATE__, __TIME__),0))
+/*
+#define assert_many(EX,...) \
+  (void)((EX) || (AsserT(print(__VA_ARGS__),#EX,__FILE__, __LINE__, __DATE__, __TIME__),0))
+  */
+/*
+template <typename T>
+void ASSERT_MONEY(const Money<T>& money, const string& expected_money,
+                  const char* file, const int line,
+                  const char* date, const char* time) {
+   //const string signum_str = expected_number == "0" ? "" : string(1, x.get_signum());
+   if (static_cast<string>(money) != expected_money) {
+      //const string EXPECTED = signum_str + expected_number;
+      const string message = " " + static_cast<string>(x) +
+                        " != expected " + EXPECTED;
+      GENERAL_ASSERT(expected_money.c_str(), static_cast<string>(money) == expected_money,
+                     file, line, date, time, message);
+   }
+}
+*/
 #endif
