@@ -18,6 +18,9 @@ using std::setprecision;
 using std::fixed;
 using std::setw;
 using std::setfill;
+using std::stringstream;
+using std::istringstream;
+using std::is_convertible;
 
 using integer_space::Integer;
 
@@ -29,6 +32,21 @@ template<typename Smaller, typename Greater>
 inline bool is_overflow(const Greater & x) {
    static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
    return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
+}
+
+template<typename T>
+constexpr bool is_resetting_stream() {
+   return is_convertible<T, stringstream>::value || is_convertible<T, istringstream>::value
+               || is_convertible<T, ostringstream>::value;
+}
+
+template<typename T>
+void reset(T & stream) {
+   static_assert(is_resetting_stream<T>());
+   const static stringstream initial;
+   stream.str("");
+   stream.clear();
+   stream.copyfmt(initial);
 }
    
 template <typename T>
@@ -93,46 +111,7 @@ public:
    }
    */
       
-   operator string() const {
-      ostringstream stream;
-      T dollars = get_dollars(TYPE_DEFAULT_OBJECT);
-      T cents = get_cents(TYPE_DEFAULT_OBJECT);
-      if (cents < 0)
-         cents = -cents;
-      if (is_floating_point<T>::value) {
-         stream << fixed << setprecision(0) << setw(0) << dollars << ",";
-         stream.fill('0');
-         stream << setw(2) << cents;
-         return stream.str();
-      }
-      string dollars_string;
-      string cents_string;
-      if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) {
-         dollars_string = std::to_string(static_cast<int>(dollars));
-         cents_string = std::to_string(static_cast<int>(cents));
-      } 
-      else if (is_same<T, Integer>::value) {
-         stream << dollars;
-         dollars_string = stream.str();
-         if (dollars > 0)
-            dollars_string = dollars_string.substr(1);
-         stream.flush();
-         stream.clear();
-         stream << cents;
-         cents_string = stream.str();
-         if (cents != 0)
-            cents_string = cents_string.substr(1);
-      }
-      else /* if (is_integral<T>::value) */ {
-         dollars_string = std::to_string(dollars);
-         cents_string = std::to_string(cents);
-      }
-      cents_string = cents_string.length() == 1 ? ("0" + cents_string) : cents_string;
-      //cents_string = cents_string.length() == 1 ? ("0" + cents_string) : cents_string.substr(0, 2);
-      //stream << fixed << setprecision(0) << dollars_string << "," << setprecision(2) << (cents < 0 ? -cents : cents);
-      string out = dollars_string + "," + cents_string;
-      return out;
-   }
+   operator string() const;
 
    static T get_amount(const string & STR);
    

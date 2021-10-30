@@ -69,6 +69,7 @@ public:
    static const long double FLOAT_MIN;
    static const long double FLOAT_MAX;
    static constexpr int_fast8_t BASE = 10;
+   static const Integer ZERO;
 private:
    array<digit_type, MAX_ARRAY_LENGTH> integer_array { 0 };
    char signum { NEUTRAL };   // less than 0 for integers < 0, more than 0 for integers > 0, 0 for 0   

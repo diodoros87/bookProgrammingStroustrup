@@ -48,14 +48,27 @@ void construct_incorrect(const string & DOLLARS, const double CENTS ) {
       cerr << __func__ << " exception: " << e.what() << endl;
    } catch (const out_of_range& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
-   }/*
+   }
+}
+
+template <typename T> 
+void incorrect() { 
    try {
-      Money<T> money("6", CENTS);
+      Money<T> money("6", -34);
       assert(0);
-      cout << "money = " << money << '\n';
+      cerr << __func__ << "money = " << money << '\n';
    } catch (const invalid_argument& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
-   }*/
+   }
+   try {
+      Money<T> money("6", 100);
+      assert(0);
+      cout << __func__ << "money = " << money << '\n';
+   } catch (const invalid_argument& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
+   } catch (const out_of_range& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
+   }
 }
 
 template <typename T> 
@@ -68,25 +81,18 @@ void construct_incorrect(const string & DOLLARS) {
       cerr << __func__ << " exception: " << e.what() << endl;
    } catch (const out_of_range& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
-   }/*
-   try {
-      Money<T> money("6", CENTS);
-      assert(0);
-      cout << "money = " << money << '\n';
-   } catch (const invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
-   }*/
+   }
 }
 
 template <typename T> 
 void construct() {
    cerr << __func__ << '\n';
-   if (is_signed<T>::value)
+   if (numeric_limits<T>::is_signed)
       construct<T>("-1", 3, "-1,03");
    if (! is_same<T, char>::value && ! is_same<T, int_fast8_t>::value) {
       construct<T>("20", 55, "20,55");
       construct<T>("577", 45.7, "577,46");
-      if (is_signed<T>::value)
+      if (numeric_limits<T>::is_signed)
          construct<T>("-8577", 45.79, "-8577,46");   
       construct<T>("10", "10,00");
       if (is_same<T, float>::value)
@@ -103,6 +109,7 @@ void construct() {
 template <typename T> 
 void construct_incorrect() {
    cerr << __func__ << '\n';
+   incorrect<T>();
    construct_incorrect<T>("20.8", 5);
    construct_incorrect<T>("20t", 7);
    construct_incorrect<T>("-0", 4);
