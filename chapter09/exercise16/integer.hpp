@@ -200,6 +200,17 @@ public:
       validate_set(vec);
    }
    
+   string string_without_signum() const {
+      string str = string(*this);
+      switch (str[0]) {
+         case MINUS:
+         case PLUS:
+            return str.substr(1);
+         case NEUTRAL:
+            return str;
+      }
+   }
+   
    template <const unsigned int N>
    void set_integer_array(const array<digit_type, N> & table) {
       static_assert( N <= MAX_ARRAY_LENGTH && N > 0 && "set_integer_array requires 0 < N <= MAX_ARRAY_LENGTH");

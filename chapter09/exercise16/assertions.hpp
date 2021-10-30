@@ -16,8 +16,21 @@ using std::string;
 using std::ostringstream;
 using std::ios_base;
 using std::tuple;
+using std::enable_if;
+using std::get;
+using std::abort;
+using std::tie;
 
 using integer_space::Integer;
+
+#define assert_many(EX,...) \
+  void ((EX) || (assert_tuples (tie(__VA_ARGS__), #EX, __FILE__, __LINE__, __DATE__, __TIME__)))
+  
+#define ASSERT(expr) \
+    if (expr) \
+        {} \
+    else \
+        GENERAL_ASSERT(#expr, expr, __FILE__, __LINE__, __DATE__, __TIME__, "")
 
 #ifndef NDEBUG
 #  define general_assert(Expr, Msg) \
@@ -97,12 +110,6 @@ void ASSERT_NUMBER_INTEGER(const long long & NUMBER, const Integer & OBJECT,
       GENERAL_ASSERT(object_string.c_str(), number_string == object_string, file, line, date, time, message);
    }
 } 
-
-#define ASSERT(expr) \
-    if (expr) \
-        {} \
-    else \
-        GENERAL_ASSERT(#expr, expr, __FILE__, __LINE__, __DATE__, __TIME__, "")
       /*  
 template <typename ...Args>
 string print_tuple(tuple<Args...> tp) {
@@ -123,15 +130,17 @@ void AsserT(const string & info, const char * msg, const char* file, const int l
 template<const unsigned int N>
 struct print_tuple {
    template<typename... T>
-   static typename std::enable_if<(N<sizeof...(T))>::type
+   static typename enable_if<(N < sizeof...(T))>::type
    print(ostream& os, const tuple<T...>& t) {
-      os << " " << std::get<N>(t);
+      os << " " << get<N>(t);
       print_tuple<N + 1>::print(os, t);
    }
    
    template<typename... T>
-   static typename std::enable_if<! (N<sizeof...(T))>::type
-   print(ostream& os, const tuple<T...>&) { }
+   //static typename enable_if<! (N<sizeof...(T))>::type
+   static typename enable_if<(N >= sizeof...(T))>::type
+   //static typename enable_if_t<! (N<sizeof...(T))>
+   print(ostream& os, const tuple<T...>&) { }    // for empty tuple
 };
 
 inline ostream& operator<< (ostream & os, const tuple<> &) {
@@ -140,7 +149,7 @@ inline ostream& operator<< (ostream & os, const tuple<> &) {
 
 template<typename S, typename... T>
 inline ostream& operator<< (ostream & os, const tuple<S, T...> & t) {
-   os << std::get<0>(t);
+   os << get<0>(t);
    print_tuple<1>::print(os, t);
    return os;
 }
@@ -151,7 +160,7 @@ string print_tuple(tuple<Args...> tp) {
 }
 */
 template <typename ...Args>
-void assert_tuples(tuple<Args...> info, const char *msg, const char *file, int line,
+bool assert_tuples(tuple<Args...> info, const char *msg, const char *file, int line,
                    const char * date, const char * time) {
    cerr << "\nAssertion failed:\n"
             << "Expression:\t" << msg << "\n"
@@ -159,11 +168,10 @@ void assert_tuples(tuple<Args...> info, const char *msg, const char *file, int l
             << "Date:\t\t"   << date  << "\n"
             << "Time:\t\t"   << time  << "\n"
             << "  Info: " << info << '\n' ;
-   std::abort();
+   abort();
+   //return false;
 }
 
-#define assert_many(EX,...) \
-  (void)((EX) || (assert_tuples (std::tie(__VA_ARGS__),#EX,__FILE__, __LINE__, __DATE__, __TIME__),0))
 /*
 #define assert_many(EX,...) \
   (void)((EX) || (AsserT(print(__VA_ARGS__),#EX,__FILE__, __LINE__, __DATE__, __TIME__),0))

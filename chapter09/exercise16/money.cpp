@@ -222,22 +222,24 @@ T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT
    static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
                         ! is_same<Greater, Integer>::value && "Number required.");
    Greater amount_in_cents = Greater(dollars) * Greater(CENTS_PER_DOLLAR);
+   cerr << __func__ << " amount_in_cents = " << amount_in_cents << '\n';
    if (INCORRECT_CENTS == cents)
-      amount_in_cents = round(amount_in_cents);
+      amount_in_cents = Money<Greater>::round(amount_in_cents);
    else {
-      T cents_round = dollars > 0 ? round(cents) : -round(cents);
+      Greater cents_round = dollars > 0 ? Money<Greater>::round(cents) : -Money<Greater>::round(cents);
       amount_in_cents += Greater(cents_round);
    }
    // if (! is_same<T, Integer>::value)
       if (is_overflow<T, Greater>(amount_in_cents))
          throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
    T result = T(amount_in_cents);
+   cerr << __func__ << " result = " << result << '\n';
    return result;
 }
 
 template <typename T>
 //template<typename Integer>
-T Money<T>::calculate(const T & dollars, const long double cents ) const {
+T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT_CENTS */) const {
    //static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
    Integer amount_in_cents = Integer::create_Integer(dollars) * Integer::create_Integer(CENTS_PER_DOLLAR); /*
    if (numeric_limits<T>::is_integer)
@@ -247,8 +249,8 @@ T Money<T>::calculate(const T & dollars, const long double cents ) const {
    if (INCORRECT_CENTS == cents)
       amount_in_cents = Money<Integer>::round(amount_in_cents);
    else {
-      T cents_round = dollars > 0 ? round(cents) : -round(cents);
-      amount_in_cents += Integer::create_Integer(cents_round);
+      Integer cents_round = dollars > 0 ? Money<Integer>::round(cents) : -Money<Integer>::round(cents);
+      amount_in_cents += cents_round; // Integer::create_Integer(cents_round);
    }
    //if (! is_same<T, Integer>::value)
    if (is_overflow<T, Integer>(amount_in_cents))
