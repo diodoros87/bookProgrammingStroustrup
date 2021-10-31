@@ -26,7 +26,7 @@ using integer_space::Integer;
 
 namespace money {
 constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
-constexpr int_fast8_t INCORRECT_CENTS = -99;
+constexpr int_fast8_t INCORRECT_CENTS = -112;
 
 template<typename Smaller, typename Greater>
 inline bool is_overflow(const Greater & x) {
@@ -57,8 +57,7 @@ public:
    static const T TYPE_DEFAULT_OBJECT;
    
    static inline T round(long double x) {
-      return static_cast<T>(x + 0.5);
-      //return T(x + 0.5);
+      return static_cast<T>(floor(x + 0.5));
    }
    
    Money(const string & dollars, const long double cents);   
@@ -138,7 +137,9 @@ template <class Number, template<typename> class Money_Template, enable_if_t<
 ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
    int dollars = static_cast<int>(money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
    int cents = static_cast<int>(money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
-   return os << dollars << "," << (cents < 0 ? -cents : cents);
+   os << dollars << ",";
+   os.fill('0');
+   return os << setw(2) << (cents < 0 ? -cents : cents);
 }
 
 template <class Number, template<typename> class Money_Template, enable_if_t<is_integral<Number>::value &&
@@ -146,13 +147,19 @@ template <class Number, template<typename> class Money_Template, enable_if_t<is_
 ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
    Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
    Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
-   return os << dollars << "," << (cents < 0 ? -cents : cents);
+   os << dollars << ",";
+   os.fill('0');
+   return os << setw(2) << (cents < 0 ? -cents : cents);
 }
 
 ostream& operator<<(ostream& os, const Money<Integer>& money) {
    Integer dollars = money.get_dollars(Money<Integer>::TYPE_DEFAULT_OBJECT);
+   //cerr << __func__ << " dollars " << dollars << "\n";
    Integer cents = money.get_cents(Money<Integer>::TYPE_DEFAULT_OBJECT);
+   //cerr << __func__ << " cents " << cents << "\n";
    os << (dollars > 0 ? dollars.string_without_signum() : dollars) << ",";
+   //cerr << __func__ << " dollars.string_without_signum() " << dollars.string_without_signum() << "\n";
+   //cerr << __func__ << " cents.string_without_signum() " << cents.string_without_signum() << "\n";
    return os << cents.string_without_signum();
 }
 

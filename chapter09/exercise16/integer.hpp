@@ -203,12 +203,12 @@ public:
    
    string string_without_signum() const {
       string str = string(*this);
-      switch (str[0]) {
+      switch (signum) {
+         case NEUTRAL:
+            return str;
          case MINUS:
          case PLUS:
             return str.substr(1);
-         case NEUTRAL:
-            return str;
       }
    }
    
