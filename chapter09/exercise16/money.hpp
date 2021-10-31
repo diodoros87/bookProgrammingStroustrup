@@ -129,6 +129,8 @@ private:
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
 
+   T get_amount_in_cents(const string & dollars);
+
    T amount_in_cents { };
 };
 
@@ -160,7 +162,8 @@ ostream& operator<<(ostream& os, const Money<Integer>& money) {
    os << (dollars > 0 ? dollars.string_without_signum() : dollars) << ",";
    //cerr << __func__ << " dollars.string_without_signum() " << dollars.string_without_signum() << "\n";
    //cerr << __func__ << " cents.string_without_signum() " << cents.string_without_signum() << "\n";
-   return os << cents.string_without_signum();
+   os.fill('0');
+   return os << setw(2) << cents.string_without_signum();
 }
 
 template <class Number, template<typename> class Money_Template, enable_if_t<is_floating_point<Number>::value, bool> = true>
@@ -174,9 +177,11 @@ ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
       << setprecision(0) << (cents < 0 ? -cents : cents);
    return os << fixed << setprecision(0) << dollars << "," << get_floating_amount(2) << (cents < 0 ? -cents : cents);
    */
-   os << fixed << setprecision(0) << setw(0) << dollars << ",";
+   os << fixed << setprecision(6) << setw(0) << dollars << ",";
    os.fill('0');
-   return os << setw(2) << (cents < 0 ? -cents : cents);
+   if (cents < 0 || cents == -0)
+      cents = -cents;
+   return os << setw(0) << cents;
    //return os << setprecision(os_precision) << std::defaultfloat;
 }
 

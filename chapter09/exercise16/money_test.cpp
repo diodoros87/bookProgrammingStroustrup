@@ -13,7 +13,7 @@ using std::is_unsigned;
 template <typename T> 
 Money<T> construct(const string & DOLLARS, const double CENTS, const string & expected = "") { 
    Money<T> money(DOLLARS, CENTS);
-   cout << "money = '" << money << "'\n";
+   cout << "                                       money = '" << money << "'\n";
    auto t = std::make_tuple(static_cast<string>(money), " != ", expected); 
    assert_many(string(money) == expected, t);
    return money;
@@ -22,7 +22,7 @@ Money<T> construct(const string & DOLLARS, const double CENTS, const string & ex
 template <typename T> 
 Money<T> construct(const string & DOLLARS, const string & expected = "") { 
    Money<T> money(DOLLARS);
-   cout << "money = '" << money << "'\n";;
+   cout << "                                       money = '" << money << "'\n";;
    auto t = std::make_tuple(static_cast<string>(money), " != ", expected); 
    assert_many(static_cast<string>(money) == expected, t);
    //assert_many(static_cast<string>(money) == expected, static_cast<string>(money), " != ", expected);

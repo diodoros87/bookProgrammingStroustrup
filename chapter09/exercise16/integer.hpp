@@ -152,6 +152,17 @@ public:
       return integer;
    }
    
+   static Integer parse_create_signed_zero(const string& STR) {
+      if (STR.size() < 2)
+         throw invalid_argument("Size must be >= 2");
+      Integer integer;
+      if (PLUS == STR[0] || MINUS == STR[0])
+         integer.parse(STR.substr(1));
+      else
+         integer.parse(STR);
+      return integer;
+   }
+   
    Integer(const vector<digit_type> & vec, const char signum) {
       validate_size(vec);
       validate_init(vec, signum);
@@ -272,6 +283,7 @@ public:
    size_t size() const { return integer_array.size(); }
    
    void parse(const string& STR);
+   void parse_unsigned(const string& STR);
    bool is_zero() const { return is_zero(*this); }
    static bool is_zero(const Integer& integer);
    int_fast8_t compare_signum(const Integer& integer) {
