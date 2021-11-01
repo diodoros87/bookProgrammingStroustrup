@@ -401,6 +401,7 @@ namespace std {
 using Integer = integer_space::Integer;
 
 string to_string(const Integer& integer);
+bool signbit(const Integer & integer);
 
 template<> class numeric_limits<Integer> {
 public:

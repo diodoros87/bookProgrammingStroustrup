@@ -21,6 +21,7 @@ using std::setfill;
 using std::stringstream;
 using std::istringstream;
 using std::is_convertible;
+using std::signbit;
 
 using integer_space::Integer;
 
@@ -101,16 +102,10 @@ public:
    
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
    Type get_floating_amount() const { return amount_in_cents / CENTS_PER_DOLLAR; }
-   /*
-   template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
-   inline operator string(Type &&) {
-      ostringstream stream;
-      stream << money.get_dollars(Type{}) << "," << money.get_cents(Type{});
-      return stream.str();
-   }
-   */
       
    operator string() const;
+   
+   T get_amount_in_cents() const { return amount_in_cents; }
 
    static T get_amount(const string & STR);
    
@@ -129,8 +124,8 @@ private:
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
 
-   T get_amount_in_cents(const string & dollars);
-
+   T calculate_amount_in_cents(const string & dollars);
+   
    T amount_in_cents { };
 };
 
@@ -139,9 +134,12 @@ template <class Number, template<typename> class Money_Template, enable_if_t<
 ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
    int dollars = static_cast<int>(money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
    int cents = static_cast<int>(money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
+   if (dollars == 0 && money.get_amount_in_cents() < 0)
+      os << '-';
    os << dollars << ",";
    os.fill('0');
-   return os << setw(2) << (cents < 0 ? -cents : cents);
+   os << setw(2) << (cents < 0 ? -cents : cents);
+   return os;
 }
 
 template <class Number, template<typename> class Money_Template, enable_if_t<is_integral<Number>::value &&
@@ -149,21 +147,23 @@ template <class Number, template<typename> class Money_Template, enable_if_t<is_
 ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
    Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
    Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+   if (dollars == 0 && money.get_amount_in_cents() < 0)
+      os << '-';
    os << dollars << ",";
    os.fill('0');
-   return os << setw(2) << (cents < 0 ? -cents : cents);
+   os << setw(2) << (cents < 0 ? -cents : cents);
+   return os;
 }
 
 ostream& operator<<(ostream& os, const Money<Integer>& money) {
    Integer dollars = money.get_dollars(Money<Integer>::TYPE_DEFAULT_OBJECT);
-   //cerr << __func__ << " dollars " << dollars << "\n";
    Integer cents = money.get_cents(Money<Integer>::TYPE_DEFAULT_OBJECT);
-   //cerr << __func__ << " cents " << cents << "\n";
+   if (dollars == 0 && money.get_amount_in_cents() < 0)
+      os << '-';
    os << (dollars > 0 ? dollars.string_without_signum() : dollars) << ",";
-   //cerr << __func__ << " dollars.string_without_signum() " << dollars.string_without_signum() << "\n";
-   //cerr << __func__ << " cents.string_without_signum() " << cents.string_without_signum() << "\n";
    os.fill('0');
-   return os << setw(2) << cents.string_without_signum();
+   os << setw(2) << cents.string_without_signum();
+   return os;
 }
 
 template <class Number, template<typename> class Money_Template, enable_if_t<is_floating_point<Number>::value, bool> = true>
@@ -171,18 +171,15 @@ ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
    std::streamsize os_precision = os.precision();
    Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
    Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
-   /*
-   Number amount = get_floating_amount();
-   return os << fixed << setprecision(0) << dollars << "," 
-      << setprecision(0) << (cents < 0 ? -cents : cents);
-   return os << fixed << setprecision(0) << dollars << "," << get_floating_amount(2) << (cents < 0 ? -cents : cents);
-   */
-   os << fixed << setprecision(6) << setw(0) << dollars << ",";
+   if (dollars == 0 && money.get_amount_in_cents() < 0)
+      os << '-';
    os.fill('0');
-   if (cents < 0 || cents == -0)
+   os << fixed << setprecision(0) << setw(0) << dollars << ",";
+   if(signbit(cents))   // for cents < 0 and cents == -0.0
       cents = -cents;
-   return os << setw(0) << cents;
-   //return os << setprecision(os_precision) << std::defaultfloat;
+   os << setw(2) << cents;
+   os.precision(os_precision);
+   return os;
 }
 
 }

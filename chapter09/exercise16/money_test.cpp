@@ -88,18 +88,33 @@ template <typename T>
 void construct() {
    cerr << __func__ << '\n';
    construct<T>("0", 99, "0,99");
+   construct<T>("1", 1, "1,01");
+   construct<T>("1", 0, "1,00");
    construct<T>("0", 99.9, "1,00");
    if (numeric_limits<T>::is_signed) {
+      construct<T>("-1", 0, "-1,00");
+      construct<T>("-1", 1, "-1,01");
       construct<T>("-1", 3, "-1,03");
       construct<T>("-0", 99.9, "-1,00");
+      construct<T>("-0", 1, "-0,01");
+      construct<T>("-0", 99, "-0,99");
       construct<T>("-0.99999", "-1,00");
+      construct<T>("-0.5", "-0,50");
    }
    construct<T>("0.99999", "1,00");
+   construct<T>("0.5", "0,50");
    if (! is_same<T, char>::value && ! is_same<T, int_fast8_t>::value) {
+      construct<T>("1.99999", "2,00");
+      
       construct<T>("20", 55, "20,55");
       construct<T>("577", 45.7, "577,46");
-      if (numeric_limits<T>::is_signed)
+      if (numeric_limits<T>::is_signed) {
          construct<T>("-8577", 45.79, "-8577,46");   
+         construct<T>("-1.99999", "-2,00");
+         construct<T>("-1", 99.9, "-2,00");
+         construct<T>("-0.5", "-0,50");
+         construct<T>("-1", 99, "-1,99");
+      }
       construct<T>("10", "10,00");
       if (is_same<T, float>::value)
          construct<T>("-8577e+03", "-8577000,68");
@@ -119,6 +134,10 @@ void construct_incorrect() {
    incorrect<T>();
    construct_incorrect<T>("20.8", 5);
    construct_incorrect<T>("20t", 7);
+   if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) {
+      construct_incorrect<T>("-1.99999");
+      construct_incorrect<T>("1.99999");
+   }
    //construct_incorrect<T>("-0", 4);
    if (is_unsigned<T>::value)
       construct_incorrect<T>("-1", 4);

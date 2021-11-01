@@ -15,10 +15,16 @@ using std::runtime_error;
 namespace std {
 //using Integer = integer_space::Integer;
 
-string to_string(const integer_space::Integer& integer) {
+string to_string(const integer_space::Integer & integer) {
   ostringstream os;
   os << integer;
   return os.str();
+}
+
+bool signbit(const integer_space::Integer & integer) {
+   if (integer.get_signum() == Integer::MINUS)
+      return true;
+   return false;
 }
 }
 
