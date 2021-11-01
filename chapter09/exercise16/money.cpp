@@ -319,6 +319,24 @@ Money<T>::Money(const string & dollars) {   // accept floating-point arguments
    }
 }
 
+template <typename T>
+Money<T> Money<T>::create(const string & dollars) {   // accept floating-point arguments
+   long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
+   if (! equal_integer<long double>(amount))
+      throw invalid_argument("Not exact value.");
+   Money<T> money = Money<T>(dollars);
+   return money;
+}
+
+template <typename T>
+Money<T> Money<T>::create(const string & dollars, const long double cents) {   // accept floating-point arguments
+   long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
+   if (! equal_integer<long double>(amount) || ! equal_integer<long double>(cents))
+      throw invalid_argument("Not exact value.");
+   Money<T> money = Money<T>(dollars, cents);
+   return money;
+}
+
 template <typename Number, enable_if_t< is_floating_point<Number>::value> = true>
 string formatted_string(const Number & dollars, const Number & cents) {
    ostringstream stream;

@@ -24,7 +24,7 @@ using std::tie;
 using integer_space::Integer;
 
 #define assert_many(EX,...) \
-  void ((EX) || (assert_tuples (tie(__VA_ARGS__), #EX, __FILE__, __LINE__, __DATE__, __TIME__)))
+  ((EX) || (assert_tuples (tie(__VA_ARGS__), #EX, __FILE__, __LINE__, __DATE__, __TIME__)))
   
 #define ASSERT(expr) \
     if (expr) \

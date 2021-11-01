@@ -1,5 +1,5 @@
 CXX = g++
-CPPFLAGS =  -Wfatal-errors -Wall -Wextra -std=c++14 
+CPPFLAGS = -fcompare-debug-second -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
 # -Wfatal-errors -fcompare-debug-second
 PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests money_test
 #PROGRAMS  =  fundamental_test

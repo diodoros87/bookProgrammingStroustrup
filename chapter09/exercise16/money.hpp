@@ -66,16 +66,17 @@ public:
    // create methods disallow rounding of cents and accept only cents without fraction
    static Money create(const string & dollars, const long double cents);
    static Money create(const string & dollars);
-   /*
-   void set(const string & dollars, const double cents = 0) { reduce(x, denominator); numerator = x; }
-   void set_denominator(long x) { reduce(numerator, x); denominator = x; }
-   */
-   Money& operator=(const Money& other) = default;
+   
+   Money& operator=(const Money& other) { 
+      if (this != &other)
+         amount_in_cents = other.amount_in_cents;
+      return *this;
+   };
    
    Money operator-() const { return Money(-amount_in_cents); }  // unsigned ???
    Money operator+() const { return *this; }
    
-   Money operator+(const Money& other) const;
+   Money operator+(const Money& other) const { return Money(-amount_in_cents); }
    Money operator-(const Money& other) const { return operator+(-other); }
    Money operator*(const T n) const;
    Money operator/(const T n) const;

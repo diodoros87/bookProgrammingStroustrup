@@ -8,38 +8,83 @@ using namespace money;
 
 using std::is_signed;
 using std::is_unsigned;
-
-
-template <typename T> 
-Money<T> construct(const string & DOLLARS, const double CENTS, const string & expected = "") { 
-   Money<T> money(DOLLARS, CENTS);
+  
+template <class Number, template<typename> class Money_Template>
+static void print_assert(const Money_Template<Number> & money, const string & expected = "") {
    cout << "                                       money = '" << money << "'\n";
    auto t = std::make_tuple(static_cast<string>(money), " != ", expected); 
    assert_many(string(money) == expected, t);
-   return money;
 }
 
 template <typename T> 
-Money<T> construct(const string & DOLLARS, const string & expected = "") { 
-   Money<T> money(DOLLARS);
-   cout << "                                       money = '" << money << "'\n";;
-   auto t = std::make_tuple(static_cast<string>(money), " != ", expected); 
-   assert_many(static_cast<string>(money) == expected, t);
-   //assert_many(static_cast<string>(money) == expected, static_cast<string>(money), " != ", expected);
-   return money;
-}
-
-template <typename T> 
-void construct_incorrect(const string & DOLLARS, const double CENTS ) { 
+void create_incorrect(const string & DOLLARS, const double CENTS ) { 
    try {
-      Money<T> money(DOLLARS, 34);
+      Money<T> money = Money<T>::create(DOLLARS, CENTS);
       assert(0);
-      cerr << __func__ << "money = " << money << '\n';
+      cout << __func__ << "money = " << money << '\n';
    } catch (const invalid_argument& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
    } catch (const out_of_range& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
    }
+}
+
+template <typename T> 
+Money<T> construct_cents(const string & DOLLARS, const double CENTS, bool creating, const string & expected = "") { 
+   Money<T> money(DOLLARS, CENTS);
+   print_assert(money, expected);
+   if (creating) {
+      Money<T> money_creating = Money<T>::create(DOLLARS, CENTS);
+      print_assert(money_creating, expected);
+      assert(money == money_creating);
+   }
+   else
+      create_incorrect<T>(DOLLARS, CENTS);
+   return money;
+}
+
+template <typename T> 
+void construct_incorrect(const string & DOLLARS) { 
+   try {
+      Money<T> money(DOLLARS);
+      assert(0);
+      cout << "money = " << money << '\n';
+   } catch (const invalid_argument& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
+   } catch (const out_of_range& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
+   }
+}
+
+template <typename T> 
+void create_incorrect(const string & DOLLARS) { 
+   try {
+      Money<T> money = Money<T>::create(DOLLARS);
+      assert(0);
+      cout << "money = " << money << '\n';
+   } catch (const invalid_argument& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
+   } catch (const out_of_range& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
+   }
+}
+
+template <typename T> 
+Money<T> construct(const string & DOLLARS, bool creating, const string & expected = "") { 
+   Money<T> money(DOLLARS);
+   print_assert(money, expected);
+   if (creating) {
+      Money<T> money_creating = Money<T>::create(DOLLARS);
+      print_assert(money_creating, expected);
+      assert(money == money_creating);
+   }
+   else
+      create_incorrect<T>(DOLLARS);
+   return money;
+}
+
+template <typename T> 
+void construct_incorrect(const string & DOLLARS, const double CENTS ) { 
    try {
       Money<T> money(DOLLARS, CENTS);
       assert(0);
@@ -71,59 +116,63 @@ void incorrect() {
    }
 }
 
-template <typename T> 
-void construct_incorrect(const string & DOLLARS) { 
-   try {
-      Money<T> money(DOLLARS);
-      assert(0);
-      cout << "money = " << money << '\n';
-   } catch (const invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
-   } catch (const out_of_range& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
-   }
-}
+constexpr long double CONVERTER = (long double)(CENTS_PER_DOLLAR);
 
 template <typename T> 
 void construct() {
    cerr << __func__ << '\n';
-   construct<T>("0", 99, "0,99");
-   construct<T>("1", 1, "1,01");
-   construct<T>("1", 0, "1,00");
-   construct<T>("0", 99.9, "1,00");
+   construct_cents<T>("0", 99, true, "0,99");
+   construct_cents<T>("1", 1, true, "1,01");
+   construct_cents<T>("1", 0, true, "1,00");
+   construct_cents<T>("0", 99.9, false, "1,00");
+   construct_cents<T>("0", 0, true, "0,00");
+   construct<T>("0.99999", false, "1,00");
+   construct<T>("0.5", true, "0,50");
+   construct<T>("0.50", true, "0,50");
+   construct<T>("0.500", true, "0,50");
    if (numeric_limits<T>::is_signed) {
-      construct<T>("-1", 0, "-1,00");
-      construct<T>("-1", 1, "-1,01");
-      construct<T>("-1", 3, "-1,03");
-      construct<T>("-0", 99.9, "-1,00");
-      construct<T>("-0", 1, "-0,01");
-      construct<T>("-0", 99, "-0,99");
-      construct<T>("-0.99999", "-1,00");
-      construct<T>("-0.5", "-0,50");
+      construct_cents<T>("-1", 0, true, "-1,00");
+      construct_cents<T>("-1", 1, true, "-1,01");
+      construct_cents<T>("-1", 3, true, "-1,03");
+      construct_cents<T>("-0", 99.9, false, "-1,00");
+      construct_cents<T>("-0", 1, true, "-0,01");
+      construct_cents<T>("-0", 99, true, "-0,99");
+      construct<T>("-0.99999", false, "-1,00");
+      construct<T>("-0.5", true, "-0,50");
+      construct<T>("-0.50", true, "-0,50");
+      construct<T>("-0.500", true, "-0,50");
    }
-   construct<T>("0.99999", "1,00");
-   construct<T>("0.5", "0,50");
    if (! is_same<T, char>::value && ! is_same<T, int_fast8_t>::value) {
-      construct<T>("1.99999", "2,00");
+      construct<T>("1.99999", false, "2,00");
       
-      construct<T>("20", 55, "20,55");
-      construct<T>("577", 45.7, "577,46");
+      construct_cents<T>("20", 55, true, "20,55");
+      construct_cents<T>("577", 45.7, false, "577,46");
       if (numeric_limits<T>::is_signed) {
-         construct<T>("-8577", 45.79, "-8577,46");   
-         construct<T>("-1.99999", "-2,00");
-         construct<T>("-1", 99.9, "-2,00");
-         construct<T>("-0.5", "-0,50");
-         construct<T>("-1", 99, "-1,99");
+         construct_cents<T>("-8577", 45.79, false, "-8577,46");   
+         construct<T>("-1.99999", false, "-2,00");
+         construct_cents<T>("-1", 99.9, false, "-2,00");
+         construct<T>("-0.5", true, "-0,50");
+         construct_cents<T>("-1", 99, true, "-1,99");
       }
-      construct<T>("10", "10,00");
-      if (is_same<T, float>::value)
-         construct<T>("-8577e+03", "-8577000,68");
-      else if (is_same<T, long double>::value)
-         construct<T>("-8577e+03", "-8577000,00");
-      construct<T>("10.67", "10,67");
-      construct<T>("10.679", "10,68");
-      construct<T>("10.6435", "10,64");
-      construct<T>("10.099", "10,10");
+      construct<T>("10", true, "10,00");
+      if (is_floating_point<T>::value) {
+         construct<T>("8.577444e+02", false, "857,74");
+         construct<T>("8.577555e+02", false, "857,76");
+         if (is_same<T, float>::value) {
+            construct<T>("-8577e+03", true, "-8577000,68");
+         }
+         if (is_same<T, double>::value || is_same<T, long double>::value) {
+            construct<T>("-8577e+03", true, "-8577000,00");
+         }
+      }
+      construct<T>("10.67", true, "10,67");
+      construct<T>("10.679", false, "10,68");
+      construct<T>("10.6435", false, "10,64");
+      construct<T>("10.099", false, "10,10");
+   }
+   if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) { 
+      construct<T>((std::to_string(numeric_limits<T>::max() / CONVERTER)), true, "1,27");
+      construct<T>((std::to_string(numeric_limits<T>::lowest() / CONVERTER)), true, "-1,28");
    }
    cerr << "END OF " << __func__ << '\n';
 }
@@ -137,13 +186,23 @@ void construct_incorrect() {
    if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) {
       construct_incorrect<T>("-1.99999");
       construct_incorrect<T>("1.99999");
+      construct_incorrect<T>("189.99999");
+      construct_incorrect<T>((std::to_string((1 + numeric_limits<T>::max()) / CONVERTER)));
+      construct_incorrect<T>((std::to_string((-1 + numeric_limits<T>::lowest()) / CONVERTER)));
    }
    //construct_incorrect<T>("-0", 4);
    if (is_unsigned<T>::value)
       construct_incorrect<T>("-1", 4);
    //construct_incorrect<T>("+0", 4);
-   if (numeric_limits<T>::is_integer)
+   if (numeric_limits<T>::is_integer) {
       construct_incorrect<T>("-8577e+03");
+      construct_incorrect<T>("-8.577444e+02");
+      construct_incorrect<T>("8.577555e+02");
+   }
+   if (is_same<T, float>::value) {
+      construct_incorrect<T>((std::to_string((1.0 + numeric_limits<T>::max()) / CONVERTER)));
+      construct_incorrect<T>((std::to_string((-1.0 + numeric_limits<T>::lowest()) / CONVERTER)));
+   }
    construct_incorrect<T>("inf", 8);
    construct_incorrect<T>("inf");
    //construct_incorrect<T>("57.7");
