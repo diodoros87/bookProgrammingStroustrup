@@ -395,21 +395,41 @@ Money<T>::operator string() const {
    out += formatted_string(dollars, cents);
    return out;
 }
-   /*
-Money& Money::operator=(const Money& other) { 
-   if (*this != other) {
-      numerator = other.numerator;
-      denominator = other.denominator; 
-   }
-   return *this;
-} 
 
-Money Money::operator*(const Money& other) const { 
-   long n = numerator * other.numerator;
-   long d = denominator * other.denominator; 
-   return Money(n, d);
-} 
+template <typename T>
+template<typename Greater>
+Money<T> Money<T>::operator*(const T & FACTOR) const {
+   static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
+                        ! is_same<Greater, Integer>::value );
+   Greater product = Greater(this->amount_in_cents) * Greater(FACTOR);
+   product = Money<Greater>::round(product);
+   cerr << __func__ << " product = " << product << '\n';
+   if (is_overflow<T, Greater>(product))
+      throw out_of_range(__func__ + "amount = " + std::to_string(product) + " is overflow for type " + TYPE_NAME);
+   const string dollars = std::to_string(product);
+   Money<T> result = Money<T>(dollars);
+   cerr << __func__ << " result = " << result << '\n';
+   return result;
+}
 
+template <typename T>
+//template<typename Integer>
+Money<T> Money<T>::operator*(const T & FACTOR) const {
+   //static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
+   cerr << __func__ << '\n';
+   Integer product = Integer::create_Integer(this->amount_in_cents) * Integer::create_Integer(FACTOR);
+   product = Money<Integer>::round(product);
+   cerr << __func__ << " product = " << product << '\n';
+   if (! is_same<T, Integer>::value)
+      if (is_overflow<T, Integer>(amount_in_cents))
+         throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
+   const string dollars = std::to_string(product);
+   Money<T> result = Money<T>(dollars);
+   cerr << __func__ << " result = " << result << '\n';
+   return result;
+}
+
+/*
 Money Money::operator+(const Money& other) const { 
    long n = numerator * other.denominator + denominator * other.numerator;
    long d = denominator * other.denominator; 

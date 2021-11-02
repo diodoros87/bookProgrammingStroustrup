@@ -8,11 +8,22 @@ using namespace money;
 
 using std::is_signed;
 using std::is_unsigned;
+
+//#define NDEBUG_OSTREAM 
   
 template <class Number, template<typename> class Money_Template>
 static void print_assert(const Money_Template<Number> & money, const string & expected = "") {
    cout << "                                       money = '" << money << "'\n";
-   auto t = std::make_tuple(static_cast<string>(money), " != ", expected); 
+   auto t = std::make_tuple(static_cast<string>(money), " != ", expected);
+#ifndef NDEBUG_OSTREAM
+   cout << "                                       money = '";
+   ostringstream * os = reinterpret_cast<ostringstream *>(& cout);
+   make_string(os, money).str();
+   cout << "'\n";
+   ostringstream ostrs;
+   string output = make_string(&ostrs, money).str();
+   assert_many(output == expected, t);
+#endif
    assert_many(string(money) == expected, t);
 }
 
@@ -88,7 +99,7 @@ void construct_incorrect(const string & DOLLARS, const double CENTS ) {
    try {
       Money<T> money(DOLLARS, CENTS);
       assert(0);
-      cout << __func__ << "money = " << money << '\n';
+      cerr << __func__ << "money = " << money << '\n';
    } catch (const invalid_argument& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
    } catch (const out_of_range& e) {

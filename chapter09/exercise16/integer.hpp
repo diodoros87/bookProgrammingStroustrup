@@ -110,7 +110,7 @@ public:
                                     " is out of range for Integer class ");
       long double truncated = trunc(x);
       long double abs_truncated = fabs(truncated);
-      digit_type digit = 0;
+      //digit_type digit = 0;
       //if (*this < numeric_limits<Number>::lowest() || *this > numeric_limits<Number>::max())
       //   throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
       array<digit_type, MAX_ARRAY_LENGTH> table { 0 };
