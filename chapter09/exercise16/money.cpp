@@ -429,6 +429,12 @@ Money<T> Money<T>::operator*(const T & FACTOR) const {
    return result;
 }
 
+template <typename T>
+void* Money<T>::fp(const char * DOLLARS, const double CENTS)
+ {
+   return Money<T>::create_2(DOLLARS, CENTS);
+}
+
 /*
 Money Money::operator+(const Money& other) const { 
    long n = numerator * other.denominator + denominator * other.numerator;

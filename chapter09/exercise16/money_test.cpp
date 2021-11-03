@@ -1,3 +1,5 @@
+#define DEBUG_OSTREAM
+
 #include "integer.hpp"
 #include "assertions.hpp"
 #include "money.hpp"
@@ -9,30 +11,56 @@ using namespace money;
 using std::is_signed;
 using std::is_unsigned;
 
-//#define NDEBUG_OSTREAM 
   
 template <class Number, template<typename> class Money_Template>
 static void print_assert(const Money_Template<Number> & money, const string & expected = "") {
    cout << "                                       money = '" << money << "'\n";
    auto t = std::make_tuple(static_cast<string>(money), " != ", expected);
-#ifndef NDEBUG_OSTREAM
+#ifdef DEBUG_OSTREAM
    cout << "                                       money = '";
    ostringstream * os = reinterpret_cast<ostringstream *>(& cout);
-   make_string(os, money).str();
+   os << money;
    cout << "'\n";
    ostringstream ostrs;
-   string output = make_string(&ostrs, money).str();
+   string output = operator<<(&ostrs, money).str();
    assert_many(output == expected, t);
 #endif
    assert_many(string(money) == expected, t);
 }
 
-template <typename T> 
-void create_incorrect(const string & DOLLARS, const double CENTS ) { 
+extern "C" void* create_by_pointer_2(const callback pointer, const char * DOLLARS, const double CENTS) {
+   return pointer(DOLLARS, CENTS);
+   //return pointer(DOLLARS, CENTS);
+   //return Money<T>::create(DOLLARS, CENTS);
+}
+
+/*
+template <typename T>
+extern "C" bool create_construct (const char * DOLLARS, const double CENTS) {
+   void * pointer = create_construct
+   return Integer::is_zero(*integer);
+   return Money<T>::create(DOLLARS, CENTS);
+}
+*/
+
+template <typename T>
+struct Creation {
+	template<typename... Args>
+	Money<T> operator()(Args...args) const {
+		return Money<T>::create(std::forward<Args>(args)...);
+	}
+};
+
+template <typename Function, typename... Args> 
+void call(Function && f, Args &&... args ) { 
+   f(std::forward<Args>(args)...);
+}
+
+template <typename Function, typename... Args>  
+void construct_incorrect(Function && f, Args&&... args ) { 
    try {
-      Money<T> money = Money<T>::create(DOLLARS, CENTS);
+      f(std::forward<Args>(args)...);
       assert(0);
-      cout << __func__ << "money = " << money << '\n';
    } catch (const invalid_argument& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
    } catch (const out_of_range& e) {
@@ -40,20 +68,7 @@ void create_incorrect(const string & DOLLARS, const double CENTS ) {
    }
 }
 
-template <typename T> 
-Money<T> construct_cents(const string & DOLLARS, const double CENTS, bool creating, const string & expected = "") { 
-   Money<T> money(DOLLARS, CENTS);
-   print_assert(money, expected);
-   if (creating) {
-      Money<T> money_creating = Money<T>::create(DOLLARS, CENTS);
-      print_assert(money_creating, expected);
-      assert(money == money_creating);
-   }
-   else
-      create_incorrect<T>(DOLLARS, CENTS);
-   return money;
-}
-
+/*
 template <typename T> 
 void construct_incorrect(const string & DOLLARS) { 
    try {
@@ -81,17 +96,17 @@ void create_incorrect(const string & DOLLARS) {
 }
 
 template <typename T> 
-Money<T> construct(const string & DOLLARS, bool creating, const string & expected = "") { 
-   Money<T> money(DOLLARS);
-   print_assert(money, expected);
-   if (creating) {
-      Money<T> money_creating = Money<T>::create(DOLLARS);
-      print_assert(money_creating, expected);
-      assert(money == money_creating);
+void create_incorrect(const string & DOLLARS, const double CENTS ) { 
+   try {
+      Money<T> money = Money<T>::create(DOLLARS, CENTS);
+      //Money<T> money = static_castMoney<T>::create(DOLLARS, CENTS);
+      assert(0);
+      cout << __func__ << "money = " << money << '\n';
+   } catch (const invalid_argument& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
+   } catch (const out_of_range& e) {
+      cerr << __func__ << " exception: " << e.what() << endl;
    }
-   else
-      create_incorrect<T>(DOLLARS);
-   return money;
 }
 
 template <typename T> 
@@ -105,6 +120,35 @@ void construct_incorrect(const string & DOLLARS, const double CENTS ) {
    } catch (const out_of_range& e) {
       cerr << __func__ << " exception: " << e.what() << endl;
    }
+}
+*/
+template <typename T> 
+Money<T> construct_cents(const string & DOLLARS, const double CENTS, bool creating, const string & expected = "") { 
+   Money<T> money(DOLLARS, CENTS);
+   print_assert(money, expected);
+   if (creating) {
+      Money<T> money_creating = Money<T>::create(DOLLARS, CENTS);
+      print_assert(money_creating, expected);
+      assert(money == money_creating);
+   }
+   else
+      construct_incorrect(Creation<T>(), DOLLARS, CENTS);
+   return money;
+}
+
+
+template <typename T> 
+Money<T> construct(const string & DOLLARS, bool creating, const string & expected = "") { 
+   Money<T> money(DOLLARS);
+   print_assert(money, expected);
+   if (creating) {
+      Money<T> money_creating = Money<T>::create(DOLLARS);
+      print_assert(money_creating, expected);
+      assert(money == money_creating);
+   }
+   else
+      construct_incorrect(Creation<T>(), DOLLARS);
+   return money;
 }
 
 template <typename T> 
@@ -188,34 +232,58 @@ void construct() {
    cerr << "END OF " << __func__ << '\n';
 }
 
+//template <typename T>
+/*
+template <class Number, template<typename> class Money_Template>
+struct Constructor {
+	template<typename... Args>
+	Money_Template<Number> operator()(Args...args) const {
+		return Money_Template<Number>(std::forward<Args>(args)...);
+	}
+};
+*/
+template <typename T>
+struct Constructor {
+	template<typename... Args>
+	Money<T> operator()(Args...args) const {
+		return Money<T>(std::forward<Args>(args)...);
+	}
+};
+
+template <typename Fn>
+auto Bar(Fn f){
+   return f("20.8",20);
+}
+
 template <typename T> 
 void construct_incorrect() {
    cerr << __func__ << '\n';
    incorrect<T>();
-   construct_incorrect<T>("20.8", 5);
-   construct_incorrect<T>("20t", 7);
+   construct_incorrect(Constructor<T>(), "20.8", 5.0L);
+   construct_incorrect(Constructor<T>(), "20.8", 5);
+   construct_incorrect(Constructor<T>(), "20t", 7);
    if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) {
-      construct_incorrect<T>("-1.99999");
-      construct_incorrect<T>("1.99999");
-      construct_incorrect<T>("189.99999");
-      construct_incorrect<T>((std::to_string((1 + numeric_limits<T>::max()) / CONVERTER)));
-      construct_incorrect<T>((std::to_string((-1 + numeric_limits<T>::lowest()) / CONVERTER)));
+      construct_incorrect(Constructor<T>(), "-1.99999");
+      construct_incorrect(Constructor<T>(), "1.99999");
+      construct_incorrect(Constructor<T>(), "189.99999");
+      construct_incorrect(Constructor<T>(), (std::to_string((1 + numeric_limits<T>::max()) / CONVERTER)));
+      construct_incorrect(Constructor<T>(), (std::to_string((-1 + numeric_limits<T>::lowest()) / CONVERTER)));
    }
    //construct_incorrect<T>("-0", 4);
    if (is_unsigned<T>::value)
-      construct_incorrect<T>("-1", 4);
+      construct_incorrect(Constructor<T>(), "-1", 4);
    //construct_incorrect<T>("+0", 4);
    if (numeric_limits<T>::is_integer) {
-      construct_incorrect<T>("-8577e+03");
-      construct_incorrect<T>("-8.577444e+02");
-      construct_incorrect<T>("8.577555e+02");
+      construct_incorrect(Constructor<T>(), "-8577e+03");
+      construct_incorrect(Constructor<T>(), "-8.577444e+02");
+      construct_incorrect(Constructor<T>(), "8.577555e+02");
    }
    if (is_same<T, float>::value) {
-      construct_incorrect<T>((std::to_string((1.0 + numeric_limits<T>::max()) / CONVERTER)));
-      construct_incorrect<T>((std::to_string((-1.0 + numeric_limits<T>::lowest()) / CONVERTER)));
+      construct_incorrect(Constructor<T>(), (std::to_string((1.0 + numeric_limits<T>::max()) / CONVERTER)));
+      construct_incorrect(Constructor<T>(), (std::to_string((-1.0 + numeric_limits<T>::lowest()) / CONVERTER)));
    }
-   construct_incorrect<T>("inf", 8);
-   construct_incorrect<T>("inf");
+   construct_incorrect(Constructor<T>(), "inf", 8);
+   construct_incorrect(Constructor<T>(), "inf");
    //construct_incorrect<T>("57.7");
    cerr << "END OF " << __func__ << '\n';
 }

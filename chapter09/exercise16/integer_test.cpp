@@ -153,8 +153,7 @@ Integer create_construct(const char SIGNUM, const digit_type * TABLE) {
 template <const unsigned int N>
 void set(const digit_type TABLE[], Integer & integer) {
    static_assert( N <= Integer::MAX_ARRAY_LENGTH && N > 0 && "set requires 0 < N <= MAX_ARRAY_LENGTH");
-   if (TABLE == nullptr)
-      throw invalid_argument("Parameter TABLE can not be nullptr");
+   validate_pointer(TABLE);
 
    const vector<digit_type> VEC = { TABLE, TABLE + N };
    integer.set_integer_array(VEC);

@@ -23,14 +23,25 @@ using std::tie;
 
 using integer_space::Integer;
 
+template <class Pointer, std::enable_if_t<std::is_pointer<Pointer>::value
+                                          || std::is_array<Pointer>::value, bool> = true> 
+inline void validate_pointer(Pointer pointer) {
+   if (nullptr == pointer)
+      throw invalid_argument(string(typeid(Pointer).name()) + " pointer is null");   
+}
+
+inline void validate_pointer(nullptr_t) {
+   throw invalid_argument("type: nullptr_t - pointer is null");   
+}
+
 #define assert_many(EX,...) \
   ((EX) || (assert_tuples (tie(__VA_ARGS__), #EX, __FILE__, __LINE__, __DATE__, __TIME__)))
   
 #define ASSERT(expr) \
-    if (expr) \
-        {} \
-    else \
-        GENERAL_ASSERT(#expr, expr, __FILE__, __LINE__, __DATE__, __TIME__, "")
+   if (expr) \
+      {} \
+   else \
+      GENERAL_ASSERT(#expr, expr, __FILE__, __LINE__, __DATE__, __TIME__, "")
 
 #ifndef NDEBUG
 #  define general_assert(Expr, Msg) \

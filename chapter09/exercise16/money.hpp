@@ -25,6 +25,8 @@ using std::signbit;
 
 using integer_space::Integer;
 
+extern "C" typedef void * callback(const char * DOLLARS, const double CENTS);
+
 namespace money {
 constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
 constexpr int_fast8_t INCORRECT_CENTS = -112;
@@ -67,6 +69,8 @@ public:
    static Money create(const string & dollars, const long double cents);
    static Money create(const string & dollars);
    
+   static callback fp;
+   
    Money& operator=(const Money& other) { 
       if (this != &other)
          amount_in_cents = other.amount_in_cents;
@@ -78,8 +82,8 @@ public:
    
    Money operator+(const Money& other) const { return Money(-amount_in_cents); }
    Money operator-(const Money& other) const { return operator+(-other); }
-   Money operator*(const T & n) const;
    template<typename Greater>
+   Money operator*(const T & n) const;
    Money operator*(const T & n) const;
    Money operator/(const T & n) const;
    
@@ -132,11 +136,10 @@ private:
    T amount_in_cents { };
 };
 
-#ifndef NDEBUG_OSTREAM
+#ifdef DEBUG_OSTREAM
    template <class Number, enable_if_t<numeric_limits<Number>::is_integer || is_floating_point<Number>::value, bool> = true>
    inline ostringstream& start_settings(ostringstream * os, const Money<Number>& money) {
-      if (nullptr == os)
-         throw invalid_argument("ostringstream pointer is null");
+      validate_pointer(os);
       if (signbit(money.get_amount_in_cents()))
          *os << '-';
       os->fill('0');
@@ -145,9 +148,8 @@ private:
 
    template <class Number, template<typename> class Money_Template, enable_if_t<
                      is_same<Number, char>::value || is_same<Number, int_fast8_t>::value, bool> = true>
-   ostringstream& make_string(ostringstream * os, const Money_Template<Number>& money) {
-      if (nullptr == os)
-         throw invalid_argument("ostringstream pointer is null");
+   ostringstream& operator<<(ostringstream * os, const Money_Template<Number>& money) {
+      validate_pointer(os);
       int dollars = static_cast<int>(money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
       int cents = static_cast<int>(money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
       start_settings(os, money);
@@ -158,9 +160,8 @@ private:
 
    template <class Number, template<typename> class Money_Template, enable_if_t<is_integral<Number>::value &&
                         ! is_same<Number, char>::value && ! is_same<Number, int_fast8_t>::value, bool> = true>
-   ostringstream& make_string(ostringstream * os, const Money_Template<Number>& money) {
-      if (nullptr == os)
-         throw invalid_argument("ostringstream pointer is null");
+   ostringstream& operator<<(ostringstream * os, const Money_Template<Number>& money) {
+      validate_pointer(os);
       Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
       Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
       start_settings(os, money);
@@ -169,9 +170,8 @@ private:
       return *os;
    }
 
-   ostringstream& make_string(ostringstream * os, const Money<Integer>& money) {
-      if (nullptr == os)
-         throw invalid_argument("ostringstream pointer is null");
+   ostringstream& operator<<(ostringstream * os, const Money<Integer>& money) {
+      validate_pointer(os);
       Integer dollars = money.get_dollars(Money<Integer>::TYPE_DEFAULT_OBJECT);
       Integer cents = money.get_cents(Money<Integer>::TYPE_DEFAULT_OBJECT);
       start_settings(os, money);
@@ -181,9 +181,8 @@ private:
    }
 
    template <class Number, template<typename> class Money_Template, enable_if_t<is_floating_point<Number>::value, bool> = true>
-   ostringstream& make_string(ostringstream * os, const Money_Template<Number>& money) {
-      if (nullptr == os)
-         throw invalid_argument("ostringstream pointer is null");
+   ostringstream& operator<<(ostringstream * os, const Money_Template<Number>& money) {
+      validate_pointer(os);
       std::streamsize os_precision = os->precision();
       Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
       Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
@@ -198,7 +197,7 @@ private:
 template <class Number, enable_if_t<is_floating_point<Number>::value || numeric_limits<Number>::is_integer, bool> = true>
 ostream& operator<<(ostream& os, const Money<Number>& money) {
    ostringstream ostrs;
-   string output = make_string(&ostrs, money).str();
+   string output = operator<<(&ostrs, money).str();
    return os << output;
 }
 #else
