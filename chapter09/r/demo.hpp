@@ -11,6 +11,7 @@ class Demo {
       Demo(const char *name);
       const char * get_name() const;
       void set_name(const char * name);
+      ~Demo();
 };
 
 #endif

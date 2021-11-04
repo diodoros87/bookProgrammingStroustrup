@@ -11,6 +11,9 @@ using std::tuple;
 
 #define TIE(...) (std::tie(__VA_ARGS__))
 
+template<class T> 
+inline T& unmove(T&& t) { return t; }
+
 template<const unsigned int N>
 struct print_tuple {
    template<typename... T>

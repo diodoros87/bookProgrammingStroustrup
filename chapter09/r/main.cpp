@@ -7,9 +7,6 @@ inline void call(Function && f, Args &&... args ) {
    f(std::forward<Args>(args)...);
 }
 
-template<class T> 
-inline T& unmove(T&& t) { return t; }
-
 static Demo human = {"Leibniz"};
 
 int main() {
@@ -19,9 +16,9 @@ int main() {
    call(Creation<long double>(), "7");
    cerr << '\n';
 
-   cerr << TIE( __func__, unmove(human.get_name())) << '\n';
+   cerr << TIE( unmove(__cplusplus), __func__, unmove(human.get_name())) << '\n';
    human.set_name("Spinoza");
-   cerr << TIE( __func__, unmove(human.get_name())) << '\n';
+   cerr << TIE( unmove(__cplusplus), __func__, unmove(human.get_name())) << '\n';
 }
 
 // g++ -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 

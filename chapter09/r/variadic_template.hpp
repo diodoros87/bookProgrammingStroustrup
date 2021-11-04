@@ -13,6 +13,8 @@ static_assert((std::numeric_limits<T>::is_integer || std::is_floating_point<T>::
 public:
    Money(const string & dollars, const long double cents);   
    Money(const string & dollars); 
+   
+   ~Money(); 
 
    static Money create(const string & dollars, const long double cents);
    static Money create(const string & dollars);
