@@ -14,11 +14,14 @@ PROGRAMS  = libdemo.so libconnector.so main_cpp c_main
 
 all: $(PROGRAMS)
 
-c_main: c_main.o libconnector.so
-	$(CC) $(CFLAGS) c_main.o -L. -lconnector -ldemo  -o c_main
+c_main: c_main.o libconnector.so shared_lib_open.o
+	$(CC) $(CFLAGS) c_main.o shared_lib_open.o -L. -lconnector -ldemo -ldl -o c_main
 	
-c_main.o: connector.h main.c
+c_main.o: connector.h main.c shared_lib_open.h
 	$(CC) $(CFLAGS) -c main.c -o c_main.o
+	
+shared_lib_open.o:
+	$(CC) $(CFLAGS) -c shared_lib_open.c -o shared_lib_open.o
 
 main_cpp: main_cpp.o libdemo.so
 	$(CXX) $(CPPFLAGS) main_cpp.o -L. -ldemo -o main_cpp
