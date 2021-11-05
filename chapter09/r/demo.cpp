@@ -3,6 +3,8 @@
 
 using std::cerr;
 
+namespace demo {
+
 Demo::Demo(const char * NAME) : name(NAME) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, name) << '\n';
 }
@@ -10,14 +12,17 @@ Demo::Demo(const char * NAME) : name(NAME) {
 void Demo::set_name(const char *name) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, name) << '\n';
    this->name = name;
+   throw std::invalid_argument {__func__ };
 }
 
-const char * Demo::get_name() const {
+char * Demo::get_name() const {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__) << '\n';
-   const char * result = name.data();
+   char * result = const_cast<char *>(name.data());
    return result;
 }
 
 Demo::~Demo() {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, this->name) << '\n';
+}
+
 }

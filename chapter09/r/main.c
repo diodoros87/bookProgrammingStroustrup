@@ -1,5 +1,6 @@
+/*
 #define MANUAL_DLL_LOAD
-
+*/
 #include "print.h"
 #include "connector.h"
 #include "shared_lib_open.h"
@@ -11,6 +12,17 @@
 
 #define LIB_CONNECTOR_SO "libconnector.so"
 
+void handle_terminate(void) {
+   LOG("%s", "handler called - must've been some exception ?!\n");
+}
+
+void close_handle(void * handle) {
+   const int result = dlclose(handle);
+   if (0 != result) {
+      LOG_EXIT(__FUNCTION__, "Closing handle was failed", result);   /* brackets - multiline macro */
+   }
+}
+
 #ifdef MANUAL_DLL_LOAD
 void load_demo(void) { 
    FUNCTION_INFO(__FUNCTION__);
@@ -21,15 +33,18 @@ void load_demo(void) {
    demo_functions.get_name = get_symbol(demo_functions.handle, "demo_get_name");
    demo_functions.destroy = get_symbol(demo_functions.handle, "demo_destroy");
    
-   demo_functions.init("Nicolaus Copernicus");
-   LOG("%s: %s human name is %s: ", LANGUAGE, __FUNCTION__, demo_functions.get_name());
-   demo_functions.set_name("Socrates");
-   LOG("%s: %s human name is %s: ", LANGUAGE, __FUNCTION__, demo_functions.get_name());
-   demo_functions.destroy();
+   int result = demo_functions.init("Nicolaus Copernicus");
+   LOG("result = %d\n", result);
+   if (OK == result) {
+      char * name = NULL;
+      result = demo_functions.get_name(name);
+      LOG("%s: %s human name is %s: ", LANGUAGE, __FUNCTION__, name);
+      demo_functions.set_name("Socrates");
+      result = demo_functions.get_name(name);
+      LOG("%s: %s human name is %s: ", LANGUAGE, __FUNCTION__, name);
+      demo_functions.destroy();
    
-   int result = dlclose(demo_functions.handle);
-   if (0 != result) {
-      LOG_EXIT(__FUNCTION__, "Close handle unsuccessfull", result);
+      close_handle(demo_functions.handle);
    }
 }
 
@@ -50,10 +65,7 @@ void load_money(void) {
    money = Money_int__create_2("ANSI C", 7);
    LOG("\nAddress of money is: %p\n", money);
    
-   int result = dlclose(money_functions.handle);
-   if (0 != result) {
-      LOG_EXIT(__FUNCTION__, "Close handle unsuccessfull", result);
-   }
+   close_handle(money_functions.handle);
 }
 #else
 void load_demo(void) {
@@ -85,6 +97,7 @@ void at_exit (void) {
 }
 
 int main(void) {
+   set_handler(handle_terminate);
    atexit (at_exit);
    FUNCTION_INFO(__FUNCTION__);
 #ifdef MANUAL_DLL_LOAD

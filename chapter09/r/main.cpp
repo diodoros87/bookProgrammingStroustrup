@@ -7,6 +7,8 @@ inline void call(Function && f, Args &&... args ) {
    f(std::forward<Args>(args)...);
 }
 
+using namespace demo;
+
 static Demo human = {"Leibniz"};
 
 int main() {

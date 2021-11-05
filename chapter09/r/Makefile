@@ -2,7 +2,7 @@ CXX = g++
 CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
 
 CC = gcc
-CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c90 
+CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c90 -DMANUAL_DLL_LOAD
 #  -fcompare-debug-second 
 
 LPATH=-L.

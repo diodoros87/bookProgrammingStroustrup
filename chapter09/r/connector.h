@@ -6,6 +6,8 @@
  #else
  #define EXTERNC
  #endif
+ 
+ EXTERNC void set_handler(void (*pfunc)(void));
 
 typedef void* Money_int;
 
@@ -14,19 +16,29 @@ EXTERNC Money_int Money_int__create_1(const char * dollars);
 EXTERNC Money_int Money_int__init_2(const char * dollars, const long double cents);
 EXTERNC Money_int Money_int__create_2(const char * dollars, const long double cents);
 
-EXTERNC void demo_init(const char * name);
-EXTERNC void demo_set_name(const char * name);
-EXTERNC const char * demo_get_name();
-EXTERNC void demo_destroy();
+EXTERNC int demo_init(const char * name);
+EXTERNC int demo_set_name(const char * name);
+EXTERNC int demo_get_name(char ** name);
+EXTERNC int demo_destroy();
 
 #undef EXTERNC
 
+typedef enum {
+   OK                 = 0,
+   BAD_ALLOC          = 1,
+   BAD_FUNTION_CALL   = 2,
+   INVALID_ARG        = 3,
+   BAD_CAST           = 4,
+   STD_ERROR          = 55,
+   UNRECOGNIZED_ERROR = -38
+} Result_codes;
+
 #ifdef MANUAL_DLL_LOAD
 typedef struct {
-   void (*init)(const char * );
-   void (*set_name)(const char * );
-   const char * (*get_name) ();
-   void (*destroy)();
+   int (*init)(const char * );
+   int (*set_name)(const char * );
+   int (*get_name) (char ** );
+   int (*destroy)();
    void * handle;
 } Demo_functions;
 
