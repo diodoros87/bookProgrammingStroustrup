@@ -21,4 +21,20 @@ EXTERNC void demo_destroy();
 
 #undef EXTERNC
 
+#ifdef MANUAL_DLL_LOAD
+typedef struct {
+   void (*init)(const char * );
+   void (*set_name)(const char * );
+   const char * (*get_name) ();
+   void (*destroy)();
+   void * handle;
+} Demo_functions;
+
+typedef struct {
+   void (*create_1)(const char * );
+   void (*create_2)(const char * , const long double);
+   void * handle;
+} Money_functions;
+#endif
+
 #endif
