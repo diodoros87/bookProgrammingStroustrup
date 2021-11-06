@@ -16,15 +16,18 @@ void handle_terminate(void) {
    LOG("%s", "handler called - must've been some exception ?!\n");
 }
 
-void close_handle(void * handle) {
+int close_handle(void * handle) {
    const int result = dlclose(handle);
    if (0 != result) {
       LOG_EXIT(__FUNCTION__, "Closing handle was failed", result);   /* brackets - multiline macro */
    }
+   return 0;
 }
 
 #ifdef MANUAL_DLL_LOAD
-void load_demo(void) { 
+int load_demo(void) { 
+   print_many("PARAMETERS: 1, \"abc\", 546",
+         "isi", 1, "abc", 546);
    FUNCTION_INFO(__FUNCTION__);
    Demo_functions demo_functions;
    demo_functions.handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
@@ -32,23 +35,30 @@ void load_demo(void) {
    demo_functions.set_name = get_symbol(demo_functions.handle, "demo_set_name");
    demo_functions.get_name = get_symbol(demo_functions.handle, "demo_get_name");
    demo_functions.destroy = get_symbol(demo_functions.handle, "demo_destroy");
-   
-   int result = demo_functions.init("Nicolaus Copernicus");
+    
+   int result = demo_functions.init("Nicolaus Copernicus"); 
    LOG("result = %d\n", result);
    if (OK == result) {
       char * name = NULL;
-      result = demo_functions.get_name(name);
-      LOG("%s: %s human name is %s: ", LANGUAGE, __FUNCTION__, name);
-      demo_functions.set_name("Socrates");
-      result = demo_functions.get_name(name);
-      LOG("%s: %s human name is %s: ", LANGUAGE, __FUNCTION__, name);
-      demo_functions.destroy();
-   
-      close_handle(demo_functions.handle);
+      result = demo_functions.get_name(&name);
+      if (OK == result) {
+         LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
+         demo_functions.set_name("Socrates");
+         result = demo_functions.get_name(&name);
+         if (OK == result) {
+            LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
+            result = demo_functions.destroy();
+         }
+         if (OK == result)
+            result = close_handle(demo_functions.handle);
+      }
    }
+   assert_many(result == OK, "message", "8, 9, 6", "hg");
+   
+   return result;
 }
 
-void load_money(void) {
+int load_money(void) {
    FUNCTION_INFO(__FUNCTION__);
    Money_functions money_functions;
    money_functions.handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
@@ -65,7 +75,7 @@ void load_money(void) {
    money = Money_int__create_2("ANSI C", 7);
    LOG("\nAddress of money is: %p\n", money);
    
-   close_handle(money_functions.handle);
+   return close_handle(money_functions.handle);
 }
 #else
 void load_demo(void) {
@@ -107,6 +117,6 @@ int main(void) {
 #endif
    load_demo();
    load_money();
-
-   return 0;
+   
+   return EXIT_SUCCESS;
 }

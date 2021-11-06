@@ -90,7 +90,7 @@ int demo_init(const char * name) {
 
 int demo_set_name(const char * name) {
    if (demo_instance == nullptr) {
-      cerr  << __func__ << " demo_instance = " << demo_instance << '\n';
+      cerr  << __func__ << " Error demo_instance = " << demo_instance << '\n';
       return INVALID_ARG;
    }
    try {
@@ -107,15 +107,15 @@ int demo_set_name(const char * name) {
 
 int demo_get_name(char ** name) {
    if (name == nullptr) {
-      cerr  << __func__ << " name = " << name << '\n';
+      cerr  << __func__ << " Error name = " << name << '\n';
       return INVALID_ARG;
    }
    if (*name != nullptr) {
-      cerr  << __func__ << " *name = " << *name << '\n';
+      cerr  << __func__ << " Error *name = " << *name << '\n';
       return INVALID_ARG;
    }
    if (demo_instance == nullptr) {
-      cerr  << __func__ << " demo_instance = " << demo_instance << '\n';
+      cerr  << __func__ << " Error demo_instance = " << demo_instance << '\n';
       return BAD_FUNTION_CALL;
    }
    
@@ -136,7 +136,7 @@ int demo_destroy() {
       delete demo_instance;
       return OK;
    }
-   cerr  << __func__ << " demo_instance = " << demo_instance << '\n';
+   cerr  << __func__ << " Error demo_instance = " << demo_instance << '\n';
    return BAD_FUNTION_CALL;
 }
 
