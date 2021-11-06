@@ -27,7 +27,7 @@ int close_handle(void * handle) {
 #ifdef MANUAL_DLL_LOAD
 int load_demo(void) { 
    print_many("PARAMETERS: 1, \"abc\", 546",
-         "isi", 1, "abc", 546);
+         "isi", 1, "abc", 546, NULL);
    FUNCTION_INFO(__FUNCTION__);
    Demo_functions demo_functions;
    demo_functions.handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
@@ -53,7 +53,9 @@ int load_demo(void) {
             result = close_handle(demo_functions.handle);
       }
    }
-   assert_many(result == OK, "message", "8, 9, 6", "hg");
+   print_many( "PARAMETERS: \"def\", 789",
+         "si", "def", 789 );
+   assert_many(result == 0, "th", "sisi", "7", 5, "hg", 8);
    
    return result;
 }

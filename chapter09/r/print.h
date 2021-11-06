@@ -1,3 +1,6 @@
+#ifndef PRINT_H
+#define PRINT_H
+
 #include <stdio.h>
 
 #define LANGUAGE "C90"
@@ -7,9 +10,12 @@ extern int print_many(const char * msg,   /* message to be printed     */
 
 extern int print_assert(const char *file, int line, const char * date, const char * time, const char *msg) ;
 
-#define assert_many(EX,...) \
-  ((EX) || (print_many(__VA_ARGS__)) || \
+#define assert_many(EX, MSG, TYPES,...) \
+  ((EX) || (print_many(MSG, TYPES, __VA_ARGS__)) || \
    print_assert(__FILE__, __LINE__, __DATE__, __TIME__, #EX))
+  
+#define assert_one(EX,...) \
+  ((EX) || (print_assert(__FILE__, __LINE__, __DATE__, __TIME__, #EX)))
 
 #define LOG(format, ...) \
    fprintf(stderr, format, __VA_ARGS__); \
@@ -26,3 +32,5 @@ extern int print_assert(const char *file, int line, const char * date, const cha
    FUNCTION_INFO(function_name); \
    LOG("\ninfo = %s\n exit status = %d\n", info, status); \
    exit(status)
+
+#endif

@@ -1,27 +1,43 @@
 #include "print.h"
 #include <stdarg.h>
 #include <stdlib.h>
+#include <assert.h>
 
 int print_many(
   const char * msg,   /* message to be printed     */
   const char * types, /* parameter types (i,s)     */
-  ... )          /* variable arguments     */
-{
+  ... )          /* variable arguments     */ {
    va_list arg_list;
    int   arg_int;
+   double   arg_double;
    char *arg_string;
    const char *types_ptr = types;
-
+   
+   assert_one(NULL != msg);
+   assert_one(NULL != types);
+   if (! msg || ! types) {
+      LOG("\n msg = %p \n types = %p\n", msg, types);
+      return -1;
+   }
    types_ptr = types;
    LOG("\n%s -- %s\n", msg, types );
    va_start( arg_list, types );
-   while( *types_ptr != '\0' ) {
-      if (*types_ptr == 'i') {
-         arg_int = va_arg( arg_list, int );
-         LOG( "integer: %d\n", arg_int );
-      } else if (*types_ptr == 's') {
-         arg_string = va_arg( arg_list, char * );
-         LOG( "string:  %s\n", arg_string );
+   while( types_ptr && *types_ptr != '\0' ) {
+      switch(*types_ptr) {
+         case 'i':
+            arg_int = va_arg( arg_list, int );
+            LOG( " %d ", arg_int );
+            break;
+         case 's':
+            arg_string = va_arg( arg_list, char * );
+            LOG( " %s ", arg_string );
+            break;
+         case 'e':
+            arg_double = va_arg( arg_list, double );
+            LOG( " %e ", arg_double );
+            break;
+         default:
+            LOG( " improper format = %c", *types_ptr);
       }
       ++types_ptr;
    }
@@ -41,9 +57,6 @@ Expression:\t\n%s\n", msg);
    LOG("Source file:\t\t%s , Line %d\n", file, line);
    LOG("Date:\t\t%s\n", date);
    LOG("Time:\t\t%s\n", time);
-   abort();
-   /*LOG("  Info: %s\n", info) ;
-   
-   //assert(0);
-   //return 0; */
+   assert(0);
+   /*return 0;abort(); */
 }
