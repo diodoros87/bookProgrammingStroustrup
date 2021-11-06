@@ -16,11 +16,13 @@ int print_many(
    assert_one(NULL != msg);
    assert_one(NULL != types);
    if (! msg || ! types) {
-      LOG("\n msg = %p \n types = %p\n", msg, types);
+      FUNCTION_INFO(__FUNCTION__);
+      LOG("\n message = %p \n", msg);
       return -1;
    }
+   FUNCTION_INFO(__FUNCTION__);
+   LOG("\nmessage = %s -- types = %s\n", msg, types );
    types_ptr = types;
-   LOG("\n%s -- %s\n", msg, types );
    va_start( arg_list, types );
    while( types_ptr && *types_ptr != '\0' ) {
       switch(*types_ptr) {
@@ -58,5 +60,6 @@ Expression:\t\n%s\n", msg);
    LOG("Date:\t\t%s\n", date);
    LOG("Time:\t\t%s\n", time);
    assert(0);
-   /*return 0;abort(); */
+   abort();
+   /*return 0; */
 }

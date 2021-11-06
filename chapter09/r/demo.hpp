@@ -2,8 +2,10 @@
 #define DEMO_HPP
 
 #include <string>
+#include <regex>
 
 using std::string;
+using std::regex;
 
 namespace demo {
 
@@ -14,6 +16,9 @@ class Demo {
       char * get_name() const;
       void set_name(const char * name);
       ~Demo();
+      static regex set_regex();
+      
+      static const regex NAME_REGEX;
 };
 
 }

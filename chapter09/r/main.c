@@ -35,8 +35,9 @@ int load_demo(void) {
    demo_functions.set_name = get_symbol(demo_functions.handle, "demo_set_name");
    demo_functions.get_name = get_symbol(demo_functions.handle, "demo_get_name");
    demo_functions.destroy = get_symbol(demo_functions.handle, "demo_destroy");
-    
-   int result = demo_functions.init("Nicolaus Copernicus"); 
+   /* 
+   int result = demo_functions.init("Nicolaus Copernicus"); */
+   int result = demo_functions.init("N");
    LOG("result = %d\n", result);
    if (OK == result) {
       char * name = NULL;
@@ -55,7 +56,7 @@ int load_demo(void) {
    }
    print_many( "PARAMETERS: \"def\", 789",
          "si", "def", 789 );
-   assert_many(result == 0, "th", "sisi", "7", 5, "hg", 8);
+   assert_many(result != 0, "result != 0", "sise", "7", 5, "hg", 8);
    
    return result;
 }
