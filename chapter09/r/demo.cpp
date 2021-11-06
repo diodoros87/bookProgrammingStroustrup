@@ -1,5 +1,6 @@
 #include "demo.hpp"
 #include "print.hpp"
+#include "null.hpp"
 
 using std::cerr;
 
@@ -7,17 +8,22 @@ namespace demo {
    
 const regex Demo::NAME_REGEX       = Demo::set_regex() ;
 
+static inline void validate(const char * name) {
+   if (OK != check_pointer(name)) 
+      throw std::invalid_argument(__func__ + string(" argument of name: '") + name + "' is nullptr");
+   if (! regex_match(name, Demo::NAME_REGEX)) 
+      throw std::invalid_argument(__func__ + string(" argument of name: '") + name + "' is invalid");
+}
+
 Demo::Demo(const char * name) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, name) << '\n';
-   if (! regex_match(name, NAME_REGEX)) 
-      throw std::invalid_argument(__func__ + string(" argument of name: '") + name + "' is invalid");
+   validate(name);
    this->name = name;
 }
 
 void Demo::set_name(const char *name) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, name) << '\n';
-   if (! regex_match(name, NAME_REGEX)) 
-      throw std::invalid_argument(__func__ + string(" argument of name: '") + name + "' is invalid");
+   validate(name);
    this->name = name;
    throw std::invalid_argument {__func__ };
 }
@@ -32,9 +38,9 @@ Demo::~Demo() {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, this->name) << '\n';
 }
 
-regex Demo::set_regex() {
+const regex & Demo::set_regex() {
    try {
-      static regex NAME_REGEX       = regex { R"(^[[upper]][[lower]]*( [[upper]][[lower]]*)?$)", std::regex::basic } ;
+      static regex NAME_REGEX       = regex { R"(^[[:upper:]][[:lower:]]*( [[:upper:]][[:lower:]]*)?$)", std::regex::extended } ;
       return NAME_REGEX;
    } catch (const std::regex_error & e) {
       cerr << "regex_error caught: " << e.what() << '\n';

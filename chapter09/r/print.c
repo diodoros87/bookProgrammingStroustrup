@@ -3,8 +3,16 @@
 #include <stdlib.h>
 #include <assert.h>
 
-int print_many(
-  const char * msg,   /* message to be printed     */
+#define CHECK_INPUT_ARG(msg, types) \
+   assert_one(NULL != (msg)); \
+   assert_one(NULL != (types)); \
+   if (! (msg) || ! (types)) { \
+      FUNCTION_INFO(__FUNCTION__); \
+      LOG("\n messagefff = %s \n", (msg)); \
+      return 0; \
+   }
+
+int print_many(const char * msg,   /* message to be printed     */
   const char * types, /* parameter types (i,s)     */
   ... )          /* variable arguments     */ {
    va_list arg_list;
@@ -13,15 +21,9 @@ int print_many(
    char *arg_string;
    const char *types_ptr = types;
    
-   assert_one(NULL != msg);
-   assert_one(NULL != types);
-   if (! msg || ! types) {
-      FUNCTION_INFO(__FUNCTION__);
-      LOG("\n message = %p \n", msg);
-      return -1;
-   }
+   CHECK_INPUT_ARG(msg, types);
    FUNCTION_INFO(__FUNCTION__);
-   LOG("\nmessage = %s -- types = %s\n", msg, types );
+   LOG("\nmessage = %s \n", msg );
    types_ptr = types;
    va_start( arg_list, types );
    while( types_ptr && *types_ptr != '\0' ) {
@@ -61,5 +63,5 @@ Expression:\t\n%s\n", msg);
    LOG("Time:\t\t%s\n", time);
    assert(0);
    abort();
-   /*return 0; */
+   return 0; 
 }

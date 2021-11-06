@@ -32,7 +32,7 @@ main_cpp: main_cpp.o libdemo.so
 libconnector.so: connector.o libdemo.so
 	$(CXX) $(CPPFLAGS) -shared -L. -ldemo -o libconnector.so connector.o 
 	
-connector.o: connector.h connector.cpp
+connector.o: connector.h connector.cpp null.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC connector.cpp
 
 main_cpp.o: main.cpp variadic_template.hpp variadic_template.cpp demo.hpp demo.cpp
@@ -41,7 +41,7 @@ main_cpp.o: main.cpp variadic_template.hpp variadic_template.cpp demo.hpp demo.c
 libdemo.so: demo.o
 	$(CXX) $(CPPFLAGS) -shared -o libdemo.so demo.o
 
-demo.o: demo.hpp demo.cpp
+demo.o: demo.hpp demo.cpp null.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC demo.cpp
 	
 clean :
