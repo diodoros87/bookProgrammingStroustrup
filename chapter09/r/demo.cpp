@@ -8,22 +8,22 @@ namespace demo {
    
 const regex Demo::NAME_REGEX       = Demo::set_regex() ;
 
-static inline void validate(const char * name) {
-   if (OK != check_pointer(name)) 
-      throw std::invalid_argument(__func__ + string(" argument of name: '") + name + "' is nullptr");
+static inline void validate(const char * name, const string & function, const string & message) {
+   if (OK != check_pointer(name, function, message)) 
+      throw std::invalid_argument(function + " argument of name: '" + name + "' is nullptr");
    if (! regex_match(name, Demo::NAME_REGEX)) 
-      throw std::invalid_argument(__func__ + string(" argument of name: '") + name + "' is invalid");
+      throw std::invalid_argument(function + " argument of name: '" + name + "' is not matches by regex");
 }
 
 Demo::Demo(const char * name) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, name) << '\n';
-   validate(name);
+   validate(name, __func__, " Error name");
    this->name = name;
 }
 
 void Demo::set_name(const char *name) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, name) << '\n';
-   validate(name);
+   validate(name, __func__, " Error name");
    this->name = name;
    throw std::invalid_argument {__func__ };
 }

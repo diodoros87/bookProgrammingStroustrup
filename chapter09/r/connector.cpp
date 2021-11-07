@@ -15,44 +15,68 @@ extern "C" {
 void set_handler(void (*func)(void)) { 
    std::set_terminate(func); 
 }
-
-Money_int Money_int__function(const char * dollars, ...) {
+/*
+int create_Money_int(Money_int* money_ptr, Money_functions function, const char * dollars, ...) {
    Money<int> money = Money<int>(dollars);
    void* result = reinterpret_cast<void*>(& money);
    return result;
 }
+*/
 
-int Money_int__function(Money_int* money_ptr, Money_functions function, const char * dollars, ... ) {
-   if (OK != check_pointer_2(money_ptr, __func__, " Error money pointer"))
+int valist_longdouble(long double * pvalue, va_list * pargs) {    /* long double must be successfully extracted in va_list
+   by pass address of va_list to function */
+   if (! pargs ) {
+      cerr  << __func__ << " : va_list is NULL = " << pargs << '\n'; 
+      return INVALID_ARG;
+   }
+   if (! pvalue ) {
+      cerr  << __func__ << " : pointer to long double value is NULL = " << pvalue << '\n'; 
+      return INVALID_ARG;
+   }
+   //long double v = va_arg(*pargs, long double);
+   //printf(" long double = %f \n", v);
+   *pvalue = va_arg(*pargs, long double);
+   
+   printf(" long double = %Lf \n", *pvalue);
+   return OK;
+}
+
+int Money_int__function(Money_int * money_ptr, const Money_functions function, const char * dollars, ... ) {
+   if (OK != check_pointer_1_1(money_ptr, __func__, " Error money pointer"))
       return INVALID_ARG;
    if (OK != check_pointer(dollars, __func__, " Error dollars"))
       return INVALID_ARG;
+   
    va_list arg_list;
-
    va_start( arg_list, dollars );
-   Money<int> money;
    long double arg_cents;
    switch(function) {
-      case INIT_1:
-         money = Money<int>(dollars);
-         break;
-      case CREATE_1:
-         money = Money<int>::create(dollars);
-         break;
-      case INIT_2:
-         arg_cents = va_arg( arg_list, long double );
-         money = Money<int>(dollars, arg_cents);
-         break;
-      case CREATE_2:
-         arg_cents = va_arg( arg_list, long double );
-         money = Money<int>::create(dollars, arg_cents);
-         break;
+      case INIT_1: {
+            Money<int> money = Money<int>(dollars);
+            *money_ptr = reinterpret_cast<void*>(& money);
+            return OK;
+         }
+      case CREATE_1: {
+            Money<int> money = Money<int>::create(dollars);
+            *money_ptr = reinterpret_cast<void*>(& money);
+            return OK;
+         }
+      case INIT_2: {
+            valist_longdouble( &arg_cents, &arg_list );
+            Money<int> money = Money<int>(dollars, arg_cents);
+            *money_ptr = reinterpret_cast<void*>(& money);
+            return OK;
+         }
+      case CREATE_2: {
+            valist_longdouble( &arg_cents, &arg_list );
+            Money<int> money = Money<int>::create(dollars, arg_cents);
+            *money_ptr = reinterpret_cast<void*>(& money);
+            return OK;
+         }
       default:
          cerr << "Unrecognized function = " << function << '\n';
          return INVALID_ARG;
    }
-   money_ptr* = reinterpret_cast<void*>(& money);
-   return OK;
 }
 /*
 Money_int Money_int__init_1(const char * dollars) {
@@ -138,7 +162,7 @@ int demo_set_name(const char * name) {
 }
 
 int demo_get_name(char ** name) {
-   if (OK != check_pointer_2(name, __func__, " Error name"))
+   if (OK != check_pointer_1_1(name, __func__, " Error name"))
       return INVALID_ARG;
    if (demo_instance == nullptr) {
       cerr  << __func__ << " Error demo_instance = " << demo_instance << '\n';

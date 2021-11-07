@@ -1,7 +1,6 @@
 /*
 #define MANUAL_DLL_LOAD
 */
-#define NDEBUG
 #include "print.h"
 #include "connector.h"
 #include "shared_lib_open.h"
@@ -17,8 +16,19 @@ void handle_terminate(void) {
    LOG("%s", "handler called - must've been some exception ?!\n");
 }
 
-int close_handle(void * handle) {
-   const int result = dlclose(handle);
+static void at_exit (void) {
+   puts (" At exit\n");
+   FUNCTION_INFO(__FUNCTION__);
+}
+
+int close_handle(void ** handle) {
+   if (! handle) {
+      LOG_EXIT(__FUNCTION__, "handle is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
+   }
+   if (! *handle) {
+      LOG_EXIT(__FUNCTION__, "address pointed by handle is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
+   }   
+   const int result = dlclose(*handle);
    if (0 != result) {
       LOG_EXIT(__FUNCTION__, "Closing handle was failed", result);   /* brackets - multiline macro */
    }
@@ -26,6 +36,8 @@ int close_handle(void * handle) {
 }
 
 #ifdef MANUAL_DLL_LOAD
+typedef int (*p_func_many)(Money_int* , Money_functions, const char *, ... );
+
 int load_demo(void) { 
    FUNCTION_INFO(__FUNCTION__);
    Demo_functions demo_functions;
@@ -35,53 +47,61 @@ int load_demo(void) {
    demo_functions.get_name = get_symbol(demo_functions.handle, "demo_get_name");
    demo_functions.destroy = get_symbol(demo_functions.handle, "demo_destroy");
     
-   int result = demo_functions.init("Nicolaus Copernicus"); 
-   LOG("result = %d\n", result);
+   Result_codes result = demo_functions.init("Nicolaus Copernicus"); 
    if (OK == result) {
       char * name = NULL;
       result = demo_functions.get_name(&name);
       if (OK == result) {
          LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
          name = NULL;
-         demo_functions.set_name("Socrates");
+         demo_functions.set_name("Aristotle");
          result = demo_functions.get_name(&name);
          if (OK == result) {
             LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
             result = demo_functions.destroy();
          }
-         if (OK == result)
-            result = close_handle(demo_functions.handle);
+         if (OK == result) {
+            result = close_handle(&(demo_functions.handle));
+            assert_many(result == OK, "assert failed: ", "si", "result == ", result);
+            return result;
+         }
       }
    }
-   close_handle(demo_functions.handle);
-   assert_many(result == 0, "assert failed: ", "si", "result == ", result);
+   close_handle(&(demo_functions.handle));
+   assert_many(result == OK, "assert failed: ", "si", "result == ", result);
    return result;
 }
 
 int load_money(void) {
    FUNCTION_INFO(__FUNCTION__);
    void* handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
-   int (*func)(Money_int* , Money_functions, const char *, ... ) p_function;
-   p_function = get_symbol(handle, "Money_int__function");
-   void** money;
-   Result_codes result = p_function(&money, INIT_1, "ANSI C");
+   p_func_many p_function = get_symbol(handle, "Money_int__function");
+   void* money = NULL;
+   Result_codes result = p_function(&money, INIT_1, "INIT_1 ANSI C");
    if (result == OK) {
-      LOG("\nAddress of money is: %p\n", money);
-      money = p_function(&money, CREATE_1, "ANSI C");
+      LOG("\nAddress of money is: %p\n", &money);
+      money = NULL;
+      result = p_function(&money, CREATE_1, "CREATE_1 ANSI C");
       if (result == OK) {
-         *money = NULL;
-         LOG("\nAddress of money is: %p\n", money);
-         result = p_function(&money, INIT_1, "ANSI C");
+         LOG("\nAddress pointed by money is: %p\n", money);
+         money = NULL;
+         result = p_function(&money, INIT_2, "INIT_2 ANSI C", 9);
          if (result == OK) {
-         money_functions.create_2 = get_symbol(money_functions.handle, "Money_int__create_2");
-         money = Money_int__init_2("ANSI C", 9);
-         LOG("\nAddress of money is: %p\n", money);
-         money = Money_int__create_2("ANSI C", 7);
-         LOG("\nAddress of money is: %p\n", money);
-         return close_handle(money_functions.handle);
+            LOG("\nAddress pointed by money is: %p\n", money);
+            money = NULL;
+            result = p_function(&money, CREATE_2, "CREATE_2 ANSI C", 7);
+            if (result == OK) {
+               LOG("\nAddress pointed by money is: %p\n", money);
+               LOG("\nAddress of money is: %p\n", &money);
+               result = close_handle(&handle);
+               assert_many(result == OK, "assert failed: ", "si", "result == ", result);
+               return result;
+            }
+         }
       }
    }
-   close_handle(money_functions.handle);
+   close_handle(&handle);
+   assert_many(result == OK, "assert failed: ", "si", "result == ", result);
    return result;
    /*
    Money_functions money_functions;
@@ -116,25 +136,21 @@ void load_demo(void) {
 
 void load_money(void) {
    void* money = Money_int__init_1("ANSI C");
-   LOG("\nAddress of money is: %p\n", money);
+   LOG("\nAddress of money is: %p\n", &money);
+   LOG("\nAddress pointed by money is: %p\n", money);
    money = Money_int__create_1("ANSI C");
-   LOG("\nAddress of money is: %p\n", money);
+   LOG("\nAddress pointed by money is: %p\n", money);
    money = Money_int__init_2("ANSI C", 9);
-   LOG("\nAddress of money is: %p\n", money);
+   LOG("\nAddress pointed by money is: %p\n", money);
    money = Money_int__create_2("ANSI C", 7);
-   LOG("\nAddress of money is: %p\n", money);
+   LOG("\nAddress pointed by money is: %p\n", money);
 }
 #endif
 
-void at_exit (void) {
-   puts (" At exit\n");
-   FUNCTION_INFO(__FUNCTION__);
-}
-
 int main(void) {
+   FUNCTION_INFO(__FUNCTION__);
    set_handler(handle_terminate);
    atexit (at_exit);
-   FUNCTION_INFO(__FUNCTION__);
 #ifdef MANUAL_DLL_LOAD
    LOG("%s", "\nMANUAL DLL LOAD\n");
 #else
