@@ -19,3 +19,17 @@ void * get_symbol (void * handle, char * symbol) {
    }
    return result;
 }
+
+int close_handle(void ** handle) {
+   if (! handle) {
+      LOG_EXIT(__FUNCTION__, "handle is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
+   }
+   if (! *handle) {
+      LOG_EXIT(__FUNCTION__, "address pointed by handle is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
+   }   
+   const int result = dlclose(*handle);
+   if (0 != result) {
+      LOG_EXIT(__FUNCTION__, "Closing handle was failed", result);   /* brackets - multiline macro */
+   }
+   return result;
+}

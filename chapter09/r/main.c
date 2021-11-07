@@ -3,16 +3,19 @@
 */
 #include "print.h"
 #include "connector.h"
-#include "shared_lib_open.h"
 
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
-#include <dlfcn.h>
+
+#ifdef MANUAL_DLL_LOAD
+   #include <dlfcn.h>
+   #include "shared_lib_open.h"
+#endif
 
 #define LIB_CONNECTOR_SO "libconnector.so"
 
-void handle_terminate(void) {
+void handle_terminate(void) { 
    LOG("%s", "handler called - must've been some exception ?!\n");
 }
 
@@ -21,56 +24,62 @@ static void at_exit (void) {
    FUNCTION_INFO(__FUNCTION__);
 }
 
-int close_handle(void ** handle) {
-   if (! handle) {
-      LOG_EXIT(__FUNCTION__, "handle is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
+void load_demo(Demo_functions * demo_functions) {
+   if (! demo_functions) {
+      LOG_EXIT(__FUNCTION__, "demo_functions is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
    }
-   if (! *handle) {
-      LOG_EXIT(__FUNCTION__, "address pointed by handle is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
-   }   
-   const int result = dlclose(*handle);
-   if (0 != result) {
-      LOG_EXIT(__FUNCTION__, "Closing handle was failed", result);   /* brackets - multiline macro */
+#ifdef MANUAL_DLL_LOAD
+   LOG("%s", "\nMANUAL DLL LOAD\n");
+   demo_functions->handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
+   demo_functions->init = get_symbol(demo_functions->handle, "demo_init");
+   demo_functions->set_name = get_symbol(demo_functions->handle, "demo_set_name");
+   demo_functions->get_name = get_symbol(demo_functions->handle, "demo_get_name");
+   demo_functions->destroy = get_symbol(demo_functions->handle, "demo_destroy");
+#else
+   LOG("%s", "\nAUTOMATIC DLL LOAD\n");
+   demo_functions->handle = NULL;
+   demo_functions->init = demo_init;
+   demo_functions->set_name = demo_set_name;
+   demo_functions->get_name = demo_get_name;
+   demo_functions->destroy = demo_destroy;
+#endif
+}
+
+int run_demo(Demo_functions * demo_functions) { 
+   if (! demo_functions) {
+      LOG_EXIT(__FUNCTION__, "demo_functions is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
    }
-   return 0;
+   Result_codes result = demo_functions->init("Nicolaus Copernicus"); 
+   if (OK == result) {
+      char * name = NULL;
+      result = demo_functions->get_name(&name);
+      if (OK == result) {
+         LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
+         name = NULL;
+         demo_functions->set_name("Aristotle");
+         result = demo_functions->get_name(&name);
+         if (OK == result) {
+            LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
+            result = demo_functions->destroy();
+         }
+#ifdef MANUAL_DLL_LOAD
+         if (OK == result) {
+            result = close_handle(&(demo_functions->handle));
+            assert_many(result == OK, "assert failed: ", "si", "result == ", result);
+            return result;
+         }
+#endif
+      }
+   }
+#ifdef MANUAL_DLL_LOAD
+   close_handle(&(demo_functions->handle));
+#endif
+   assert_many(result == OK, "assert failed: ", "si", "result == ", result);
+   return result;
 }
 
 #ifdef MANUAL_DLL_LOAD
 typedef int (*p_func_many)(Money_int* , Money_functions, char *, ... );
-
-int load_demo(void) { 
-   FUNCTION_INFO(__FUNCTION__);
-   Demo_functions demo_functions;
-   demo_functions.handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
-   demo_functions.init = get_symbol(demo_functions.handle, "demo_init");
-   demo_functions.set_name = get_symbol(demo_functions.handle, "demo_set_name");
-   demo_functions.get_name = get_symbol(demo_functions.handle, "demo_get_name");
-   demo_functions.destroy = get_symbol(demo_functions.handle, "demo_destroy");
-    
-   Result_codes result = demo_functions.init("Nicolaus Copernicus"); 
-   if (OK == result) {
-      char * name = NULL;
-      result = demo_functions.get_name(&name);
-      if (OK == result) {
-         LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
-         name = NULL;
-         demo_functions.set_name("Aristotle");
-         result = demo_functions.get_name(&name);
-         if (OK == result) {
-            LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
-            result = demo_functions.destroy();
-         }
-         if (OK == result) {
-            result = close_handle(&(demo_functions.handle));
-            assert_many(result == OK, "assert failed: ", "si", "result == ", result);
-            return result;
-         }
-      }
-   }
-   close_handle(&(demo_functions.handle));
-   assert_many(result == OK, "assert failed: ", "si", "result == ", result);
-   return result;
-}
 
 int load_money(void) {
    FUNCTION_INFO(__FUNCTION__);
@@ -105,15 +114,6 @@ int load_money(void) {
    return result;
 }
 #else
-void load_demo(void) {
-   FUNCTION_INFO(__FUNCTION__);
-   demo_init("Nicolaus Copernicus");
-   LOG("%s: %s human name is %s: ", LANGUAGE, __FUNCTION__, demo_get_name());
-   demo_set_name("Socrates");
-   LOG("%s: %s human name is %s: ", LANGUAGE, __FUNCTION__, demo_get_name());
-   demo_destroy();
-}
-
 void load_money(void) {
    void* money = Money_int__init_1("ANSI C");
    LOG("\nAddress of money is: %p\n", &money);
@@ -131,12 +131,9 @@ int main(void) {
    FUNCTION_INFO(__FUNCTION__);
    set_handler(handle_terminate);
    atexit (at_exit);
-#ifdef MANUAL_DLL_LOAD
-   LOG("%s", "\nMANUAL DLL LOAD\n");
-#else
-   LOG("%s", "\nAUTOMATIC DLL LOAD\n");
-#endif
-   load_demo();
+   Demo_functions demo_functions;
+   load_demo(&demo_functions);
+   run_demo(&demo_functions);
    load_money();
    
    return EXIT_SUCCESS;

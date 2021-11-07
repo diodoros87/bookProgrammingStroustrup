@@ -43,7 +43,6 @@ EXTERNC int demo_destroy();
 
 #undef EXTERNC
 
-#ifdef MANUAL_DLL_LOAD
 typedef struct {
    int (*init)(const char * );
    int (*set_name)(const char * );
@@ -51,13 +50,11 @@ typedef struct {
    int (*destroy)();
    void * handle;
 } Demo_functions;
-
 /*
 typedef struct {
    void (*create_1)(const char * );
    void (*create_2)(const char * , const long double);
    void * handle;
 } Money_functions; */
-#endif
 
 #endif
