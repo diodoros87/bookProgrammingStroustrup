@@ -29,13 +29,13 @@ EXTERNC void set_handler(void (*pfunc)(void));
 
 typedef void* Money_int;
 
-EXTERNC int Money_int__function(Money_int* money_ptr, const Money_functions function, const char * dollars, ... );
-/*
+EXTERNC int Money_int__function(Money_int* money_ptr, const Money_functions function, char * dollars, ... );
+
 EXTERNC Money_int Money_int__init_1(const char * dollars);
 EXTERNC Money_int Money_int__create_1(const char * dollars);
 EXTERNC Money_int Money_int__init_2(const char * dollars, const long double cents);
 EXTERNC Money_int Money_int__create_2(const char * dollars, const long double cents);
-*/
+
 EXTERNC int demo_init(const char * name);
 EXTERNC int demo_set_name(const char * name);
 EXTERNC int demo_get_name(char ** name);

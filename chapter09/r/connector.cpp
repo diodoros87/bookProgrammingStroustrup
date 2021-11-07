@@ -15,6 +15,7 @@ extern "C" {
 void set_handler(void (*func)(void)) { 
    std::set_terminate(func); 
 }
+
 /*
 int create_Money_int(Money_int* money_ptr, Money_functions function, const char * dollars, ...) {
    Money<int> money = Money<int>(dollars);
@@ -33,16 +34,17 @@ int valist_longdouble(long double * pvalue, va_list * pargs) {    /* long double
       cerr  << __func__ << " : pointer to long double value is NULL = " << pvalue << '\n'; 
       return INVALID_ARG;
    }
-   //long double v = va_arg(*pargs, long double);
-   //printf(" long double = %f \n", v);
-   *pvalue = va_arg(*pargs, long double);
+   double v = va_arg(*pargs, double);
+   printf(" double = %f \n", v);
+   *pvalue = static_cast<long double>(v);
    
    printf(" long double = %Lf \n", *pvalue);
    return OK;
 }
 
-int Money_int__function(Money_int * money_ptr, const Money_functions function, const char * dollars, ... ) {
-   if (OK != check_pointer_1_1(money_ptr, __func__, " Error money pointer"))
+#ifdef MANUAL_DLL_LOAD
+int Money_int__function(Money_int * in_money_ptr, const Money_functions function, char * dollars, ... ) {
+   if (OK != check_pointer_1_1(in_money_ptr, __func__, " Error money pointer"))
       return INVALID_ARG;
    if (OK != check_pointer(dollars, __func__, " Error dollars"))
       return INVALID_ARG;
@@ -50,35 +52,34 @@ int Money_int__function(Money_int * money_ptr, const Money_functions function, c
    va_list arg_list;
    va_start( arg_list, dollars );
    long double arg_cents;
+   Money<int> * money = reinterpret_cast<Money<int> *>(malloc(sizeof(Money<int>))) ;
    switch(function) {
-      case INIT_1: {
-            Money<int> money = Money<int>(dollars);
-            *money_ptr = reinterpret_cast<void*>(& money);
-            return OK;
-         }
-      case CREATE_1: {
-            Money<int> money = Money<int>::create(dollars);
-            *money_ptr = reinterpret_cast<void*>(& money);
-            return OK;
-         }
-      case INIT_2: {
-            valist_longdouble( &arg_cents, &arg_list );
-            Money<int> money = Money<int>(dollars, arg_cents);
-            *money_ptr = reinterpret_cast<void*>(& money);
-            return OK;
-         }
-      case CREATE_2: {
-            valist_longdouble( &arg_cents, &arg_list );
-            Money<int> money = Money<int>::create(dollars, arg_cents);
-            *money_ptr = reinterpret_cast<void*>(& money);
-            return OK;
-         }
+      case INIT_1: 
+         *money = Money<int>(dollars);
+         break;
+      case CREATE_1: 
+         *money = Money<int>::create(dollars);
+         break;
+      case INIT_2: 
+         arg_cents = va_arg(arg_list, long double);
+         *money = Money<int>(dollars, arg_cents);
+         break;
+      case CREATE_2:
+         arg_cents = va_arg(arg_list, long double);
+         *money = Money<int>::create(dollars, arg_cents);
+         break;
       default:
-         cerr << "Unrecognized function = " << function << '\n';
+         cerr << "Unrecognized function type = " << function << '\n';
+         va_end(arg_list);
          return INVALID_ARG;
    }
+   *in_money_ptr = reinterpret_cast<void*>(money);
+   free(money);
+   va_end(arg_list);
+   return OK;
 }
-/*
+#endif
+
 Money_int Money_int__init_1(const char * dollars) {
    Money<int> money = Money<int>(dollars);
    void* result = reinterpret_cast<void*>(& money);
@@ -102,7 +103,7 @@ Money_int Money_int__create_2(const char * dollars, const long double cents) {
    void* result = reinterpret_cast<void*>(& money);
    return result;
 }
-*/
+
 #ifdef __cplusplus
 using std::bad_alloc; using std::invalid_argument; using std::bad_cast; using std::exception; using std::regex_error;
 inline Result_codes get_error_code(exception * e) {

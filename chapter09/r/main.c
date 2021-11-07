@@ -36,7 +36,7 @@ int close_handle(void ** handle) {
 }
 
 #ifdef MANUAL_DLL_LOAD
-typedef int (*p_func_many)(Money_int* , Money_functions, const char *, ... );
+typedef int (*p_func_many)(Money_int* , Money_functions, char *, ... );
 
 int load_demo(void) { 
    FUNCTION_INFO(__FUNCTION__);
@@ -85,11 +85,11 @@ int load_money(void) {
       if (result == OK) {
          LOG("\nAddress pointed by money is: %p\n", money);
          money = NULL;
-         result = p_function(&money, INIT_2, "INIT_2 ANSI C", 9);
+         result = p_function(&money, INIT_2, "INIT_2 ANSI C", (long double)(8.0));  /* mandatory casting when using va_list function  */
          if (result == OK) {
             LOG("\nAddress pointed by money is: %p\n", money);
             money = NULL;
-            result = p_function(&money, CREATE_2, "CREATE_2 ANSI C", 7);
+            result = p_function(&money, CREATE_2, "CREATE_2 ANSI C", (long double)(5.0));  /* mandatory casting when using va_list function  */
             if (result == OK) {
                LOG("\nAddress pointed by money is: %p\n", money);
                LOG("\nAddress of money is: %p\n", &money);
@@ -103,30 +103,10 @@ int load_money(void) {
    close_handle(&handle);
    assert_many(result == OK, "assert failed: ", "si", "result == ", result);
    return result;
-   /*
-   Money_functions money_functions;
-   money_functions.handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
-   money_functions.create_1 = get_symbol(money_functions.handle, "Money_int__init_1");
-   money_functions.create_1 = get_symbol(money_functions.handle, "Money_int__create_1");
-   void* money = Money_int__init_1("ANSI C");
-   LOG("\nAddress of money is: %p\n", money);
-   money = Money_int__create_1("ANSI C");
-   LOG("\nAddress of money is: %p\n", money);
-   money_functions.create_2 = get_symbol(money_functions.handle, "Money_int__init_2");
-   money_functions.create_2 = get_symbol(money_functions.handle, "Money_int__create_2");
-   money = Money_int__init_2("ANSI C", 9);
-   LOG("\nAddress of money is: %p\n", money);
-   money = Money_int__create_2("ANSI C", 7);
-   LOG("\nAddress of money is: %p\n", money);
-   
-   return close_handle(money_functions.handle);
-   */
 }
 #else
 void load_demo(void) {
    FUNCTION_INFO(__FUNCTION__);
-   LOG("\n%s \n", LANGUAGE);
-   LOG_FUNC(__FUNCTION__);
    demo_init("Nicolaus Copernicus");
    LOG("%s: %s human name is %s: ", LANGUAGE, __FUNCTION__, demo_get_name());
    demo_set_name("Socrates");

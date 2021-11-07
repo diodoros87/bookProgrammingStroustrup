@@ -1,8 +1,8 @@
 CXX = g++
-CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
+CPPFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -DMANUAL_DLL_LOAD
 
 CC = gcc
-CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c90 -DMANUAL_DLL_LOAD
+CFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c90 -DMANUAL_DLL_LOAD
 #  -fcompare-debug-second 
 
 LPATH=-L.
@@ -29,7 +29,7 @@ print.o:
 main_cpp: main_cpp.o libdemo.so
 	$(CXX) $(CPPFLAGS) main_cpp.o -L. -ldemo -o main_cpp
 	
-libconnector.so: connector.o libdemo.so
+libconnector.so: connector.o libdemo.so 
 	$(CXX) $(CPPFLAGS) -shared -L. -ldemo -o libconnector.so connector.o 
 	
 connector.o: connector.h connector.cpp null.hpp
