@@ -1,11 +1,7 @@
+#include "utility.hpp"
 #include "print.hpp"
 #include "variadic_template.hpp"
 #include "demo.hpp"
-
-template <typename Function, typename... Args> 
-inline void call(Function && f, Args &&... args ) { 
-   f(std::forward<Args>(args)...);
-}
 
 using namespace demo;
 
@@ -22,5 +18,3 @@ int main() {
    human.set_name("Spinoza");
    cerr << TIE( unmove(__cplusplus), __func__, unmove(human.get_name())) << '\n';
 }
-
-// g++ -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 

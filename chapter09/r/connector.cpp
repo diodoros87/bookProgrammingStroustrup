@@ -1,14 +1,37 @@
 #include <cstdlib>
 #include <cstdarg>
 
-#include "variadic_template.hpp"
-#include "demo.hpp"
 #include "connector.h"
-#include "null.hpp"
 
 #ifdef __cplusplus
+#include "variadic_template.hpp"
+#include "demo.hpp"
+#include "utility.hpp"
+#include "null.hpp"
+
 using demo::Demo;
 using std::cerr;
+
+inline Result_codes validate_pointers(Money_type * money_ptr, const char * dollars) {
+   if (OK != check_pointer_1_1(money_ptr, __func__, " Error money pointer"))
+      return INVALID_ARG;
+   if (OK != check_pointer(dollars, __func__, " Error dollars"))
+      return INVALID_ARG;
+   return OK;
+}
+
+template <class Type, class Function, typename... Args, std::enable_if_t<std::is_function<Function>::value, bool> = true> 
+inline Result_codes call(Money_type * money_ptr, Function func, Args &&... args) {
+   if (OK != validate_pointers(money_ptr, dollars))
+      return INVALID_ARG;
+   if (OK != check_pointer(func, __func__, " Error function"))
+      return INVALID_ARG;
+   Money<Type> * money = reinterpret_cast<Money<Type> *>(malloc(sizeof(Money<Type>))) ;
+   *money = func(dollars);
+   *money_ptr = reinterpret_cast<Money_type>(& money);
+   free(money);
+   return OK;
+} 
 
 extern "C" {
 #endif
@@ -16,37 +39,9 @@ void set_handler(void (*func)(void)) {
    std::set_terminate(func); 
 }
 
-/*
-int create_Money_int(Money_int* money_ptr, Money_functions function, const char * dollars, ...) {
-   Money<int> money = Money<int>(dollars);
-   void* result = reinterpret_cast<void*>(& money);
-   return result;
-}
-*/
-
-int valist_longdouble(long double * pvalue, va_list * pargs) {    /* long double must be successfully extracted in va_list
-   by pass address of va_list to function */
-   if (! pargs ) {
-      cerr  << __func__ << " : va_list is NULL = " << pargs << '\n'; 
-      return INVALID_ARG;
-   }
-   if (! pvalue ) {
-      cerr  << __func__ << " : pointer to long double value is NULL = " << pvalue << '\n'; 
-      return INVALID_ARG;
-   }
-   double v = va_arg(*pargs, double);
-   printf(" double = %f \n", v);
-   *pvalue = static_cast<long double>(v);
-   
-   printf(" long double = %Lf \n", *pvalue);
-   return OK;
-}
-
 #ifdef MANUAL_DLL_LOAD
-int Money_int__function(Money_int * in_money_ptr, const Money_functions function, char * dollars, ... ) {
-   if (OK != check_pointer_1_1(in_money_ptr, __func__, " Error money pointer"))
-      return INVALID_ARG;
-   if (OK != check_pointer(dollars, __func__, " Error dollars"))
+Result_codes Money_type__function(Money_type * in_money_ptr, const Money_functions function, char * dollars, ... ) {
+   if (OK != validate_pointers(in_money_ptr, dollars))
       return INVALID_ARG;
    
    va_list arg_list;
@@ -80,25 +75,32 @@ int Money_int__function(Money_int * in_money_ptr, const Money_functions function
 }
 #endif
 
-Money_int Money_int__init_1(const char * dollars) {
-   Money<int> money = Money<int>(dollars);
-   void* result = reinterpret_cast<void*>(& money);
+Result_codes Money_type__init_1(Money_type * money_ptr, const char * dollars) {
+   if (OK != validate_pointers(money_ptr, dollars))
+      return INVALID_ARG;
+   Result_codes result = call<int, Constructor<int, Money>()>(& money);
    return result;
 }
 
-Money_int Money_int__create_1(const char * dollars) {
+Result_codes Money_type__create_1(Money_type * money_ptr, const char * dollars) {
+   if (OK != validate_pointers(money_ptr, dollars))
+      return INVALID_ARG;
    Money<int> money =  Money<int>::create(dollars);
    void* result = reinterpret_cast<void*>(& money);
    return result;
 }
 
-Money_int Money_int__init_2(const char * dollars, const long double cents) {
+Result_codes Money_type__init_2(Money_type * money_ptr, const char * dollars, const long double cents) {
+   if (OK != validate_pointers(money_ptr, dollars))
+      return INVALID_ARG;
    Money<int> money =  Money<int>(dollars, cents);
    void* result = reinterpret_cast<void*>(& money);
    return result;
 }
 
-Money_int Money_int__create_2(const char * dollars, const long double cents) {
+Result_codes Money_type__create_2(Money_type * money_ptr, const char * dollars, const long double cents) {
+   if (OK != validate_pointers(money_ptr, dollars))
+      return INVALID_ARG;
    Money<int> money =  Money<int>::create(dollars, cents);
    void* result = reinterpret_cast<void*>(& money);
    return result;
@@ -124,7 +126,7 @@ inline Result_codes get_error_code(exception * e) {
 static Demo * demo_instance = nullptr;
 #endif
 
-int demo_init(const char * name) {
+Result_codes demo_init(const char * name) {
    try {
       if (demo_instance == nullptr)
          demo_instance = new Demo(name);
@@ -145,7 +147,7 @@ int demo_init(const char * name) {
    return OK;
 }
 
-int demo_set_name(const char * name) {
+Result_codes demo_set_name(const char * name) {
    if (demo_instance == nullptr) {
       cerr  << __func__ << " Error demo_instance = " << demo_instance << '\n';
       return INVALID_ARG;
@@ -162,14 +164,13 @@ int demo_set_name(const char * name) {
    return OK;
 }
 
-int demo_get_name(char ** name) {
+Result_codes demo_get_name(char ** name) {
    if (OK != check_pointer_1_1(name, __func__, " Error name"))
       return INVALID_ARG;
    if (demo_instance == nullptr) {
       cerr  << __func__ << " Error demo_instance = " << demo_instance << '\n';
       return BAD_FUNTION_CALL;
    }
-   
    try {
       *name = demo_instance->get_name();
    } catch (exception & e) {
@@ -182,7 +183,7 @@ int demo_get_name(char ** name) {
    return OK;
 }
 
-int demo_destroy() {
+Result_codes demo_destroy() {
    if (demo_instance) {
       delete demo_instance;
       return OK;

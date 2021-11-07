@@ -13,7 +13,7 @@
    }
 
 int print_many(const char * msg,   /* message to be printed     */
-  const char * types, /* parameter types (i,s)     */
+  const char * types, /* parameter types (i,s,e)     */
   ... )          /* variable arguments     */ {
    va_list arg_list;
    int   arg_int;
@@ -48,12 +48,6 @@ int print_many(const char * msg,   /* message to be printed     */
    va_end( arg_list );
    return 0;
 }
-/*
-void print_many(char * string...) {
-   va_list list;
-   va_start (list)
-}
-*/
 
 int print_assert(const char *file, int line, const char * date, const char * time, const char *msg) {
    LOG("\nAssertion failed:\n \

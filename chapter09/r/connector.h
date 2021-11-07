@@ -27,34 +27,28 @@ typedef enum {
  
 EXTERNC void set_handler(void (*pfunc)(void));
 
-typedef void* Money_int;
+typedef void* Money_type ;
 
-EXTERNC int Money_int__function(Money_int* money_ptr, const Money_functions function, char * dollars, ... );
+EXTERNC Result_codes Money_type__function(Money_type * money_ptr, const Money_functions function, char * dollars, ... );
 
-EXTERNC Money_int Money_int__init_1(const char * dollars);
-EXTERNC Money_int Money_int__create_1(const char * dollars);
-EXTERNC Money_int Money_int__init_2(const char * dollars, const long double cents);
-EXTERNC Money_int Money_int__create_2(const char * dollars, const long double cents);
+EXTERNC Result_codes Money_type__init_1(Money_type * money_ptr, const char * dollars);
+EXTERNC Result_codes Money_type__create_1(Money_type * money_ptr, const char * dollars);
+EXTERNC Result_codes Money_type__init_2(Money_type * money_ptr, const char * dollars, const long double cents);
+EXTERNC Result_codes Money_type__create_2(Money_type * money_ptr, const char * dollars, const long double cents);
 
-EXTERNC int demo_init(const char * name);
-EXTERNC int demo_set_name(const char * name);
-EXTERNC int demo_get_name(char ** name);
-EXTERNC int demo_destroy();
+EXTERNC Result_codes demo_init(const char * name);
+EXTERNC Result_codes demo_set_name(const char * name);
+EXTERNC Result_codes demo_get_name(char ** name);
+EXTERNC Result_codes demo_destroy();
 
 #undef EXTERNC
 
 typedef struct {
-   int (*init)(const char * );
-   int (*set_name)(const char * );
-   int (*get_name) (char ** );
-   int (*destroy)();
+   Result_codes (*init)(const char * );
+   Result_codes (*set_name)(const char * );
+   Result_codes (*get_name) (char ** );
+   Result_codes (*destroy)();
    void * handle;
 } Demo_functions;
-/*
-typedef struct {
-   void (*create_1)(const char * );
-   void (*create_2)(const char * , const long double);
-   void * handle;
-} Money_functions; */
 
 #endif

@@ -45,7 +45,7 @@ void load_demo(Demo_functions * demo_functions) {
 #endif
 }
 
-int run_demo(Demo_functions * demo_functions) { 
+int run_demo(const Demo_functions * demo_functions) { 
    if (! demo_functions) {
       LOG_EXIT(__FUNCTION__, "demo_functions is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
    }
@@ -79,13 +79,12 @@ int run_demo(Demo_functions * demo_functions) {
 }
 
 #ifdef MANUAL_DLL_LOAD
-typedef int (*p_func_many)(Money_int* , Money_functions, char *, ... );
+typedef int (*p_func_many)(Money_type* , Money_functions, char *, ... );
 
-int load_money(void) {
-   FUNCTION_INFO(__FUNCTION__);
+int run_money(void) {
    void* handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
-   p_func_many p_function = get_symbol(handle, "Money_int__function");
-   void* money = NULL;
+   p_func_many p_function = get_symbol(handle, "Money_type__function");
+   Money_type money = NULL;
    Result_codes result = p_function(&money, INIT_1, "INIT_1 ANSI C");
    if (result == OK) {
       LOG("\nAddress of money is: %p\n", &money);
@@ -114,15 +113,16 @@ int load_money(void) {
    return result;
 }
 #else
-void load_money(void) {
-   void* money = Money_int__init_1("ANSI C");
+int run_money(void) {
+   Money_type money = NULL;
+   Result_codes result = Money_type__init_1("ANSI C");
    LOG("\nAddress of money is: %p\n", &money);
    LOG("\nAddress pointed by money is: %p\n", money);
-   money = Money_int__create_1("ANSI C");
+   money = Money_type__create_1("ANSI C");
    LOG("\nAddress pointed by money is: %p\n", money);
-   money = Money_int__init_2("ANSI C", 9);
+   money = Money_type__init_2("ANSI C", 9);
    LOG("\nAddress pointed by money is: %p\n", money);
-   money = Money_int__create_2("ANSI C", 7);
+   money = Money_type__create_2("ANSI C", 7);
    LOG("\nAddress pointed by money is: %p\n", money);
 }
 #endif
@@ -132,9 +132,11 @@ int main(void) {
    set_handler(handle_terminate);
    atexit (at_exit);
    Demo_functions demo_functions;
-   load_demo(&demo_functions);
-   run_demo(&demo_functions);
-   load_money();
+   Result_codes result = load_demo(&demo_functions);
+   if (OK == result)
+      result = run_demo(&demo_functions);
+   if (OK == result)
+      result = run_money();
    
-   return EXIT_SUCCESS;
+   return result;
 }
