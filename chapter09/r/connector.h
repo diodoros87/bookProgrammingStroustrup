@@ -15,6 +15,8 @@ typedef enum {
    INVALID_ARG        = 3,
    BAD_CAST           = 4,
    REGEX_ERROR        = 5,
+   OUT_OF_RANGE_ERROR = 6,
+   RUNTIME_ERROR      = 7,
    STD_ERROR          = 55,
    UNRECOGNIZED_ERROR = -38
 } Result_codes;

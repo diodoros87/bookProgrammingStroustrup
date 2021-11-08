@@ -1,9 +1,61 @@
 #include "variadic_template.hpp"
 
+#include <limits>
+
 using std::cerr;
+using std::numeric_limits;
+using std::is_floating_point;
 
 #define LOG_FUNC(x) cerr << '\n' << #x " = " << x << '\t'
 #define LOG_ARG(x) cerr << #x " = " << x << '\t'
+
+template<typename Smaller, typename Greater>
+inline bool is_overflow(const Greater & x) {
+   static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
+   return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
+}
+
+template <typename T>
+const string Money<T>::TYPE_NAME = typeid(T).name();
+
+template <typename T>
+const regex Money<T>::REGEX       = Money<T>::set_regex() ;
+
+template<typename... Ts>
+using TestType = decltype(test(std::declval<Ts>()...))(Ts...);
+
+template <typename Smaller, typename Greater, class Function, class... Args, std::enable_if_t<std::is_function<Function>::value, bool> = true> 
+Smaller calculate_range(Function && func, Args &&... args) {
+   Greater result = func(std::forward<Args>(args)...);
+   //Greater result = func(dollars);
+   if (is_overflow<Smaller, Greater>(result))
+      throw out_of_range("amount = " + std::to_string(result) + " is overflow for type " + typeid(Smaller).name());
+   return static_cast<Smaller>(result);
+}
+
+template <typename T>
+T Money<T>::calculate_dollars(const string & dollars) const {
+   //decltype(std::stold(std::declval<string>())) a;  // return type
+   //std::function<decltype(a)(float)> fun;      // function type
+   decltype(std::stold(std::declval<string>())) a;  // return type
+   if (is_floating_point<T>::value)
+      return calculate_range<T, long double, long double(const string& , size_t*)>(std::stold, dollars);
+      //return calculate_range<T, long double, std::function<decltype(a)(string, size_t*)>>(std::stold, dollars);
+   else if (numeric_limits<T>::is_integer) {
+      if (numeric_limits<T>::is_signed)
+         return calculate_range<T, long long, long long(const string& , size_t*, int)>(std::stoll, dollars);
+      else if (std::is_unsigned<T>::value)
+         return calculate_range<T, unsigned long long, unsigned long long(const string& , size_t*, int)>(std::stoull, dollars);
+   }
+   throw std::invalid_argument(typeid(T).name() + string("is not supported"));
+}
+
+template <typename T>
+void Money<T>::calculate(const string & dollars, const long double cents /* = 0 */ ) {
+   if (! regex_match(dollars, REGEX)) 
+      throw std::invalid_argument(" argument of dollars: '" + dollars + "' is not matches by regex");
+   this->amount = 100 * calculate_dollars(dollars) + cents;
+}
 
 template <typename T>
 Money<T>::Money(const string & dollars, const long double cents) {
@@ -11,6 +63,7 @@ Money<T>::Money(const string & dollars, const long double cents) {
    LOG_FUNC(__func__);
    LOG_ARG(dollars);
    LOG_ARG(cents);
+   calculate(dollars, cents);
 }
 
 template <typename T>
@@ -18,6 +71,7 @@ Money<T>::Money(const string & dollars) {
    cerr << "\n C++ " << __cplusplus;
    LOG_FUNC(__func__);
    LOG_ARG(dollars);
+   calculate(dollars);
 }
 
 template <typename T>
@@ -41,4 +95,41 @@ template <typename T>
 Money<T>::~Money() {
    cerr << "\n C++ " << __cplusplus;
    LOG_FUNC(__func__);
+}
+
+template <typename T>
+T Money<T>::get_amount() const { 
+   std::cerr << "\n C++ " << __cplusplus;
+   LOG_FUNC(__func__);
+   return amount;
+}
+
+union Regex_string_union {
+   const char * float_regex_string  = R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)";
+   const char * int_regex_string;
+};
+
+template <typename Number, std::enable_if_t<numeric_limits<Number>::is_integer, bool> = true>
+const char * get_regex_string(Number &&) {
+   Regex_string_union u;
+   //u.float_regex_string = R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)";
+   return u.float_regex_string;
+}
+
+template <typename Number, std::enable_if_t<is_floating_point<Number>::value, bool> = true>
+const char * get_regex_string(Number &&) {
+   Regex_string_union u;
+   u.int_regex_string = R"(^[+-]?(\d+)$)";
+   return u.float_regex_string;
+}
+
+template <typename T>
+const regex & Money<T>::set_regex() {
+   try {
+      static regex REGEX       = regex { get_regex_string(static_cast<T>(0)), std::regex::ECMAScript } ;
+      return REGEX;
+   } catch (const std::regex_error & e) {
+      cerr << "regex_error caught: " << e.what() << '\n';
+      throw e;
+   }
 }
