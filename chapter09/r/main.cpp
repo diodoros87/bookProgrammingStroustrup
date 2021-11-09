@@ -8,6 +8,7 @@ using namespace demo;
 static Demo human = {"Leibniz"};
 
 int main() {
+   //<T, long long, long long(const string& , size_t*, int)>
    call(Constructor<int, Money>(), "-20.8", 5.0L);
    call(Constructor<long long, Money>(), "78");
    call(Creation<unsigned long long>(), "2", 5);

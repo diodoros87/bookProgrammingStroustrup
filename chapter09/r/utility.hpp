@@ -1,7 +1,16 @@
 #ifndef UTILITY_HPP
 #define UTILITY_HPP
 
+#include "variadic_template.hpp"
+#include <type_traits>
+#include <utility>
+
 template <typename Function, typename... Args, std::enable_if_t<std::is_function<Function>::value, bool> = true> 
+inline void call(Function && func, Args &&... args ) { 
+   func(std::forward<Args>(args)...);
+}
+
+template <typename Function, typename... Args> 
 inline void call(Function && func, Args &&... args ) { 
    func(std::forward<Args>(args)...);
 }

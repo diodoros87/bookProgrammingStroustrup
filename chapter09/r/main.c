@@ -85,19 +85,19 @@ int run_money(void) {
    void* handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
    p_func_many p_function = get_symbol(handle, "Money_type__function");
    Money_type money = NULL;
-   Result_codes result = p_function(&money, INIT_1, "INIT_1 ANSI C");
+   Result_codes result = p_function(&money, INIT_1, "20");
    if (result == OK) {
       LOG("\nAddress of money is: %p\n", &money);
       money = NULL;
-      result = p_function(&money, CREATE_1, "CREATE_1 ANSI C");
+      result = p_function(&money, CREATE_1, "-9");
       if (result == OK) {
          LOG("\nAddress pointed by money is: %p\n", money);
          money = NULL;
-         result = p_function(&money, INIT_2, "INIT_2 ANSI C", (long double)(8.0));  /* mandatory casting when using va_list function  */
+         result = p_function(&money, INIT_2, "0", (long double)(8.0));  /* mandatory casting when using va_list function  */
          if (result == OK) {
             LOG("\nAddress pointed by money is: %p\n", money);
             money = NULL;
-            result = p_function(&money, CREATE_2, "CREATE_2 ANSI C", (long double)(5.0));  /* mandatory casting when using va_list function  */
+            result = p_function(&money, CREATE_2, "0", (long double)(-5.0));  /* mandatory casting when using va_list function  */
             if (result == OK) {
                LOG("\nAddress pointed by money is: %p\n", money);
                LOG("\nAddress of money is: %p\n", &money);
@@ -132,9 +132,8 @@ int main(void) {
    set_handler(handle_terminate);
    atexit (at_exit);
    Demo_functions demo_functions;
-   Result_codes result = load_demo(&demo_functions);
-   if (OK == result)
-      result = run_demo(&demo_functions);
+   load_demo(&demo_functions);
+   Result_codes result = run_demo(&demo_functions);
    if (OK == result)
       result = run_money();
    
