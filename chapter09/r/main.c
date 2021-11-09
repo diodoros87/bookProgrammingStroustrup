@@ -89,7 +89,7 @@ int run_money(void) {
    if (result == OK) {
       LOG("\nAddress of money is: %p\n", &money);
       money = NULL;
-      result = p_function(&money, CREATE_1, "-9");
+      result = p_function(&money, CREATE_1, "9");
       if (result == OK) {
          LOG("\nAddress pointed by money is: %p\n", money);
          money = NULL;
@@ -115,15 +115,27 @@ int run_money(void) {
 #else
 int run_money(void) {
    Money_type money = NULL;
-   Result_codes result = Money_type__init_1("ANSI C");
-   LOG("\nAddress of money is: %p\n", &money);
-   LOG("\nAddress pointed by money is: %p\n", money);
-   money = Money_type__create_1("ANSI C");
-   LOG("\nAddress pointed by money is: %p\n", money);
-   money = Money_type__init_2("ANSI C", 9);
-   LOG("\nAddress pointed by money is: %p\n", money);
-   money = Money_type__create_2("ANSI C", 7);
-   LOG("\nAddress pointed by money is: %p\n", money);
+   Result_codes result = Money_type__init_1(&money, "8");
+   if (result == OK) {
+      LOG("\nAddress of money is: %p\n", &money);
+      LOG("\nAddress pointed by money is: %p\n", money);
+      money = NULL;
+      result = Money_type__create_1(&money, "9.0");
+      if (result == OK) {
+         LOG("\nAddress pointed by money is: %p\n", money);
+         if (result == OK) {
+            money = NULL;
+            result = Money_type__init_2(&money, "6.", 9);
+            LOG("\nAddress pointed by money is: %p\n", money);
+            if (result == OK) {
+               money = NULL;
+               result = Money_type__create_2(&money, "9e3", 7);
+               LOG("\nAddress pointed by money is: %p\n", money);
+            }
+         }
+      }
+   }
+   return result; 
 }
 #endif
 
