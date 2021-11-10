@@ -65,7 +65,7 @@ int run_demo(const Demo_functions * demo_functions) {
 #ifdef MANUAL_DLL_LOAD
          if (OK == result) {
             result = close_handle(&(demo_functions->handle));
-            assert_many(result == OK, "assert failed: ", "si", "result == ", result);
+            assert_many(result == OK, "assert failed: ", "sd", "result == ", result);
             return result;
          }
 #endif
@@ -74,7 +74,7 @@ int run_demo(const Demo_functions * demo_functions) {
 #ifdef MANUAL_DLL_LOAD
    close_handle(&(demo_functions->handle));
 #endif
-   assert_many(result == OK, "assert failed: ", "si", "result == ", result);
+   assert_many(result == OK, "assert failed: ", "sd", "result == ", result);
    return result;
 }
 
@@ -84,13 +84,13 @@ LOG("\nAddress pointed by money is: %p", money); \
 LOG("\nAddress of n_union is: %p\n", &n_union); \
 print_many("Value of n_union->type is: ", format, value); \
 LOG("%c", '\n')
-
+/*
 int set_format(const Number type, char * format) {
    if (! format) {
-      LOG_EXIT(__FUNCTION__, "c-string format is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
+      LOG_EXIT(__FUNCTION__, "c-string format is NULL ", EXIT_FAILURE);   
    }
    if (1 != strlen(format)) {
-      LOG_EXIT(__FUNCTION__, "c-string format must be length = 1 ", EXIT_FAILURE);   /* brackets - multiline macro */
+      LOG_EXIT(__FUNCTION__, "c-string format must be length = 1 ", EXIT_FAILURE);   
    }   
    switch(type) {
       case SHORT:
@@ -118,7 +118,7 @@ int set_format(const Number type, char * format) {
    }
    
 } 
-
+*/
 int run_money(const Number type) {
    typedef int (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
                                   union Number_pointer_union * n_union, const char * ,... );
@@ -130,17 +130,17 @@ int run_money(const Number type) {
 #endif
    Money_type money = NULL;
    union Number_pointer_union n_union;
-   Result_codes result = p_function(&money, INIT_1, type, &n_union, "20.6");
+   Result_codes result = p_function(&money, INIT_1, type, &n_union, "20");
    if (result == OK) {
-      LOGS_MONEY(money, n_union, "f", n_union.f);
+      LOGS_MONEY(money, n_union, " s", n_union.f);
       money = NULL;
       result = p_function(&money, CREATE_1, type, &n_union, "9");
       if (result == OK) {
-         LOGS_MONEY(money, n_union, "f", n_union.f);
+         LOGS_MONEY(money, n_union, "s", n_union.f);
          money = NULL;
          result = p_function(&money, INIT_2, type, &n_union, "0", (long double)(8.0));  /* mandatory casting when using va_list function  */
          if (result == OK) {
-            LOGS_MONEY(money, n_union, "f", n_union.f);
+            LOGS_MONEY(money, n_union, "s", n_union.f);
             money = NULL;
             result = p_function(&money, CREATE_2, type, &n_union, "0", (long double)(-5.0));  /* mandatory casting when using va_list function  */
             if (result == OK) {
@@ -197,11 +197,12 @@ int main(void) {
    FUNCTION_INFO(__FUNCTION__);
    set_handler(handle_terminate);
    atexit (at_exit);
+   print_many("fff", " Lg d g s d s", (long double)(-5.0), 399, 6.0, "QQQQQQ", 7, "rrrr");
    Demo_functions demo_functions;
    load_demo(&demo_functions);
    Result_codes result = run_demo(&demo_functions);
    if (OK == result)
-      result = run_money(FLOAT);
+      result = run_money(INT);
    
    return result;
 }

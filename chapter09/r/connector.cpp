@@ -184,12 +184,12 @@ union Number_pointer_union * const n_union, const char * dollars, ... ) {
          result = call_1(money_ptr, type, n_union, function, dollars);
          break;
       case INIT_2: 
-         arg_cents = va_arg(arg_list, long double);
-         result = call_1(money_ptr, type, n_union, function, dollars, arg_cents);
+         //arg_cents = va_arg(arg_list, long double);
+         result = call_1(money_ptr, type, n_union, function, dollars, va_arg(arg_list, long double));
          break;
       case CREATE_2:
-         arg_cents = va_arg(arg_list, long double);
-         result = call_1(money_ptr, type, n_union, function, dollars, arg_cents);
+         //arg_cents = va_arg(arg_list, long double);
+         result = call_1(money_ptr, type, n_union, function, dollars, va_arg(arg_list, long double));
          break;
       default:
          result = INVALID_ARG;

@@ -1,6 +1,7 @@
 #include "print.h"
 #include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #define CHECK_INPUT_ARG(msg, types) \
@@ -10,29 +11,26 @@
       FUNCTION_INFO(__FUNCTION__); \
       LOG("\n error message = %s \n", (msg)); \
       return 0; \
+   }   
+
+const char DELIMITER = ' ';
+
+static int print_error (char * string, const size_t size) {
+   size_t index;
+   if (NULL == string) {
+      LOG_EXIT(__FUNCTION__, "\n error string = NULL \n", EXIT_FAILURE);  /* brackets - multiline macro */
    }
-   
-char * strchr_wrapper (const char * STR, const char character) {
-   if (! STR) {
-      FUNCTION_INFO(__FUNCTION__);
-      LOG("\n error STR = %p \n", STR);
-      return NULL;
+   LOG( " improper format = \'%s", "");
+   for (index = 0; *string != '\0' && index < size; index++) {
+      LOG( "%c", *string);
    }
-   pch=strchr(str,'s');
-   while (pch! = NULL) {
-      printf ("found at %d\n",pch-str+1);
-      pch=strchr(pch+1,'s');
-   }
+   LOG( "%c", '\'');
 }
 
-const char DELIMITER = '%';
-
-int print_many(const char * msg,   /* message to be printed     */
-  const char * types, /* parameter types (i,s,e)     */
-  ... )          /* variable arguments     */ {
+int print_many(const char * msg,  const char * types, ... ) {
    va_list arg_list;
    char *first;
-   char *second;
+   char *second;/*
    char                 *arg_string;
    char                 arg_char;
    short                arg_short;
@@ -45,94 +43,88 @@ int print_many(const char * msg,   /* message to be printed     */
    unsigned long long   arg_u_long_long;
    float                arg_float;
    double               arg_double;
-   long double          arg_long_double;
+   long double          arg_long_double;*/
+   float                arg_float;
    size_t index;
-   
+   FUNCTION_INFO(__FUNCTION__);
    CHECK_INPUT_ARG(msg, types);
    LOG("\n %s ", msg );
    va_start( arg_list, types );
    first = types;
-   //length = strlen(first);
-   second = strchr(types, DELIMITER);
-   while( second ) {
-      index = second - first;
+   do {
+      second = strchr(first, DELIMITER);
+      index = (second == NULL) ? 1 : second - first;
+      LOG( " index = %u ", index );
+      LOG( " first = %p ", first );
+      LOG( " second = %p ", second );
       switch(index) {
          case 0:
             break;
          case 1:
-            if (strncmp(first, "c", index)) {
+            if (0 == strncmp(first, "c", index)) {
                LOG( " %c ", va_arg( arg_list, char ) );
             } 
-            else if (strncmp(first, "h", index)) {
+            else if (0 == strncmp(first, "h", index)) {
                LOG( " %h ", va_arg( arg_list, short ) );
             } 
-            else if (strncmp(first, "d", index)) {
-               LOG( " %d ", arg_int );
+            else if (0 == strncmp(first, "d", index)) {
+               LOG( " %d ", va_arg( arg_list, int ) );
             }
-            else if (strncmp(first, "u", index)) {
+            else if (0 == strncmp(first, "u", index)) {
                LOG( " %u ", va_arg( arg_list, unsigned ) );
             } 
-            else if (strncmp(first, "f", index)) {
-               LOG( " %g ", va_arg( arg_list, float) );
+            else if (0 == strncmp(first, "f", index)) {
+               LOG( " %f ", va_arg( arg_list, float) );
             }
-            else if (strncmp(first, "g", index)) {
-               LOG( " %g ", va_arg( arg_list, double) );
+            else if (0 == strncmp(first, "g", index)) {
+               LOG( " %f ", va_arg( arg_list, double) );
             }
-            else if (strncmp(first, "s", index)) {
+            else if (0 == strncmp(first, "s", index)) {
                LOG( " %s ", va_arg( arg_list, char*) );
             }
+            else if (0 == strncmp(first, "p", index)) {
+               LOG( " %p ", va_arg( arg_list, void*) );
+            }
+            else 
+               print_error( first, index);
             break;
          case 2:
-            if (strncmp(first, "hu", index)) {
+            if (0 == strncmp(first, "uh", index)) {
                LOG( " %hu ", va_arg( arg_list, unsigned short ) );
             }
-            if (strncmp(first, "lu", index)) {
+            if (0 == strncmp(first, "ul", index)) {
                LOG( " %hu ", va_arg( arg_list, unsigned long ) );
             }
-            else if (strncmp(first, "ld", index)) {
+            else if (0 == strncmp(first, "ld", index)) {
                LOG( " %ld ", va_arg( arg_list, long ) );
             }
-            else if (strncmp(first, "Lg", index)) {
+            else if (0 == strncmp(first, "Lg", index)) {
                LOG( " %Lg ", va_arg( arg_list, long double) );
             }
+            else 
+               print_error( first, index);
+            break;
          case 3:
-            if (strncmp(first, "ull", index)) {
-               LOG( " %hu ", va_arg( arg_list, unsigned long long ) );
+            if (0 == strncmp(first, "ull", index)) {
+               LOG( " %ull ", va_arg( arg_list, unsigned long long ) );
             }
-            else {
-               LOG( " improper format = %c", *types_ptr);
-            }
-               
-      }
-      switch(*types_ptr) {
-         case 'i':
-            arg_int = va_arg( arg_list, int );
-            LOG( " %d ", arg_int );
-            break;
-         case 's':
-            arg_string = va_arg( arg_list, char * );
-            LOG( " %s ", arg_string );
-            break;
-         case 'e':
-            arg_long_double = va_arg( arg_list, long double );
-            LOG( " %e ", arg_long_double );
-            break;
-         case 'f':
-            arg_double = va_arg( arg_list, double );
-            LOG( " %f ", arg_double );
-            break;
-         case 'c':
-            arg_char = va_arg( arg_list, char );
-            LOG( " %c ", arg_char );
+            else 
+               print_error( first, index);
             break;
          default:
-            LOG( " improper format = %c", *types_ptr);
+            print_error( first, index);
       }
-      ++types_ptr;
-   }
+      LOG( " 2 second = %p ", second );
+      if (NULL == second || *(second + 1) == '\0')
+         break;
+      else
+         first = second + 1;
+   } while (first != NULL);
    va_end( arg_list );
    return 0;
 }
+
+#undef CHECK_INPUT_ARG
 
 int print_assert(const char *file, int line, const char * date, const char * time, const char *msg) {
    LOG("\nAssertion failed:\n \
