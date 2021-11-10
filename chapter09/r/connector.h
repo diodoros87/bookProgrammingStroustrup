@@ -33,20 +33,20 @@ typedef enum {
    FLOAT       = 57,
    DOUBLE      = 58,
    LONG_DOUBLE = 59
-} Type;
+} Number;
 
 union Number_pointer_union {
-   short * s;
-   unsigned short * us;
-   int * i;
-   unsigned int * ui;
-   long * l;
-   unsigned long * ul;
-   long long * ll;
-   unsigned long long * ull;
-   float * f;
-   double * d;
-   long double * ld;
+   short s;
+   unsigned short us;
+   int i;
+   unsigned int ui;
+   long l;
+   unsigned long ul;
+   long long ll;
+   unsigned long long ull;
+   float f;
+   double d;
+   long double ld;
 };
 
 #ifdef __cplusplus
@@ -61,7 +61,7 @@ typedef void* Money_type ;
 /*
 EXTERNC Result_codes Money_type__function(Money_type * money_ptr, const Money_functions function, const Type type, const char * dollars, ... ); */
 
-EXTERNC Result_codes Money_type__function(Money_type * money_ptr, const Money_functions function, const Type type, 
+EXTERNC Result_codes Money_type__function(Money_type * money_ptr, const Money_functions function, const Number type, 
                                   const union Number_pointer_union n_union, const char * dollars, ... );
 
 EXTERNC Result_codes Money_type__init_1(Money_type * money_ptr, const char * dollars);
