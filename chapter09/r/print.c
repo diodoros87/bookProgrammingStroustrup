@@ -82,8 +82,8 @@ int print_many(const char * msg,  const char * types, ... ) {   /* types is type
 static void case_1 (const char * format, const size_t index, va_list arg_list) {
    CHECK_INPUT_ARG(format);
    if (0 == strncmp(format, "c", index)) {
-      LOG( " %c ", va_arg( arg_list, int ) );  /*  can't use va_arg(varlist, char) because the types are promoted to int; 
-      using of va_arg(varlist, int) instead */
+      LOG( " %c ", va_arg( arg_list, int ) );  /*  can't use va_arg(arg_list, char) because the types are promoted to int; 
+      using of va_arg(arg_list, int) instead */
    } 
    else if (0 == strncmp(format, "d", index)) {
       LOG( " %d ", va_arg( arg_list, int ) );
@@ -91,12 +91,12 @@ static void case_1 (const char * format, const size_t index, va_list arg_list) {
    else if (0 == strncmp(format, "u", index)) {
       LOG( " %u ", va_arg( arg_list, unsigned ) );
    } 
-   else if (0 == strncmp(format, "f", index)) {
-      LOG( " %f ", va_arg( arg_list, double) );  /*  can't use va_arg(varlist, float) because the types are promoted to double; 
-      using of va_arg(varlist, double) instead */
+   else if (0 == strncmp(format, "F", index)) {
+      LOG( " %F ", va_arg( arg_list, double) );  /*  can't use va_arg(arg_list, float) because the types are promoted to double; 
+      using of va_arg(arg_list, double) instead */
    }
-   else if (0 == strncmp(format, "g", index)) {
-      LOG( " %g ", va_arg( arg_list, double) );
+   else if (0 == strncmp(format, "G", index)) {
+      LOG( " %G ", va_arg( arg_list, double) );
    }
    else if (0 == strncmp(format, "s", index)) {
       LOG( " %s ", va_arg( arg_list, char*) );
@@ -111,12 +111,12 @@ static void case_1 (const char * format, const size_t index, va_list arg_list) {
 static void case_2 (const char * format, const size_t index, va_list arg_list) {
    CHECK_INPUT_ARG(format);
    if (0 == strncmp(format, "hd", index)) {
-      LOG( " %hd ", va_arg( arg_list, int ) );  /*  can't use va_arg(varlist, short) because the types are promoted to int; 
-      using of va_arg(varlist, int) instead */
+      LOG( " %hd ", va_arg( arg_list, int ) );  /*  can't use va_arg(arg_list, short) because the types are promoted to int; 
+      using of va_arg(arg_list, int) instead */
    } 
    else if (0 == strncmp(format, "hu", index)) {
-      LOG( " %hu ", va_arg( arg_list, unsigned ) );  /*  can't use va_arg(varlist, unsigned short) because the types are promoted to unsigned; 
-      using of va_arg(varlist, unsigned) instead */
+      LOG( " %hu ", va_arg( arg_list, unsigned ) );  /*  can't use va_arg(arg_list, unsigned short) because the types are promoted to unsigned; 
+      using of va_arg(arg_list, unsigned) instead */
    }
    else if (0 == strncmp(format, "lu", index)) {
       LOG( " %lu ", va_arg( arg_list, unsigned long ) );
@@ -142,6 +142,8 @@ static void case_3 (const char * format, const size_t index, va_list arg_list) {
    else 
       print_error( format, index);
 } 
+
+#undef CHECK_INPUT_ARG
 
 int print_assert(const char *file, int line, const char * date, const char * time, const char *msg) {
    LOG("\nAssertion failed:\n \

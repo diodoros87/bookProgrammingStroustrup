@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <string.h>
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
@@ -86,55 +87,54 @@ LOG("\nAddress of n_union is: %p\n", &n_union); \
 print_many("Value of n_union->type is: ", format, value); \
 LOG("%c", '\n')
 
-#define allocate(buffer, source) \
-buffer = (char *) malloc (strlen(source) + 1); \
-if (buffer == NULL) { \
-   LOG_EXIT(__FUNCTION__, "out of memory: malloc() returns NULL ", EXIT_FAILURE);  \
+#ifdef ALLOC
+#define ALLOCATE(buffer, source) \
+(buffer) = (char *) malloc (strlen(source) + 1); \
+if ((buffer) == NULL) { \
+   LOG("%s", "out of memory: malloc() returns NULL ");  \
 } \
-strcpy(buffer, source)
+else { \
+   strcpy((buffer), (source)); \
+   LOG("allocate: %s\n", buffer); \
+} \
+return buffer
+#endif
 
-int set_format(const Number type, char * format) {
-   if (format) {
-      LOG_EXIT(__FUNCTION__, "input c-string format must be NULL ", EXIT_FAILURE);   
-   }
-   if (1 != strlen(format)) {
-      LOG_EXIT(__FUNCTION__, "c-string format must be length = 1 ", EXIT_FAILURE);   
-   }   
+char * get_format(const Number type) { 
    switch(type) {
-      case CHAR:
-         allocate(format, 1, "c");
-         break;
-      case SHORT:
-         allocate(format, 2, "hd");
-         break;
-      case 's':
-         arg_string = va_arg( arg_list, char * );
-         LOG( " %s ", arg_string );
-         break;
-      case 'e':
-         arg_long_double = va_arg( arg_list, long double );
-         LOG( " %e ", arg_long_double );
-         break;
-      case 'f':
-         arg_double = va_arg( arg_list, double );
-         LOG( " %f ", arg_double );
-         break;
-      case 'c':
-         arg_char = va_arg( arg_list, char );
-         LOG( " %c ", arg_char );
-         break;
+      case SHORT: 
+         return "hd";
+      case U_SHORT: 
+         return "hu";
+      case INT: 
+         return "d";
+      case U_INT: 
+         return "u";
+      case LONG: 
+         return "ld";
+      case U_LONG: 
+         return "lu";
+      case LONG_LONG: 
+         return "lld";
+      case U_LONG_LONG: 
+         return "llu";
+      case FLOAT:
+      case DOUBLE: 
+         return "G";
+      case LONG_DOUBLE:
+         return "Lg";
       default: {
-         LOG_EXIT(__FUNCTION__, " improper format = %d", EXIT_FAILURE);
+         LOG(" improper type = %d", type);
+         LOG_EXIT(__FUNCTION__, "", EXIT_FAILURE);
       }
-   }
-   if (1 != strlen(format)) {
-      LOG_EXIT(__FUNCTION__, "c-string format must be length = 1 ", EXIT_FAILURE);   
    } 
-   
-} 
+}
+
+#undef ALLOCATE
 
 typedef int (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
                                   union Number_pointer_union * n_union, const char * ,... );
+
 int run_money(const Number type) {
 #ifdef MANUAL_DLL_LOAD
    void* handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
@@ -144,25 +144,26 @@ int run_money(const Number type) {
 #endif
    Money_type money = NULL;
    union Number_pointer_union n_union;
+   const char * format = get_format(type);
    Result_codes result = p_function(&money, INIT_1, type, &n_union, "20");
    if (result == OK) {
-      LOGS_MONEY(money, n_union, " s", n_union.f);
+      LOGS_MONEY(money, n_union, format, n_union.i);
       money = NULL;
       result = p_function(&money, CREATE_1, type, &n_union, "9");
       if (result == OK) {
-         LOGS_MONEY(money, n_union, "s", n_union.f);
+         LOGS_MONEY(money, n_union, format, n_union);
          money = NULL;
          result = p_function(&money, INIT_2, type, &n_union, "0", (long double)(8.0));  /* mandatory casting when using va_list function  */
          if (result == OK) {
-            LOGS_MONEY(money, n_union, "s", n_union.f);
+            LOGS_MONEY(money, n_union, format, n_union);
             money = NULL;
             result = p_function(&money, CREATE_2, type, &n_union, "0", (long double)(-5.0));  /* mandatory casting when using va_list function  */
             if (result == OK) {
-               LOG("\nAddress pointed by money is: %p\n", money);
-               LOG("\nAddress of money is: %p\n", &money);
+               LOGS_MONEY(money, n_union, format, n_union);
 #ifdef MANUAL_DLL_LOAD
                if (OK == result) {
-                  result = close_handle(&handle);
+                  result = close_handle(&handle); /*
+                  free(format); */
                   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
                   return result;
                }
@@ -173,12 +174,14 @@ int run_money(const Number type) {
    }
 #ifdef MANUAL_DLL_LOAD
    close_handle(&handle);
-#endif
+#endif /*
+   free(format);*/
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }
 
 #undef LOGS_MONEY
+
 /*
 #else
 int run_money(void) {
@@ -211,12 +214,12 @@ int run_money(void) {
 void test_print_many(void) {
    float f = 6.0f;
    LOG("\nAddress pointed by money is: %p\n", &f);
-   print_many("1 test of print_many", "p g Lg o  rr7 d g s d s", (float*)(&f), f, (long double)(-5.0), 399, 6.0, "QQQQQQ", 7, "rrrr");
+   print_many("1 test of print_many", "p G Lg o  rr7 d G s d s", (float*)(&f), f, (long double)(-5.0), 399, 6.0, "QQQQQQ", 7, "rrrr");
    int i = 66;
    LOG("\nAddress pointed by money is: %p\n", &i);
-   print_many("2 test of print_many", " p  d   Lg  d g s d s", (int*)(&i), i, -5.0L, 399, 6.0, "QQQQQQ", 7, "rrrr");
+   print_many("2 test of print_many", " p  d       Lg  d G s d s", (int*)(&i), i, -5.0L, 399, 6.0, "QQQQQQ", 7, "rrrr");
    void * nul = &i;
-   print_many(" 3 test of print_many", " p  c hd hu f g f  g  u  lu ld llu lld ", nul, 'i', (short)7, (unsigned short)USHRT_MAX, 6.0f, 7.0f,
+   print_many(" 3 test of print_many", " p  c hd hu F G F G  u  lu ld llu lld ", nul, 'i', (short)7, (unsigned short)USHRT_MAX, 6.0f, 7.0f,
                            77.8, 66.6, (unsigned)99, (unsigned long)ULONG_MAX, (long)LONG_MAX, (unsigned long long)ULLONG_MAX, (long long)LLONG_MAX);
 }
 
@@ -230,6 +233,9 @@ int main(void) {
    Result_codes result = run_demo(&demo_functions);
    if (OK == result)
       result = run_money(INT);
-   
+   if (OK == result)
+      result = run_money(INT);
+   if (OK == result)
+      result = run_money(LONG_LONG);
    return result;
 }
