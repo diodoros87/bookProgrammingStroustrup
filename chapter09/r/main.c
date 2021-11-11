@@ -66,7 +66,7 @@ int run_demo(const Demo_functions * demo_functions) {
 #ifdef MANUAL_DLL_LOAD
          if (OK == result) {
             result = close_handle(&(demo_functions->handle));
-            assert_many(result != OK, "assert failed: ", "s d", "result == ", result);
+            assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
             return result;
          }
 #endif
@@ -75,7 +75,7 @@ int run_demo(const Demo_functions * demo_functions) {
 #ifdef MANUAL_DLL_LOAD
    close_handle(&(demo_functions->handle));
 #endif
-   assert_many(result != OK, "assert failed: ", "s d", "result == ", result);
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }
 
@@ -85,18 +85,27 @@ LOG("\nAddress pointed by money is: %p", money); \
 LOG("\nAddress of n_union is: %p\n", &n_union); \
 print_many("Value of n_union->type is: ", format, value); \
 LOG("%c", '\n')
-/*
+
+#define allocate(buffer, source) \
+buffer = (char *) malloc (strlen(source) + 1); \
+if (buffer == NULL) { \
+   LOG_EXIT(__FUNCTION__, "out of memory: malloc() returns NULL ", EXIT_FAILURE);  \
+} \
+strcpy(buffer, source)
+
 int set_format(const Number type, char * format) {
-   if (! format) {
-      LOG_EXIT(__FUNCTION__, "c-string format is NULL ", EXIT_FAILURE);   
+   if (format) {
+      LOG_EXIT(__FUNCTION__, "input c-string format must be NULL ", EXIT_FAILURE);   
    }
    if (1 != strlen(format)) {
       LOG_EXIT(__FUNCTION__, "c-string format must be length = 1 ", EXIT_FAILURE);   
    }   
    switch(type) {
+      case CHAR:
+         allocate(format, 1, "c");
+         break;
       case SHORT:
-         arg_int = va_arg( arg_list, int );
-         LOG( " %d ", arg_int );
+         allocate(format, 2, "hd");
          break;
       case 's':
          arg_string = va_arg( arg_list, char * );
@@ -114,12 +123,16 @@ int set_format(const Number type, char * format) {
          arg_char = va_arg( arg_list, char );
          LOG( " %c ", arg_char );
          break;
-      default:
-         LOG( " improper format = %c", *types_ptr);
+      default: {
+         LOG_EXIT(__FUNCTION__, " improper format = %d", EXIT_FAILURE);
+      }
    }
+   if (1 != strlen(format)) {
+      LOG_EXIT(__FUNCTION__, "c-string format must be length = 1 ", EXIT_FAILURE);   
+   } 
    
 } 
-*/
+
 typedef int (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
                                   union Number_pointer_union * n_union, const char * ,... );
 int run_money(const Number type) {
@@ -161,7 +174,7 @@ int run_money(const Number type) {
 #ifdef MANUAL_DLL_LOAD
    close_handle(&handle);
 #endif
-   assert_many(result != OK, "assert failed: ", "s d", "result == ", result);
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }
 
