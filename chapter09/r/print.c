@@ -15,37 +15,25 @@
 
 const char DELIMITER = ' ';
 
-static int print_error (char * string, const size_t size) {
+static void print_error (char * string, const size_t size) {
    size_t index;
    if (NULL == string) {
       LOG_EXIT(__FUNCTION__, "\n error string = NULL \n", EXIT_FAILURE);  /* brackets - multiline macro */
    }
    LOG( " improper format = \'%s", "");
    for (index = 0; *string != '\0' && index < size; index++) {
-      LOG( "%c", *string);
+      LOG( "%c", *(string + index));
    }
    LOG( "%c", '\'');
 }
 
+static void case_1 (const char * first, const char * types, const size_t index, va_list args) ;
+
 int print_many(const char * msg,  const char * types, ... ) {
    va_list arg_list;
    char *first;
-   char *second;/*
-   char                 *arg_string;
-   char                 arg_char;
-   short                arg_short;
-   unsigned short       arg_u_short;
-   int                  arg_int;
-   unsigned int         arg_u_int;
-   long                 arg_long;
-   unsigned long        arg_u_long;
-   long long            arg_long_long;
-   unsigned long long   arg_u_long_long;
-   float                arg_float;
-   double               arg_double;
-   long double          arg_long_double;*/
-   float                arg_float;
-   size_t index;
+   char *second; /* c-string started in DELIMITER index  */
+   size_t index;  /* index of DELIMITER in second c-string */
    FUNCTION_INFO(__FUNCTION__);
    CHECK_INPUT_ARG(msg, types);
    LOG("\n %s ", msg );
@@ -53,19 +41,17 @@ int print_many(const char * msg,  const char * types, ... ) {
    first = types;
    do {
       second = strchr(first, DELIMITER);
-      index = (second == NULL) ? 1 : second - first;
-      LOG( " index = %u ", index );
-      LOG( " first = %p ", first );
-      LOG( " second = %p ", second );
+      if (NULL == second)   /* no DELIMITER in first c-string */
+         index = strlen(first);   /* whole first c-string */
+      else
+         index = second - first;  /* c-string started in DELIMITER index  */
       switch(index) {
          case 0:
             break;
          case 1:
             if (0 == strncmp(first, "c", index)) {
-               LOG( " %c ", va_arg( arg_list, char ) );
-            } 
-            else if (0 == strncmp(first, "h", index)) {
-               LOG( " %h ", va_arg( arg_list, short ) );
+               LOG( " %c ", va_arg( arg_list, int ) );  /*  can't use va_arg(varlist, char) because the types are promoted to int; 
+               using of va_arg(varlist, int) instead */
             } 
             else if (0 == strncmp(first, "d", index)) {
                LOG( " %d ", va_arg( arg_list, int ) );
@@ -74,26 +60,32 @@ int print_many(const char * msg,  const char * types, ... ) {
                LOG( " %u ", va_arg( arg_list, unsigned ) );
             } 
             else if (0 == strncmp(first, "f", index)) {
-               LOG( " %f ", va_arg( arg_list, float) );
+               LOG( " %f ", va_arg( arg_list, double) );  /*  can't use va_arg(varlist, float) because the types are promoted to double; 
+               using of va_arg(varlist, double) instead */
             }
             else if (0 == strncmp(first, "g", index)) {
-               LOG( " %f ", va_arg( arg_list, double) );
+               LOG( " %g ", va_arg( arg_list, double) );
             }
             else if (0 == strncmp(first, "s", index)) {
                LOG( " %s ", va_arg( arg_list, char*) );
             }
             else if (0 == strncmp(first, "p", index)) {
-               LOG( " %p ", va_arg( arg_list, void*) );
+               LOG( " %p ", va_arg( arg_list, void*) );  /* many (all ?) pointers in va_arg can be cast to void* */
             }
             else 
                print_error( first, index);
             break;
          case 2:
-            if (0 == strncmp(first, "uh", index)) {
-               LOG( " %hu ", va_arg( arg_list, unsigned short ) );
+            if (0 == strncmp(first, "hd", index)) {
+               LOG( " %hd ", va_arg( arg_list, int ) );  /*  can't use va_arg(varlist, short) because the types are promoted to int; 
+               using of va_arg(varlist, int) instead */
+            } 
+            else if (0 == strncmp(first, "hu", index)) {
+               LOG( " %hu ", va_arg( arg_list, unsigned ) );  /*  can't use va_arg(varlist, unsigned short) because the types are promoted to unsigned; 
+               using of va_arg(varlist, unsigned) instead */
             }
-            if (0 == strncmp(first, "ul", index)) {
-               LOG( " %hu ", va_arg( arg_list, unsigned long ) );
+            else if (0 == strncmp(first, "lu", index)) {
+               LOG( " %lu ", va_arg( arg_list, unsigned long ) );
             }
             else if (0 == strncmp(first, "ld", index)) {
                LOG( " %ld ", va_arg( arg_list, long ) );
@@ -105,16 +97,18 @@ int print_many(const char * msg,  const char * types, ... ) {
                print_error( first, index);
             break;
          case 3:
-            if (0 == strncmp(first, "ull", index)) {
-               LOG( " %ull ", va_arg( arg_list, unsigned long long ) );
+            if (0 == strncmp(first, "llu", index)) {
+               LOG( " %llu ", va_arg( arg_list, unsigned long long ) );
+            }
+            else if (0 == strncmp(first, "lld", index)) {
+               LOG( " %lld ", va_arg( arg_list, long long ) );
             }
             else 
                print_error( first, index);
             break;
          default:
             print_error( first, index);
-      }
-      LOG( " 2 second = %p ", second );
+      } 
       if (NULL == second || *(second + 1) == '\0')
          break;
       else
@@ -123,6 +117,42 @@ int print_many(const char * msg,  const char * types, ... ) {
    va_end( arg_list );
    return 0;
 }
+
+static void case_1 (const char * first, const char * types, const size_t index, va_list args) {
+   size_t index;
+   if (NULL == types) {
+      LOG_EXIT(__FUNCTION__, "\n error types = NULL \n", EXIT_FAILURE);  /* brackets - multiline macro */
+   }
+   if (NULL == first) {
+      LOG_EXIT(__FUNCTION__, "\n error first = NULL \n", EXIT_FAILURE);  /* brackets - multiline macro */
+   }
+   if (0 == strncmp(first, "c", index)) {
+      LOG( " %c ", va_arg( arg_list, int ) );  /*  can't use va_arg(varlist, char) because the types are promoted to int; 
+      using of va_arg(varlist, int) instead */
+   } 
+   else if (0 == strncmp(first, "d", index)) {
+      LOG( " %d ", va_arg( arg_list, int ) );
+   }
+   else if (0 == strncmp(first, "u", index)) {
+      LOG( " %u ", va_arg( arg_list, unsigned ) );
+   } 
+   else if (0 == strncmp(first, "f", index)) {
+      LOG( " %f ", va_arg( arg_list, double) );  /*  can't use va_arg(varlist, float) because the types are promoted to double; 
+      using of va_arg(varlist, double) instead */
+   }
+   else if (0 == strncmp(first, "g", index)) {
+      LOG( " %g ", va_arg( arg_list, double) );
+   }
+   else if (0 == strncmp(first, "s", index)) {
+      LOG( " %s ", va_arg( arg_list, char*) );
+   }
+   else if (0 == strncmp(first, "p", index)) {
+      LOG( " %p ", va_arg( arg_list, void*) );  /* many (all ?) pointers in va_arg can be cast to void* */
+   }
+   else 
+      print_error( first, index);
+   break;
+} 
 
 #undef CHECK_INPUT_ARG
 

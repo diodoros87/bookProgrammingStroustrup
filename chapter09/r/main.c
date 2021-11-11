@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
@@ -65,7 +66,7 @@ int run_demo(const Demo_functions * demo_functions) {
 #ifdef MANUAL_DLL_LOAD
          if (OK == result) {
             result = close_handle(&(demo_functions->handle));
-            assert_many(result == OK, "assert failed: ", "sd", "result == ", result);
+            assert_many(result != OK, "assert failed: ", "s d", "result == ", result);
             return result;
          }
 #endif
@@ -74,7 +75,7 @@ int run_demo(const Demo_functions * demo_functions) {
 #ifdef MANUAL_DLL_LOAD
    close_handle(&(demo_functions->handle));
 #endif
-   assert_many(result == OK, "assert failed: ", "sd", "result == ", result);
+   assert_many(result != OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }
 
@@ -119,9 +120,9 @@ int set_format(const Number type, char * format) {
    
 } 
 */
-int run_money(const Number type) {
-   typedef int (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
+typedef int (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
                                   union Number_pointer_union * n_union, const char * ,... );
+int run_money(const Number type) {
 #ifdef MANUAL_DLL_LOAD
    void* handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
    p_func_many p_function = get_symbol(handle, "Money_type__function");
@@ -149,7 +150,7 @@ int run_money(const Number type) {
 #ifdef MANUAL_DLL_LOAD
                if (OK == result) {
                   result = close_handle(&handle);
-                  assert_many(result == OK, "assert failed: ", "si", "result == ", result);
+                  assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
                   return result;
                }
 #endif
@@ -160,7 +161,7 @@ int run_money(const Number type) {
 #ifdef MANUAL_DLL_LOAD
    close_handle(&handle);
 #endif
-   assert_many(result == OK, "assert failed: ", "si", "result == ", result);
+   assert_many(result != OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }
 
@@ -193,11 +194,24 @@ int run_money(void) {
 }
 #endif
 */
+
+void test_print_many(void) {
+   float f = 6.0f;
+   LOG("\nAddress pointed by money is: %p\n", &f);
+   print_many("1 test of print_many", "p g Lg o  rr7 d g s d s", (float*)(&f), f, (long double)(-5.0), 399, 6.0, "QQQQQQ", 7, "rrrr");
+   int i = 66;
+   LOG("\nAddress pointed by money is: %p\n", &i);
+   print_many("2 test of print_many", " p  d   Lg  d g s d s", (int*)(&i), i, -5.0L, 399, 6.0, "QQQQQQ", 7, "rrrr");
+   void * nul = &i;
+   print_many(" 3 test of print_many", " p  c hd hu f g f  g  u  lu ld llu lld ", nul, 'i', (short)7, (unsigned short)USHRT_MAX, 6.0f, 7.0f,
+                           77.8, 66.6, (unsigned)99, (unsigned long)ULONG_MAX, (long)LONG_MAX, (unsigned long long)ULLONG_MAX, (long long)LLONG_MAX);
+}
+
 int main(void) {
    FUNCTION_INFO(__FUNCTION__);
    set_handler(handle_terminate);
    atexit (at_exit);
-   print_many("fff", " Lg d g s d s", (long double)(-5.0), 399, 6.0, "QQQQQQ", 7, "rrrr");
+   test_print_many();
    Demo_functions demo_functions;
    load_demo(&demo_functions);
    Result_codes result = run_demo(&demo_functions);
