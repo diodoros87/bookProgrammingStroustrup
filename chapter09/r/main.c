@@ -80,26 +80,6 @@ int run_demo(const Demo_functions * demo_functions) {
    return result;
 }
 
-#define LOGS_MONEY(money, n_union, format, value) \
-LOG("\nAddress of money is: %p", &money); \
-LOG("\nAddress pointed by money is: %p", money); \
-LOG("\nAddress of n_union is: %p\n", &n_union); \
-print_many("Value of n_union->type is: ", format, value); \
-LOG("%c", '\n')
-
-#ifdef ALLOC
-#define ALLOCATE(buffer, source) \
-(buffer) = (char *) malloc (strlen(source) + 1); \
-if ((buffer) == NULL) { \
-   LOG("%s", "out of memory: malloc() returns NULL ");  \
-} \
-else { \
-   strcpy((buffer), (source)); \
-   LOG("allocate: %s\n", buffer); \
-} \
-return buffer
-#endif
-
 char * get_format(const Number type) { 
    switch(type) {
       case SHORT: 
@@ -130,12 +110,67 @@ char * get_format(const Number type) {
    } 
 }
 
+int print_union_member(const Number type, union Number_pointer_union n_union) {
+   switch(type) {
+      case SHORT: 
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.s);
+      case U_SHORT: 
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.us);
+      case INT: 
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.i);
+      case U_INT: 
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.ui);
+      case LONG: 
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.l);
+      case U_LONG: 
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.ul);
+      case LONG_LONG: 
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.ll);
+      case U_LONG_LONG: 
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.ull);
+      case FLOAT:
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.f);
+      case DOUBLE: 
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.d);
+      case LONG_DOUBLE:
+         return print_many("Value of n_union->type is: ", get_format(type), n_union.ld);
+      default: {
+         LOG(" improper type = %d", type);
+         LOG_EXIT(__FUNCTION__, "", EXIT_FAILURE);
+      }
+   } 
+}
+
+#define LOGS_MONEY(money, n_union, format, type) \
+LOG("\nAddress of money is: %p", &money); \
+LOG("\nAddress pointed by money is: %p", money); \
+LOG("\nAddress of n_union is: %p\n", &n_union); \
+print_union_member(type, n_union); \
+LOG("%c", '\n')
+
+#ifdef ALLOC
+#define ALLOCATE(buffer, source) \
+(buffer) = (char *) malloc (strlen(source) + 1); \
+if ((buffer) == NULL) { \
+   LOG("%s", "out of memory: malloc() returns NULL ");  \
+} \
+else { \
+   strcpy((buffer), (source)); \
+   LOG("allocate: %s\n", buffer); \
+} \
+return buffer
+#endif
+
 #undef ALLOCATE
 
 typedef int (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
                                   union Number_pointer_union * n_union, const char * ,... );
 
-int run_money(const Number type) {
+int run_money(const Number type, const char * dollars, const long double cents) {
+   if (type < SHORT || type > LONG_DOUBLE || ! dollars) {
+      LOG(" type = %d \t dollars = %p", type, dollars);
+      LOG_EXIT(__FUNCTION__, "invalid input argument(s)", EXIT_FAILURE);
+   }
 #ifdef MANUAL_DLL_LOAD
    void* handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
    p_func_many p_function = get_symbol(handle, "Money_type__function");
@@ -147,19 +182,19 @@ int run_money(const Number type) {
    const char * format = get_format(type);
    Result_codes result = p_function(&money, INIT_1, type, &n_union, "20");
    if (result == OK) {
-      LOGS_MONEY(money, n_union, format, n_union.i);
+      LOGS_MONEY(money, n_union, format, type);
       money = NULL;
       result = p_function(&money, CREATE_1, type, &n_union, "9");
       if (result == OK) {
-         LOGS_MONEY(money, n_union, format, n_union);
+         LOGS_MONEY(money, n_union, format, type);
          money = NULL;
-         result = p_function(&money, INIT_2, type, &n_union, "0", (long double)(8.0));  /* mandatory casting when using va_list function  */
+         result = p_function(&money, INIT_2, type, &n_union, "0", (long double)(8.0));  
          if (result == OK) {
-            LOGS_MONEY(money, n_union, format, n_union);
+            LOGS_MONEY(money, n_union, format, type);
             money = NULL;
-            result = p_function(&money, CREATE_2, type, &n_union, "0", (long double)(-5.0));  /* mandatory casting when using va_list function  */
+            result = p_function(&money, CREATE_2, type, &n_union, "0", (long double)(-5.0)); 
             if (result == OK) {
-               LOGS_MONEY(money, n_union, format, n_union);
+               LOGS_MONEY(money, n_union, format, type);
 #ifdef MANUAL_DLL_LOAD
                if (OK == result) {
                   result = close_handle(&handle); /*
@@ -182,38 +217,9 @@ int run_money(const Number type) {
 
 #undef LOGS_MONEY
 
-/*
-#else
-int run_money(void) {
-   Money_type money = NULL;
-   Result_codes result = Money_type__function(&money, INIT_1, type, &n_union, "8");
-   if (result == OK) {
-      LOG("\nAddress of money is: %p\n", &money);
-      LOG("\nAddress pointed by money is: %p\n", money);
-      money = NULL;
-      result = Money_type__create_1(&money, "9.0");
-      if (result == OK) {
-         LOG("\nAddress pointed by money is: %p\n", money);
-         if (result == OK) {
-            money = NULL;
-            result = Money_type__init_2(&money, "6.", 9);
-            LOG("\nAddress pointed by money is: %p\n", money);
-            if (result == OK) {
-               money = NULL;
-               result = Money_type__create_2(&money, "9e3", 7);
-               LOG("\nAddress pointed by money is: %p\n", money);
-            }
-         }
-      }
-   }
-   return result; 
-}
-#endif
-*/
-
 void test_print_many(void) {
    float f = 6.0f;
-   LOG("\nAddress pointed by money is: %p\n", &f);
+   LOG("\nAddress pointed by money is: %p\n", &f);            /* mandatory casting when using va_list function  */
    print_many("1 test of print_many", "p G Lg o  rr7 d G s d s", (float*)(&f), f, (long double)(-5.0), 399, 6.0, "QQQQQQ", 7, "rrrr");
    int i = 66;
    LOG("\nAddress pointed by money is: %p\n", &i);
@@ -232,9 +238,27 @@ int main(void) {
    load_demo(&demo_functions);
    Result_codes result = run_demo(&demo_functions);
    if (OK == result)
-      result = run_money(INT);
+      result = run_money(SHORT, "5", 77.8);
    if (OK == result)
-      result = run_money(INT);
+      result = run_money(U_SHORT, "3333", 77.8);
+   if (OK == result)
+      result = run_money(LONG_LONG);
+   if (OK == result)
+      result = run_money(INT, "5", 77.8);
+   if (OK == result)
+      result = run_money(LONG_DOUBLE, "3333", 77.8);
+   if (OK == result)
+      result = run_money(LONG_LONG);
+   if (OK == result)
+      result = run_money(INT, "5", 77.8);
+   if (OK == result)
+      result = run_money(LONG_DOUBLE, "3333", 77.8);
+   if (OK == result)
+      result = run_money(LONG_LONG);
+   if (OK == result)
+      result = run_money(INT, "5", 77.8);
+   if (OK == result)
+      result = run_money(LONG_DOUBLE, "3333", 77.8);
    if (OK == result)
       result = run_money(LONG_LONG);
    return result;
