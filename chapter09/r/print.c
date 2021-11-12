@@ -98,6 +98,12 @@ static void case_1 (const char * format, const size_t index, va_list arg_list) {
    else if (0 == strncmp(format, "G", index)) {
       LOG( " %G ", va_arg( arg_list, double) );
    }
+   else if (0 == strncmp(format, "lF", index)) {
+      LOG( " %lF ", va_arg( arg_list, double) );
+   }
+   else if (0 == strncmp(format, "lG", index)) {
+      LOG( " %lG ", va_arg( arg_list, double) );
+   }
    else if (0 == strncmp(format, "s", index)) {
       LOG( " %s ", va_arg( arg_list, char*) );
    }
@@ -154,4 +160,67 @@ Expression:\t\n%s\n", msg);
    assert(0);
    abort();
    return 0; 
+}
+
+#define digits(x) _Generic((x)), \
+                           short int:              digits_i, \
+                           int:                    digits_i, \
+                           long int:               digits_i, \
+                           long long int:          digits_i, \
+                           unsigned short int:     digits_u, \
+                           unsigned int:           digits_u, \
+                           unsigned long int:      digits_u, \
+                           unsigned long long int: digits_u  \
+                           float:                  digits_d  \
+                           double:                 digits_d  \
+                           long double:            digits_d
+                           
+size_t digits_u(unsigned long long x) {
+   size_t number_of_digits = 1;
+   while (x > 9) {
+      x /= 10;
+      number_of_digits++;
+   }
+   return number_of_digits;
+}
+
+size_t digits_i(long long x) {
+   return x < 0 ? digits_u(-x) : digits_u(x); 
+}
+
+size_t digits_d(const long double x) {
+   return 50; 
+}
+
+char * my_itoa_i(long long x) {
+   int length = digits(x);
+   char * buffer; 
+   if (x < 0) 
+      length++;
+   buffer = (char *) malloc (length + 1);
+   if (buffer == NULL) { 
+      LOG("%s", "out of memory: malloc() returns NULL ");  
+   } 
+   if (x < 0) 
+      buffer[0] = '-';
+   buffer[--length] = '\0';
+   do {
+      buffer[--length] = x % 10;
+      x /= 10;
+   } while (length > 0);
+   return buffer;
+}
+
+char * my_itoa_i(long long x) {
+   int length = digits(x);
+   char * buffer = (char *) malloc (length + 1); 
+   if (buffer == NULL) { 
+      LOG("%s", "out of memory: malloc() returns NULL ");  
+   } 
+   buffer[--length] = '\0';
+   do {
+      buffer[--length] = x % 10;
+      x /= 10;
+   } while (length > 0);
+   return buffer;
 }

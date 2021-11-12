@@ -99,8 +99,9 @@ char * get_format(const Number type) {
       case U_LONG_LONG: 
          return "llu";
       case FLOAT:
-      case DOUBLE: 
          return "G";
+      case DOUBLE: 
+         return "lG";
       case LONG_DOUBLE:
          return "Lg";
       default: {
