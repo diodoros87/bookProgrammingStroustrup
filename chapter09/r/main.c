@@ -243,7 +243,7 @@ int main(void) {
    if (OK == result)
       result = run_money(U_SHORT, "3333", 77.8);
    if (OK == result)
-      result = run_money(LONG_LONG);
+      result = run_money(LONG_LONG, );
    if (OK == result)
       result = run_money(INT, "5", 77.8);
    if (OK == result)

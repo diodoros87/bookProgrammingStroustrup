@@ -185,24 +185,30 @@ size_t digits_u(unsigned long long x) {
 }
 
 size_t digits_i(long long x) {
-   return x < 0 ? digits_u(-x) : digits_u(x); 
+   if (x >= 0)
+      return digits_u(x); 
+   size_t number_of_digits = 1;
+   while (x < -9) {
+      x /= 10;
+      number_of_digits++;
+   }
+   return number_of_digits;
 }
 
 size_t digits_d(const long double x) {
    return 50; 
 }
 
-char * my_itoa_i(long long x) {
+#define ALLOCATE(buffer, n) \
+(buffer) = (char *) malloc (n); \
+if ((buffer) == NULL) { \
+   LOG("%s", "out of memory: malloc() returns NULL ");  \
+}
+
+char * my_itoa_u(unsigned long long x) {
    int length = digits(x);
    char * buffer; 
-   if (x < 0) 
-      length++;
-   buffer = (char *) malloc (length + 1);
-   if (buffer == NULL) { 
-      LOG("%s", "out of memory: malloc() returns NULL ");  
-   } 
-   if (x < 0) 
-      buffer[0] = '-';
+   ALLOCATE(buffer, length + 1);
    buffer[--length] = '\0';
    do {
       buffer[--length] = x % 10;
@@ -212,15 +218,19 @@ char * my_itoa_i(long long x) {
 }
 
 char * my_itoa_i(long long x) {
+   /*if (x >= 0)
+      return my_itoa_u(x);*/
    int length = digits(x);
-   char * buffer = (char *) malloc (length + 1); 
-   if (buffer == NULL) { 
-      LOG("%s", "out of memory: malloc() returns NULL ");  
-   } 
+   char * buffer; 
+   if (x < 0)
+      length++;
+   ALLOCATE(buffer, length);
+   if (x < 0)
+      buffer[0] = '-';
    buffer[--length] = '\0';
    do {
       buffer[--length] = x % 10;
       x /= 10;
-   } while (length > 0);
+   } while (x > 9);
    return buffer;
 }
