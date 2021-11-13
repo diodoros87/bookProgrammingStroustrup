@@ -220,11 +220,11 @@ char * to_string_u(unsigned long long x) {
    int length = digits(x);
    char * buffer; 
    ALLOCATE(buffer, length + 1);
-   buffer[--length] = '\0';
+   buffer[length] = '\0';
    do {
       buffer[--length] = x % 10 + '0';
       x /= 10;
-   } while (length > 0);
+   } while (x > 0);
    return buffer;
 }
 
@@ -238,7 +238,7 @@ char * to_string_i(long long x) {
    ALLOCATE(buffer, length + 1);
    if (x < 0)
       buffer[0] = '-';
-   buffer[--length] = '\0';
+   buffer[length] = '\0';
    do {
       buffer[--length] = (-x) % 10 + '0';
       x /= 10;
@@ -249,7 +249,7 @@ char * to_string_i(long long x) {
 char * to_string_d(long double x) {
    /*if (x >= 0)
       return my_itoa_u(x);*/
-   const char *fmt = "%.6G";
+   const char *fmt = "%G";
    char * buffer; 
    int length = snprintf(NULL, 0, fmt, x);
    ALLOCATE(buffer, length + 1);

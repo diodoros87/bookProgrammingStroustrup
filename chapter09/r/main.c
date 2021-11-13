@@ -238,12 +238,17 @@ if (OK == result) { \
    free(dollars); \
 }
 
-#undef ALLOCATE
+#define LOG_MAX(TYPE, number, format) \
+format = get_format(TYPE); \
+LOG(" #TYPE #number = %s", ""); \
+print_many("", format, number); \
+LOG(" %c ", '\n')
 
 int test_money(void) { /*
    static const Type types [Types_SIZE] = { SHORT, U_SHORT, INT, U_INT, LONG, U_LONG, LONG_LONG, U_LONG_LONG, FLOAT, DOUBLE, LONG_DOUBLE };
    for (int i = 0; i < Types_SIZE; i++) */
-      //run_money(Types_SIZE[i], Money_testing); 
+      //run_money(Types_SIZE[i], Money_testing);  
+      /*
    Result_codes result = run_money(SHORT, "-5", 77.8);
    if (OK == result)
       result = run_money(U_SHORT, "33", 77.8);
@@ -265,19 +270,36 @@ int test_money(void) { /*
       result = run_money(DOUBLE, "3333.7", 77.8);
    if (OK == result)
       result = run_money(LONG_DOUBLE, "-8883333", 77.8);
-    
+    */
+   Result_codes result;
    char * max_dollars;
+   char * format;
+   LOG(" SHRT_MIN = %hd ", SHRT_MIN);
+   LOG_MAX(SHORT, SHRT_MIN, format);
    TEST_ALLOC(SHORT, max_dollars, SHRT_MIN / 110, 0);
+   LOG(" ----------SHRT_MIN / 110 = %hd ", SHRT_MIN / 110);
+   LOG_MAX(SHORT, SHRT_MIN / 110, format);
+   
    TEST_ALLOC(U_SHORT, max_dollars, USHRT_MAX / 110, 0);
+   LOG(" ----------USHRT_MAX / 110 = %hu ", USHRT_MAX / 110);
+   LOG_MAX(U_SHORT, USHRT_MAX / 110, format);
+   
    TEST_ALLOC(INT, max_dollars, INT_MIN / 110, 0);
    TEST_ALLOC(U_INT, max_dollars, UINT_MAX / 110, 0);
    TEST_ALLOC(LONG, max_dollars, LONG_MIN / 110, 0);
    TEST_ALLOC(U_LONG, max_dollars, ULONG_MAX / 110, 0);
    TEST_ALLOC(LONG_LONG, max_dollars, LLONG_MIN / 110, 0);
    TEST_ALLOC(U_LONG_LONG, max_dollars, ULLONG_MAX / 110, 0);
+   LOG(" ----------ULLONG_MAX / 110 = %llu ", ULLONG_MAX / 110);
    TEST_ALLOC(FLOAT, max_dollars, FLT_MAX  / 110, 0);
-   TEST_ALLOC(DOUBLE, max_dollars, DBL_MAX  / 110, 0);
-   TEST_ALLOC(LONG_DOUBLE, max_dollars, LDBL_MAX / 110, 0);
+   TEST_ALLOC(DOUBLE, max_dollars, DBL_MIN  * 100, 0);
+   TEST_ALLOC(LONG_DOUBLE, max_dollars, LDBL_MIN * 100, 0);
+   LOG(" ----------LDBL_MIN * 100 = %Lg ", LDBL_MIN * 100);
+   
+   LOG(" FLT_MAX  / 110 = %G ", FLT_MAX  / 110);
+   LOG_MAX(FLOAT, FLT_MAX  / 110, format);
+   LOG(" SHRT_MIN = %hd ", SHRT_MIN);
+   LOG_MAX(SHORT, SHRT_MIN, format);
    return result;
 }
 
