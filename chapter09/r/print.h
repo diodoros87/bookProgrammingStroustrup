@@ -32,5 +32,23 @@ extern int print_assert(const char *file, int line, const char * date, const cha
    FUNCTION_INFO(function_name); \
    LOG("\ninfo = %s\n exit status = %d\n", (info), (status)); \
    exit(status)
+   
+char * to_string_u(unsigned long long x);
+char * to_string_i(long long x);
+char * to_string_d(long double x);
+                  
+#define to_string(x) _Generic((x), \
+                           short int:              to_string_i, \
+                           int:                    to_string_i, \
+                           long int:               to_string_i, \
+                           long long int:          to_string_i, \
+                           unsigned short int:     to_string_u, \
+                           unsigned int:           to_string_u, \
+                           unsigned long int:      to_string_u, \
+                           unsigned long long int: to_string_u, \
+                           float:                  to_string_d, \
+                           double:                 to_string_d, \
+                           long double:            to_string_d  \
+                     )(x)                  
 
 #endif

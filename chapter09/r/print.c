@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #define CHECK_INPUT_ARG(msg, types) \
    assert_one(NULL != (msg)); \
@@ -95,14 +96,12 @@ static void case_1 (const char * format, const size_t index, va_list arg_list) {
       LOG( " %F ", va_arg( arg_list, double) );  /*  can't use va_arg(arg_list, float) because the types are promoted to double; 
       using of va_arg(arg_list, double) instead */
    }
+   else if (0 == strncmp(format, "E", index)) {
+      LOG( " %E ", va_arg( arg_list, double) );  /*  can't use va_arg(arg_list, float) because the types are promoted to double; 
+      using of va_arg(arg_list, double) instead */
+   }
    else if (0 == strncmp(format, "G", index)) {
       LOG( " %G ", va_arg( arg_list, double) );
-   }
-   else if (0 == strncmp(format, "lF", index)) {
-      LOG( " %lF ", va_arg( arg_list, double) );
-   }
-   else if (0 == strncmp(format, "lG", index)) {
-      LOG( " %lG ", va_arg( arg_list, double) );
    }
    else if (0 == strncmp(format, "s", index)) {
       LOG( " %s ", va_arg( arg_list, char*) );
@@ -162,7 +161,7 @@ Expression:\t\n%s\n", msg);
    return 0; 
 }
 
-#define digits(x) _Generic((x)), \
+#define digits(x) _Generic((x), \
                            short int:              digits_i, \
                            int:                    digits_i, \
                            long int:               digits_i, \
@@ -170,10 +169,11 @@ Expression:\t\n%s\n", msg);
                            unsigned short int:     digits_u, \
                            unsigned int:           digits_u, \
                            unsigned long int:      digits_u, \
-                           unsigned long long int: digits_u  \
-                           float:                  digits_d  \
-                           double:                 digits_d  \
-                           long double:            digits_d
+                           unsigned long long int: digits_u, \
+                           float:                  digits_d, \
+                           double:                 digits_d, \
+                           long double:            digits_d  \
+                  )(x)
                            
 size_t digits_u(unsigned long long x) {
    size_t number_of_digits = 1;
@@ -195,8 +195,19 @@ size_t digits_i(long long x) {
    return number_of_digits;
 }
 
-size_t digits_d(const long double x) {
-   return 50; 
+const size_t precision = 6;
+
+size_t digits_d(long double x) {
+   long double integral, fractional;
+   fractional = modf(x, &integral);
+   if (integral < 0)
+      integral = -integral;
+   size_t number_of_digits = 1;
+   while (x > 9) {
+      x /= 10;
+      number_of_digits++;
+   }
+   return number_of_digits + 1 + precision; /* number_of_digits + dot + precision  */ 
 }
 
 #define ALLOCATE(buffer, n) \
@@ -205,32 +216,45 @@ if ((buffer) == NULL) { \
    LOG("%s", "out of memory: malloc() returns NULL ");  \
 }
 
-char * my_itoa_u(unsigned long long x) {
+char * to_string_u(unsigned long long x) {
    int length = digits(x);
    char * buffer; 
    ALLOCATE(buffer, length + 1);
    buffer[--length] = '\0';
    do {
-      buffer[--length] = x % 10;
+      buffer[--length] = x % 10 + '0';
       x /= 10;
    } while (length > 0);
    return buffer;
 }
 
-char * my_itoa_i(long long x) {
-   /*if (x >= 0)
-      return my_itoa_u(x);*/
+char * to_string_i(long long x) {
+   if (x >= 0)
+      return to_string_u(x);
    int length = digits(x);
    char * buffer; 
    if (x < 0)
       length++;
-   ALLOCATE(buffer, length);
+   ALLOCATE(buffer, length + 1);
    if (x < 0)
       buffer[0] = '-';
    buffer[--length] = '\0';
    do {
-      buffer[--length] = x % 10;
+      buffer[--length] = (-x) % 10 + '0';
       x /= 10;
-   } while (x > 9);
+   } while (x < 0);
    return buffer;
 }
+
+char * to_string_d(long double x) {
+   /*if (x >= 0)
+      return my_itoa_u(x);*/
+   const char *fmt = "%.6G";
+   char * buffer; 
+   int length = snprintf(NULL, 0, fmt, x);
+   ALLOCATE(buffer, length + 1);
+   snprintf(buffer, sizeof buffer, fmt, x);
+   return buffer;
+}
+
+#undef ALLOCATE

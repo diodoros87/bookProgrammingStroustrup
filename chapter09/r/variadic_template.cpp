@@ -60,7 +60,7 @@ void Money<T>::calculate(const string & dollars, const long double cents /* = 0 
 
 template <typename T>
 Money<T>::Money(const string & dollars, const long double cents) {
-   cerr << "\n C++ " << __cplusplus;
+   cerr << "\n C++ " << __cplusplus << " type = " << TYPE_NAME << '\n';
    LOG_FUNC(__func__);
    LOG_ARG(dollars);
    LOG_ARG(cents);
@@ -70,7 +70,7 @@ Money<T>::Money(const string & dollars, const long double cents) {
 
 template <typename T>
 Money<T>::Money(const string & dollars) {
-   cerr << "\n C++ " << __cplusplus;
+   cerr << "\n C++ " << __cplusplus << " type = " << TYPE_NAME << '\n';
    LOG_FUNC(__func__);
    LOG_ARG(dollars);
    calculate(dollars);
@@ -79,7 +79,7 @@ Money<T>::Money(const string & dollars) {
 
 template <typename T>
 Money<T> Money<T>::create(const string & dollars) {   
-   cerr << "\n C++ "  << __cplusplus;
+   cerr << "\n C++ " << __cplusplus << " type = " << TYPE_NAME << '\n';
    LOG_FUNC(__func__);
    LOG_ARG(dollars);
    return Money<T>(dollars);
@@ -87,7 +87,7 @@ Money<T> Money<T>::create(const string & dollars) {
 
 template <typename T>
 Money<T> Money<T>::create(const string & dollars, const long double cents) {
-   cerr << "\n C++ " << __cplusplus;
+   cerr << "\n C++ " << __cplusplus << " type = " << TYPE_NAME << '\n';
    LOG_FUNC(__func__);
    LOG_ARG(dollars);
    LOG_ARG(cents);
@@ -96,13 +96,13 @@ Money<T> Money<T>::create(const string & dollars, const long double cents) {
 
 template <typename T>
 Money<T>::~Money() {
-   cerr << "\n C++ " << __cplusplus;
+   cerr << "\n C++ " << __cplusplus << " type = " << TYPE_NAME << '\n';
    LOG_FUNC(__func__);
 }
 
 template <typename T>
 T Money<T>::get_amount() const { 
-   std::cerr << "\n C++ " << __cplusplus;
+   cerr << "\n C++ " << __cplusplus << " type = " << TYPE_NAME << '\n';
    LOG_FUNC(__func__);
    return amount;
 }

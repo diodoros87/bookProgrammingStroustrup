@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
+#include<float.h>
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
@@ -99,9 +100,8 @@ char * get_format(const Number type) {
       case U_LONG_LONG: 
          return "llu";
       case FLOAT:
+      case DOUBLE:
          return "G";
-      case DOUBLE: 
-         return "lG";
       case LONG_DOUBLE:
          return "Lg";
       default: {
@@ -111,30 +111,30 @@ char * get_format(const Number type) {
    } 
 }
 
-int print_union_member(const Number type, union Number_pointer_union n_union) {
+int print_union_member(const Number type, union Number_pointer_union n_union, const char * format) {
    switch(type) {
       case SHORT: 
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.s);
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.s);
       case U_SHORT: 
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.us);
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.us);
       case INT: 
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.i);
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.i);
       case U_INT: 
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.ui);
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.ui);
       case LONG: 
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.l);
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.l);
       case U_LONG: 
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.ul);
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.ul);
       case LONG_LONG: 
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.ll);
-      case U_LONG_LONG: 
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.ull);
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.ll);
+      case U_LONG_LONG:  
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.ull);
       case FLOAT:
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.f);
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.f);
       case DOUBLE: 
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.d);
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.d);
       case LONG_DOUBLE:
-         return print_many("Value of n_union->type is: ", get_format(type), n_union.ld);
+         return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.ld);
       default: {
          LOG(" improper type = %d", type);
          LOG_EXIT(__FUNCTION__, "", EXIT_FAILURE);
@@ -146,23 +146,8 @@ int print_union_member(const Number type, union Number_pointer_union n_union) {
 LOG("\nAddress of money is: %p", &money); \
 LOG("\nAddress pointed by money is: %p", money); \
 LOG("\nAddress of n_union is: %p\n", &n_union); \
-print_union_member(type, n_union); \
+print_union_member(type, n_union, format); \
 LOG("%c", '\n')
-
-#ifdef ALLOC
-#define ALLOCATE(buffer, source) \
-(buffer) = (char *) malloc (strlen(source) + 1); \
-if ((buffer) == NULL) { \
-   LOG("%s", "out of memory: malloc() returns NULL ");  \
-} \
-else { \
-   strcpy((buffer), (source)); \
-   LOG("allocate: %s\n", buffer); \
-} \
-return buffer
-#endif
-
-#undef ALLOCATE
 
 typedef int (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
                                   union Number_pointer_union * n_union, const char * ,... );
@@ -181,19 +166,19 @@ int run_money(const Number type, const char * dollars, const long double cents) 
    Money_type money = NULL;
    union Number_pointer_union n_union;
    const char * format = get_format(type);
-   Result_codes result = p_function(&money, INIT_1, type, &n_union, "20");
+   Result_codes result = p_function(&money, INIT_1, type, &n_union, dollars);
    if (result == OK) {
       LOGS_MONEY(money, n_union, format, type);
       money = NULL;
-      result = p_function(&money, CREATE_1, type, &n_union, "9");
+      result = p_function(&money, CREATE_1, type, &n_union, dollars);
       if (result == OK) {
          LOGS_MONEY(money, n_union, format, type);
          money = NULL;
-         result = p_function(&money, INIT_2, type, &n_union, "0", (long double)(8.0));  
+         result = p_function(&money, INIT_2, type, &n_union, dollars, cents);  
          if (result == OK) {
             LOGS_MONEY(money, n_union, format, type);
             money = NULL;
-            result = p_function(&money, CREATE_2, type, &n_union, "0", (long double)(-5.0)); 
+            result = p_function(&money, CREATE_2, type, &n_union, dollars, cents); 
             if (result == OK) {
                LOGS_MONEY(money, n_union, format, type);
 #ifdef MANUAL_DLL_LOAD
@@ -229,6 +214,74 @@ void test_print_many(void) {
    print_many(" 3 test of print_many", " p  c hd hu F G F G  u  lu ld llu lld ", nul, 'i', (short)7, (unsigned short)USHRT_MAX, 6.0f, 7.0f,
                            77.8, 66.6, (unsigned)99, (unsigned long)ULONG_MAX, (long)LONG_MAX, (unsigned long long)ULLONG_MAX, (long long)LLONG_MAX);
 }
+/*
+typedef struct {
+   Type type;
+   char * dollars;
+   long double cents;
+} Money_testing;
+
+void init(Money_testing * test, const Type type, ) {
+   if (test == NULL) {
+      LOG_EXIT(__FUNCTION__, "input Money_testing is NULL ", EXIT_FAILURE);   
+   }
+      
+}
+*/
+
+#define Types_SIZE 11
+
+#define TEST_ALLOC(TYPE, dollars, number, cents) \
+if (OK == result) { \
+   dollars = to_string((number)); \
+   result = run_money(TYPE, dollars, cents); \
+   free(dollars); \
+}
+
+#undef ALLOCATE
+
+int test_money(void) { /*
+   static const Type types [Types_SIZE] = { SHORT, U_SHORT, INT, U_INT, LONG, U_LONG, LONG_LONG, U_LONG_LONG, FLOAT, DOUBLE, LONG_DOUBLE };
+   for (int i = 0; i < Types_SIZE; i++) */
+      //run_money(Types_SIZE[i], Money_testing); 
+   Result_codes result = run_money(SHORT, "-5", 77.8);
+   if (OK == result)
+      result = run_money(U_SHORT, "33", 77.8);
+   if (OK == result)
+      result = run_money(INT, "5", 77.8);
+   if (OK == result)
+      result = run_money(U_INT, "54", 77.8);
+   if (OK == result)
+      result = run_money(LONG, "756", 77.8);
+   if (OK == result)
+      result = run_money(U_LONG, "56", 77.8);
+   if (OK == result)
+      result = run_money(LONG_LONG, "75776", -77.8);
+   if (OK == result)
+      result = run_money(U_LONG_LONG, "777756", -7.8);
+   if (OK == result)
+      result = run_money(FLOAT, "3333.88", 77.8);
+   if (OK == result)
+      result = run_money(DOUBLE, "3333.7", 77.8);
+   if (OK == result)
+      result = run_money(LONG_DOUBLE, "-8883333", 77.8);
+    
+   char * max_dollars;
+   TEST_ALLOC(SHORT, max_dollars, SHRT_MIN / 110, 0);
+   TEST_ALLOC(U_SHORT, max_dollars, USHRT_MAX / 110, 0);
+   TEST_ALLOC(INT, max_dollars, INT_MIN / 110, 0);
+   TEST_ALLOC(U_INT, max_dollars, UINT_MAX / 110, 0);
+   TEST_ALLOC(LONG, max_dollars, LONG_MIN / 110, 0);
+   TEST_ALLOC(U_LONG, max_dollars, ULONG_MAX / 110, 0);
+   TEST_ALLOC(LONG_LONG, max_dollars, LLONG_MIN / 110, 0);
+   TEST_ALLOC(U_LONG_LONG, max_dollars, ULLONG_MAX / 110, 0);
+   TEST_ALLOC(FLOAT, max_dollars, FLT_MAX  / 110, 0);
+   TEST_ALLOC(DOUBLE, max_dollars, DBL_MAX  / 110, 0);
+   TEST_ALLOC(LONG_DOUBLE, max_dollars, LDBL_MAX / 110, 0);
+   return result;
+}
+
+#undef TEST_ALLOC
 
 int main(void) {
    FUNCTION_INFO(__FUNCTION__);
@@ -239,28 +292,6 @@ int main(void) {
    load_demo(&demo_functions);
    Result_codes result = run_demo(&demo_functions);
    if (OK == result)
-      result = run_money(SHORT, "5", 77.8);
-   if (OK == result)
-      result = run_money(U_SHORT, "3333", 77.8);
-   if (OK == result)
-      result = run_money(LONG_LONG, );
-   if (OK == result)
-      result = run_money(INT, "5", 77.8);
-   if (OK == result)
-      result = run_money(LONG_DOUBLE, "3333", 77.8);
-   if (OK == result)
-      result = run_money(LONG_LONG);
-   if (OK == result)
-      result = run_money(INT, "5", 77.8);
-   if (OK == result)
-      result = run_money(LONG_DOUBLE, "3333", 77.8);
-   if (OK == result)
-      result = run_money(LONG_LONG);
-   if (OK == result)
-      result = run_money(INT, "5", 77.8);
-   if (OK == result)
-      result = run_money(LONG_DOUBLE, "3333", 77.8);
-   if (OK == result)
-      result = run_money(LONG_LONG);
+      result = test_money();
    return result;
 }
