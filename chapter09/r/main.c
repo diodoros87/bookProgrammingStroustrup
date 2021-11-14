@@ -4,7 +4,6 @@
 #include "print.h"
 #include "connector.h"
 
-#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -240,7 +239,7 @@ if (OK == result) { \
 
 #define LOG_MAX(TYPE, number, format) \
 format = get_format(TYPE); \
-LOG(" #TYPE #number = %s", ""); \
+LOG(#TYPE " = " #number " = %s", ""); \
 print_many("", format, number); \
 LOG(" %c ", '\n')
 
@@ -300,6 +299,9 @@ int test_money(void) { /*
    LOG_MAX(FLOAT, FLT_MAX  / 110, format);
    LOG(" SHRT_MIN = %hd ", SHRT_MIN);
    LOG_MAX(SHORT, SHRT_MIN, format);
+   LOG_MAX(LONG_LONG, LLONG_MAX, format);
+   LOG_MAX(LONG_LONG, LLONG_MIN, format);
+   LOG("%s\n", to_string(LLONG_MIN));
    return result;
 }
 

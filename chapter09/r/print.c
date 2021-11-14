@@ -4,6 +4,7 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
+#include <limits.h>
 
 #define CHECK_INPUT_ARG(msg, types) \
    assert_one(NULL != (msg)); \
@@ -132,6 +133,15 @@ static void case_2 (const char * format, const size_t index, va_list arg_list) {
    else if (0 == strncmp(format, "Lg", index)) {
       LOG( " %Lg ", va_arg( arg_list, long double) );
    }
+   else if (0 == strncmp(format, "LG", index)) {
+      LOG( " %LG ", va_arg( arg_list, long double) );
+   }
+   else if (0 == strncmp(format, "Le", index)) {
+      LOG( " %Le ", va_arg( arg_list, long double) );
+   }
+   else if (0 == strncmp(format, "LE", index)) {
+      LOG( " %LE ", va_arg( arg_list, long double) );
+   }
    else 
       print_error( format, index);
 } 
@@ -176,6 +186,8 @@ Expression:\t\n%s\n", msg);
                   )(x)
                            
 size_t digits_u(unsigned long long x) {
+   LOG_FUNC(__FUNCTION__);
+   LOG(" ++++++++++   x = %llu\n", x);
    size_t number_of_digits = 1;
    while (x > 9) {
       x /= 10;
@@ -185,6 +197,8 @@ size_t digits_u(unsigned long long x) {
 }
 
 size_t digits_i(long long x) {
+   LOG_FUNC(__FUNCTION__);
+   LOG(" ++++++++++   x = %lld\n", x);
    if (x >= 0)
       return digits_u(x); 
    size_t number_of_digits = 1;
@@ -198,6 +212,8 @@ size_t digits_i(long long x) {
 const size_t precision = 6;
 
 size_t digits_d(long double x) {
+   LOG_FUNC(__FUNCTION__);
+   LOG(" ++++++++++   x = %LG\n", x);
    long double integral, fractional;
    fractional = modf(x, &integral);
    if (integral < 0)
@@ -216,19 +232,21 @@ if ((buffer) == NULL) { \
    LOG("%s", "out of memory: malloc() returns NULL ");  \
 }
 
-char * to_string_u(unsigned long long x) {
+char * to_string_u(const unsigned long long x) {
    int length = digits(x);
    char * buffer; 
    ALLOCATE(buffer, length + 1);
    buffer[length] = '\0';
+   unsigned long long temp = x;
    do {
-      buffer[--length] = x % 10 + '0';
-      x /= 10;
-   } while (x > 0);
+      buffer[--length] = temp % 10 + '0';
+      temp /= 10;
+   } while (temp > 0);
+   assert_many(strtoull(buffer, NULL, 10) == x, "assert failed: buffer = \'", "s s llu s llu", buffer, "\' and ", strtoull(buffer, NULL, 10), " != ", x);
    return buffer;
 }
 
-char * to_string_i(long long x) {
+char * to_string_i(const long long x) {
    if (x >= 0)
       return to_string_u(x);
    int length = digits(x);
@@ -238,22 +256,28 @@ char * to_string_i(long long x) {
    ALLOCATE(buffer, length + 1);
    if (x < 0)
       buffer[0] = '-';
-   buffer[length] = '\0';
-   do {
-      buffer[--length] = (-x) % 10 + '0';
-      x /= 10;
-   } while (x < 0);
+   unsigned long long temp;
+   if (LLONG_MIN == x)
+      temp = -(x + 1) + (unsigned long long)1; /* LLONG_MIN == - LLONG_MAX - 1    */
+   else
+      temp = -x;
+   strcpy(buffer + 1, to_string_u(temp));
+   assert_many(atoll(buffer) == x, "assert failed: buffer = \'", "s s lld s lld", buffer, "\' and ", atoll(buffer), " != ", x);
    return buffer;
 }
 
-char * to_string_d(long double x) {
-   /*if (x >= 0)
-      return my_itoa_u(x);*/
-   const char *fmt = "%G";
+char * to_string_d(const long double x) {
+   const char *fmt = "%LG";
    char * buffer; 
    int length = snprintf(NULL, 0, fmt, x);
+   LOG(" ++++++++++   length = %d\n", length);
    ALLOCATE(buffer, length + 1);
-   snprintf(buffer, sizeof buffer, fmt, x);
+   snprintf(buffer, length + 1, fmt, x);/*
+   LOG_FUNC(__FUNCTION__);
+   LOG(" ++++++++++   buffer = %s\n", buffer);
+   LOG(" ++++++++++   x = %Lg\n", x);
+   LOG(" ++++++++++   strtold(buffer, NULL) = %Lg\n", strtold(buffer, NULL));
+   assert_many(strtold(buffer, NULL) == x, "assert failed: \'", "Lg s Lg c", strtold(buffer, NULL), "\' != \'", x, '\'');*/
    return buffer;
 }
 

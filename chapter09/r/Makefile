@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
+CPPFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -DMANUAL_DLL_LOAD
 
 CC = gcc
-CFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -march=k8  
-#  -fcompare-debug-second -Wfatal-errors -DMANUAL_DLL_LOAD
+CFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -DMANUAL_DLL_LOAD 
+#  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
 LPATH=-L.
 LIBS=-ldemo
@@ -20,10 +20,10 @@ c_main: c_main.o libconnector.so shared_lib_open.o print.o
 c_main.o: connector.h main.c shared_lib_open.h print.h
 	$(CC) $(CFLAGS) -c main.c -o c_main.o
 	
-shared_lib_open.o:
+shared_lib_open.o: shared_lib_open.h shared_lib_open.c
 	$(CC) $(CFLAGS) -c shared_lib_open.c -o shared_lib_open.o
 	
-print.o:
+print.o: print.h print.c
 	$(CC) $(CFLAGS) -c print.c
 
 main_cpp: main_cpp.o libdemo.so
