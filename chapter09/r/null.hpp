@@ -14,7 +14,7 @@ template <class Pointer, std::enable_if_t<std::is_pointer<Pointer>::value
                                           || std::is_array<Pointer>::value, bool> = true> 
 inline Result_codes check_pointer(Pointer pointer, const string & function, const string & message) {
    if (nullptr == pointer) {
-      cerr  << function << " : " << message <<  " = " << pointer << '\n'; 
+      cerr  << function << " : " << message <<  " = " << reinterpret_cast<unsigned long long>(pointer) << '\n'; 
       return INVALID_ARG;
    }
    return OK;

@@ -261,7 +261,9 @@ char * to_string_i(const long long x) {
       temp = -(x + 1) + (unsigned long long)1; /* LLONG_MIN == - LLONG_MAX - 1    */
    else
       temp = -x;
-   strcpy(buffer + 1, to_string_u(temp));
+   char * digits_string = to_string_u(temp);
+   strcpy(buffer + 1, digits_string);
+   free(digits_string);
    assert_many(atoll(buffer) == x, "assert failed: buffer = \'", "s s lld s lld", buffer, "\' and ", atoll(buffer), " != ", x);
    return buffer;
 }

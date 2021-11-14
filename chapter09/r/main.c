@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
-#include<float.h>
+#include <float.h>
+#include <setjmp.h>
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
@@ -16,6 +17,8 @@
 #endif
 
 #define LIB_CONNECTOR_SO "libconnector.so"
+
+jmp_buf jmp_buffer;
 
 void handle_terminate(void) { 
    LOG("%s", "handler called - must've been some exception ?!\n");
@@ -47,7 +50,7 @@ void load_demo(Demo_functions * demo_functions) {
 #endif
 }
 
-int run_demo(const Demo_functions * demo_functions) { 
+Result_codes run_demo(const Demo_functions * demo_functions) { 
    if (! demo_functions) {
       LOG_EXIT(__FUNCTION__, "demo_functions is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
    }
@@ -105,7 +108,7 @@ char * get_format(const Number type) {
          return "Lg";
       default: {
          LOG(" improper type = %d", type);
-         LOG_EXIT(__FUNCTION__, "", EXIT_FAILURE);
+         return INVALID_ARG;
       }
    } 
 }
@@ -136,7 +139,7 @@ int print_union_member(const Number type, union Number_pointer_union n_union, co
          return print_many("Value of n_union->type is: ", format ? format : get_format(type), n_union.ld);
       default: {
          LOG(" improper type = %d", type);
-         LOG_EXIT(__FUNCTION__, "", EXIT_FAILURE);
+         return INVALID_ARG;
       }
    } 
 }
@@ -148,13 +151,13 @@ LOG("\nAddress of n_union is: %p\n", &n_union); \
 print_union_member(type, n_union, format); \
 LOG("%c", '\n')
 
-typedef int (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
+typedef Result_codes (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
                                   union Number_pointer_union * n_union, const char * ,... );
 
-int run_money(const Number type, const char * dollars, const long double cents) {
+Result_codes run_money(const Number type, const char * dollars, const long double cents) {
    if (type < SHORT || type > LONG_DOUBLE || ! dollars) {
-      LOG(" type = %d \t dollars = %p", type, dollars);
-      LOG_EXIT(__FUNCTION__, "invalid input argument(s)", EXIT_FAILURE);
+      LOG(" type = %d \t dollars = %p\n", type, dollars);
+      return INVALID_ARG;
    }
 #ifdef MANUAL_DLL_LOAD
    void* handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
@@ -182,8 +185,7 @@ int run_money(const Number type, const char * dollars, const long double cents) 
                LOGS_MONEY(money, n_union, format, type);
 #ifdef MANUAL_DLL_LOAD
                if (OK == result) {
-                  result = close_handle(&handle); /*
-                  free(format); */
+                  result = close_handle(&handle); 
                   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
                   return result;
                }
@@ -194,8 +196,7 @@ int run_money(const Number type, const char * dollars, const long double cents) 
    }
 #ifdef MANUAL_DLL_LOAD
    close_handle(&handle);
-#endif /*
-   free(format);*/
+#endif 
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }
@@ -243,7 +244,8 @@ LOG(#TYPE " = " #number " = %s", ""); \
 print_many("", format, number); \
 LOG(" %c ", '\n')
 
-int test_money(void) { /*
+
+Result_codes test_money(void) { /*
    static const Type types [Types_SIZE] = { SHORT, U_SHORT, INT, U_INT, LONG, U_LONG, LONG_LONG, U_LONG_LONG, FLOAT, DOUBLE, LONG_DOUBLE };
    for (int i = 0; i < Types_SIZE; i++) */
       //run_money(Types_SIZE[i], Money_testing);  
@@ -276,11 +278,9 @@ int test_money(void) { /*
    LOG(" SHRT_MIN = %hd ", SHRT_MIN);
    LOG_MAX(SHORT, SHRT_MIN, format);
    TEST_ALLOC(SHORT, max_dollars, SHRT_MIN / 110, 0);
-   LOG(" ----------SHRT_MIN / 110 = %hd ", SHRT_MIN / 110);
    LOG_MAX(SHORT, SHRT_MIN / 110, format);
    
    TEST_ALLOC(U_SHORT, max_dollars, USHRT_MAX / 110, 0);
-   LOG(" ----------USHRT_MAX / 110 = %hu ", USHRT_MAX / 110);
    LOG_MAX(U_SHORT, USHRT_MAX / 110, format);
    
    TEST_ALLOC(INT, max_dollars, INT_MIN / 110, 0);
@@ -289,19 +289,17 @@ int test_money(void) { /*
    TEST_ALLOC(U_LONG, max_dollars, ULONG_MAX / 110, 0);
    TEST_ALLOC(LONG_LONG, max_dollars, LLONG_MIN / 110, 0);
    TEST_ALLOC(U_LONG_LONG, max_dollars, ULLONG_MAX / 110, 0);
-   LOG(" ----------ULLONG_MAX / 110 = %llu ", ULLONG_MAX / 110);
    TEST_ALLOC(FLOAT, max_dollars, FLT_MAX  / 110, 0);
    TEST_ALLOC(DOUBLE, max_dollars, DBL_MIN  * 100, 0);
    TEST_ALLOC(LONG_DOUBLE, max_dollars, LDBL_MIN * 100, 0);
-   LOG(" ----------LDBL_MIN * 100 = %Lg ", LDBL_MIN * 100);
    
-   LOG(" FLT_MAX  / 110 = %G ", FLT_MAX  / 110);
    LOG_MAX(FLOAT, FLT_MAX  / 110, format);
-   LOG(" SHRT_MIN = %hd ", SHRT_MIN);
    LOG_MAX(SHORT, SHRT_MIN, format);
    LOG_MAX(LONG_LONG, LLONG_MAX, format);
    LOG_MAX(LONG_LONG, LLONG_MIN, format);
-   LOG("%s\n", to_string(LLONG_MIN));
+   char * number_string = to_string(LLONG_MIN);
+   LOG("%s\n", number_string);
+   free(number_string);
    return result;
 }
 

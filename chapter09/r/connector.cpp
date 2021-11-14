@@ -51,6 +51,8 @@ template <class Type, typename Function, typename... Args>
 Result_codes call_function(Money_type * money_ptr, Type * const type_ptr, Function && func, Args &&... args) {
    if (OK != check_pointer_1_1(money_ptr, __func__, " Error money pointer"))
       return INVALID_ARG;
+   if (OK != check_pointer(type_ptr, __func__, string(" Error pointer ") + typeid(Type).name()))
+      return INVALID_ARG;
    try {
       Money<Type> money = func(std::forward<Args>(args)...);
       *money_ptr = reinterpret_cast<Money<Type> *>(&money);
@@ -64,63 +66,50 @@ Result_codes call_function(Money_type * money_ptr, Type * const type_ptr, Functi
       out_of_range &e = const_cast<out_of_range &>(const_e);
       return get_error_code(reinterpret_cast<out_of_range *>(&e));
    }
-   //Money<Type> * money = reinterpret_cast<Money<Type> *>(malloc(sizeof(Money<Type>))) ;
-   //*money = func(dollars);
-   //*money_ptr = reinterpret_cast<Money_type>(& money);
-   //free(money);
    return OK;
 } 
 
 template <class Type, class ... Args>
 //template <class Type>
 Result_codes call(Money_type * money_ptr, Type * const type_ptr, const Money_functions function, Args &&... args) {
-//, va_list arg_list) {
-   //if (OK != validate_pointers(money_ptr, dollars))
-   //   return INVALID_ARG;
-   
-   //va_list arg_list;
-   //va_start( arg_list, dollars );
+   if (OK != check_pointer_1_1(money_ptr, __func__, " Error money pointer"))
+      return INVALID_ARG;
+   if (OK != check_pointer(type_ptr, __func__, string(" Error pointer ") + typeid(Type).name()))
+      return INVALID_ARG;
+
    Result_codes result = UNRECOGNIZED_ERROR;
-   //Money<int> * money = reinterpret_cast<Money<int> *>(malloc(sizeof(Money<int>))) ;
    switch(function) {
       case INIT_1: 
-         //result = call<int, Constructor<int, Money>()>(money_ptr, Constructor<int, Money>(), dollars);
          result = call_function<Type>(money_ptr, type_ptr, Constructor<Type, Money>(), std::forward<Args>(args)...);
          break;
       case CREATE_1: 
          result = call_function<Type>(money_ptr, type_ptr, Creation<Type>(), std::forward<Args>(args)...);
          break;
-      case INIT_2: // <Type, Constructor<Type, Money>>
+      case INIT_2: 
          result = call_function<Type>(money_ptr, type_ptr, Constructor<Type, Money>(), std::forward<Args>(args)...);
          break;
-      case CREATE_2: // call<Type, Creation<Type>>
+      case CREATE_2: 
          result = call_function<Type>(money_ptr, type_ptr, Creation<Type>(), std::forward<Args>(args)...);
          break;
       default:
          result = INVALID_ARG;
          cerr << "Unrecognized function type = " << function << '\n';
    }
-   //*money_ptr = reinterpret_cast<void*>(money);
-   //free(money);
-   //va_end(arg_list);
    return result;
 } 
 
-
-//template <class Type, class Function, typename... Args, std::enable_if_t<std::is_function<Function>::value, bool> = true> 
-//template <class Type, class ... Args>
 template <typename... Args>
 Result_codes call_1(Money_type * money_ptr, const Number type, union Number_pointer_union * const n_union,
                   const Money_functions function, Args &&... args) {
-   //if (OK != validate_pointers(money_ptr, dollars))
-   //   return INVALID_ARG;
+   if (OK != check_pointer_1_1(money_ptr, __func__, " Error money pointer"))
+      return INVALID_ARG;
+   if (OK != check_pointer(n_union, __func__, " Error union pointer "))
+      return INVALID_ARG;
    
    Result_codes result = UNRECOGNIZED_ERROR;
-   //Money<int> * money = reinterpret_cast<Money<int> *>(malloc(sizeof(Money<int>))) ;
    switch(type) {
       case SHORT: 
          result = call<short, Args...>(money_ptr,  &(n_union->s), function, std::forward<Args>(args)...);
-         //result = call<short>(money_ptr, function, &(n_union.s), func, std::forward<Args>(args)...;
          break;
       case U_SHORT: 
          result = call<unsigned short>(money_ptr, &(n_union->us), function, std::forward<Args>(args)...);
@@ -168,68 +157,38 @@ void set_handler(void (*func)(void)) {
 //#ifdef MANUAL_DLL_LOAD
 Result_codes Money_type__function(Money_type * money_ptr, const Money_functions function, const Number type, 
 union Number_pointer_union * const n_union, const char * dollars, ... ) {
+   if (OK != check_pointer(dollars, __func__, " Error dollars"))
+      return INVALID_ARG;
+   if (OK != check_pointer_1_1(money_ptr, __func__, " Error money pointer"))
+      return INVALID_ARG;
+   if (OK != check_pointer(n_union, __func__, " Error n_union"))
+      return INVALID_ARG;
+   
    va_list arg_list;
    va_start( arg_list, dollars );
    long double arg_cents;
    Result_codes result = UNRECOGNIZED_ERROR;
-   //Money<int> * money = reinterpret_cast<Money<int> *>(malloc(sizeof(Money<int>))) ;
    switch(function) {
       case INIT_1: 
-         //result = call<int, Constructor<int, Money>()>(money_ptr, Constructor<int, Money>(), dollars);
-         //result = call_1<const char *>(money_ptr, type, n_union, function, std::move(dollars));
          result = call_1(money_ptr, type, n_union, function, dollars);
          break;
       case CREATE_1: 
-         //result = call_1<const char *>(money_ptr, type, n_union, function, std::move(dollars));
          result = call_1(money_ptr, type, n_union, function, dollars);
          break;
       case INIT_2: 
-         //arg_cents = va_arg(arg_list, long double);
          result = call_1(money_ptr, type, n_union, function, dollars, va_arg(arg_list, long double));
          break;
       case CREATE_2:
-         //arg_cents = va_arg(arg_list, long double);
          result = call_1(money_ptr, type, n_union, function, dollars, va_arg(arg_list, long double));
          break;
       default:
          result = INVALID_ARG;
          cerr << "Unrecognized function type = " << function << '\n';
    }
-   //*money_ptr = reinterpret_cast<void*>(money);
-   //free(money);
    va_end(arg_list);
    return result;
 }
-//#endif
-/*
-Result_codes Money_type__init_1(Money_type * money_ptr, const char * dollars) {
-   if (OK != validate_pointers(money_ptr, dollars))
-      return INVALID_ARG;
-   Result_codes result = call<float>(money_ptr, Constructor<float, Money>(), dollars);
-   return result;
-}
 
-Result_codes Money_type__create_1(Money_type * money_ptr, const char * dollars) {
-   if (OK != validate_pointers(money_ptr, dollars))
-      return INVALID_ARG;
-   Result_codes result =  call<float>(money_ptr, Creation<float>(), dollars);
-   return result;
-}
-
-Result_codes Money_type__init_2(Money_type * money_ptr, const char * dollars, const long double cents) {
-   if (OK != validate_pointers(money_ptr, dollars))
-      return INVALID_ARG;
-   Result_codes result = call<float>(money_ptr, Constructor<float, Money>(), dollars, cents);
-   return result;
-}
-
-Result_codes Money_type__create_2(Money_type * money_ptr, const char * dollars, const long double cents) {
-   if (OK != validate_pointers(money_ptr, dollars))
-      return INVALID_ARG;
-   Result_codes result = call<float>(money_ptr, Creation<float>(), dollars, cents);
-   return result;
-}
-*/
 #ifdef __cplusplus
 static Demo * demo_instance = nullptr;
 #endif
