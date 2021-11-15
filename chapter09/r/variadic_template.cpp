@@ -22,13 +22,9 @@ const string Money<T>::TYPE_NAME = typeid(T).name();
 template <typename T>
 const regex Money<T>::REGEX       = Money<T>::set_regex() ;
 
-template<typename... Ts>
-using TestType = decltype(test(std::declval<Ts>()...))(Ts...);
-
 template <typename Smaller, typename Greater, class Function, class... Args, std::enable_if_t<std::is_function<Function>::value, bool> = true> 
 Smaller calculate_range(Function && func, Args &&... args) {
    Greater result = func(std::forward<Args>(args)...);
-   //Greater result = func(dollars);
    if (is_overflow<Smaller, Greater>(result))
       throw out_of_range("amount = " + std::to_string(result) + " is overflow for type " + typeid(Smaller).name());
    return static_cast<Smaller>(result);

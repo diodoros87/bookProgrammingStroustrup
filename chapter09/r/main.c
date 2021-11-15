@@ -10,6 +10,7 @@
 #include <string.h>
 #include <float.h>
 #include <setjmp.h>
+#include <stdnoreturn.h>
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
@@ -18,7 +19,7 @@
 
 #define LIB_CONNECTOR_SO "libconnector.so"
 
-jmp_buf jmp_buffer;
+jmp_buf JMP_BUF;
 
 void handle_terminate(void) { 
    LOG("%s", "handler called - must've been some exception ?!\n");
@@ -31,7 +32,9 @@ static void at_exit (void) {
 
 void load_demo(Demo_functions * demo_functions) {
    if (! demo_functions) {
-      LOG_EXIT(__FUNCTION__, "demo_functions is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
+      FUNCTION_INFO(__FUNCTION__);
+      LOG("%s\n", "demo_functions is NULL ");
+      longjmp(JMP_BUF, 1);
    }
 #ifdef MANUAL_DLL_LOAD
    LOG("%s", "\nMANUAL DLL LOAD\n");
@@ -203,7 +206,7 @@ Result_codes run_money(const Number type, const char * dollars, const long doubl
 
 #undef LOGS_MONEY
 
-void test_print_many(void) {
+_Noreturn void test_print_many(void) {
    float f = 6.0f;
    LOG("\nAddress pointed by money is: %p\n", &f);            /* mandatory casting when using va_list function  */
    print_many("1 test of print_many", "p G Lg o  rr7 d G s d s", (float*)(&f), f, (long double)(-5.0), 399, 6.0, "QQQQQQ", 7, "rrrr");
@@ -213,23 +216,8 @@ void test_print_many(void) {
    void * nul = &i;
    print_many(" 3 test of print_many", " p  c hd hu F G F G  u  lu ld llu lld ", nul, 'i', (short)7, (unsigned short)USHRT_MAX, 6.0f, 7.0f,
                            77.8, 66.6, (unsigned)99, (unsigned long)ULONG_MAX, (long)LONG_MAX, (unsigned long long)ULLONG_MAX, (long long)LLONG_MAX);
+   longjmp(JMP_BUF, 1);
 }
-/*
-typedef struct {
-   Type type;
-   char * dollars;
-   long double cents;
-} Money_testing;
-
-void init(Money_testing * test, const Type type, ) {
-   if (test == NULL) {
-      LOG_EXIT(__FUNCTION__, "input Money_testing is NULL ", EXIT_FAILURE);   
-   }
-      
-}
-*/
-
-#define Types_SIZE 11
 
 #define TEST_ALLOC(TYPE, dollars, number, cents) \
 if (OK == result) { \
@@ -244,38 +232,10 @@ LOG(#TYPE " = " #number " = %s", ""); \
 print_many("", format, number); \
 LOG(" %c ", '\n')
 
-
-Result_codes test_money(void) { /*
-   static const Type types [Types_SIZE] = { SHORT, U_SHORT, INT, U_INT, LONG, U_LONG, LONG_LONG, U_LONG_LONG, FLOAT, DOUBLE, LONG_DOUBLE };
-   for (int i = 0; i < Types_SIZE; i++) */
-      //run_money(Types_SIZE[i], Money_testing);  
-      /*
-   Result_codes result = run_money(SHORT, "-5", 77.8);
-   if (OK == result)
-      result = run_money(U_SHORT, "33", 77.8);
-   if (OK == result)
-      result = run_money(INT, "5", 77.8);
-   if (OK == result)
-      result = run_money(U_INT, "54", 77.8);
-   if (OK == result)
-      result = run_money(LONG, "756", 77.8);
-   if (OK == result)
-      result = run_money(U_LONG, "56", 77.8);
-   if (OK == result)
-      result = run_money(LONG_LONG, "75776", -77.8);
-   if (OK == result)
-      result = run_money(U_LONG_LONG, "777756", -7.8);
-   if (OK == result)
-      result = run_money(FLOAT, "3333.88", 77.8);
-   if (OK == result)
-      result = run_money(DOUBLE, "3333.7", 77.8);
-   if (OK == result)
-      result = run_money(LONG_DOUBLE, "-8883333", 77.8);
-    */
+Result_codes test_money(void) {
    Result_codes result;
    char * max_dollars;
    char * format;
-   LOG(" SHRT_MIN = %hd ", SHRT_MIN);
    LOG_MAX(SHORT, SHRT_MIN, format);
    TEST_ALLOC(SHORT, max_dollars, SHRT_MIN / 110, 0);
    LOG_MAX(SHORT, SHRT_MIN / 110, format);
@@ -309,11 +269,23 @@ int main(void) {
    FUNCTION_INFO(__FUNCTION__);
    set_handler(handle_terminate);
    atexit (at_exit);
-   test_print_many();
-   Demo_functions demo_functions;
-   load_demo(&demo_functions);
-   Result_codes result = run_demo(&demo_functions);
-   if (OK == result)
-      result = test_money();
-   return result;
+   volatile int jmp_value = 0;
+   if (jmp_value = setjmp(JMP_BUF) != 0) {
+      LOG("\nAfter calling test_print_many longjmp set value %d\n", jmp_value);
+      Demo_functions demo_functions;
+      if (jmp_value = setjmp(JMP_BUF) != 0) {
+         FUNCTION_INFO(__FUNCTION__);
+         LOG("\nlongjmp set value %d\n Return with %d ?\n", jmp_value, EXIT_FAILURE);/*
+         return EXIT_FAILURE;*/
+      }
+      else /*
+         load_demo(NULL); */
+         load_demo(&demo_functions); 
+      Result_codes result = run_demo(&demo_functions);
+      if (OK == result)
+         result = test_money();
+      return result;
+   }
+   else
+      test_print_many();
 }
