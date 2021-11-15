@@ -11,6 +11,11 @@
 #include <float.h>
 #include <setjmp.h>
 #include <stdnoreturn.h>
+#include <errno.h>
+
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
@@ -19,7 +24,7 @@
 
 #define LIB_CONNECTOR_SO "libconnector.so"
 
-jmp_buf JMP_BUF;
+static jmp_buf JMP_BUF;
 
 void handle_terminate(void) { 
    LOG("%s", "handler called - must've been some exception ?!\n");
@@ -34,7 +39,7 @@ void load_demo(Demo_functions * demo_functions) {
    if (! demo_functions) {
       FUNCTION_INFO(__FUNCTION__);
       LOG("%s\n", "demo_functions is NULL ");
-      longjmp(JMP_BUF, 1);
+      longjmp(JMP_BUF, 3);
    }
 #ifdef MANUAL_DLL_LOAD
    LOG("%s", "\nMANUAL DLL LOAD\n");
@@ -216,7 +221,7 @@ _Noreturn void test_print_many(void) {
    void * nul = &i;
    print_many(" 3 test of print_many", " p  c hd hu F G F G  u  lu ld llu lld ", nul, 'i', (short)7, (unsigned short)USHRT_MAX, 6.0f, 7.0f,
                            77.8, 66.6, (unsigned)99, (unsigned long)ULONG_MAX, (long)LONG_MAX, (unsigned long long)ULLONG_MAX, (long long)LLONG_MAX);
-   longjmp(JMP_BUF, 1);
+   longjmp(JMP_BUF, 22);
 }
 
 #define TEST_ALLOC(TYPE, dollars, number, cents) \
@@ -265,27 +270,101 @@ Result_codes test_money(void) {
 
 #undef TEST_ALLOC
 
+void  execute(const char **argv) {
+   pid_t  pid;
+   int    status;
+   if (! argv || ! *argv) { 
+      LOG_EXIT(__FUNCTION__, "Array of pointers is null / filename is null", EXIT_FAILURE);
+   }
+   if ((pid = fork()) < 0) { 
+      LOG_EXIT(__FUNCTION__, "forking child process failed ", EXIT_FAILURE);
+   }
+   else if (pid == 0) {          /* for the child process:         */
+      LOG("Child process pid = %d, parent process pid = %d\n", getpid(), getppid());
+      if (execvp(*argv, argv) < 0) {     /* execute the command  */
+         LOG("Call of execvp failed. Error: %s\n", strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+   }
+   else {
+      LOG("Parent process: pid = %d\n", getpid());
+      LOG("Parent process: waiting for completion of child process with pid = %d\n", pid);
+      pid_t result;
+      do {
+         result = wait(&status);
+      } while (result != pid && result != -1);
+
+      LOG("status of child process: %d\n", status);
+      LOG("wait(&status) on success returns the process ID of the terminated child\n \
+      on failure, -1 is returned.result of waiting for child process: %d\n", result);
+      LOG("result of waiting for child process %s child pid\n", result == pid ? "==" : "!=");
+      if (result == -1)
+         LOG("Call of wait(&status) failed. Error: %s\n", strerror(errno));
+   }
+}
+
+Result_codes main_test_linking() {
+   Demo_functions demo_functions;
+   load_demo(&demo_functions); 
+   Result_codes result = run_demo(&demo_functions);
+   if (OK == result)
+      result = test_money();
+   return result;
+}
+
+Result_codes test_linking() {
+   volatile int jmp_value = 0;
+   if ((jmp_value = setjmp(JMP_BUF)) != 0) {
+      LOG("\nAfter calling test_print_many longjmp set value to %d\n", jmp_value);
+      if ((jmp_value = setjmp(JMP_BUF)) != 0) {
+         FUNCTION_INFO(__FUNCTION__);
+         LOG("\nlongjmp set value to %d\n Return with %d ?\n", jmp_value, EXIT_FAILURE);/*
+         return EXIT_FAILURE;*/
+      }
+      else 
+         load_demo(NULL);
+      
+      return main_test_linking(); 
+   }
+   else 
+      test_print_many();
+}
+
+void makefile() {
+   char *execArgs[] = { "make", "clean", NULL };
+   execute(execArgs);
+   execArgs[1] = NULL;
+   execute(execArgs);
+   LOG("Parent process: pid = %d\nGoodbye!\n", getpid());
+}
+
 int main(void) {
    FUNCTION_INFO(__FUNCTION__);
    set_handler(handle_terminate);
    atexit (at_exit);
+   Result_codes result = test_linking();
+   if (result == OK)
+      makefile();
+   return result;/*
    volatile int jmp_value = 0;
-   if (jmp_value = setjmp(JMP_BUF) != 0) {
+   if (jmp_value = setjmp(JMP_BUF) == 0) 
+      test_print_many();
+   else {
       LOG("\nAfter calling test_print_many longjmp set value %d\n", jmp_value);
       Demo_functions demo_functions;
       if (jmp_value = setjmp(JMP_BUF) != 0) {
          FUNCTION_INFO(__FUNCTION__);
          LOG("\nlongjmp set value %d\n Return with %d ?\n", jmp_value, EXIT_FAILURE);/*
-         return EXIT_FAILURE;*/
+         return EXIT_FAILURE;
       }
-      else /*
-         load_demo(NULL); */
+      else 
+         load_demo(NULL); 
          load_demo(&demo_functions); 
       Result_codes result = run_demo(&demo_functions);
       if (OK == result)
-         result = test_money();
+         result = test_money(); 
+      
+      
       return result;
-   }
-   else
-      test_print_many();
+   }*/
 }
