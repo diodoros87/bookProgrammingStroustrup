@@ -25,7 +25,7 @@ void Demo::set_name(const char *name) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, name) << '\n';
    validate(name, __func__, " Error name");
    this->name = name;
-   throw std::invalid_argument {__func__ };
+   //throw std::invalid_argument {__func__ };
 }
 
 char * Demo::get_name() const {

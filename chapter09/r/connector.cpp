@@ -166,7 +166,6 @@ union Number_pointer_union * const n_union, const char * dollars, ... ) {
    
    va_list arg_list;
    va_start( arg_list, dollars );
-   long double arg_cents;
    Result_codes result = UNRECOGNIZED_ERROR;
    switch(function) {
       case INIT_1: 
