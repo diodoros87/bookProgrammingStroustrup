@@ -11,6 +11,9 @@ using std::tuple;
 
 #define TIE(...) (std::tie(__VA_ARGS__))
 
+#define assert_many(EX,...) \
+  ((EX) || (assert_tuples (std::tie(__VA_ARGS__), #EX, __FILE__, __LINE__, __DATE__, __TIME__)))
+
 template<class T> 
 inline T& unmove(T&& t) { return t; }
 
@@ -37,6 +40,20 @@ inline ostream& operator<< (ostream & os, const tuple<S, T...> & t) {
    os << get<0>(t);
    print_tuple<1>::print(os, t);
    return os;
+}
+
+template <typename ...Args>
+bool assert_tuples(tuple<Args...> info, const char *msg, const char *file, int line,
+                   const char * date, const char * time) {
+   std::cerr << "\nAssertion failed:\n"
+            << "Expression:\t" << msg << "\n"
+            << "Source file:\t\t" << file << ", line " << line << "\n"
+            << "Date:\t\t"   << date  << "\n"
+            << "Time:\t\t"   << time  << "\n"
+            << "  Info: " << info << '\n' ;
+   abort();
+   //assert(false);
+   //return false;
 }
 
 #endif

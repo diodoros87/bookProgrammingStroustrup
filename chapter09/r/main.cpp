@@ -3,6 +3,7 @@
 
 #include <cerrno>
 #include <cstdlib>
+#include <cstring>
 
 int test_linking() {
    int result = system("LD_LIBRARY_PATH=. ./linking_test_cpp");

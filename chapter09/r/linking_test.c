@@ -69,14 +69,14 @@ Result_codes run_demo(const Demo_functions * demo_functions) {
          if (OK == result) {
             LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
             result = demo_functions->destroy();
-         }
 #ifdef MANUAL_DLL_LOAD
-         if (OK == result) {
-            result = close_handle(&(demo_functions->handle));
-            assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-            return result;
-         }
+            if (OK == result) {
+               result = close_handle(&(demo_functions->handle));
+               assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
+               return result;
+            }
 #endif
+         }
       }
    }
 #ifdef MANUAL_DLL_LOAD

@@ -1,12 +1,9 @@
 CXX = g++
-CPPFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -DMANUAL_DLL_LOAD
+CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -DMANUAL_DLL_LOAD
 
 CC = gcc
-CFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -DMANUAL_DLL_LOAD 
+CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11  -DMANUAL_DLL_LOAD
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
-
-LPATH=-L. 
-LIBS=-ldemo
 
 PROGRAMS  = libdemo.so libconnector.so main_cpp c_main c_linking_test linking_test_cpp
 
@@ -38,9 +35,9 @@ main_cpp: main_cpp.o
 	$(CXX) $(CPPFLAGS) main_cpp.o -o main_cpp
 	
 linking_test_cpp: linking_test_cpp.o libdemo.so
-	$(CXX) $(CPPFLAGS) linking_test_cpp.o -L. -ldemo -o linking_test_cpp
+	$(CXX) $(CPPFLAGS) linking_test_cpp.o shared_lib_open.o -L. -lconnector -ldemo -ldl -o linking_test_cpp
 	
-libconnector.so: connector.o libdemo.so 
+libconnector.so: connector.o libdemo.so
 	$(CXX) $(CPPFLAGS) -shared -L. -ldemo -o libconnector.so connector.o 
 	
 connector.o: connector.h connector.cpp null.hpp
@@ -49,13 +46,13 @@ connector.o: connector.h connector.cpp null.hpp
 main_cpp.o: main.cpp print.hpp
 	$(CXX) $(CPPFLAGS) -c main.cpp -o main_cpp.o
 
-linking_test_cpp.o: linking_test.cpp variadic_template.hpp variadic_template.cpp demo.hpp demo.cpp utility.hpp
+linking_test_cpp.o: linking_test.cpp variadic_template.hpp variadic_template.cpp demo.hpp demo.cpp utility.hpp print.hpp connector.h shared_lib_open.h
 	$(CXX) $(CPPFLAGS) -c linking_test.cpp -o linking_test_cpp.o
 	
 libdemo.so: demo.o
 	$(CXX) $(CPPFLAGS) -shared -o libdemo.so demo.o
 
-demo.o: demo.hpp demo.cpp null.hpp
+demo.o: demo.hpp demo.cpp null.hpp print.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC demo.cpp
 	
 clean :

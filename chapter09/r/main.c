@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -16,7 +17,7 @@
    #include "shared_lib_open.h"
 #endif
 
-void execute(const char **argv) {
+void execute(const char ** const argv) {
    pid_t  pid;
    int    status;
    if (! argv || ! *argv) { 
@@ -25,9 +26,9 @@ void execute(const char **argv) {
    if ((pid = fork()) < 0) { 
       LOG_EXIT(__FUNCTION__, "forking child process failed ", EXIT_FAILURE);
    }
-   else if (pid == 0) {          /* for the child process:         */
+   else if (pid == 0) {
       LOG("Child process pid = %d, parent process pid = %d\n", getpid(), getppid());
-      if (execvp(*argv, argv) < 0) {     /* execute the command  */
+      if (execvp(*argv, argv) < 0) {     
          LOG("Call of execvp failed. Error: %s\n", strerror(errno));
          exit(EXIT_FAILURE);
       }
