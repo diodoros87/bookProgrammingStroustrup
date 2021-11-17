@@ -194,8 +194,8 @@ static Demo * demo_instance = nullptr;
 
 Result_codes demo_init(const char * name) {
    try {
-      if (demo_instance == nullptr)
-         demo_instance = new Demo(name);
+      if (::demo_instance == nullptr)
+         ::demo_instance = new Demo(name);
       else
          return BAD_FUNTION_CALL;
    } catch (const bad_alloc & const_e) {
@@ -214,12 +214,12 @@ Result_codes demo_init(const char * name) {
 }
 
 Result_codes demo_set_name(const char * name) {
-   if (demo_instance == nullptr) {
-      cerr  << __func__ << " Error demo_instance = " << demo_instance << '\n';
+   if (::demo_instance == nullptr) {
+      cerr  << __func__ << " Error demo_instance = " << ::demo_instance << '\n';
       return INVALID_ARG;
    }
    try {
-      demo_instance->set_name(name);
+      ::demo_instance->set_name(name);
    } catch (exception & e) {
       cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       return get_error_code(reinterpret_cast<exception *>(&e));
@@ -233,12 +233,12 @@ Result_codes demo_set_name(const char * name) {
 Result_codes demo_get_name(char ** name) {
    if (OK != check_pointer_1_1(name, __func__, " Error name"))
       return INVALID_ARG;
-   if (demo_instance == nullptr) {
-      cerr  << __func__ << " Error demo_instance = " << demo_instance << '\n';
+   if (::demo_instance == nullptr) {
+      cerr  << __func__ << " Error demo_instance = " << ::demo_instance << '\n';
       return BAD_FUNTION_CALL;
    }
    try {
-      *name = demo_instance->get_name();
+      *name = ::demo_instance->get_name();
    } catch (exception & e) {
       cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       return get_error_code(reinterpret_cast<exception *>(&e));
@@ -250,11 +250,11 @@ Result_codes demo_get_name(char ** name) {
 }
 
 Result_codes demo_destroy() {
-   if (demo_instance) {
-      delete demo_instance;
+   if (::demo_instance) {
+      delete ::demo_instance;
       return OK;
    }
-   cerr  << __func__ << " Error demo_instance = " << demo_instance << '\n';
+   cerr  << __func__ << " Error demo_instance = " << ::demo_instance << '\n';
    return BAD_FUNTION_CALL;
 }
 
