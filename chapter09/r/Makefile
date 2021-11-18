@@ -1,8 +1,8 @@
 CXX = g++
-CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
+CPPFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
 
 CC = gcc
-CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11
+CFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c11
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
 PROGRAMS  = libdemo.so libconnector.so main_cpp c_main c_linking_test linking_test_cpp
