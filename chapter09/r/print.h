@@ -22,7 +22,7 @@ extern int print_assert(const char *file, int line, const char * date, const cha
       if (ferror (stderr)) \
          perror("\nError while printing to stderr\n")
    
-#define LOG_FUNC(function_name) fprintf (stderr, "\nF: " #function_name  " = %s \t", function_name)
+#define LOG_FUNC(function_name) LOG("\nF: " #function_name  " = %s \t", function_name)
    
 #define FUNCTION_INFO(function_name) \
    LOG("\n%s \t", LANGUAGE); \
