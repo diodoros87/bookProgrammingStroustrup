@@ -51,44 +51,60 @@ char * readline(FILE *fp, char *buffer) {
     return buffer;
 }
 
-void lineByline(FILE * file, FILE * edited_file) {
+int lineByline(FILE * file, FILE * edited_file) {
    char *line;
-   const char cflags[] = "CFLAGS";
+   const char cflags[] = "CPPFLAGS=";
+   const size_t cflags_size = strlen(cflags);
    const char comment[] = "#";
    int CFLAGS_position;
    int comment_position;
+   int skip_whole_line = 0;
    char * pch;
-   int cflags_line = 0;
+   int cflags_line_found = 0;
    char * edited_line;
+   char * line_copy; /*    */
    const char * manual_dll_load_string = " -DMANUAL_DLL_LOAD";
-   while ((line = readline(file, NULL)) != NULL) {
-      
-      for (pch = strtok (line," \t"); pch != NULL && 0 != strcmp(pch, comment); pch = strtok (NULL, " \t")) {
-         if (0 == strcmp(pch, cflags)) {
-            pch = strtok (NULL, " \t");
-            if (pch == NULL)
-               break;
-            if (0 != strcmp(pch, "="))
-               break;
-            
-            edited_line = calloc(strlen(line) + strlen(manual_dll_load_string) + 1, 1);
+   for (line = readline(file, NULL); line != NULL; line = readline(file, NULL), skip_whole_line = 0, cflags_line_found = 0) {
+      line_copy = calloc(strlen(line) + 1, sizeof (char));
+      strcpy(line_copy, line);
+      LOG ("\n 2 readline = %s \n", line);
+      LOG ("\n 1 strlen(line) = %d \n", strlen(line));
+      for (pch = strtok (line_copy," \t"); skip_whole_line == 0 && pch != NULL && 0 != strcmp(pch, comment); pch = strtok (NULL, " \t")) {
+         LOG ("\n 2 strlen(line_copy) = %d \n", strlen(line_copy));
+         if (0 == strncmp(pch, cflags, cflags_size - 1)) {   /* case: "CFLAGS*" */
+            if (cflags_size - 1 == strlen(pch)) {   /* case: "CFLAGS" */
+               pch = strtok (NULL, " \t");
+               LOG ("\n 1 pch = \'%s\' \n", pch);
+               if (pch == NULL)
+                  break;
+               if (0 != strcmp(pch, "=") && 0 != strncmp(pch, "=-", 2))
+                  break;
+            }
+            else if (0 != strncmp(pch, cflags, cflags_size))  /* cases other than: "CFLAGS=" */
+               skip_whole_line = 1;
+            LOG ("\n 2 pch = \'%s\' \n", pch);
+            LOG ("\n 3 strlen(line) = %d \n", strlen(line));
+            LOG ("\n strlen(manual_dll_load_string) = %d \n", strlen(manual_dll_load_string));
+            cflags_line_found = 1;
+            edited_line = calloc(strlen(line) + strlen(manual_dll_load_string) + 4, sizeof (char));
             strcat(edited_line, cflags);
-            strcat(edited_line, " ");
-            strcat(edited_line, "=");
             strcat(edited_line, manual_dll_load_string);
-            LOG ("\n edited_line = %s \n", edited_line);
+            LOG ("\n 1 edited_line = %s \n", edited_line);
             while (pch = strtok (NULL, " \t")) {
                strcat(edited_line, " ");
                strcat(edited_line, pch);
-            }
+            } 
             free(line);
-            LOG ("\n edited_line = %s \n", edited_line);
+            LOG ("\n 2 edited_line = %s \n", edited_line);
+            fputs (edited_line, edited_file);
+            fprintf (edited_file, "%c", '\n');
+            LOG ("\n 3 edited_line = %s \n", edited_line);
+            free(edited_line);/*
             line = edited_line;
-            LOG ("\n line        = %s \n", line);
+            LOG ("\n line        = %s \n", line);*/
          } /*
          printf ("%s ",pch);*/
       }
-      puts("");
       /*
       CFLAGS_position = strcspn(cflags, line);
       comment_position = strcspn(comment, line);
@@ -97,12 +113,20 @@ void lineByline(FILE * file, FILE * edited_file) {
          puts(line);
          puts("-DMANUAL_DLL_LOAD");
       }
-      
-      puts(line);*/
-      fputs (line, edited_file);
-      free(line);/*
+      */
+      puts(line);
+      if (cflags_line_found == 0) {
+         fputs (line, edited_file);
+         fprintf (edited_file, "%c", '\n');
+         free(line);
+      }/*
       printf("\n");*/
    }
+   return cflags_line_found;
+   /*
+   if (cflags_line_found == 0) {
+      edited_line = calloc(strlen(edited_line) + strlen(manual_dll_load_string) + 1, sizeof char);
+   } */
 }
 
 FILE* open_file( const char ** filename, const char * mode ) {
