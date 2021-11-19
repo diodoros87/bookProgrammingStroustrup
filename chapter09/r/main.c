@@ -17,29 +17,30 @@
    #include "shared_lib_open.h"
 #endif
 
-char * readline(FILE *file) {
-   int ch;
+char * read_line(FILE *file) {
+   int ch;  /*  int (not char) due to value of EOF is a negative integer constant. The precise value is implementation-defined.  */
    int index = 0;
    size_t buff_len = 1;
    char * buffer = calloc(buff_len, sizeof (char));
+   char * tmp_buff;
    if (! buffer) {
       LOG_FUNC(__FUNCTION__);
       LOG("%s\n", "Out of memory");
       return NULL;
    }
    while ((ch = fgetc(file)) != '\n' && ch != EOF) {
-      void *tmp = realloc(buffer, ++buff_len);
-      if (tmp == NULL) {
+      if (ferror (file))
+         perror("Error reading file\n");
+      tmp_buff= realloc(buffer, ++buff_len);
+      if (! tmp_buff) {
          free(buffer);
          LOG_FUNC(__FUNCTION__);
          LOG("%s\n", "Out of memory");
          return NULL;
       }
-      buffer = tmp;
+      buffer = tmp_buff;
       buffer[index++] = (char) ch;
    }
-   if (ferror (file))
-      perror("Error reading file\n");
    buffer[index] = '\0';
    if (ch == EOF && (index == 0 || ferror(file))) {
       free(buffer);
@@ -49,50 +50,77 @@ char * readline(FILE *file) {
    return buffer;
 }
 
+#ifdef MANUAL_DLL_LOAD
+void delete_manual_dll_load(FILE * file, FILE * edited_file) {
+   const char comment[] = "#";
+   const char * manual_dll_load_string = "-DMANUAL_DLL_LOAD"; 
+   char * line;
+   char * word;
+   char * manual_dll_load_line;
+   char * comment_line;
+   /* 1st for loop  */
+   for (line = read_line(file); line != NULL; free(line), line = read_line(file), fprintf (edited_file, "%c", '\n')) {
+      manual_dll_load_line = strstr (line, manual_dll_load_string);
+      if (manual_dll_load_line) {
+         comment_line = strstr (line, comment);
+         if (! comment_line || (comment_line && comment_line > manual_dll_load_line)) {  /* interested line (flags_line before comment)  */
+            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
+               if (0 != strcmp(word, manual_dll_load_string))  /* not insert manual_dll_load_string  */
+                  fprintf (edited_file, "%s ", word);
+            }
+            continue;  /*  after process on interested line (flags_line before comment) continuing to 1st for loop  */
+         } 
+      }
+      fputs (line, edited_file);  /*  insert not interested line without changes */
+   }
+}
+#else
 enum Insert_flag { NOT_YET, FLAG, DONE };   /* FLAG = "CPPFLAGS" or "CFLAGS" to distinct with
                                                  "CPPFLAGS=" or "CFLAGS="   */
-void lineByline(FILE * file, FILE * edited_file) {
-   char *line;
+void insert_manual_dll_load(FILE * file, FILE * edited_file) {
    const char cppflags[] = "CPPFLAGS";
    const char cflags[] = "CFLAGS";
    const size_t cflags_size = strlen(cflags);
    const size_t cppflags_size = strlen(cppflags);
    const char comment[] = "#";
-   char * pch;
+   char * line;
+   char * word;
    char * flags_line; 
    char * comment_line;
    enum Insert_flag inserting = NOT_YET;
-   const char * manual_dll_load_string = " -DMANUAL_DLL_LOAD";
-   for (line = readline(file); line != NULL; free(line), line = readline(file), fprintf (edited_file, "%c", '\n')) {
+   const char * manual_dll_load_string = " -DMANUAL_DLL_LOAD";       
+   /* 1st for loop  */
+   for (line = read_line(file); line != NULL; free(line), line = read_line(file), fprintf (edited_file, "%c", '\n')) {
       flags_line = strstr (line, cppflags);
       if (! flags_line)
          flags_line = strstr (line, cflags);
       if (flags_line) {
          comment_line = strstr (line, comment);
-         if (! comment_line || (comment_line && comment_line > flags_line)) {
-            for (pch = strtok (line, " "); pch; pch = strtok (NULL, " ")) {
-               fputs (pch, edited_file);
+         if (! comment_line || (comment_line && comment_line > flags_line)) {   /* interested line (flags_line before comment)  */
+            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
+               fputs (word, edited_file);
                if (FLAG == inserting) {
                   fputs(manual_dll_load_string, edited_file);
-                  inserting = DONE;
+                  inserting = DONE;   /* change inserting to DONE protect before next inserting manual_dll_load_string */
                }
                else if (NOT_YET == inserting) {
-                  if (0 == strcmp(pch, cflags) || 0 == strcmp(pch, cppflags))
-                     inserting = FLAG;
-                  else if (0 == strncmp(pch, cflags, cflags_size) || 0 == strncmp(pch, cppflags, cppflags_size)) {
-                     fputs(manual_dll_load_string, edited_file);
+                  if (0 == strcmp(word, cflags) || 0 == strcmp(word, cppflags))  /* word is "CPPFLAGS" or "CFLAGS"  */
+                     inserting = FLAG;       /* signal to insert manual_dll_load_string in next iteration due to "=" is separated from "CPPFLAGS" or "CFLAGS" */
+                  else if (0 == strncmp(word, cflags, cflags_size) || 0 == strncmp(word, cppflags, cppflags_size)) {  
+                     fputs(manual_dll_load_string, edited_file);  /* "=" is in "CPPFLAGS=" or "CFLAG="  */
                      inserting = DONE;
                   }
                }
                fputs(" ", edited_file);
             }
-            inserting = NOT_YET;
-            continue;
+            inserting = NOT_YET;  /* set to NOT_YET before read next line  */
+            continue;  /*  after process on interested line (flags_line before comment) continuing to 1st for loop  */
          }
       }
-      fputs (line, edited_file);
+      fputs (line, edited_file);  /*  insert not interested line without changes  */
    }
 }
+#endif
 
 FILE* open_file( const char ** filename, const char * mode ) {
    FILE * file = fopen (filename, mode);
@@ -105,20 +133,18 @@ FILE* open_file( const char ** filename, const char * mode ) {
 }  
 
 void edit_makefile() {
-#ifdef MANUAL_DLL_LOAD
-   int manual_dll_load = 0;
-#else
-   int manual_dll_load = 1;
-   FILE* file = open_file("Makefile", "r+");
+   FILE* file = open_file("Makefile", "r");
    FILE * edited_file = open_file("Makefile.tmp", "w");
-   if (file) {
-      lineByline(file, edited_file);
+   if (file && edited_file) {
+#ifdef MANUAL_DLL_LOAD
+      delete_manual_dll_load(file, edited_file);
+#else
+      insert_manual_dll_load(file, edited_file);
+#endif
       fclose(file);
       fclose(edited_file);
       rename("Makefile.tmp", "Makefile");
    }
-#endif
-   
 }
 
 void execute(const char ** const argv) {
@@ -156,16 +182,16 @@ void execute(const char ** const argv) {
 }
 
 void makefile() {
-   /*
+   
    char *exec_args[] = { "make", "clean", NULL };
    execute(exec_args);
-   */
+   
    edit_makefile();
-   /*
+   
    exec_args[1] = NULL;
    execute(exec_args);
    LOG("Parent process: pid = %d\nGoodbye!\n", getpid());
-   */
+   
 }
 
 int test_linking() {
