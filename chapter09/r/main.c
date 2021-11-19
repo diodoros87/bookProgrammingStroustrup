@@ -8,8 +8,11 @@
 #include <errno.h>
 #include <string.h>
 
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+#include <dirent.h>
 #include <unistd.h>
 
 #ifdef MANUAL_DLL_LOAD
@@ -18,6 +21,9 @@
 #endif
 
 char * read_line(FILE *file) {
+   if (! file) { 
+      LOG_EXIT(__FUNCTION__, "file is null", EXIT_FAILURE);
+   }
    int ch;  /*  int (not char) due to value of EOF is a negative integer constant. The precise value is implementation-defined.  */
    int index = 0;
    size_t buff_len = 1;
@@ -52,6 +58,9 @@ char * read_line(FILE *file) {
 
 #ifdef MANUAL_DLL_LOAD
 void delete_manual_dll_load(FILE * file, FILE * edited_file) {
+   if (! file || ! edited_file) { 
+      LOG_EXIT(__FUNCTION__, "file is null / edited_file is null", EXIT_FAILURE);
+   }
    const char comment[] = "#";
    const char * manual_dll_load_string = "-DMANUAL_DLL_LOAD"; 
    char * line;
@@ -78,6 +87,9 @@ void delete_manual_dll_load(FILE * file, FILE * edited_file) {
 enum Insert_flag { NOT_YET, FLAG, DONE };   /* FLAG = "CPPFLAGS" or "CFLAGS" to distinct with
                                                  "CPPFLAGS=" or "CFLAGS="   */
 void insert_manual_dll_load(FILE * file, FILE * edited_file) {
+   if (! file || ! edited_file) { 
+      LOG_EXIT(__FUNCTION__, "file is null / edited_file is null", EXIT_FAILURE);
+   }
    const char cppflags[] = "CPPFLAGS";
    const char cflags[] = "CFLAGS";
    const size_t cflags_size = strlen(cflags);
@@ -88,7 +100,7 @@ void insert_manual_dll_load(FILE * file, FILE * edited_file) {
    char * flags_line; 
    char * comment_line;
    enum Insert_flag inserting = NOT_YET;
-   const char * manual_dll_load_string = " -DMANUAL_DLL_LOAD";       
+   const char * manual_dll_load_string = "-DMANUAL_DLL_LOAD";       
    /* 1st for loop  */
    for (line = read_line(file); line != NULL; free(line), line = read_line(file), fprintf (edited_file, "%c", '\n')) {
       flags_line = strstr (line, cppflags);
@@ -98,20 +110,19 @@ void insert_manual_dll_load(FILE * file, FILE * edited_file) {
          comment_line = strstr (line, comment);
          if (! comment_line || (comment_line && comment_line > flags_line)) {   /* interested line (flags_line before comment)  */
             for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
-               fputs (word, edited_file);
+               fprintf (edited_file, "%s ", word);
                if (FLAG == inserting) {
-                  fputs(manual_dll_load_string, edited_file);
+                  fprintf (edited_file, "%s ", manual_dll_load_string);
                   inserting = DONE;   /* change inserting to DONE protect before next inserting manual_dll_load_string */
                }
                else if (NOT_YET == inserting) {
                   if (0 == strcmp(word, cflags) || 0 == strcmp(word, cppflags))  /* word is "CPPFLAGS" or "CFLAGS"  */
                      inserting = FLAG;       /* signal to insert manual_dll_load_string in next iteration due to "=" is separated from "CPPFLAGS" or "CFLAGS" */
                   else if (0 == strncmp(word, cflags, cflags_size) || 0 == strncmp(word, cppflags, cppflags_size)) {  
-                     fputs(manual_dll_load_string, edited_file);  /* "=" is in "CPPFLAGS=" or "CFLAG="  */
+                     fprintf (edited_file, "%s ", word);  /* "=" is in "CPPFLAGS=" or "CFLAG="  */
                      inserting = DONE;
                   }
                }
-               fputs(" ", edited_file);
             }
             inserting = NOT_YET;  /* set to NOT_YET before read next line  */
             continue;  /*  after process on interested line (flags_line before comment) continuing to 1st for loop  */
@@ -122,32 +133,43 @@ void insert_manual_dll_load(FILE * file, FILE * edited_file) {
 }
 #endif
 
-FILE* open_file( const char ** filename, const char * mode ) {
+FILE* open_file( const char * filename, const char * mode ) {
+   if (! filename || ! mode) { 
+      LOG_EXIT(__FUNCTION__, "file is null / file access mode is null", EXIT_FAILURE);
+   }
    FILE * file = fopen (filename, mode);
    if (file != NULL) {
       LOG("open file of %s\n", filename);
    }
-   else
+   else {
       LOG("file of %s is not exist\n", filename);
+      LOG("Call of fopen failed. Error: %s\n", strerror(errno));
+   }
    return file;
 }  
 
-void edit_makefile() {
+int edit_makefile() {
    FILE* file = open_file("Makefile", "r");
    FILE * edited_file = open_file("Makefile.tmp", "w");
-   if (file && edited_file) {
+   if (! file || ! edited_file)
+      return OPEN_FILE_ERROR;
 #ifdef MANUAL_DLL_LOAD
-      delete_manual_dll_load(file, edited_file);
+   delete_manual_dll_load(file, edited_file);
 #else
-      insert_manual_dll_load(file, edited_file);
+   insert_manual_dll_load(file, edited_file);
 #endif
-      fclose(file);
-      fclose(edited_file);
-      rename("Makefile.tmp", "Makefile");
+   if (0 != fclose(file) || 0 != fclose(edited_file)) {
+      LOG("Call of fclose failed. Error: %s\n", strerror(errno));
+      return FILE_CLOSE_ERROR;
    }
+   if (0 != rename("Makefile.tmp", "Makefile")) {
+      LOG("Call of rename failed. Error: %s\n", strerror(errno));
+      return RENAME_FILE_ERROR;
+   }
+   return OK;
 }
 
-void execute(const char ** const argv) {
+int execute(const char ** const argv) {
    pid_t  pid;
    int    status;
    if (! argv || ! *argv) { 
@@ -178,36 +200,43 @@ void execute(const char ** const argv) {
       if (result == -1) {
          LOG("Call of wait(&status) failed. Error: %s\n", strerror(errno));
       }
+      return result;
    }
 }
 
-void makefile() {
-   
+int makefile() {
    char *exec_args[] = { "make", "clean", NULL };
-   execute(exec_args);
-   
-   edit_makefile();
-   
-   exec_args[1] = NULL;
-   execute(exec_args);
+   int result = execute(exec_args);
+   if (result != SYSTEM_ERROR)
+      result = edit_makefile();
+   if (result == OK) {
+      exec_args[1] = NULL;
+      if (execute(exec_args) != SYSTEM_ERROR)
+         result = OK;
+   }
    LOG("Parent process: pid = %d\nGoodbye!\n", getpid());
-   
+   return result;
 }
 
-int test_linking() {
+int call_system(const char * const command) {
    FUNCTION_INFO(__FUNCTION__);
-   int result = system("LD_LIBRARY_PATH=. ./c_linking_test");
+   if (! command) { 
+      LOG_EXIT(__FUNCTION__, "command is null", EXIT_FAILURE);
+   }
+   LOG("Parent process: pid = %d\n", getpid());
+   int result = system(command);
    if (-1 == result) {
-      LOG("Call of system(\"LD_LIBRARY_PATH=. ./c_linking_test\") failed. Error: %s\n", strerror(errno));
+      LOG("Call of system(\"%s\") failed. Error: %s\n", command, strerror(errno));
    }
    else if (127 == result) {
-      LOG("Call of system(\"LD_LIBRARY_PATH=. ./c_linking_test\") failed. Shell could not be executed in the child process. \
-      Error: %s\n", strerror(errno));
+      LOG("Call of system(\"%s\") failed. Shell could not be executed in the child process. \
+      Error: %s\n", command, strerror(errno));
    }
    else if (OK == result) {
-      LOG("Call of system(\"LD_LIBRARY_PATH=. ./c_linking_test\") succeed. Return value is the termination status of the child \n \
+      LOG("Call of system(\"%s\") succeed. Return value is the termination status of the child \n \
       shell used to execute command. The termination status of a shell is the termination status of the last command it executes.\n \
-      result: %d\n", result);
+      result: %d\n", command, result);
+      LOG("Parent process: pid = %d\n", getpid());
    }
    else {
       LOG(" result: %d\n", result);
@@ -215,11 +244,21 @@ int test_linking() {
    return result;
 }
 
-int main(void) {
+int test_linking() {
    FUNCTION_INFO(__FUNCTION__);
-   system("cat Make.bak > Make2");
-   int result = test_linking ();
+   const char * const command = "LD_LIBRARY_PATH=. ./c_linking_test";
+   int result = call_system(command);
+   return result;
+}
+
+int main(int argc, char *argv[]) {
+   FUNCTION_INFO(__FUNCTION__);
+   const char * const command = "LD_LIBRARY_PATH=. ./c_linking_test";
+   int result = test_linking (command);
    if (result == OK)
-      makefile();
+      result = makefile();
+   if (result == OK)
+      result = test_linking(command);
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }

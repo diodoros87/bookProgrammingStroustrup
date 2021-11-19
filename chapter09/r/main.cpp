@@ -1,9 +1,30 @@
 #include "utility.hpp"
 #include "print.hpp"
 
+#include <string>
+#include <fstream>
+#include <sstream>
+
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
+
+void edit_file(const string & filename, const string & erasing, const string & replacing) {
+   ostringstream text;
+   ifstream in_file(filename);
+
+   text << in_file().rdbuf();
+   string str = text.str();
+   string str_search = search;
+   string str_replace = replace;
+   size_t pos = str.find(str_search);
+   str.replace(pos, string(str_search).length(), str_replace);
+   in_file().close();
+
+   ofstream out_file(filename);
+   out_file << str;
+    
+}
 
 int test_linking() {
    int result = system("LD_LIBRARY_PATH=. ./linking_test_cpp");
