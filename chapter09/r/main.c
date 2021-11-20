@@ -63,6 +63,7 @@ void delete_manual_dll_load(FILE * file, FILE * edited_file) {
    }
    const char comment[] = "#";
    const char * manual_dll_load_string = "-DMANUAL_DLL_LOAD"; 
+   const size_t manual_dll_size = strlen(manual_dll_load_string); 
    char * line;
    char * word;
    char * manual_dll_load_line;
@@ -74,7 +75,7 @@ void delete_manual_dll_load(FILE * file, FILE * edited_file) {
          comment_line = strstr (line, comment);
          if (! comment_line || (comment_line && comment_line > manual_dll_load_line)) {  /* interested line (flags_line before comment)  */
             for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
-               if (0 != strcmp(word, manual_dll_load_string))  /* not insert manual_dll_load_string  */
+               if (0 != strncmp(word, manual_dll_load_string, manual_dll_size))  /* not insert manual_dll_load_string  */
                   fprintf (edited_file, "%s ", word);
             }
             continue;  /*  after process on interested line (flags_line before comment) continuing to 1st for loop  */

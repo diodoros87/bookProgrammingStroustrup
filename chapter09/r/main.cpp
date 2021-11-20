@@ -60,38 +60,49 @@ struct Io_guard {
 void delete_manual_dll_load(const string & filename) {
    /* ostringstream text;
    ifstream& in_file = open_file(filename);
-   fstream file(filename, std::fstream::in | std::fstream::out);
-   ifstream in_file(filename);*/
-   Io_guard in_guard(unmove(fstream {}), ios_base::failbit | ios_base::badbit);
+   fstream file(filename, std::fstream::in | std::fstream::out);*/
+   fstream in_file;/*
+   stringstream ss;
+   ss << in_file.rdbuf();
+    string str = ss.str();*/
+   Io_guard in_guard(in_file, ios_base::failbit | ios_base::badbit);
    in_guard.open_file(filename, ios_base::in);
    stringstream text;
    text << in_guard.stream.rdbuf();
    in_guard.stream.close();
    
-   Io_guard out_guard(unmove(fstream {}), ios_base::failbit | ios_base::badbit);
+   fstream out_file;
+   Io_guard out_guard(out_file, ios_base::failbit | ios_base::badbit);
    out_guard.open_file(filename, ios_base::out);
 
    const string comment = "#";
-   const string manual_dll_load_string = "-DMANUAL_DLL_LOAD"; 
-   const size_t manual_dll_load_string_size = manual_dll_load_string.size(); 
-   size_t manual_dll_load_position;
-   size_t comment_position;
+   const string manual_dll = "-DMANUAL_DLL_LOAD"; 
+   const size_t manual_dll_size = manual_dll.size(); 
+   size_t manual_dll_pos;
+   size_t comment_pos;
 
    string line;
    //  1st while loop  
-   while (getline(text, line)) {
-      manual_dll_load_position = line.find(manual_dll_load_string);
-      if (manual_dll_load_position != string::npos) {
-         comment_position = line.find(comment);
-         if (comment_position == string::npos || comment_position > manual_dll_load_position) {  // interested line (flags_line before comment)
+   for (; getline(text, line); out_guard.stream << '\n') {
+      manual_dll_pos = line.find(manual_dll);
+      if (manual_dll_pos != string::npos) {
+         comment_pos = line.find(comment);
+         if (comment_pos == string::npos || (comment_pos != string::npos && comment_pos > manual_dll_pos)) {  // interested line (flags_line before comment)
             stringstream line_stream(line);
             string word;
+            bool not_comment = true; // code
             while (getline(line_stream, word, ' ')) { //  2nd while loop  
-               manual_dll_load_position = word.find(manual_dll_load_string);
-               if (manual_dll_load_position != string::npos && word[0] != comment[0]) {
-                  comment_position = word.find(comment);
-                  if (comment_position == string::npos || comment_position > manual_dll_load_position)
-                     word.erase(manual_dll_load_position, manual_dll_load_position + manual_dll_load_string_size);  // erase manual_dll_load_string in word
+               if (not_comment) { // modify word only in code, not in comments
+                  comment_pos = word.find(comment);
+                  if (comment_pos != string::npos)
+                     not_comment = false;
+                  manual_dll_pos = word.find(manual_dll);
+                  if (manual_dll_pos != string::npos) {
+                     if (comment_pos == string::npos || (comment_pos != string::npos && comment_pos > manual_dll_pos)) {
+                        cerr << " erasing word = " << word << '\n';
+                        word.erase(manual_dll_pos, manual_dll_pos + manual_dll_size);  // erase manual_dll in word
+                     }
+                  }
                }
                out_guard.stream << word << ' '; // save to file modified or unmodified word  
             }
@@ -106,13 +117,13 @@ void delete_manual_dll_load(const string & filename) {
    size_t next_line_position = str.find('\n', previous_line_position);
    for (; next_line_position != string::npos; previous_line_position = line_position + 1, next_line_position = str.find('\n', previous_line_position)) {
       string line = str.substr (previous_line_position, next_line_position);
-      manual_dll_load_position = line.find(manual_dll_load_string);
-      if (manual_dll_load_position != string::npos) {
-         comment_position = line.find(comment);
-         if (comment_position != string::npos && comment_position > manual_dll_load_position) {  // interested line (flags_line before comment)  
-            line.replace(manual_dll_load_position, manual_dll_load_string_size, "");
+      manual_dll_pos = line.find(manual_dll);
+      if (manual_dll_pos != string::npos) {
+         comment_pos = line.find(comment);
+         if (comment_pos != string::npos && comment_pos > manual_dll_pos) {  // interested line (flags_line before comment)  
+            line.replace(manual_dll_pos, manual_dll_size, "");
             for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   //  2nd for loop  
-               if (0 != strcmp(word, manual_dll_load_string))  // not insert manual_dll_load_string  
+               if (0 != strcmp(word, manual_dll))  // not insert manual_dll  
                   fprintf (edited_file, "%s ", word);
             }
             continue;  //  after process on interested line (flags_line before comment) continuing to 1st for loop 
@@ -123,13 +134,13 @@ void delete_manual_dll_load(const string & filename) {
    while (getline( myfile, line )) 
    
    for ( ; getline( guard.stream, line ); fprintf (edited_file, "%c", '\n')) {
-      manual_dll_load_position = line.find(manual_dll_load_string);
-      if (manual_dll_load_position != std::string::npos) {
-         comment_position = line.find(comment);
-         if (comment_position != std::string::npos && comment_position > manual_dll_load_position) {  
+      manual_dll_pos = line.find(manual_dll);
+      if (manual_dll_pos != std::string::npos) {
+         comment_pos = line.find(comment);
+         if (comment_pos != std::string::npos && comment_pos > manual_dll_pos) {  
             line.replace(pos, string(str_erasing).length(), str_replacing);
             for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   
-               if (0 != strcmp(word, manual_dll_load_string))  
+               if (0 != strcmp(word, manual_dll))  
                   fprintf (edited_file, "%s ", word);
             }
             continue;  
@@ -156,7 +167,7 @@ void insert_manual_dll_load(FILE * file, FILE * edited_file) {
    char * flags_line; 
    char * comment_line;
    enum Insert_flag inserting = NOT_YET;
-   const char * manual_dll_load_string = "-DMANUAL_DLL_LOAD";       
+   const char * manual_dll = "-DMANUAL_DLL_LOAD";       
    /* 1st for loop  */
    for (line = read_line(file); line != NULL; free(line), line = read_line(file), fprintf (edited_file, "%c", '\n')) {
       flags_line = strstr (line, cppflags);
@@ -168,12 +179,12 @@ void insert_manual_dll_load(FILE * file, FILE * edited_file) {
             for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
                fprintf (edited_file, "%s ", word);
                if (FLAG == inserting) {
-                  fprintf (edited_file, "%s ", manual_dll_load_string);
-                  inserting = DONE;   /* change inserting to DONE protect before next inserting manual_dll_load_string */
+                  fprintf (edited_file, "%s ", manual_dll);
+                  inserting = DONE;   /* change inserting to DONE protect before next inserting manual_dll */
                }
                else if (NOT_YET == inserting) {
                   if (0 == strcmp(word, cflags) || 0 == strcmp(word, cppflags))  /* word is "CPPFLAGS" or "CFLAGS"  */
-                     inserting = FLAG;       /* signal to insert manual_dll_load_string in next iteration due to "=" is separated from "CPPFLAGS" or "CFLAGS" */
+                     inserting = FLAG;       /* signal to insert manual_dll in next iteration due to "=" is separated from "CPPFLAGS" or "CFLAGS" */
                   else if (0 == strncmp(word, cflags, cflags_size) || 0 == strncmp(word, cppflags, cppflags_size)) {  
                      fprintf (edited_file, "%s ", word);  /* "=" is in "CPPFLAGS=" or "CFLAG="  */
                      inserting = DONE;
@@ -282,7 +293,7 @@ int test_linking() {
 }
 
 int main() {
-   cerr << "\n C++ " << __cplusplus << " function = " << __func__ << '\n';;
+   cerr << "\n C++ " << __cplusplus << " function = " << __func__ << '\n';
    int result = test_linking ();
    if (result == 0)
       makefile();
