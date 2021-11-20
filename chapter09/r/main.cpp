@@ -9,10 +9,21 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <sys/types.h>
+#include <sys/wait.h>
+
+#include <dirent.h>
+#include <unistd.h>
+
+using std::fstream;
 using std::ifstream;
+using std::ofstream;
 using std::runtime_error;
 using std::size_t;
-using std::string::npos;
+using std::iostream;
+using std::ios_base;
+using std::to_string;
+using std::stringstream;
 /*
 ifstream& open_file(const string & filename) {
    ifstream file;
@@ -27,75 +38,106 @@ ifstream& open_file(const string & filename) {
 }
 */
 struct Io_guard {
-   iostream& stream;
+   fstream& stream;
    const ios_base::iostate old_e;
-   Io_guard(iostream& s, ios_base::iostate e) :stream(s), old_e(stream.exceptions()) { 
-      stream.exceptions(stream.exceptions | e); 
+   Io_guard(fstream& s, ios_base::iostate e) :stream(s), old_e(stream.exceptions()) { 
+      stream.exceptions(stream.exceptions() | e); 
    }
    ~Io_guard() { stream.exceptions(old_e); }
    
-   void open_file(const string & filename) {
+   void open_file(const string & filename, ios_base::openmode mode = ios_base::in | ios_base::out) {
       try {
-         stream.open(filename);
+         stream.open(filename, mode);
       }
       catch (const ios_base::failure & e) {
-         throw ios_base::failure("Exception opening file. Caught an ios_base::failure.\n" + e.what() +
-                           "Error code: " + e.code() + "\n");
+         throw ios_base::failure("Exception opening file. Caught an ios_base::failure.\n" + string(e.what()) +
+            "Error code: " + string(e.code().category().name()) + " : " + to_string((e.code().value())) + "\n");
       }
    }
 };
 
 #ifdef MANUAL_DLL_LOAD
-void delete_manual_dll_load(const string & filename, const string & erasing, const string & replacing) {
+void delete_manual_dll_load(const string & filename) {
    /* ostringstream text;
    ifstream& in_file = open_file(filename);
    fstream file(filename, std::fstream::in | std::fstream::out);
    ifstream in_file(filename);*/
-   Io_guard guard(ifstream {}, ios_base::failbit | ios_base::badbit);
-   guard.open_file(filename);
-   ostringstream text;
-   text << in_file().rdbuf();
-   string str = text.str();
+   Io_guard in_guard(unmove(fstream {}), ios_base::failbit | ios_base::badbit);
+   in_guard.open_file(filename, ios_base::in);
+   stringstream text;
+   text << in_guard.stream.rdbuf();
+   in_guard.stream.close();
+   
+   Io_guard out_guard(unmove(fstream {}), ios_base::failbit | ios_base::badbit);
+   out_guard.open_file(filename, ios_base::out);
+
    const string comment = "#";
    const string manual_dll_load_string = "-DMANUAL_DLL_LOAD"; 
-   string line;
-   string word;
+   const size_t manual_dll_load_string_size = manual_dll_load_string.size(); 
    size_t manual_dll_load_position;
    size_t comment_position;
+
+   string line;
+   //  1st while loop  
+   while (getline(text, line)) {
+      manual_dll_load_position = line.find(manual_dll_load_string);
+      if (manual_dll_load_position != string::npos) {
+         comment_position = line.find(comment);
+         if (comment_position == string::npos || comment_position > manual_dll_load_position) {  // interested line (flags_line before comment)
+            stringstream line_stream(line);
+            string word;
+            while (getline(line_stream, word, ' ')) { //  2nd while loop  
+               manual_dll_load_position = word.find(manual_dll_load_string);
+               if (manual_dll_load_position != string::npos && word[0] != comment[0]) {
+                  comment_position = word.find(comment);
+                  if (comment_position == string::npos || comment_position > manual_dll_load_position)
+                     word.erase(manual_dll_load_position, manual_dll_load_position + manual_dll_load_string_size);  // erase manual_dll_load_string in word
+               }
+               out_guard.stream << word << ' '; // save to file modified or unmodified word  
+            }
+            continue;    //  after process on interested line (flags_line before comment) continuing to 1st while loop
+         }
+      }
+      out_guard.stream << line;    //  insert not interested line without changes 
+   }
+   /*
+   string str = text.str();
    size_t previous_line_position = 0;
    size_t next_line_position = str.find('\n', previous_line_position);
    for (; next_line_position != string::npos; previous_line_position = line_position + 1, next_line_position = str.find('\n', previous_line_position)) {
+      string line = str.substr (previous_line_position, next_line_position);
       manual_dll_load_position = line.find(manual_dll_load_string);
-      if (manual_dll_load_position != std::string::npos) {
+      if (manual_dll_load_position != string::npos) {
          comment_position = line.find(comment);
-         if (comment_position != std::string::npos && comment_position > manual_dll_load_position) {  /* interested line (flags_line before comment)  */
-            line.replace(pos, string(str_erasing).length(), str_replacing);
-            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
-               if (0 != strcmp(word, manual_dll_load_string))  /* not insert manual_dll_load_string  */
+         if (comment_position != string::npos && comment_position > manual_dll_load_position) {  // interested line (flags_line before comment)  
+            line.replace(manual_dll_load_position, manual_dll_load_string_size, "");
+            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   //  2nd for loop  
+               if (0 != strcmp(word, manual_dll_load_string))  // not insert manual_dll_load_string  
                   fprintf (edited_file, "%s ", word);
             }
-            continue;  /*  after process on interested line (flags_line before comment) continuing to 1st for loop  */
+            continue;  //  after process on interested line (flags_line before comment) continuing to 1st for loop 
          } 
       }
-      fputs (line, edited_file);  /*  insert not interested line without changes */
+      fputs (line, edited_file);  
    }
    while (getline( myfile, line )) 
-   /* 1st for loop  */
+   
    for ( ; getline( guard.stream, line ); fprintf (edited_file, "%c", '\n')) {
       manual_dll_load_position = line.find(manual_dll_load_string);
       if (manual_dll_load_position != std::string::npos) {
          comment_position = line.find(comment);
-         if (comment_position != std::string::npos && comment_position > manual_dll_load_position) {  /* interested line (flags_line before comment)  */
+         if (comment_position != std::string::npos && comment_position > manual_dll_load_position) {  
             line.replace(pos, string(str_erasing).length(), str_replacing);
-            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
-               if (0 != strcmp(word, manual_dll_load_string))  /* not insert manual_dll_load_string  */
+            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   
+               if (0 != strcmp(word, manual_dll_load_string))  
                   fprintf (edited_file, "%s ", word);
             }
-            continue;  /*  after process on interested line (flags_line before comment) continuing to 1st for loop  */
+            continue;  
          } 
       }
-      fputs (line, edited_file);  /*  insert not interested line without changes */
+      fputs (line, edited_file);  
    }
+   */
 }
 #else
 enum Insert_flag { NOT_YET, FLAG, DONE };   /* FLAG = "CPPFLAGS" or "CFLAGS" to distinct with
@@ -147,6 +189,41 @@ void insert_manual_dll_load(FILE * file, FILE * edited_file) {
 }
 #endif
 
+int execute(char ** const argv) {
+   pid_t  pid;
+   int    status;
+   if (! argv || ! *argv) { 
+      throw runtime_error("Array of pointers is null / filename is null");
+   }
+   if ((pid = fork()) < 0) { 
+      throw runtime_error("forking child process failed ");
+   }
+   else if (pid == 0) {
+      cerr << "Child process pid = " << getpid() << ", parent process pid = " << getppid() << '\n';
+      if (execvp(*argv, argv) < 0) {     
+         throw runtime_error("Call of execvp failed. Error: " + string(strerror(errno)));
+      }
+   }
+   else {
+      cerr << "Parent process: pid = " << getpid() << '\n';
+      cerr << "Parent process: waiting for completion of child process with pid = " << pid << '\n';
+      pid_t result;
+      do {
+         result = wait(&status);
+      } while (result != pid && result != -1);
+/*
+      LOG("status of child process: %d\n", status);
+      LOG("wait(&status) on success returns the process ID of the terminated child - on failure, -1 is returned.\n \
+      Result of waiting for child process: %d\n", result);
+      LOG("result of waiting for child process %s child pid\n", result == pid ? "==" : "!=");*/
+      if (result == -1) {
+         throw runtime_error("Call of wait(&status) failed. Error: " +  string(strerror(errno)));
+      }
+      return result;
+   }
+}
+
+/*
 void edit_file(const string & filename, const string & erasing, const string & replacing) {
    ostringstream text;
    ifstream in_file(filename);
@@ -162,24 +239,25 @@ void edit_file(const string & filename, const string & erasing, const string & r
    ofstream out_file(filename);
    out_file << str;
 }
-
+*/
 int makefile() {
    char *exec_args[] = { "make", "clean", NULL };
    int result = execute(exec_args);
-   if (result != SYSTEM_ERROR) {
+   if (result != -1) {
 #ifdef MANUAL_DLL_LOAD
-   edit_file(file, "-DMANUAL_DLL_LOAD", "");
+   delete_manual_dll_load("Make2");
+   //edit_file(file, "-DMANUAL_DLL_LOAD", "");
 #else
-   edit_file(file, "-DMANUAL_DLL_LOAD", "");
+   //edit_file(file, "-DMANUAL_DLL_LOAD", "");
 #endif
    }
-      result = edit_makefile();
-   if (result == OK) {
+      //result = edit_makefile();
+   if (result != -1) {
       exec_args[1] = NULL;
-      if (execute(exec_args) != SYSTEM_ERROR)
-         result = OK;
+      if (execute(exec_args) != -1)
+         result = 0;
    }
-   LOG("Parent process: pid = %d\nGoodbye!\n", getpid());
+   cerr << "Parent process: pid = " << getpid() << '\n';
    return result;
 }
 
