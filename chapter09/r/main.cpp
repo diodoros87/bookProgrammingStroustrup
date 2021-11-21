@@ -90,7 +90,7 @@ void delete_manual_dll_load(const string & filename) {
          if (comment_pos == string::npos || (comment_pos != string::npos && comment_pos > manual_dll_pos)) {  // interested line (flags_line before comment)
             stringstream line_stream(line);
             string word;
-            bool not_comment = true; // code
+            bool not_comment = true;   // code, not comment
             while (getline(line_stream, word, ' ')) { //  2nd while loop  
                if (not_comment) { // modify word only in code, not in comments
                   comment_pos = word.find(comment);
@@ -99,7 +99,7 @@ void delete_manual_dll_load(const string & filename) {
                   manual_dll_pos = word.find(manual_dll);
                   if (manual_dll_pos != string::npos) {
                      if (comment_pos == string::npos || (comment_pos != string::npos && comment_pos > manual_dll_pos)) {
-                        cerr << " erasing word = " << word << '\n';
+                        //cerr << " erasing word = " << word << '\n';
                         word.erase(manual_dll_pos, manual_dll_pos + manual_dll_size);  // erase manual_dll in word
                      }
                   }

@@ -56,30 +56,83 @@ char * read_line(FILE *file) {
    return buffer;
 }
 
+typedef int bool_t;
+
 #ifdef MANUAL_DLL_LOAD
 void delete_manual_dll_load(FILE * file, FILE * edited_file) {
    if (! file || ! edited_file) { 
       LOG_EXIT(__FUNCTION__, "file is null / edited_file is null", EXIT_FAILURE);
    }
    const char comment[] = "#";
-   const char * manual_dll_load_string = "-DMANUAL_DLL_LOAD"; 
-   const size_t manual_dll_size = strlen(manual_dll_load_string); 
+   const char * manual_dll = "-DMANUAL_DLL_LOAD"; 
+   const size_t manual_dll_size = strlen(manual_dll); 
    char * line;
    char * word;
-   char * manual_dll_load_line;
+   char * manual_dll_line;
    char * comment_line;
+   bool_t not_comment = 1;
+   bool_t insert_word = 0;
    /* 1st for loop  */
    for (line = read_line(file); line != NULL; free(line), line = read_line(file), fprintf (edited_file, "%c", '\n')) {
-      manual_dll_load_line = strstr (line, manual_dll_load_string);
-      if (manual_dll_load_line) {
+      manual_dll_line = strstr (line, manual_dll);
+      if (manual_dll_line) {
          comment_line = strstr (line, comment);
-         if (! comment_line || (comment_line && comment_line > manual_dll_load_line)) {  /* interested line (flags_line before comment)  */
+         if (! comment_line || (comment_line && comment_line > manual_dll_line)) {  /* interested line (flags_line before comment)  */
+            not_comment = 1;   /* code, not comment */
             for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
-               if (0 != strncmp(word, manual_dll_load_string, manual_dll_size))  /* not insert manual_dll_load_string  */
+               if (not_comment) { /* modify word only in code, not in comments */
+                  comment_line = strstr (word, comment);
+                  if (comment_line)
+                     not_comment = 0;
+                  manual_dll_line = strstr (word, manual_dll);
+                  if (manual_dll_line) {
+                     if (! comment_line || (comment_line && comment_line > manual_dll_line)) {
+                        insert_word = 1;
+                        size_t word_length = strlen(word);
+                        for (size_t i = 0; i < word_length; ) {   /*  3rd for loop  */
+                           if (word + i == manual_dll_line) {
+                              for (size_t j = 0; j < manual_dll_size; j++)  /*  skip  manual_dll */
+                                 i++;
+                              continue;  /*  continue to 3rd for loop to check condition: i < word_length  */
+                           }
+                           fputc (word[i] , edited_file );
+                           i++;
+                        } 
+                        fputc (' ' , edited_file );
+                        /*
+                        while (word && *word);
+                        if (word + i == manual_dll_line) {
+                           while (manual_dll_size--)
+                              word++;
+                        }
+                        word[i] = 
+                        size_t new_word_length = strlen(word) + 1 - manual_dll_size;
+                        char * new_word = calloc(new_word_length, sizeof (char));
+                        for(size_t i = 0; index < word_length; i++) {
+                           if (word + i == manual_dll_line) {
+                              while (manual_dll_size--)
+                                 word++;
+                           }
+                           new_word[i] = word[i];
+                           word
+                        }
+                        word = new_word;
+                        free
+                        word.erase(manual_dll_pos, manual_dll_pos + manual_dll_size);  /* erase manual_dll in word 
+                        if (0 != strncmp(word, manual_dll, manual_dll_size)) {   not insert manual_dll  
+                           fprintf (edited_file, "%s ", word);
+                        }
+                        */
+                     }
+                  }
+               }
+               if (0 == insert_word)
                   fprintf (edited_file, "%s ", word);
+               else
+                  insert_word = 0;
             }
             continue;  /*  after process on interested line (flags_line before comment) continuing to 1st for loop  */
-         } 
+         }
       }
       fputs (line, edited_file);  /*  insert not interested line without changes */
    }
@@ -101,7 +154,7 @@ void insert_manual_dll_load(FILE * file, FILE * edited_file) {
    char * flags_line; 
    char * comment_line;
    enum Insert_flag inserting = NOT_YET;
-   const char * manual_dll_load_string = "-DMANUAL_DLL_LOAD";       
+   const char * manual_dll = "-DMANUAL_DLL_LOAD";       
    /* 1st for loop  */
    for (line = read_line(file); line != NULL; free(line), line = read_line(file), fprintf (edited_file, "%c", '\n')) {
       flags_line = strstr (line, cppflags);
@@ -113,12 +166,12 @@ void insert_manual_dll_load(FILE * file, FILE * edited_file) {
             for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
                fprintf (edited_file, "%s ", word);
                if (FLAG == inserting) {
-                  fprintf (edited_file, "%s ", manual_dll_load_string);
-                  inserting = DONE;   /* change inserting to DONE protect before next inserting manual_dll_load_string */
+                  fprintf (edited_file, "%s ", manual_dll);
+                  inserting = DONE;   /* change inserting to DONE protect before next inserting manual_dll */
                }
                else if (NOT_YET == inserting) {
                   if (0 == strcmp(word, cflags) || 0 == strcmp(word, cppflags))  /* word is "CPPFLAGS" or "CFLAGS"  */
-                     inserting = FLAG;       /* signal to insert manual_dll_load_string in next iteration due to "=" is separated from "CPPFLAGS" or "CFLAGS" */
+                     inserting = FLAG;       /* signal to insert manual_dll in next iteration due to "=" is separated from "CPPFLAGS" or "CFLAGS" */
                   else if (0 == strncmp(word, cflags, cflags_size) || 0 == strncmp(word, cppflags, cppflags_size)) {  
                      fprintf (edited_file, "%s ", word);  /* "=" is in "CPPFLAGS=" or "CFLAG="  */
                      inserting = DONE;
@@ -150,7 +203,7 @@ FILE* open_file( const char * filename, const char * mode ) {
 }  
 
 int edit_makefile() {
-   FILE* file = open_file("Makefile", "r");
+   FILE* file = open_file("Make2", "r");
    FILE * edited_file = open_file("Makefile.tmp", "w");
    if (! file || ! edited_file)
       return OPEN_FILE_ERROR;
@@ -163,7 +216,7 @@ int edit_makefile() {
       LOG("Call of fclose failed. Error: %s\n", strerror(errno));
       return FILE_CLOSE_ERROR;
    }
-   if (0 != rename("Makefile.tmp", "Makefile")) {
+   if (0 != rename("Makefile.tmp", "Make2")) {
       LOG("Call of rename failed. Error: %s\n", strerror(errno));
       return RENAME_FILE_ERROR;
    }
