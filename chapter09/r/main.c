@@ -99,30 +99,6 @@ void delete_manual_dll_load(FILE * file, FILE * edited_file) {
                            i++;
                         } 
                         fputc (' ' , edited_file );
-                        /*
-                        while (word && *word);
-                        if (word + i == manual_dll_line) {
-                           while (manual_dll_size--)
-                              word++;
-                        }
-                        word[i] = 
-                        size_t new_word_length = strlen(word) + 1 - manual_dll_size;
-                        char * new_word = calloc(new_word_length, sizeof (char));
-                        for(size_t i = 0; index < word_length; i++) {
-                           if (word + i == manual_dll_line) {
-                              while (manual_dll_size--)
-                                 word++;
-                           }
-                           new_word[i] = word[i];
-                           word
-                        }
-                        word = new_word;
-                        free
-                        word.erase(manual_dll_pos, manual_dll_pos + manual_dll_size);  /* erase manual_dll in word 
-                        if (0 != strncmp(word, manual_dll, manual_dll_size)) {   not insert manual_dll  
-                           fprintf (edited_file, "%s ", word);
-                        }
-                        */
                      }
                   }
                }
@@ -173,7 +149,7 @@ void insert_manual_dll_load(FILE * file, FILE * edited_file) {
                   if (0 == strcmp(word, cflags) || 0 == strcmp(word, cppflags))  /* word is "CPPFLAGS" or "CFLAGS"  */
                      inserting = FLAG;       /* signal to insert manual_dll in next iteration due to "=" is separated from "CPPFLAGS" or "CFLAGS" */
                   else if (0 == strncmp(word, cflags, cflags_size) || 0 == strncmp(word, cppflags, cppflags_size)) {  
-                     fprintf (edited_file, "%s ", word);  /* "=" is in "CPPFLAGS=" or "CFLAG="  */
+                     fprintf (edited_file, "%s ", manual_dll);  /* "=" is in "CPPFLAGS=" or "CFLAG="  */
                      inserting = DONE;
                   }
                }
@@ -203,7 +179,7 @@ FILE* open_file( const char * filename, const char * mode ) {
 }  
 
 int edit_makefile() {
-   FILE* file = open_file("Make2", "r");
+   FILE* file = open_file("Makefile", "r");
    FILE * edited_file = open_file("Makefile.tmp", "w");
    if (! file || ! edited_file)
       return OPEN_FILE_ERROR;
@@ -216,7 +192,7 @@ int edit_makefile() {
       LOG("Call of fclose failed. Error: %s\n", strerror(errno));
       return FILE_CLOSE_ERROR;
    }
-   if (0 != rename("Makefile.tmp", "Make2")) {
+   if (0 != rename("Makefile.tmp", "Makefile")) {
       LOG("Call of rename failed. Error: %s\n", strerror(errno));
       return RENAME_FILE_ERROR;
    }
@@ -309,10 +285,12 @@ int main(int argc, char *argv[]) {
    FUNCTION_INFO(__FUNCTION__);
    const char * const command = "LD_LIBRARY_PATH=. ./c_linking_test";
    int result = test_linking (command);
+   assert_many(result != SYSTEM_ERROR, "assert failed: ", "s d", "result == ", result);
    if (result == OK)
       result = makefile();
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (result == OK)
       result = test_linking(command);
-   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
+   assert_many(result != SYSTEM_ERROR, "assert failed: ", "s d", "result == ", result);
    return result;
 }

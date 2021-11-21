@@ -56,21 +56,19 @@ struct Io_guard {
    }
 };
 
-#ifdef MANUAL_DLL_LOAD
-void delete_manual_dll_load(const string & filename) {
-   /* ostringstream text;
-   ifstream& in_file = open_file(filename);
-   fstream file(filename, std::fstream::in | std::fstream::out);*/
-   fstream in_file;/*
-   stringstream ss;
-   ss << in_file.rdbuf();
-    string str = ss.str();*/
+stringstream get_content_file(const string & filename) {
+   fstream in_file;
    Io_guard in_guard(in_file, ios_base::failbit | ios_base::badbit);
    in_guard.open_file(filename, ios_base::in);
    stringstream text;
    text << in_guard.stream.rdbuf();
    in_guard.stream.close();
-   
+   return text;
+}
+
+#ifdef MANUAL_DLL_LOAD
+void delete_manual_dll_load(const string & filename) {
+   stringstream text = get_content_file(filename);
    fstream out_file;
    Io_guard out_guard(out_file, ios_base::failbit | ios_base::badbit);
    out_guard.open_file(filename, ios_base::out);
@@ -78,15 +76,11 @@ void delete_manual_dll_load(const string & filename) {
    const string comment = "#";
    const string manual_dll = "-DMANUAL_DLL_LOAD"; 
    const size_t manual_dll_size = manual_dll.size(); 
-   size_t manual_dll_pos;
-   size_t comment_pos;
-
-   string line;
    //  1st while loop  
-   for (; getline(text, line); out_guard.stream << '\n') {
-      manual_dll_pos = line.find(manual_dll);
+   for (string line ; getline(text, line); out_guard.stream << '\n') {
+      size_t manual_dll_pos = line.find(manual_dll);
       if (manual_dll_pos != string::npos) {
-         comment_pos = line.find(comment);
+         size_t comment_pos = line.find(comment);
          if (comment_pos == string::npos || (comment_pos != string::npos && comment_pos > manual_dll_pos)) {  // interested line (flags_line before comment)
             stringstream line_stream(line);
             string word;
@@ -111,92 +105,54 @@ void delete_manual_dll_load(const string & filename) {
       }
       out_guard.stream << line;    //  insert not interested line without changes 
    }
-   /*
-   string str = text.str();
-   size_t previous_line_position = 0;
-   size_t next_line_position = str.find('\n', previous_line_position);
-   for (; next_line_position != string::npos; previous_line_position = line_position + 1, next_line_position = str.find('\n', previous_line_position)) {
-      string line = str.substr (previous_line_position, next_line_position);
-      manual_dll_pos = line.find(manual_dll);
-      if (manual_dll_pos != string::npos) {
-         comment_pos = line.find(comment);
-         if (comment_pos != string::npos && comment_pos > manual_dll_pos) {  // interested line (flags_line before comment)  
-            line.replace(manual_dll_pos, manual_dll_size, "");
-            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   //  2nd for loop  
-               if (0 != strcmp(word, manual_dll))  // not insert manual_dll  
-                  fprintf (edited_file, "%s ", word);
-            }
-            continue;  //  after process on interested line (flags_line before comment) continuing to 1st for loop 
-         } 
-      }
-      fputs (line, edited_file);  
-   }
-   while (getline( myfile, line )) 
-   
-   for ( ; getline( guard.stream, line ); fprintf (edited_file, "%c", '\n')) {
-      manual_dll_pos = line.find(manual_dll);
-      if (manual_dll_pos != std::string::npos) {
-         comment_pos = line.find(comment);
-         if (comment_pos != std::string::npos && comment_pos > manual_dll_pos) {  
-            line.replace(pos, string(str_erasing).length(), str_replacing);
-            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   
-               if (0 != strcmp(word, manual_dll))  
-                  fprintf (edited_file, "%s ", word);
-            }
-            continue;  
-         } 
-      }
-      fputs (line, edited_file);  
-   }
-   */
+   out_guard.stream.close();
 }
 #else
-enum Insert_flag { NOT_YET, FLAG, DONE };   /* FLAG = "CPPFLAGS" or "CFLAGS" to distinct with
+enum class Insert_flag { NOT_YET, FLAG, DONE };   /* FLAG = "CPPFLAGS" or "CFLAGS" to distinct with
                                                  "CPPFLAGS=" or "CFLAGS="   */
-void insert_manual_dll_load(FILE * file, FILE * edited_file) {
-   if (! file || ! edited_file) { 
-      LOG_EXIT(__FUNCTION__, "file is null / edited_file is null", EXIT_FAILURE);
-   }
-   const char cppflags[] = "CPPFLAGS";
-   const char cflags[] = "CFLAGS";
-   const size_t cflags_size = strlen(cflags);
-   const size_t cppflags_size = strlen(cppflags);
-   const char comment[] = "#";
-   char * line;
-   char * word;
-   char * flags_line; 
-   char * comment_line;
-   enum Insert_flag inserting = NOT_YET;
-   const char * manual_dll = "-DMANUAL_DLL_LOAD";       
+void insert_manual_dll_load(const string & filename) {
+   stringstream text = get_content_file(filename);
+   fstream out_file;
+   Io_guard out_guard(out_file, ios_base::failbit | ios_base::badbit);
+   out_guard.open_file(filename, ios_base::out);
+   const string cppflags = "CPPFLAGS";
+   const string cflags = "CFLAGS";
+   const size_t cflags_size = cflags.size();
+   const size_t cppflags_size = cppflags.size();
+   const string comment = "#";
+   Insert_flag inserting = Insert_flag::NOT_YET;
+   const string manual_dll = "-DMANUAL_DLL_LOAD";       
    /* 1st for loop  */
-   for (line = read_line(file); line != NULL; free(line), line = read_line(file), fprintf (edited_file, "%c", '\n')) {
-      flags_line = strstr (line, cppflags);
-      if (! flags_line)
-         flags_line = strstr (line, cflags);
-      if (flags_line) {
-         comment_line = strstr (line, comment);
-         if (! comment_line || (comment_line && comment_line > flags_line)) {   /* interested line (flags_line before comment)  */
-            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
-               fprintf (edited_file, "%s ", word);
-               if (FLAG == inserting) {
-                  fprintf (edited_file, "%s ", manual_dll);
-                  inserting = DONE;   /* change inserting to DONE protect before next inserting manual_dll */
+   for (string line; getline(text, line); out_guard.stream << '\n') {
+      size_t flags_pos = line.find(cppflags);
+      if (flags_pos == string::npos)
+         flags_pos = line.find(cflags);
+      if (flags_pos != string::npos) {
+         size_t comment_pos = line.find(comment);
+         if (comment_pos == string::npos || (comment_pos != string::npos && comment_pos > flags_pos)) {   /* interested line (flags_line before comment)  */
+            stringstream line_stream(line);
+            for (string word; getline(line_stream, word, ' '); ) {   /*  2nd for loop  */
+               out_guard.stream << word << ' '; // save to file every word  
+               if (Insert_flag::FLAG == inserting) {
+                  out_guard.stream << manual_dll << ' ';
+                  inserting = Insert_flag::DONE;   /* change inserting to DONE protect before next inserting manual_dll */
                }
-               else if (NOT_YET == inserting) {
-                  if (0 == strcmp(word, cflags) || 0 == strcmp(word, cppflags))  /* word is "CPPFLAGS" or "CFLAGS"  */
-                     inserting = FLAG;       /* signal to insert manual_dll in next iteration due to "=" is separated from "CPPFLAGS" or "CFLAGS" */
-                  else if (0 == strncmp(word, cflags, cflags_size) || 0 == strncmp(word, cppflags, cppflags_size)) {  
-                     fprintf (edited_file, "%s ", word);  /* "=" is in "CPPFLAGS=" or "CFLAG="  */
-                     inserting = DONE;
+               else if (Insert_flag::NOT_YET == inserting) {
+                  if (word == cflags || word == cppflags)  /* word is "CPPFLAGS" or "CFLAGS"  */
+                     inserting = Insert_flag::FLAG;       /* signal to insert manual_dll in next iteration due to "=" is separated from "CPPFLAGS" or "CFLAGS" */
+                  else if (cflags == word.substr(0, cflags_size) || cppflags == word.substr(0, cppflags_size)) {  
+                     out_guard.stream << manual_dll << ' '; /* "=" is in "CPPFLAGS=" or "CFLAG="  */
+                     inserting = Insert_flag::DONE;
                   }
                }
             }
-            inserting = NOT_YET;  /* set to NOT_YET before read next line  */
+            inserting = Insert_flag::NOT_YET;  /* set to NOT_YET before read next line  */
             continue;  /*  after process on interested line (flags_line before comment) continuing to 1st for loop  */
          }
       }
-      fputs (line, edited_file);  /*  insert not interested line without changes  */
+      out_guard.stream << line;    //  insert not interested line without changes 
    }
+   out_guard.stream.close();
 }
 #endif
 
@@ -256,9 +212,10 @@ int makefile() {
    int result = execute(exec_args);
    if (result != -1) {
 #ifdef MANUAL_DLL_LOAD
-   delete_manual_dll_load("Make2");
+   delete_manual_dll_load("Makefile");
    //edit_file(file, "-DMANUAL_DLL_LOAD", "");
 #else
+   insert_manual_dll_load("Makefile");
    //edit_file(file, "-DMANUAL_DLL_LOAD", "");
 #endif
    }
