@@ -1,6 +1,5 @@
 #include "print.h"
 #include <stdarg.h>
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
@@ -226,16 +225,12 @@ size_t digits_d(long double x) {
    return number_of_digits + 1 + precision; /* number_of_digits + dot + precision  */ 
 }
 
-#define ALLOCATE(buffer, n) \
-(buffer) = (char *) malloc (n); \
-if ((buffer) == NULL) { \
-   LOG("%s", "out of memory: malloc() returns NULL ");  \
-}
-
 char * to_string_u(const unsigned long long x) {
    int length = digits(x);
    char * buffer; 
    ALLOCATE(buffer, length + 1);
+   if (NULL == buffer)
+      return NULL;
    buffer[length] = '\0';
    unsigned long long temp = x;
    do {
@@ -254,6 +249,8 @@ char * to_string_i(const long long x) {
    if (x < 0)
       length++;
    ALLOCATE(buffer, length + 1);
+   if (NULL == buffer)
+      return NULL;
    if (x < 0)
       buffer[0] = '-';
    unsigned long long temp;
@@ -274,7 +271,11 @@ char * to_string_d(const long double x) {
    int length = snprintf(NULL, 0, fmt, x);
    LOG(" ++++++++++   length = %d\n", length);
    ALLOCATE(buffer, length + 1);
-   snprintf(buffer, length + 1, fmt, x);/*
+   if (NULL == buffer)
+      return NULL;
+   if (0 > snprintf(buffer, length + 1, fmt, x)) {
+      LOG("%s", " snprintf: encoding error occurs\n");
+   }/*
    LOG_FUNC(__FUNCTION__);
    LOG(" ++++++++++   buffer = %s\n", buffer);
    LOG(" ++++++++++   x = %Lg\n", x);

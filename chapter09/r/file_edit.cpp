@@ -15,11 +15,11 @@ using std::stringstream;
 using std::cerr;
 
 bool exist_file(const char *name) {
-  struct stat   buffer;
-  int result = stat (name, &buffer);
-  if (-1 == result)
-     cerr << "Stat(): file with name: '" << name << "'. Error: " << strerror(errno) << '\n';
-  return result == 0;
+   struct stat   buffer;
+   int result = stat (name, &buffer);
+   if (-1 == result)
+      cerr << "Stat(): file with name: '" << name << "'. Error: " << strerror(errno) << '\n';
+   return result == 0;
 }
 
 struct Io_guard {
@@ -48,8 +48,8 @@ File_edit::File_edit(const string & name) {
 }
 
 void File_edit::set_filename(const string & name) {
-   //if (! exist_file(name.c_str()))
-   //   throw runtime_error("Init of File_edit failed. Error: " +  string(strerror(errno)));
+   if (! exist_file(name.c_str()))
+      throw runtime_error("Init of File_edit failed. Error: " +  string(strerror(errno)));
    filename = name;
 }
 

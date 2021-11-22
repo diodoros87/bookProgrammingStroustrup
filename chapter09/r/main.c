@@ -3,6 +3,7 @@
 */
 #include "print.h"
 #include "connector.h"
+#include "file_modify.h"
 
 #include <stdlib.h>
 #include <errno.h>
@@ -14,189 +15,6 @@
 
 #include <dirent.h>
 #include <unistd.h>
-
-#ifdef MANUAL_DLL_LOAD
-   #include <dlfcn.h>
-   #include "shared_lib_open.h"
-#endif
-
-char * read_line(FILE *file) {
-   if (! file) { 
-      LOG_EXIT(__FUNCTION__, "file is null", EXIT_FAILURE);
-   }
-   int ch;  /*  int (not char) due to value of EOF is a negative integer constant. The precise value is implementation-defined.  */
-   int index = 0;
-   size_t buff_len = 1;
-   char * buffer = calloc(buff_len, sizeof (char));
-   char * tmp_buff;
-   if (! buffer) {
-      LOG_FUNC(__FUNCTION__);
-      LOG("%s\n", "Out of memory");
-      return NULL;
-   }
-   while ((ch = fgetc(file)) != '\n' && ch != EOF) {
-      if (ferror (file))
-         perror("Error reading file\n");
-      tmp_buff= realloc(buffer, ++buff_len);
-      if (! tmp_buff) {
-         free(buffer);
-         LOG_FUNC(__FUNCTION__);
-         LOG("%s\n", "Out of memory");
-         return NULL;
-      }
-      buffer = tmp_buff;
-      buffer[index++] = (char) ch;
-   }
-   if (ch == EOF && (index == 0 || ferror(file))) {
-      free(buffer);
-      return NULL;
-   }
-   
-   return buffer;
-}
-
-typedef int bool_t;
-
-#ifdef MANUAL_DLL_LOAD
-void delete_manual_dll_load(FILE * file, FILE * edited_file) {
-   if (! file || ! edited_file) { 
-      LOG_EXIT(__FUNCTION__, "file is null / edited_file is null", EXIT_FAILURE);
-   }
-   const char comment[] = "#";
-   const char * manual_dll = "-DMANUAL_DLL_LOAD"; 
-   const size_t manual_dll_size = strlen(manual_dll); 
-   char * line;
-   char * word;
-   char * manual_dll_line;
-   char * comment_line;
-   bool_t not_comment = 1;
-   bool_t insert_word = 0;
-   /* 1st for loop  */
-   for (line = read_line(file); line != NULL; free(line), line = read_line(file), fprintf (edited_file, "%c", '\n')) {
-      manual_dll_line = strstr (line, manual_dll);
-      if (manual_dll_line) {
-         comment_line = strstr (line, comment);
-         if (! comment_line || (comment_line && comment_line > manual_dll_line)) {  /* interested line (flags_line before comment)  */
-            not_comment = 1;   /* code, not comment */
-            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
-               if (not_comment) { /* modify word only in code, not in comments */
-                  comment_line = strstr (word, comment);
-                  if (comment_line)
-                     not_comment = 0;
-                  manual_dll_line = strstr (word, manual_dll);
-                  if (manual_dll_line) {
-                     if (! comment_line || (comment_line && comment_line > manual_dll_line)) {
-                        insert_word = 1;
-                        size_t word_length = strlen(word);
-                        for (size_t i = 0; i < word_length; ) {   /*  3rd for loop  */
-                           if (word + i == manual_dll_line) {
-                              for (size_t j = 0; j < manual_dll_size; j++)  /*  skip  manual_dll */
-                                 i++;
-                              continue;  /*  continue to 3rd for loop to check condition: i < word_length  */
-                           }
-                           fputc (word[i] , edited_file );
-                           i++;
-                        } 
-                        fputc (' ' , edited_file );
-                     }
-                  }
-               }
-               if (0 == insert_word)
-                  fprintf (edited_file, "%s ", word);
-               else
-                  insert_word = 0;
-            }
-            continue;  /*  after process on interested line (flags_line before comment) continuing to 1st for loop  */
-         }
-      }
-      fputs (line, edited_file);  /*  insert not interested line without changes */
-   }
-}
-#else
-enum Insert_flag { NOT_YET, FLAG, DONE };   /* FLAG = "CPPFLAGS" or "CFLAGS" to distinct with
-                                                 "CPPFLAGS=" or "CFLAGS="   */
-void insert_manual_dll_load(FILE * file, FILE * edited_file) {
-   if (! file || ! edited_file) { 
-      LOG_EXIT(__FUNCTION__, "file is null / edited_file is null", EXIT_FAILURE);
-   }
-   const char cppflags[] = "CPPFLAGS";
-   const char cflags[] = "CFLAGS";
-   const size_t cflags_size = strlen(cflags);
-   const size_t cppflags_size = strlen(cppflags);
-   const char comment[] = "#";
-   char * line;
-   char * word;
-   char * flags_line; 
-   char * comment_line;
-   enum Insert_flag inserting = NOT_YET;
-   const char * manual_dll = "-DMANUAL_DLL_LOAD";       
-   /* 1st for loop  */
-   for (line = read_line(file); line != NULL; free(line), line = read_line(file), fprintf (edited_file, "%c", '\n')) {
-      flags_line = strstr (line, cppflags);
-      if (! flags_line)
-         flags_line = strstr (line, cflags);
-      if (flags_line) {
-         comment_line = strstr (line, comment);
-         if (! comment_line || (comment_line && comment_line > flags_line)) {   /* interested line (flags_line before comment)  */
-            for (word = strtok (line, " "); word; word = strtok (NULL, " ")) {   /*  2nd for loop  */
-               fprintf (edited_file, "%s ", word);
-               if (FLAG == inserting) {
-                  fprintf (edited_file, "%s ", manual_dll);
-                  inserting = DONE;   /* change inserting to DONE protect before next inserting manual_dll */
-               }
-               else if (NOT_YET == inserting) {
-                  if (0 == strcmp(word, cflags) || 0 == strcmp(word, cppflags))  /* word is "CPPFLAGS" or "CFLAGS"  */
-                     inserting = FLAG;       /* signal to insert manual_dll in next iteration due to "=" is separated from "CPPFLAGS" or "CFLAGS" */
-                  else if (0 == strncmp(word, cflags, cflags_size) || 0 == strncmp(word, cppflags, cppflags_size)) {  
-                     fprintf (edited_file, "%s ", manual_dll);  /* "=" is in "CPPFLAGS=" or "CFLAG="  */
-                     inserting = DONE;
-                  }
-               }
-            }
-            inserting = NOT_YET;  /* set to NOT_YET before read next line  */
-            continue;  /*  after process on interested line (flags_line before comment) continuing to 1st for loop  */
-         }
-      }
-      fputs (line, edited_file);  /*  insert not interested line without changes  */
-   }
-}
-#endif
-
-FILE* open_file( const char * filename, const char * mode ) {
-   if (! filename || ! mode) { 
-      LOG_EXIT(__FUNCTION__, "file is null / file access mode is null", EXIT_FAILURE);
-   }
-   FILE * file = fopen (filename, mode);
-   if (file != NULL) {
-      LOG("open file of %s\n", filename);
-   }
-   else {
-      LOG("file of %s is not exist\n", filename);
-      LOG("Call of fopen failed. Error: %s\n", strerror(errno));
-   }
-   return file;
-}  
-
-int edit_makefile(void) {
-   FILE* file = open_file("Makefile", "r");
-   FILE * edited_file = open_file("Makefile.tmp", "w");
-   if (! file || ! edited_file)
-      return OPEN_FILE_ERROR;
-#ifdef MANUAL_DLL_LOAD
-   delete_manual_dll_load(file, edited_file);
-#else
-   insert_manual_dll_load(file, edited_file);
-#endif
-   if (0 != fclose(file) || 0 != fclose(edited_file)) {
-      LOG("Call of fclose failed. Error: %s\n", strerror(errno));
-      return FILE_CLOSE_ERROR;
-   }
-   if (0 != rename("Makefile.tmp", "Makefile")) {
-      LOG("Call of rename failed. Error: %s\n", strerror(errno));
-      return RENAME_FILE_ERROR;
-   }
-   return OK;
-}
 
 int execute(const char ** const argv) {
    pid_t  pid;
@@ -236,8 +54,12 @@ int execute(const char ** const argv) {
 int makefile(void) {
    char *exec_args[] = { "make", "clean", NULL };
    int result = execute(exec_args);
-   if (result != SYSTEM_ERROR)
-      result = edit_makefile();
+   if (result != SYSTEM_ERROR) {
+      struct File_modify_t * modifier = File_modify_malloc();
+      if (! modifier)
+         return BAD_ALLOC;
+      result = edit_makefile(modifier);
+   }
    if (result == OK) {
       exec_args[1] = NULL;
       if (execute(exec_args) != SYSTEM_ERROR)

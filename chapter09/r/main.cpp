@@ -3,7 +3,6 @@
 #include "file_edit.hpp"
 
 #include <string>
-   
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
@@ -55,31 +54,10 @@ int execute(const char * file, T &&... args) {
    }
 }
 
-/*
-void edit_file(const string & filename, const string & erasing, const string & replacing) {
-   ostringstream text;
-   ifstream in_file(filename);
-
-   text << in_file().rdbuf();
-   string str = text.str();
-   string str_erasing = erasing;
-   string str_replacing = replacing;
-   size_t pos = str.find(str_erasing);
-   str.replace(pos, string(str_erasing).length(), str_replacing);
-   in_file().close();
-
-   ofstream out_file(filename);
-   out_file << str;
-}
-*/
 void makefile() {
    execute("make", "make", "clean");
    File_edit file_edit("Makefile");
-#ifdef MANUAL_DLL_LOAD
-   file_edit.delete_manual_dll_load();
-#else
-   file_edit.insert_manual_dll_load();
-#endif
+   file_edit.edit_makefile();
    execute("make", "make");
    cerr << "Parent process: pid = " << getpid() << '\n';
 }

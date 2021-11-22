@@ -2,6 +2,7 @@
 #define PRINT_H
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define LANGUAGE "C90"
 
@@ -32,6 +33,12 @@ extern int print_assert(const char *file, int line, const char * date, const cha
    FUNCTION_INFO(function_name); \
    LOG("\ninfo = %s\n exit status = %d\n", (info), (status)); \
    exit(status)
+   
+#define ALLOCATE(buffer, n) \
+(buffer) = (char *) malloc (n); \
+if ((buffer) == NULL) { \
+   LOG("%s", "out of memory: malloc() returns NULL ");  \
+}
    
 char * to_string_u(unsigned long long x);
 char * to_string_i(long long x);

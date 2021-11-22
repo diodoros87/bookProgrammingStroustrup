@@ -30,7 +30,7 @@ void Demo::set_name(const char *name) {
 
 char * Demo::get_name() const {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__) << '\n';
-   char * result = const_cast<char *>(name.data());
+   char * result = const_cast<char *>(name.c_str());
    return result;
 }
 
