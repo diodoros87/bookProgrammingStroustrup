@@ -31,10 +31,4 @@ struct Constructor {
 	}
 };
 
-struct A {
-   template<class T, class = decltype(std::declval<T&>()()),
-   class = typename std::enable_if<std::is_pointer<T>::value>::type>
-   A(T f) { f(); }
-};
-
 #endif

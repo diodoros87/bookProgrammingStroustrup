@@ -1,5 +1,5 @@
-#ifndef VARIADIC_TEMPLATE_H
-#define VARIADIC_TEMPLATE_H
+#ifndef VARIADIC_TEMPLATE_HPP
+#define VARIADIC_TEMPLATE_HPP
 
 #include <iostream>
 #include <string>
