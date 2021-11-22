@@ -1,8 +1,8 @@
 CXX = g++
-CPPFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
+CPPFLAGS = -DMANUAL_DLL_LOAD  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 
+CFLAGS = -DMANUAL_DLL_LOAD  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
 PROGRAMS  = libdemo.so libconnector.so main_cpp c_main c_linking_test linking_test_cpp
@@ -31,14 +31,17 @@ print.o: print.h print.c
 	
 	
 
-main_cpp: main_cpp.o
-	$(CXX) $(CPPFLAGS) main_cpp.o -o main_cpp 
+main_cpp: main_cpp.o file_edit.o
+	$(CXX) $(CPPFLAGS) main_cpp.o file_edit.o -o main_cpp 
 	
 linking_test_cpp: linking_test_cpp.o libdemo.so
 	$(CXX) $(CPPFLAGS) linking_test_cpp.o shared_lib_open.o -L. -lconnector -ldemo -ldl -o linking_test_cpp 
 	
 libconnector.so: connector.o libdemo.so
 	$(CXX) $(CPPFLAGS) -shared -L. -ldemo -o libconnector.so connector.o 
+	
+file_edit.o: file_edit.hpp file_edit.cpp
+	$(CXX) $(CPPFLAGS) -c file_edit.cpp 
 	
 connector.o: connector.h connector.cpp null.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC connector.cpp 

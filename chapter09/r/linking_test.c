@@ -265,7 +265,7 @@ Result_codes test_money(void) {
 
 #undef TEST_ALLOC
 
-Result_codes main_test_linking() {
+Result_codes main_test_linking(void) {
    Demo_functions demo_functions;
    load_demo(&demo_functions); 
    Result_codes result = run_demo(&demo_functions);
@@ -274,7 +274,7 @@ Result_codes main_test_linking() {
    return result;
 }
 
-Result_codes test_linking() {
+Result_codes test_linking(void) {
    volatile int jmp_value = 0;
    if ((jmp_value = setjmp(JMP_BUF)) != 0) {
       LOG("\nAfter calling test_print_many longjmp set value to %d\n", jmp_value);

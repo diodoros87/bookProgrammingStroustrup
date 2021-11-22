@@ -47,7 +47,6 @@ char * read_line(FILE *file) {
       buffer = tmp_buff;
       buffer[index++] = (char) ch;
    }
-   buffer[index] = '\0';
    if (ch == EOF && (index == 0 || ferror(file))) {
       free(buffer);
       return NULL;
@@ -178,7 +177,7 @@ FILE* open_file( const char * filename, const char * mode ) {
    return file;
 }  
 
-int edit_makefile() {
+int edit_makefile(void) {
    FILE* file = open_file("Makefile", "r");
    FILE * edited_file = open_file("Makefile.tmp", "w");
    if (! file || ! edited_file)
@@ -234,7 +233,7 @@ int execute(const char ** const argv) {
    }
 }
 
-int makefile() {
+int makefile(void) {
    char *exec_args[] = { "make", "clean", NULL };
    int result = execute(exec_args);
    if (result != SYSTEM_ERROR)
@@ -274,23 +273,23 @@ int call_system(const char * const command) {
    return result;
 }
 
-int test_linking() {
+int test_linking(void) {
    FUNCTION_INFO(__FUNCTION__);
    const char * const command = "LD_LIBRARY_PATH=. ./c_linking_test";
    int result = call_system(command);
    return result;
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
    FUNCTION_INFO(__FUNCTION__);
    const char * const command = "LD_LIBRARY_PATH=. ./c_linking_test";
-   int result = test_linking (command);
+   int result = test_linking ();
    assert_many(result != SYSTEM_ERROR, "assert failed: ", "s d", "result == ", result);
    if (result == OK)
       result = makefile();
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (result == OK)
-      result = test_linking(command);
+      result = test_linking();
    assert_many(result != SYSTEM_ERROR, "assert failed: ", "s d", "result == ", result);
    return result;
 }

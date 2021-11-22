@@ -33,7 +33,8 @@ int execute(const char * file, T &&... args) {
    else if (pid == 0) {
       cerr << "Child process pid = " << getpid() << ", parent process pid = " << getppid() << '\n';
       if (execlp(file, std::forward<T>(args)..., 0 ) < 0)  
-         throw system_error(error_code(static_cast<int>(errno), std::generic_category()), "Call of execvp failed. Error: " + string(strerror(errno)));
+         throw system_error(error_code(static_cast<int>(errno), std::generic_category()),
+                            "Call of execvp failed. Error: " + string(strerror(errno)));
    }
    else {
       cerr << "Parent process: pid = " << getpid() << '\n';
@@ -46,14 +47,10 @@ int execute(const char * file, T &&... args) {
       cerr << "status of child process: " << status << '\n';
       cerr << "wait(&status) on success returns the process ID of the terminated child - on failure, -1 is returned.\n \
       Result of waiting for child process: " << result << '\n';
-      cerr << "result of waiting for child process ";// << (result == static_cast<int>(pid)) ? "==" : "!=" << " child pid\n";
-      if ((result == static_cast<int>(pid)))
-         cerr << "==";
-      else
-         cerr << "!=";
-      cerr << " child pid\n";
+      cerr << "result of waiting for child process " << (result == static_cast<int>(pid) ? "==" : "!=") << " child pid\n";
       if (result == -1) 
-         throw system_error(errno, "Call of wait(&status) failed. Error: " +  string(strerror(errno)));
+         throw system_error(error_code(static_cast<int>(errno), std::generic_category()),
+                                       "Call of wait(&status) failed. Error: " +  string(strerror(errno)));
       return result;
    }
 }
@@ -87,7 +84,7 @@ void makefile() {
    cerr << "Parent process: pid = " << getpid() << '\n';
 }
 
-int test_linking(const string & command) {
+int call_system(const string & command) {
    int result = system(command.c_str());
    if (-1 == result) {
       cerr << "Call of system(\"" << command << "\") failed. Error: " << strerror(errno) << '\n';
@@ -107,12 +104,21 @@ int test_linking(const string & command) {
    return result;
 }
 
+int test_linking() {
+   const string command = "LD_LIBRARY_PATH=. ./linking_test_cpp";
+   int result = call_system(command);
+   return result;
+}
+
 int main() {
    try {
       cerr << "\n C++ " << __cplusplus << " function = " << __func__ << '\n';
-      int result = test_linking ("LD_LIBRARY_PATH=. ./linking_test_cpp");
-      if (result == 0)
+      int result = test_linking ();
+      if (result == 0) {
          makefile();
+         result = test_linking();
+      }
+      assert_many(result == 0, "result == ", result);
       return result;
    } 
    catch (const system_error& e) {
