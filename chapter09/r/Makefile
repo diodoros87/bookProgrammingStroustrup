@@ -1,8 +1,8 @@
 CXX = g++
-CPPFLAGS = -DMANUAL_DLL_LOAD  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
+CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 
+CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
 PROGRAMS  = libdemo.so libconnector.so main_cpp c_main c_linking_test linking_test_cpp
@@ -53,7 +53,7 @@ linking_test_cpp.o: linking_test.cpp variadic_template.hpp variadic_template.cpp
 	$(CXX) $(CPPFLAGS) -c linking_test.cpp -o linking_test_cpp.o 
 	
 file_edit.o: file_edit.hpp file_edit.cpp
-	$(CXX) $(CPPFLAGS) -c file_edit.cpp
+	$(CXX) $(CPPFLAGS) -c file_edit.cpp 
 	
 libdemo.so: demo.o
 	$(CXX) $(CPPFLAGS) -shared -o libdemo.so demo.o 

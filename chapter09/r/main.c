@@ -51,14 +51,16 @@ int execute(const char ** const argv) {
    }
 }
 
-int makefile(void) {
+Result_codes makefile(void) {
    char *exec_args[] = { "make", "clean", NULL };
    int result = execute(exec_args);
    if (result != SYSTEM_ERROR) {
       struct File_modify_t * modifier = File_modify_malloc();
       if (! modifier)
          return BAD_ALLOC;
-      result = edit_makefile(modifier);
+      result = File_modify_init(modifier, "Makefile");
+      if (result == OK)
+         result = edit_makefile(modifier);
    }
    if (result == OK) {
       exec_args[1] = NULL;

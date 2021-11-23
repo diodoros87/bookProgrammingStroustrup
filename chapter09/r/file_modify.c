@@ -11,18 +11,20 @@ if (! pointer ) { \
    LOG_EXIT(__FUNCTION__, "Pointer to File_modify_t is NULL", EXIT_FAILURE); \
 }
 
-char * concatenate(char * destination, const char * source) {
-   if (! destination || ! source) { 
-      LOG_EXIT(__FUNCTION__, "destination / source string is null", EXIT_FAILURE);
+char * concatenate(const char * first, const char * second) {
+   if (! first || ! second) { 
+      LOG_EXIT(__FUNCTION__, "first / second string is null", EXIT_FAILURE);
    }
-   destination = realloc(destination, strlen(source) + strlen(destination) + 1);
-   if (destination)
-      strcat(destination, source);
+   char * result = calloc(strlen(first) + strlen(second) + 1, sizeof (char));
+   if (result) {
+      strcpy(result, first);
+      strcat(result, second);
+   }
    else {
       LOG_FUNC(__FUNCTION__);
       LOG("%s\n", "Out of memory");
    }
-   return destination;
+   return result;
 }
 
 bool_t exist_file(const char * const name) {
@@ -87,13 +89,13 @@ char * read_line(const FILE * const file) {
 
 #define CHECK_FILE(filename) \
 if (! exist_file(filename)) { \
-      const char * message = concatenate("Init of File_edit failed. Error: " +  strerror(errno)); \
+      const char * message = concatenate("Init of File_edit failed. Error: ", strerror(errno)); \
       LOG_EXIT(__FUNCTION__, message, EXIT_FAILURE); \
    }
 
-typedef struct {
+struct File_modify_t {
    const char * filename;
-} File_modify_t;
+};
 
 File_modify_t* File_modify_malloc() {
    File_modify_t * new = malloc(sizeof (File_modify_t));
@@ -117,7 +119,7 @@ Result_codes File_modify_init(File_modify_t * object, const char * filename) {
 void File_modify_destroy(File_modify_t * object) {
    CHECK_NULL_OBJECT(object);
    free(object->filename);
-   object->filename = NULL:
+   object->filename = NULL;
 }
 
 Result_codes File_modify_set(File_modify_t * object, const char * filename) {
