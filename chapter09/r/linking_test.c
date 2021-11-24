@@ -2,7 +2,9 @@
 #define MANUAL_DLL_LOAD
 */
 #include "print.h"
+#include "c_string.h"
 #include "connector.h"
+#include "result_codes.h"
 
 #include <assert.h>
 #include <stdlib.h>

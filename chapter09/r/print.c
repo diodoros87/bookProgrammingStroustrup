@@ -1,9 +1,8 @@
 #include "print.h"
 #include <stdarg.h>
-#include <string.h>
+#include <stdlib.h>
 #include <assert.h>
-#include <math.h>
-#include <limits.h>
+#include <string.h>
 
 #define CHECK_INPUT_ARG(msg, types) \
    assert_one(NULL != (msg)); \
@@ -159,129 +158,37 @@ static void case_3 (const char * format, const size_t index, va_list arg_list) {
 
 #undef CHECK_INPUT_ARG
 
-int print_assert(const char *file, int line, const char * date, const char * time, const char *msg) {
-   LOG("\nAssertion failed:\n \
-Expression:\t\n%s\n", msg);
+#define REQUIRE_NON_NULL(pointer) \
+if (! (pointer) ) { \
+   assert_one(pointer); \
+   LOG_EXIT(__FUNCTION__, "Pointer is NULL", EXIT_FAILURE); \
+}
+
+void print_spacetime(const char *file, const int line, const char * date, const char * time) {
+   REQUIRE_NON_NULL(date);
+   REQUIRE_NON_NULL(time);
+   REQUIRE_NON_NULL(file);
    LOG("Source file:\t\t%s , Line %d\n", file, line);
    LOG("Date:\t\t%s\n", date);
    LOG("Time:\t\t%s\n", time);
+}
+
+int print_assert(const char *file, const int line, const char * date, const char * time, const char *msg) {
+   REQUIRE_NON_NULL(msg);
+   LOG("\nAssertion failed:\n \
+Expression:\t\n%s\n", msg);
+   print_spacetime(file, line, date, time);
    assert(0);
    abort();
    return 0; 
 }
 
-#define digits(x) _Generic((x), \
-                           short int:              digits_i, \
-                           int:                    digits_i, \
-                           long int:               digits_i, \
-                           long long int:          digits_i, \
-                           unsigned short int:     digits_u, \
-                           unsigned int:           digits_u, \
-                           unsigned long int:      digits_u, \
-                           unsigned long long int: digits_u, \
-                           float:                  digits_d, \
-                           double:                 digits_d, \
-                           long double:            digits_d  \
-                  )(x)
-                           
-size_t digits_u(unsigned long long x) {
-   LOG_FUNC(__FUNCTION__);
-   LOG(" ++++++++++   x = %llu\n", x);
-   size_t number_of_digits = 1;
-   while (x > 9) {
-      x /= 10;
-      number_of_digits++;
-   }
-   return number_of_digits;
+void log_exit(const char *function_name, const char * info, const int status,  
+              const char *file, int line, const char * date, const char * time) {
+   FUNCTION_INFO(function_name); 
+   LOG("\ninfo = %s\n exit status = %d\n", info, status); 
+   print_spacetime(file, line, date, time); 
+   exit(status); 
 }
 
-size_t digits_i(long long x) {
-   LOG_FUNC(__FUNCTION__);
-   LOG(" ++++++++++   x = %lld\n", x);
-   if (x >= 0)
-      return digits_u(x); 
-   size_t number_of_digits = 1;
-   while (x < -9) {
-      x /= 10;
-      number_of_digits++;
-   }
-   return number_of_digits;
-}
 
-const size_t precision = 6;
-
-size_t digits_d(long double x) {
-   LOG_FUNC(__FUNCTION__);
-   LOG(" ++++++++++   x = %LG\n", x);
-   long double integral, fractional;
-   fractional = modf(x, &integral);
-   if (integral < 0)
-      integral = -integral;
-   size_t number_of_digits = 1;
-   while (x > 9) {
-      x /= 10;
-      number_of_digits++;
-   }
-   return number_of_digits + 1 + precision; /* number_of_digits + dot + precision  */ 
-}
-
-char * to_string_u(const unsigned long long x) {
-   int length = digits(x);
-   char * buffer; 
-   ALLOCATE(buffer, length + 1);
-   if (NULL == buffer)
-      return NULL;
-   buffer[length] = '\0';
-   unsigned long long temp = x;
-   do {
-      buffer[--length] = temp % 10 + '0';
-      temp /= 10;
-   } while (temp > 0);
-   assert_many(strtoull(buffer, NULL, 10) == x, "assert failed: buffer = \'", "s s llu s llu", buffer, "\' and ", strtoull(buffer, NULL, 10), " != ", x);
-   return buffer;
-}
-
-char * to_string_i(const long long x) {
-   if (x >= 0)
-      return to_string_u(x);
-   int length = digits(x);
-   char * buffer; 
-   if (x < 0)
-      length++;
-   ALLOCATE(buffer, length + 1);
-   if (NULL == buffer)
-      return NULL;
-   if (x < 0)
-      buffer[0] = '-';
-   unsigned long long temp;
-   if (LLONG_MIN == x)
-      temp = -(x + 1) + (unsigned long long)1; /* LLONG_MIN == - LLONG_MAX - 1    */
-   else
-      temp = -x;
-   char * digits_string = to_string_u(temp);
-   strcpy(buffer + 1, digits_string);
-   free(digits_string);
-   assert_many(atoll(buffer) == x, "assert failed: buffer = \'", "s s lld s lld", buffer, "\' and ", atoll(buffer), " != ", x);
-   return buffer;
-}
-
-char * to_string_d(const long double x) {
-   const char *fmt = "%LG";
-   char * buffer; 
-   int length = snprintf(NULL, 0, fmt, x);
-   LOG(" ++++++++++   length = %d\n", length);
-   ALLOCATE(buffer, length + 1);
-   if (NULL == buffer)
-      return NULL;
-   if (0 > snprintf(buffer, length + 1, fmt, x)) {
-      LOG("%s", " snprintf: encoding error occurs\n");
-   }/*
-   LOG_FUNC(__FUNCTION__);
-   LOG(" ++++++++++   buffer = %s\n", buffer);
-   LOG(" ++++++++++   x = %Lg\n", x);
-   LOG(" ++++++++++   strtold(buffer, NULL) = %Lg\n", strtold(buffer, NULL));
-   assert_many(strtold(buffer, NULL) == x, "assert failed: \'", "Lg s Lg c", strtold(buffer, NULL), "\' != \'", x, '\'');*/
-   return buffer;
-}
-
-#undef ALLOCATE

@@ -1,37 +1,29 @@
 #include "file_modify.h"
 #include "print.h"
-#include "connector.h"
+#include "c_string.h"
+#include "result_codes.h"
 
+#include <unistd.h>
 #include <string.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
 
-#define CHECK_NULL_OBJECT(pointer) \
-if (! pointer ) { \
-   LOG_EXIT(__FUNCTION__, "Pointer to File_modify_t is NULL", EXIT_FAILURE); \
-}
-
-char * concatenate(const char * first, const char * second) {
-   if (! first || ! second) { 
-      LOG_EXIT(__FUNCTION__, "first / second string is null", EXIT_FAILURE);
-   }
-   char * result = calloc(strlen(first) + strlen(second) + 1, sizeof (char));
-   if (result) {
-      strcpy(result, first);
-      strcat(result, second);
-   }
-   else {
-      LOG_FUNC(__FUNCTION__);
-      LOG("%s\n", "Out of memory");
-   }
-   return result;
+#define REQUIRE_NON_NULL(pointer) \
+if (! (pointer) ) { \
+   LOG_EXIT(__FUNCTION__, "Pointer is NULL", EXIT_FAILURE); \
 }
 
 bool_t exist_file(const char * const name) {
+   REQUIRE_NON_NULL(name);
    struct stat   buffer;
    int result = stat (name, &buffer);
    if (-1 == result) {
       LOG("Stat(): file with name: %s. Error: %s\n", name, strerror(errno));
+   }
+   else if (S_ISREG( buffer.st_mode ) == 0) {
+      LOG("Error: file \'%s\' is not regular file\n", name);
+      result = -2;
    }
    return result == 0;
 }
@@ -88,27 +80,52 @@ char * read_line(const FILE * const file) {
 }
 
 #define CHECK_FILE(filename) \
+REQUIRE_NON_NULL(filename) \
 if (! exist_file(filename)) { \
-      const char * message = concatenate("Init of File_edit failed. Error: ", strerror(errno)); \
-      LOG_EXIT(__FUNCTION__, message, EXIT_FAILURE); \
+      const char * message = concatenate("Error: ", strerror(errno)); \
+      LOG_EXIT_FREE(__FUNCTION__, message, EXIT_FAILURE); \
    }
 
 struct File_modify_t {
-   const char * filename;
+   char * filename;
 };
 
 File_modify_t* File_modify_malloc() {
-   File_modify_t * new = malloc(sizeof (File_modify_t));
-   if (! new) {
-      LOG_FUNC(__FUNCTION__);
-      LOG("%s\n", "Out of memory");
-   }
+   File_modify_t * new = NULL;
+   ALLOCATE(new, sizeof (File_modify_t));
    return new;
 }
 
-Result_codes File_modify_init(File_modify_t * object, const char * filename) {
-   CHECK_NULL_OBJECT(object);
+Result_codes File_modify_init(File_modify_t ** object, const char * filename) {
+   REQUIRE_NON_NULL(object);
+   if (*object) {
+      LOG_FUNC(__FUNCTION__);
+      LOG("%s\n", "*object must be null");
+      return INVALID_ARG;
+   }
    CHECK_FILE(filename);
+   *object = File_modify_malloc();
+   if (! *object)
+      return BAD_ALLOC;
+   ALLOCATE((*object)->filename, strlen(filename) + 1);
+   if (NULL == (*object)->filename)
+      return BAD_ALLOC;
+   strcpy((*object)->filename, filename);
+   return OK;
+}
+
+void File_modify_destroy(File_modify_t ** object) {
+   REQUIRE_NON_NULL(object);
+   REQUIRE_NON_NULL(*object);
+   free((*object)->filename);
+   free(*object);
+   *object = NULL; /* to avoid double free or corruption (fasttop)  */
+}
+
+Result_codes File_modify_set(File_modify_t * object, const char * filename) {
+   REQUIRE_NON_NULL(object);
+   CHECK_FILE(filename);
+   free(object->filename);
    ALLOCATE(object->filename, strlen(filename) + 1);
    if (NULL == object->filename)
       return BAD_ALLOC;
@@ -116,33 +133,19 @@ Result_codes File_modify_init(File_modify_t * object, const char * filename) {
    return OK;
 }
 
-void File_modify_destroy(File_modify_t * object) {
-   CHECK_NULL_OBJECT(object);
-   free(object->filename);
-   object->filename = NULL;
-}
-
-Result_codes File_modify_set(File_modify_t * object, const char * filename) {
-   CHECK_NULL_OBJECT(object);
-   CHECK_FILE(filename);
-   free(object->filename);
-   ALLOCATE(object->filename, strlen(filename) + 1);
-   if (NULL == object->filename)
-      return BAD_ALLOC;
-   strcpy(object->filename, filename);
-}
-
-Result_codes File_modify_get_filename(File_modify_t * object, char * filename) {
-   CHECK_NULL_OBJECT(object);
-   if (filename) {
+Result_codes File_modify_get_filename(File_modify_t * object, char ** filename) {
+   REQUIRE_NON_NULL(object);
+   REQUIRE_NON_NULL(filename);
+   if (*filename) {
       LOG_FUNC(__FUNCTION__);
-      LOG("%s\n", "filename must be null");
+      LOG("%s\n", "*filename must be null");
       return INVALID_ARG;
    }
-   ALLOCATE(filename, strlen(object->filename) + 1);
+   ALLOCATE(*filename, strlen(object->filename) + 1);
    if (NULL == filename)
       return BAD_ALLOC;
-   strcpy(filename, object->filename);
+   strcpy(*filename, object->filename);
+   return OK;
 }
 
 #ifdef MANUAL_DLL_LOAD
@@ -251,10 +254,11 @@ void insert_manual_dll_load(FILE * file, FILE * edited_file) {
 #endif
 
 Result_codes edit_makefile(File_modify_t * object) {
-   CHECK_NULL_OBJECT(object);
+   REQUIRE_NON_NULL(object);
    FILE* file = open_file(object->filename, "r");
    const char * filename_tmp = concatenate(object->filename, ".tmp");
    FILE * edited_file = open_file(filename_tmp, "w");
+   free(filename_tmp);
    if (! file || ! edited_file)
       return OPEN_FILE_ERROR;
 #ifdef MANUAL_DLL_LOAD

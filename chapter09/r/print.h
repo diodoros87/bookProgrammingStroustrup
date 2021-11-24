@@ -2,9 +2,10 @@
 #define PRINT_H
 
 #include <stdio.h>
-#include <stdlib.h>
 
 #define LANGUAGE "C90"
+
+extern void print_spacetime(const char *file, const int line, const char * date, const char * time);
 
 extern int print_many(const char * msg,   /* message to be printed     */
   const char * types, /* parameter types (i,s,e)     */...);
@@ -28,34 +29,23 @@ extern int print_assert(const char *file, int line, const char * date, const cha
 #define FUNCTION_INFO(function_name) \
    LOG("\n%s \t", LANGUAGE); \
    LOG_FUNC(function_name)
-
+   
+#define PRINT_SPACETIME() \
+   LOG("Source file:\t\t%s , Line %d\n", __FILE__, __LINE__); \
+   LOG("Date:\t\t%s\n", __DATE__); \
+   LOG("Time:\t\t%s\n", __TIME__)
+   
 #define LOG_EXIT(function_name, info, status) \
    FUNCTION_INFO(function_name); \
    LOG("\ninfo = %s\n exit status = %d\n", (info), (status)); \
+   PRINT_SPACETIME(); \
    exit(status)
    
-#define ALLOCATE(buffer, n) \
-(buffer) = (char *) malloc (n); \
-if ((buffer) == NULL) { \
-   LOG("%s", "out of memory: malloc() returns NULL ");  \
-}
-   
-char * to_string_u(unsigned long long x);
-char * to_string_i(long long x);
-char * to_string_d(long double x);
-                  
-#define to_string(x) _Generic((x), \
-                           short int:              to_string_i, \
-                           int:                    to_string_i, \
-                           long int:               to_string_i, \
-                           long long int:          to_string_i, \
-                           unsigned short int:     to_string_u, \
-                           unsigned int:           to_string_u, \
-                           unsigned long int:      to_string_u, \
-                           unsigned long long int: to_string_u, \
-                           float:                  to_string_d, \
-                           double:                 to_string_d, \
-                           long double:            to_string_d  \
-                     )(x)                  
+#define LOG_EXIT_FREE(function_name, info, status) \
+   FUNCTION_INFO(function_name); \
+   PRINT_SPACETIME(); \
+   LOG("\ninfo = %s\n exit status = %d\n", (info), (status)); \
+   free(info); \
+   exit(status)
 
 #endif

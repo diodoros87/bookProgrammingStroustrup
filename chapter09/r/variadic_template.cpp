@@ -32,7 +32,6 @@ Smaller calculate_range(Function && func, Args &&... args) {
 
 template <typename T>
 T Money<T>::calculate_dollars(const string & dollars) const {
-   decltype(std::stold(std::declval<string>())) a;  // return type
    if (is_floating_point<T>::value)
       return calculate_range<T, long double, long double(const string& , size_t*)>(std::stold, dollars, nullptr);
    else if (numeric_limits<T>::is_integer) {

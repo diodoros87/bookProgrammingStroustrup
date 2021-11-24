@@ -1,29 +1,40 @@
 CXX = g++
-CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 
+CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 
+CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
-PROGRAMS  = libdemo.so libconnector.so main_cpp c_main c_linking_test linking_test_cpp
+PROGRAMS  = libdemo.so libconnector.so main_cpp c_main c_linking_test linking_test_cpp c_test
 
 .PHONY: clean all
 
 all: $(PROGRAMS)
 
-c_main: c_main.o print.o file_modify.o
-	$(CC) $(CFLAGS) c_main.o print.o file_modify.o -o c_main 
+c_test: c_test.o system.o print.o c_string.o
+	$(CC) $(TEST_CFLAGS) c_test.o system.o print.o c_string.o -o c_test 
 	
-c_main.o: main.c print.h
+c_test.o: test.c print.h system.h result_codes.h c_string.h
+	$(CC) $(TEST_CFLAGS) -c test.c -o c_test.o 
+
+c_main: c_main.o print.o file_modify.o c_string.o system.o
+	$(CC) $(CFLAGS) c_main.o print.o file_modify.o c_string.o system.o -o c_main 
+	
+c_main.o: main.c print.h system.h file_modify.h result_codes.h
 	$(CC) $(CFLAGS) -c main.c -o c_main.o 
 
-c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o
-	$(CC) $(CFLAGS) c_linking_test.o shared_lib_open.o print.o -L. -lconnector -ldemo -ldl -o c_linking_test 
+c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o
+	$(CC) $(CFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o -L. -lconnector -ldemo -ldl -o c_linking_test 
 	
-c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h
+c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.h
 	$(CC) $(CFLAGS) -c linking_test.c -o c_linking_test.o 
 	
-file_modify.o: file_modify.h file_modify.c
+system.o: system.c system.h print.h result_codes.h
+	$(CC) $(CFLAGS) -c system.c 
+	
+file_modify.o: file_modify.h file_modify.c print.h c_string.h result_codes.h
 	$(CC) $(CFLAGS) -c file_modify.c 
 	
 shared_lib_open.o: shared_lib_open.h shared_lib_open.c
@@ -32,13 +43,16 @@ shared_lib_open.o: shared_lib_open.h shared_lib_open.c
 print.o: print.h print.c
 	$(CC) $(CFLAGS) -c print.c 
 	
+c_string.o: c_string.h c_string.c
+	$(CC) $(CFLAGS) -c c_string.c 
+	
 	
 
 main_cpp: main_cpp.o file_edit.o
 	$(CXX) $(CPPFLAGS) main_cpp.o file_edit.o -o main_cpp 
 	
 linking_test_cpp: linking_test_cpp.o libdemo.so
-	$(CXX) $(CPPFLAGS) linking_test_cpp.o shared_lib_open.o -L. -lconnector -ldemo -ldl -o linking_test_cpp 
+	$(CXX) $(CPPFLAGS) linking_test_cpp.o shared_lib_open.o print.o -L. -lconnector -ldemo -ldl -o linking_test_cpp 
 	
 libconnector.so: connector.o libdemo.so
 	$(CXX) $(CPPFLAGS) -shared -L. -ldemo -o libconnector.so connector.o 
