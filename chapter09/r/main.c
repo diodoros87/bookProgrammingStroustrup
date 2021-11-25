@@ -49,7 +49,7 @@ int test_linking(const bool_t valgrind) {
    static const char * const ld_path = "LD_LIBRARY_PATH=.";
    static const char * const exec = "./c_linking_test";
    const char * command = concatenate_many(ld_path, " ", exec, NULL);
-   int result = OK;/*call_system(command);*/
+   int result = call_system(command);
    free(command);
    if (OK == result && valgrind) {
       static const char * const valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all";
