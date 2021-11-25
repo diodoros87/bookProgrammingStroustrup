@@ -52,18 +52,19 @@ int test_linking(const bool_t valgrind) {
 }
 
 int main(const int argc, const char * argv[]) {
-   const char * program_name = strrchr(argv[0], '/');;
-   LOG("%s\n", program_name ? ++program_name : argv[0]);
+   const char * program_name = strrchr(argv[0], '/');
+   LOG(" Program name = %s\n", program_name ? ++program_name : argv[0]);
    FUNCTION_INFO(__FUNCTION__);
-   bool_t valgrind = (argc == 2 && strcmp(argv[1], "test") == 0) ? 1 : 0;
+   
+   const bool_t valgrind = (argc == 2 && strcmp(argv[1], "test") == 0) ? 1 : 0;
    int result = test_linking (valgrind);
-   assert_many(result != SYSTEM_ERROR, "assert failed: ", "s d", "result == ", result);
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (result == OK)
       result = make_clean_make();
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (result == OK)
       result = test_linking(valgrind);
-   assert_many(result != SYSTEM_ERROR, "assert failed: ", "s d", "result == ", result);
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    LOG(" Program name = %s", program_name);
    FUNCTION_INFO(__FUNCTION__);
    LOG(" Final result = %d\n", result);

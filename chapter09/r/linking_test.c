@@ -112,8 +112,10 @@ char * get_format(const Number type) {
       case LONG_DOUBLE:
          return "Lg";
       default: {
-         LOG(" improper type = %d", type);
-         return INVALID_ARG;
+         const char * type_string = to_string((int)type);
+         const char * message = concatenate(" improper type = ", type_string);
+         free(type_string);
+         LOG_EXIT_FREE(__FUNCTION__, message, EXIT_FAILURE);
       }
    } 
 }

@@ -7,16 +7,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <sys/stat.h>
-#include <errno.h>
-
-int test(int tests, const char * const command) {
+int test(const int tests, const char * const command) {
    if (! command) { 
       LOG_EXIT(__FUNCTION__, "command is null", EXIT_FAILURE);
    }
    if (tests < 0 || tests > 99) {
       const char * test_string = to_string((int)tests);
-      LOG(" test_string = %s\n", test_string);
       const char * message = concatenate("improper tests = ", test_string);
       free(test_string);
       LOG_EXIT_FREE(__FUNCTION__, message, EXIT_FAILURE);
@@ -28,7 +24,7 @@ int test(int tests, const char * const command) {
 }
 
 int main(const int argc, const char ** argv) {
-   const char * program_name = strrchr(argv[0], '/');;
+   const char * program_name = strrchr(argv[0], '/');
    LOG("%s\n", program_name ? ++program_name : argv[0]);
    const char * command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all ./c_main test";
    int result = test(2, command);
