@@ -34,8 +34,8 @@ int test_linking(const bool valgrind) {
    static const string exec = "./linking_test_cpp";
    int result = system_utility::call_system(ld_path + " " + exec);
    if (OK == result && valgrind) {
-      static const string valgrind = "valgrind --leak-check=full --show-leak-kinds=all";
-      result = system_utility::call_system(ld_path + " " + valgrind + " " + exec);
+      static const string valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all";
+      result = system_utility::call_system(ld_path + " " + valgrind_str + " " + exec);
    }
    return result;
 }

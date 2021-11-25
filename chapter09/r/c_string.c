@@ -3,6 +3,7 @@
 #include <math.h>
 #include <string.h>
 #include <limits.h>
+#include <stdarg.h>
 
 char * concatenate(const char * first, const char * second) {
    if (! first || ! second) { 
@@ -17,6 +18,58 @@ char * concatenate(const char * first, const char * second) {
       LOG_FUNC(__FUNCTION__);
       LOG("%s\n", "Out of memory");
    }
+   return result;
+}
+
+char * concatenate_many(const char * first, ...) {
+   if (! first) { 
+      LOG_EXIT(__FUNCTION__, "first string is null", EXIT_FAILURE);
+   }
+   va_list arg_list;
+   va_start( arg_list, first );
+   const char * arg_string;
+   const char * result = first;
+   const char * previous = NULL;
+   do {
+      arg_string = va_arg(arg_list, char *);
+      if (NULL == arg_string)
+         break;
+      else {
+         result = concatenate(result, arg_string);
+         free(previous);
+         previous = result;
+      }
+   } while (1);
+   va_end(arg_list);
+   return result;
+}
+
+char * concatenate_many_free_args(const char * first, int call_free_first, ...) {
+   if (! first) { 
+      LOG_EXIT(__FUNCTION__, "first string is null", EXIT_FAILURE);
+   }
+   va_list arg_list;
+   va_start( arg_list, call_free_first );
+   const char * arg_string;
+   const char * result = first;
+   const char * previous = NULL;
+   int call_free;
+   do {
+      arg_string = va_arg(arg_list, char *);
+      if (NULL == arg_string)
+         break;
+      else {
+         result = concatenate(result, arg_string);
+         free(previous);
+         previous = result;
+      }
+      call_free = va_arg(arg_list, int);
+      if (0 != call_free)
+         free(arg_string);
+   } while (1);
+   if (0 != call_free_first)
+      free(first);
+   va_end(arg_list);
    return result;
 }
 

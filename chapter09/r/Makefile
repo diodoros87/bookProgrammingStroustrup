@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS = -DMANUAL_DLL_LOAD      -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD      -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -22,7 +22,7 @@ c_test.o: test.c print.h system.h result_codes.h c_string.h
 c_main: c_main.o print.o file_modify.o c_string.o system.o
 	$(CC) $(CFLAGS) c_main.o print.o file_modify.o c_string.o system.o -o c_main 
 	
-c_main.o: main.c print.h system.h file_modify.h result_codes.h
+c_main.o: main.c print.h system.h file_modify.h result_codes.h c_string.h
 	$(CC) $(CFLAGS) -c main.c -o c_main.o 
 
 c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o

@@ -5,7 +5,9 @@
 #include "result_codes.h"
 #include "file_modify.h"
 #include "system.h"
+#include "c_string.h"
 
+#include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -44,10 +46,17 @@ Result_codes make_clean_make(void) {
 
 int test_linking(const bool_t valgrind) {
    FUNCTION_INFO(__FUNCTION__);
-   static const char const * command = "LD_LIBRARY_PATH=. ./c_linking_test";
-   int result = call_system(command);
-   if (OK == result && valgrind) 
-      result = call_system("LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all ./c_linking_test");
+   static const char * const ld_path = "LD_LIBRARY_PATH=.";
+   static const char * const exec = "./c_linking_test";
+   const char * command = concatenate_many(ld_path, " ", exec, NULL);
+   int result = OK;/*call_system(command);*/
+   free(command);
+   if (OK == result && valgrind) {
+      static const char * const valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all";
+      command = concatenate_many(ld_path, " ", valgrind_str, " ", exec, NULL);
+      result = call_system(command);
+      free(command);
+   }
    return result;
 }
 

@@ -24,11 +24,6 @@ int Human_get_filename(Human_t * object, char * filename);
 
 typedef int bool_t;
 
-bool_t exist_file(const char * const file_name);
-FILE*  open_file( const char * const filename, const char * const mode );
-char * read_line(const FILE * const file);
-char * concatenate(const char * first, const char * second);
-
 namespace demo {
 
 class Demo {

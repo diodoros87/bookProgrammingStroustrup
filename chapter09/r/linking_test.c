@@ -113,8 +113,7 @@ char * get_format(const Number type) {
          return "Lg";
       default: {
          const char * type_string = to_string((int)type);
-         const char * message = concatenate(" improper type = ", type_string);
-         free(type_string);
+         const char * message = concatenate_many_free_args(" improper type = ", 0, type_string, 1, NULL);
          LOG_EXIT_FREE(__FUNCTION__, message, EXIT_FAILURE);
       }
    } 

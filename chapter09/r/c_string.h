@@ -10,6 +10,8 @@ if ((buffer) == NULL) { \
 }
 
 char * concatenate(const char * first, const char * second);
+char * concatenate_many(const char * first, ...);
+char * concatenate_many_free_args(const char * first, int call_free, ...);
    
 char * to_string_u(unsigned long long x);
 char * to_string_i(long long x);

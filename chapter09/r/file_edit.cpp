@@ -17,8 +17,13 @@ using std::cerr;
 bool exist_file(const char *name) {
    struct stat   buffer;
    int result = stat (name, &buffer);
-   if (-1 == result)
+   if (-1 == result) {
       cerr << "Stat(): file with name: '" << name << "'. Error: " << strerror(errno) << '\n';
+   }
+   else if (S_ISREG( buffer.st_mode ) == 0) {
+      cerr << "Error: file with name: '" << name << "' is not regular file" << '\n';
+      result = -2;
+   }
    return result == 0;
 }
 

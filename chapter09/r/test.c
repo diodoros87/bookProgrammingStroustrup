@@ -13,8 +13,7 @@ int test(const int tests, const char * const command) {
    }
    if (tests < 0 || tests > 99) {
       const char * test_string = to_string((int)tests);
-      const char * message = concatenate("improper tests = ", test_string);
-      free(test_string);
+      const char * message = concatenate_many_free_args("improper tests = ", 0, test_string, 1, NULL);
       LOG_EXIT_FREE(__FUNCTION__, message, EXIT_FAILURE);
    }
    int result = OK;
