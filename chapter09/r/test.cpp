@@ -24,7 +24,7 @@ int main(const int argc, const char ** argv) {
    int result = test(2, command);
 #ifdef VALGRIND
    if (result == OK) {
-      command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all ./main_cpp test";
+      command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all ./main_cpp valgrind";
       result = test(2, command);
    }
 #endif

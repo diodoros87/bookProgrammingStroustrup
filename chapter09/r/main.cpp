@@ -46,7 +46,7 @@ int main(const int argc, const char * argv[]) {
       size_t pos = string(argv[0]).rfind('/');
       const string program_name = (pos != string::npos && pos + 1 < string(argv[0]).size()) ? string(argv[0]).substr(pos + 1) : argv[0];
       cerr << "\n  Program name = " << program_name << '\n';
-      const bool valgrind = (argc == 2 && strcmp(argv[1], "test") == 0) ? 1 : 0;
+      const bool valgrind = (argc == 2 && strcmp(argv[1], "valgrind") == 0) ? 1 : 0;
       int result = test_linking (valgrind);
       assert_many(result == OK, "result == ", result);
       if (result == OK) {

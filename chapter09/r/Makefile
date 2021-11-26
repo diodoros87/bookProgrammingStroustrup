@@ -1,13 +1,13 @@
 CXX = g++
-CPPFLAGS = -DMANUAL_DLL_LOAD     -g  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -fsanitize=address 
-TEST_CPPFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -fsanitize=address 
+TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD      -g  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -fsanitize=address 
-TEST_CFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -fsanitize=address -DVALGRIND 
+CFLAGS = -DMANUAL_DLL_LOAD  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -fsanitize=address 
+TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
-LDFLAGS = -g -fsanitize=address -static-libasan 
+LDFLAGS = -fsanitize=address -static-libasan 
 
 PROGRAMS  = libdemo.so libconnector.so main_cpp test_cpp      c_main linking_test_cpp c_linking_test c_test
 
@@ -47,6 +47,9 @@ print.o: print.h print.c
 	
 c_string.o: c_string.h c_string.c
 	$(CC) $(CFLAGS) -c c_string.c 
+	
+human.o: human.h human.c
+	$(CC) $(CFLAGS) -c human.c 
 	
 	
 test_cpp: test_cpp.o system_cpp.o

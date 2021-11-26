@@ -236,7 +236,7 @@ print_many("", format, number); \
 LOG(" %c ", '\n')
 
 Result_codes test_money(void) {
-   Result_codes result;
+   Result_codes result = OK;
    char * max_dollars;
    char * format;
    LOG_MAX(SHORT, SHRT_MIN, format);

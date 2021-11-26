@@ -12,8 +12,7 @@
 #include <stdlib.h>
 
 Result_codes change_makefile(void) {
-   struct File_modify_t * modifier = NULL;/*
-   struct File_modify_t * modifier;*/
+   struct File_modify_t * modifier = NULL;
    Result_codes result = File_modify_init(&modifier, "Makefile");
    if (result == OK)
       result = File_modify_set(modifier, "Makefile");  /* only for test  */
@@ -65,7 +64,7 @@ int main(const int argc, const char * argv[]) {
    LOG(" Program name = %s\n", program_name ? ++program_name : argv[0]);
    FUNCTION_INFO(__FUNCTION__);
    
-   const bool_t valgrind = (argc == 2 && strcmp(argv[1], "test") == 0) ? 1 : 0;
+   const bool_t valgrind = (argc == 2 && strcmp(argv[1], "valgrind") == 0) ? 1 : 0;
    int result = test_linking (valgrind);
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (result == OK)
