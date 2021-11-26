@@ -20,12 +20,14 @@ int main(const int argc, const char ** argv) {
    const size_t pos = string(argv[0]).rfind('/');
    const string program_name = (pos != string::npos && pos + 1 < string(argv[0]).size()) ? string(argv[0]).substr(pos + 1) : argv[0];
    cerr << "\n  Program name = " << program_name << '\n';
-   const char * command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all ./main_cpp test";
+   const char * command = "./main_cpp";
    int result = test(2, command);
+#ifdef VALGRIND
    if (result == OK) {
-      command = "./main_cpp";
+      command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all ./main_cpp test";
       result = test(2, command);
    }
+#endif
    cerr << "\n  Program name = " << program_name;
    cerr << "\n C++ " << __cplusplus << " function = " << __func__ << '\n';
    cerr << " Final result = " << result << '\n';

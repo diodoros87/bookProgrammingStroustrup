@@ -25,12 +25,14 @@ int test(const int tests, const char * const command) {
 int main(const int argc, const char ** argv) {
    const char * program_name = strrchr(argv[0], '/');
    LOG("%s\n", program_name ? ++program_name : argv[0]);
-   const char * command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all --log-file=error ./c_main test";
+   const char * command = "./c_main";
    int result = test(2, command);
+#ifdef VALGRIND
    if (result == OK) {
-      command = "./c_main";
+      command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all ./c_main test";
       result = test(2, command);
    }
+#endif
    LOG(" Program name = %s", program_name);
    FUNCTION_INFO(__FUNCTION__);
    LOG(" Final result = %d\n", result);
