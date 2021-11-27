@@ -1,0 +1,6 @@
+#include <regex.h>
+
+int print_regerror (int errcode, size_t length, regex_t * compiled);
+int regex_matches(const char *str, const char *pattern, const int cflags);
+regex_t compile_regex(const char * pattern, const int cflags);
+int match_regex(regex_t * regex, const char * const str);

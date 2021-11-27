@@ -1,4 +1,5 @@
-struct Human_t;
+
+struct Free_memory_t;
 
 typedef struct Human_t Human_t;
 /*

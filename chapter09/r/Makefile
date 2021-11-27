@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS = -DMANUAL_DLL_LOAD  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -15,10 +15,10 @@ PROGRAMS  = libdemo.so libconnector.so main_cpp test_cpp      c_main linking_tes
 
 all: $(PROGRAMS)
 
-c_test: c_test.o system.o print.o c_string.o
-	$(CC) $(TEST_CFLAGS) $(LDFLAGS) c_test.o system.o print.o c_string.o -o c_test 
+c_test: c_test.o system.o print.o c_string.o human.o regular_expr.o
+	$(CC) $(TEST_CFLAGS) $(LDFLAGS) c_test.o system.o print.o c_string.o human.o regular_expr.o -o c_test 
 	
-c_test.o: test.c print.h system.h result_codes.h c_string.h
+c_test.o: test.c print.h system.h result_codes.h c_string.h human.h
 	$(CC) $(TEST_CFLAGS) -c test.c -o c_test.o 
 
 c_main: c_main.o print.o file_modify.o c_string.o system.o
@@ -48,8 +48,11 @@ print.o: print.h print.c
 c_string.o: c_string.h c_string.c
 	$(CC) $(CFLAGS) -c c_string.c 
 	
-human.o: human.h human.c
+human.o: human.h human.c regular_expr.h print.h result_codes.h
 	$(CC) $(CFLAGS) -c human.c 
+	
+regular_expr.o: regular_expr.h regular_expr.c print.h result_codes.h
+	$(CC) $(CFLAGS) -c regular_expr.c 
 	
 	
 test_cpp: test_cpp.o system_cpp.o
