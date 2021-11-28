@@ -31,15 +31,17 @@ Result_codes human_test(void) {
       result = Human_get_name(human, &name);
       LOG(" name = %s\n", name);
       free(name);
+      if (result == OK) {
+         result = Human_set(human, "Makefile");
+         if (result == OK) {
+            name = NULL;
+            result = Human_get_name(human, &name);
+            LOG(" name = %s\n", name);
+            free(name);
+         }
+      }
    }
-   if (result == OK)
-      result = Human_set(human, "Makefile");
-   if (result == OK) {
-      name = NULL;
-      result = Human_get_name(human, &name);
-      LOG(" name = %s\n", name);
-      free(name);
-   }
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    Human_destroy(&human);
    free(human);
    return result;

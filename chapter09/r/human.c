@@ -3,6 +3,7 @@
 #include "result_codes.h"
 #include "regular_expr.h"
 #include "c_string.h"
+#include "singleton.h"
 
 #include <string.h>
 
@@ -10,16 +11,18 @@
 if (! (pointer) ) { \
    LOG_EXIT(__FUNCTION__, "Pointer is NULL", EXIT_FAILURE); \
 }
+
 /*
 const regex_t * const set_regex() {
-   static regex NAME_REGEX = get_regex("(^[[:upper:]][[:lower:]]*( [[:upper:]][[:lower:]]*)?$)", REG_EXTENDED);
-   return NAME_REGEX;
+   static regex NAME_REGEX_STRING = get_regex("(^[[:upper:]][[:lower:]]*( [[:upper:]][[:lower:]]*)?$)", REG_EXTENDED);
+   return NAME_REGEX_STRING;
 }
-
-const regex_t * const NAME_REGEX = set_regex();
 */
+const char * const NAME_REGEX_STRING = "^[[:upper:]][[:lower:]]*( [[:upper:]][[:lower:]]*)?$";
 
-const char * const NAME_REGEX = "^[[:upper:]][[:lower:]]*( [[:upper:]][[:lower:]]*)?$";
+SINGLETON(regex_t, compile_regex, NAME_REGEX_STRING, REG_EXTENDED);
+
+static regex_t * NAME_REGEX = Singleton_regex_t();
 
 struct Human_t {
    char * name;
@@ -40,7 +43,9 @@ Result_codes Human_init(Human_t ** object, const char * name) {
       LOG("%s\n", "*object must be null");
       return INVALID_ARG;
    }
-   Result_codes result = regex_matches(name, NAME_REGEX, REG_EXTENDED);
+   /*
+   Result_codes result = regex_matches(name, NAME_REGEX_STRING, REG_EXTENDED);*/
+   Result_codes result = match_regex(NAME_REGEX, name);
    if (OK != result)
       return result;
    *object = Human_malloc();
@@ -64,8 +69,9 @@ void Human_destroy(Human_t ** object) {
 
 Result_codes Human_set(Human_t * object, const char * name) {
    LOG_FUNC(__FUNCTION__);
-   REQUIRE_NON_NULL(object);
-   Result_codes result = regex_matches(name, NAME_REGEX, REG_EXTENDED);
+   REQUIRE_NON_NULL(object);/*
+   Result_codes result = regex_matches(name, NAME_REGEX_STRING, REG_EXTENDED);*/
+   Result_codes result = match_regex(NAME_REGEX, name);
    if (OK != result)
       return result;
    free(object->name);

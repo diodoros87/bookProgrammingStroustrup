@@ -16,10 +16,12 @@ regex_t compile_regex(const char * pattern, const int cflags) {
       // Any value different from 0 means it was not possible to 
       // compile the regular expression, either for memory problems
       // or problems with the regular expression syntax.
-      if (result == REG_ESPACE)
+      if (result == REG_ESPACE) {
          LOG ("%s\n", strerror(ENOMEM));
-      else
-         LOG ("Syntax error in the regular pattern %s\n", pattern);             
+      }
+      else {
+         LOG ("Syntax error in the regular pattern %s\n", pattern);
+      }
    }
    if (0 != result) {
       LOG_EXIT(__FUNCTION__, "Could not compile regex\n", EXIT_FAILURE);

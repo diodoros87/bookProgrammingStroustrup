@@ -32,7 +32,7 @@ static void at_exit (void) {
    FUNCTION_INFO(__FUNCTION__);
 }
 
-void load_demo(Demo_functions * demo_functions) {
+static void load_demo(Demo_functions * demo_functions) {
    if (! demo_functions) {
       FUNCTION_INFO(__FUNCTION__);
       LOG("%s\n", "demo_functions is NULL ");
@@ -160,7 +160,7 @@ LOG("%c", '\n')
 typedef Result_codes (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
                                   union Number_pointer_union * n_union, const char * ,... );
 
-Result_codes run_money(const Number type, const char * dollars, const long double cents) {
+static Result_codes run_money(const Number type, const char * dollars, const long double cents) {
    if (type < SHORT || type > LONG_DOUBLE || ! dollars) {
       LOG(" type = %d \t dollars = %p\n", type, dollars);
       return INVALID_ARG;
@@ -209,7 +209,7 @@ Result_codes run_money(const Number type, const char * dollars, const long doubl
 
 #undef LOGS_MONEY
 
-_Noreturn void test_print_many(void) {
+static _Noreturn void test_print_many(void) {
    float f = 6.0f;
    LOG("\nAddress pointed by money is: %p\n", &f);            /* mandatory casting when using va_list function  */
    print_many("1 test of print_many", "p G Lg o  rr7 d G s d s", (float*)(&f), f, (long double)(-5.0), 399, 6.0, "QQQQQQ", 7, "rrrr");
@@ -235,7 +235,7 @@ LOG(#TYPE " = " #number " = %s", ""); \
 print_many("", format, number); \
 LOG(" %c ", '\n')
 
-Result_codes test_money(void) {
+static Result_codes test_money(void) {
    Result_codes result = OK;
    char * max_dollars;
    char * format;
@@ -268,7 +268,7 @@ Result_codes test_money(void) {
 
 #undef TEST_ALLOC
 
-Result_codes main_test_linking(void) {
+static Result_codes main_test_linking(void) {
    Demo_functions demo_functions;
    load_demo(&demo_functions); 
    Result_codes result = run_demo(&demo_functions);
@@ -277,7 +277,7 @@ Result_codes main_test_linking(void) {
    return result;
 }
 
-Result_codes test_linking(void) {
+static Result_codes test_linking(void) {
    volatile int jmp_value = 0;
    if ((jmp_value = setjmp(JMP_BUF)) != 0) {
       LOG("\nAfter calling test_print_many longjmp set value to %d\n", jmp_value);

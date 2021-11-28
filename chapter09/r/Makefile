@@ -48,7 +48,7 @@ print.o: print.h print.c
 c_string.o: c_string.h c_string.c
 	$(CC) $(CFLAGS) -c c_string.c 
 	
-human.o: human.h human.c regular_expr.h print.h result_codes.h
+human.o: human.h human.c regular_expr.h print.h result_codes.h singleton.h
 	$(CC) $(CFLAGS) -c human.c 
 	
 regular_expr.o: regular_expr.h regular_expr.c print.h result_codes.h

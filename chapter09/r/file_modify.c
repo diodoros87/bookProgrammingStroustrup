@@ -149,7 +149,7 @@ Result_codes File_modify_get_filename(File_modify_t * object, char ** filename) 
 }
 
 #ifdef MANUAL_DLL_LOAD
-void delete_manual_dll_load(FILE * file, FILE * edited_file) {
+static void delete_manual_dll_load(FILE * file, FILE * edited_file) {
    if (! file || ! edited_file) { 
       LOG_EXIT(__FUNCTION__, "file is null / edited_file is null", EXIT_FAILURE);
    }
@@ -206,7 +206,7 @@ void delete_manual_dll_load(FILE * file, FILE * edited_file) {
 #else
 enum Insert_flag { NOT_YET, FLAG, DONE };   /* FLAG = "CPPFLAGS" or "CFLAGS" to distinct with
                                                  "CPPFLAGS=" or "CFLAGS="   */
-void insert_manual_dll_load(FILE * file, FILE * edited_file) {
+static void insert_manual_dll_load(FILE * file, FILE * edited_file) {
    if (! file || ! edited_file) { 
       LOG_EXIT(__FUNCTION__, "file is null / edited_file is null", EXIT_FAILURE);
    }

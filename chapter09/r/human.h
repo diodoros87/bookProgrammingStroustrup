@@ -1,9 +1,11 @@
+#include <regex.h>
+
 struct Human_t;
 
 typedef struct Human_t Human_t;
-/*
-extern const regex_t * const NAME_REGEX;
-*/
+
+extern regex_t * NAME_REGEX;
+
 Human_t* Human_malloc();
 
 int Human_init(Human_t**, const char * filename);
