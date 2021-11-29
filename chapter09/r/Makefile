@@ -1,13 +1,13 @@
 CXX = g++
-CPPFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -fsanitize=address 
-TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 -fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -fsanitize=address 
-TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 -fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
-LDFLAGS = -fsanitize=address -static-libasan 
+LDFLAGS = #-fsanitize=address -static-libasan 
 
 PROGRAMS  = libdemo.so libconnector.so main_cpp test_cpp      c_main linking_test_cpp c_linking_test c_test
 

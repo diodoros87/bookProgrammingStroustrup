@@ -17,13 +17,21 @@ const regex_t * const set_regex() {
    static regex NAME_REGEX_STRING = get_regex("(^[[:upper:]][[:lower:]]*( [[:upper:]][[:lower:]]*)?$)", REG_EXTENDED);
    return NAME_REGEX_STRING;
 }
-*/
+
+char  * ptr;
+ptr = (char  *)malloc(14);*/
 const char * const NAME_REGEX_STRING = "^[[:upper:]][[:lower:]]*( [[:upper:]][[:lower:]]*)?$";
 
 SINGLETON(regex_t, compile_regex, NAME_REGEX_STRING, REG_EXTENDED);
+/*
+static regex_t * NAME_REGEX = Singleton_regex_t();*/
+/*
+typedef struct  {
+   regex_t * NAME_REGEX;
+} Name_regex_t;
 
-static regex_t * NAME_REGEX = Singleton_regex_t();
-
+static const Name_regex_t name_regex = { .NAME_REGEX = Singleton_regex_t() };
+*/
 struct Human_t {
    char * name;
 };
@@ -44,7 +52,10 @@ Result_codes Human_init(Human_t ** object, const char * name) {
       return INVALID_ARG;
    }
    /*
-   Result_codes result = regex_matches(name, NAME_REGEX_STRING, REG_EXTENDED);*/
+   Result_codes result = regex_matches(name, NAME_REGEX_STRING, REG_EXTENDED);
+   regex_t ** NAME_REGEX = Singleton_regex_t();
+   Result_codes result = match_regex(*NAME_REGEX, name);*/
+   regex_t * NAME_REGEX = Singleton_regex_t();
    Result_codes result = match_regex(NAME_REGEX, name);
    if (OK != result)
       return result;
@@ -64,13 +75,21 @@ void Human_destroy(Human_t ** object) {
    REQUIRE_NON_NULL(*object);
    free((*object)->name);
    free(*object);
-   *object = NULL; /* to avoid double free or corruption (fasttop)  */
+   *object = NULL; /* to avoid double free or corruption (fasttop)  
+   regex_t ** NAME_REGEX = Singleton_regex_t();
+   regfree(*NAME_REGEX);*/
+   regex_t * NAME_REGEX = Singleton_regex_t();
+   regfree(NAME_REGEX);
+   free(NAME_REGEX);
 }
 
 Result_codes Human_set(Human_t * object, const char * name) {
    LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object);/*
-   Result_codes result = regex_matches(name, NAME_REGEX_STRING, REG_EXTENDED);*/
+   Result_codes result = regex_matches(name, NAME_REGEX_STRING, REG_EXTENDED);
+   regex_t ** NAME_REGEX = Singleton_regex_t();
+   Result_codes result = match_regex(*NAME_REGEX, name);*/
+   regex_t * NAME_REGEX = Singleton_regex_t();
    Result_codes result = match_regex(NAME_REGEX, name);
    if (OK != result)
       return result;

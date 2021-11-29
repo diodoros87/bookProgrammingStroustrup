@@ -3,8 +3,8 @@
 struct Human_t;
 
 typedef struct Human_t Human_t;
-
-extern regex_t * NAME_REGEX;
+/*
+extern regex_t * NAME_REGEX;*/
 
 Human_t* Human_malloc();
 
