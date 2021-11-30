@@ -5,15 +5,23 @@ struct Human_t;
 typedef struct Human_t Human_t;
 /*
 extern regex_t * NAME_REGEX;*/
-
+/*
+#ifdef __cplusplus
+extern "C" {
+#endif
+   */
 Human_t* Human_malloc();
 
-int Human_init(Human_t**, const char * filename);
+int Human_init(Human_t *, const char * const);
 
-void Human_destroy(Human_t**);
+void Human_destroy(Human_t * const);
 
-int Human_set(Human_t * object, const char * filename);
+int Human_set(Human_t * const, const char * const);
 
-int Human_get_name(Human_t * object, char ** filename);
-
+int Human_get_name(const Human_t * const, char **);
+/*
+#ifdef  __cplusplus
+}
+#endif
+*/
 typedef int bool_t;

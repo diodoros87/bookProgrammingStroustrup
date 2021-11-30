@@ -4,10 +4,12 @@
 #include "demo.hpp"
 
 #include "connector.h"
+#include "human.h"
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
    #define LIB_CONNECTOR_SO "libconnector.so"
+   #define LIB_HUMAN_SO     "libhuman.so"
    extern "C" void * get_handle (char * filepath, int flag);
    extern "C" void * get_symbol (void * handle, char * symbol);
    extern "C" int close_handle(void ** handle);

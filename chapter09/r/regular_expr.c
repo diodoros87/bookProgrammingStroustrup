@@ -43,9 +43,6 @@ Result_codes match_regex(const regex_t * regex, const char * const str) {
          LOG (" argument of str: '%s' is not matches by regex\n", str);
          return INVALID_ARG;
       default:  {
-         // The function returned an error; print the string 
-         // describing it.
-         // Get the size of the buffer required for the error message.
          size_t length = regerror (result, regex, NULL, 0);
          print_regerror (result, length, regex);       
          return INVALID_ARG;

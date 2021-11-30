@@ -249,7 +249,7 @@ Result_codes demo_get_name(char ** name) {
    return OK;
 }
 
-Result_codes demo_destroy() {
+Result_codes demo_destroy(void) {
    if (::demo_instance) {
       delete ::demo_instance;
       return OK;

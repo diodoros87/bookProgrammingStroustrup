@@ -5,6 +5,7 @@
 #include "c_string.h"
 #include "connector.h"
 #include "result_codes.h"
+#include "human.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -17,9 +18,9 @@
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
    #include "shared_lib_open.h"
+   #define LIB_CONNECTOR_SO "libconnector.so"
+   #define LIB_HUMAN_SO     "libhuman.so"
 #endif
-
-#define LIB_CONNECTOR_SO "libconnector.so"
 
 static jmp_buf JMP_BUF;
 
@@ -32,61 +33,38 @@ static void at_exit (void) {
    FUNCTION_INFO(__FUNCTION__);
 }
 
-static void load_demo(Demo_functions * demo_functions) {
-   if (! demo_functions) {
+/*
+#ifdef MANUAL_DLL_LOAD 
+static void load_demo(const Demo_functions * demo_functions, const Shared_library * const shared_lib) {
+   LOG("%s", "\nMANUAL DLL LOAD\n");
+   if (! demo_functions || ! shared_lib) {
       FUNCTION_INFO(__FUNCTION__);
-      LOG("%s\n", "demo_functions is NULL ");
+      LOG("%s\n", "demo_functions / shared_lib is NULL ");
       longjmp(JMP_BUF, 3);
    }
-#ifdef MANUAL_DLL_LOAD
-   LOG("%s", "\nMANUAL DLL LOAD\n");
-   demo_functions->handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
-   demo_functions->init = get_symbol(demo_functions->handle, "demo_init");
-   demo_functions->set_name = get_symbol(demo_functions->handle, "demo_set_name");
-   demo_functions->get_name = get_symbol(demo_functions->handle, "demo_get_name");
-   demo_functions->destroy = get_symbol(demo_functions->handle, "demo_destroy");
+   demo_functions->handle = get_handle(shared_lib->shared_lib_name, RTLD_LAZY);
+   demo_functions->init = get_symbol(demo_functions->handle, shared_lib->init);
+   demo_functions->set_name = get_symbol(demo_functions->handle, shared_lib->set_name);
+   demo_functions->get_name = get_symbol(demo_functions->handle, shared_lib->get_name);
+   demo_functions->destroy = get_symbol(demo_functions->handle, shared_lib->destroy);
+}
 #else
+static void load_demo(Demo_functions * const demo_functions, Result_codes (*a)(const char * ),
+   Result_codes (*b)(const char * ), Result_codes (*c) (char ** ), Result_codes (*d)(void)) {
    LOG("%s", "\nAUTOMATIC DLL LOAD\n");
+   if (! demo_functions || !a || !b || !c || !d) {
+      FUNCTION_INFO(__FUNCTION__);
+      LOG("%s\n", "input argument is NULL ");
+      longjmp(JMP_BUF, 3);
+   }   
    demo_functions->handle = NULL;
-   demo_functions->init = demo_init;
-   demo_functions->set_name = demo_set_name;
-   demo_functions->get_name = demo_get_name;
-   demo_functions->destroy = demo_destroy;
-#endif
+   demo_functions->init = a;
+   demo_functions->set_name = b;
+   demo_functions->get_name = c;
+   demo_functions->destroy = d;
 }
-
-Result_codes run_demo(const Demo_functions * demo_functions) { 
-   if (! demo_functions) {
-      LOG_EXIT(__FUNCTION__, "demo_functions is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
-   }
-   Result_codes result = demo_functions->init("Nicolaus Copernicus"); 
-   if (OK == result) {
-      char * name = NULL;
-      result = demo_functions->get_name(&name);
-      if (OK == result) {
-         LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
-         name = NULL;
-         demo_functions->set_name("Aristotle");
-         result = demo_functions->get_name(&name);
-         if (OK == result) {
-            LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
-            result = demo_functions->destroy();
-#ifdef MANUAL_DLL_LOAD
-            if (OK == result) {
-               result = close_handle(&(demo_functions->handle));
-               assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-               return result;
-            }
 #endif
-         }
-      }
-   }
-#ifdef MANUAL_DLL_LOAD
-   close_handle(&(demo_functions->handle));
-#endif
-   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-   return result;
-}
+*/
 
 char * get_format(const Number type) { 
    switch(type) {
@@ -268,10 +246,55 @@ static Result_codes test_money(void) {
 
 #undef TEST_ALLOC
 
+#ifdef MANUAL_DLL_LOAD
+static Result_codes main_single_test_linking(Demo_functions * demo_functions, const Shared_library * const shared_lib) {
+   if (! demo_functions || ! shared_lib) {
+      FUNCTION_INFO(__FUNCTION__);
+      LOG("%s\n", "demo_functions / shared_lib is NULL ");
+      return INVALID_ARG;
+   }
+   load_demo(demo_functions, shared_lib);
+   Result_codes result = run_demo(demo_functions);
+   return result;
+}
+#else
+static Result_codes main_single_test_linking(const Demo_functions * const demo_functions, Result_codes (*a)(const char * ),
+   Result_codes (*b)(const char * ), Result_codes (*c) (char ** ), Result_codes (*d)(void)) {
+   if (! demo_functions || !a || !b || !c || !d) {
+      FUNCTION_INFO(__FUNCTION__);
+      LOG("%s\n", "input argument is NULL ");
+      return INVALID_ARG;
+   }  
+   load_demo(demo_functions, a, b, c, d);
+   Result_codes result = run_demo(demo_functions);
+   return result;
+}
+#endif
+
 static Result_codes main_test_linking(void) {
    Demo_functions demo_functions;
    load_demo(&demo_functions); 
    Result_codes result = run_demo(&demo_functions);
+   test_human();
+   if (OK == result)
+      result = test_money();
+   return result;
+}
+
+static Result_codes main_test_linking(void) {
+   Result_codes result = UNRECOGNIZED_ERROR;
+   Demo_functions demo_functions;
+#ifdef MANUAL_DLL_LOAD
+   Shared_library shared_lib = { LIB_CONNECTOR_SO, "demo_init", "demo_set_name", "demo_get_name", "demo_destroy" };
+   result = main_single_test_linking(&demo_functions, &shared_lib); 
+   shared_lib = { LIB_HUMAN_SO, "Human_init", "Human_set", "Human_get_name", "Human_destroy" };
+   if (OK == result)
+      result = test_money();
+#else
+   result= main_single_test_linking(&demo_functions, demo_init, demo_set_name, demo_get_name, demo_destroy); 
+   if (OK == result)
+      result = main_single_test_linking(&demo_functions, Human_init, Human_set, Human_get_name, Human_destroy);
+#endif
    if (OK == result)
       result = test_money();
    return result;
@@ -288,6 +311,24 @@ static Result_codes test_linking(void) {
       }
       else 
          load_demo(NULL);
+      
+      return main_test_linking(); 
+   }
+   else 
+      test_print_many();
+}
+
+static Result_codes test_linking(void) {
+   volatile int jmp_value = 0;
+   if ((jmp_value = setjmp(JMP_BUF)) != 0) {
+      LOG("\nAfter calling test_print_many longjmp set value to %d\n", jmp_value);
+      if ((jmp_value = setjmp(JMP_BUF)) != 0) {
+         FUNCTION_INFO(__FUNCTION__);
+         LOG("\nlongjmp set value to %d\n Return with %d ?\n", jmp_value, EXIT_FAILURE);/*
+         return EXIT_FAILURE;*/
+      }
+      else 
+         load_human(NULL);
       
       return main_test_linking(); 
    }

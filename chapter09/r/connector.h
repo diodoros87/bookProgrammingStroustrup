@@ -59,16 +59,8 @@ EXTERNC Result_codes Money_type__create_2(Money_type * money_ptr, const char * d
 EXTERNC Result_codes demo_init(const char * name);
 EXTERNC Result_codes demo_set_name(const char * name);
 EXTERNC Result_codes demo_get_name(char ** name);
-EXTERNC Result_codes demo_destroy();
+EXTERNC Result_codes demo_destroy(void);
 
 #undef EXTERNC
-
-typedef struct {
-   Result_codes (*init)(const char * );
-   Result_codes (*set_name)(const char * );
-   Result_codes (*get_name) (char ** );
-   Result_codes (*destroy)();
-   void * handle;
-} Demo_functions;
 
 #endif

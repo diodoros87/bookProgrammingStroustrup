@@ -3,10 +3,11 @@
 #include "system.h"
 #include "c_string.h"
 #include "result_codes.h"
-#include "human.h"
 
 #include <stdlib.h>
 #include <string.h>
+
+#define VALGRIND
 
 Result_codes test(const int tests, const char * const command) {
    if (! command) { 
@@ -22,7 +23,7 @@ Result_codes test(const int tests, const char * const command) {
       result = call_system(command);
    return result;
 }
-
+/*
 Result_codes human_test(void) {
    char * name = NULL;
    struct Human_t * human = NULL;
@@ -46,21 +47,23 @@ Result_codes human_test(void) {
    free(human);
    return result;
 }
-
+*/
 int main(const int argc, const char ** argv) {
    const char * program_name = strrchr(argv[0], '/');
    LOG("%s\n", program_name ? ++program_name : argv[0]);
    const char * command = "./c_main";
-   int result = 0;/*
-   int result = test(2, command);*/
+   int result = test(2, command);
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
 #ifdef VALGRIND
    if (result == OK) {
       command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all ./c_main valgrind";
       result = test(2, command);
+      assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    }
 #endif
+/*
    if (result == OK)
-      result = human_test();
+      result = human_test();*/
    LOG(" Program name = %s", program_name);
    FUNCTION_INFO(__FUNCTION__);
    LOG(" Final result = %d\n", result);
