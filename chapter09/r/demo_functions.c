@@ -3,13 +3,10 @@
 #include "utility.h"
 #include "connector.h"
 
-struct Demo_functions {
-   Result_codes (*init)(const char * );
-   Result_codes (*set_name)(const char * );
-   Result_codes (*get_name) (char ** );
-   Result_codes (*destroy)(void);
-   void * handle;
-};
+#ifdef MANUAL_DLL_LOAD
+   #include <dlfcn.h>
+   #include "shared_lib_open.h"
+#endif
 
 const int demo_functions_null = 3;
 
@@ -51,8 +48,8 @@ static Result_codes run_demo(const Demo_functions * const demo_functions) {
          result = demo_functions->get_name(&name);
          if (OK == result) {
             LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
-            result = demo_functions->destroy();
 #ifdef MANUAL_DLL_LOAD
+            result = demo_functions->destroy();
             if (OK == result) {
                result = close_handle(&(demo_functions->handle));
                assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
@@ -65,6 +62,7 @@ static Result_codes run_demo(const Demo_functions * const demo_functions) {
 #ifdef MANUAL_DLL_LOAD
    close_handle(&(demo_functions->handle));
 #endif
+   demo_functions->destroy();
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }

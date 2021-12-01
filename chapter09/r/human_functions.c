@@ -3,11 +3,17 @@
 #include "utility.h"
 #include "human.h"
 
+#ifdef MANUAL_DLL_LOAD
+   #include <dlfcn.h>
+   #include "shared_lib_open.h"
+   #define LIB_HUMAN_SO     "libhuman.so"
+#endif
+
 struct Human_functions {
-   Result_codes (*init)(Human_t *, const char * const);
+   Result_codes (*init)(Human_t **, const char * const);
    Result_codes (*set_name)(Human_t * const, const char * const);
    Result_codes (*get_name) (const Human_t * const, char **);
-   Result_codes (*destroy)(Human_t * const);
+   Result_codes (*destroy)(Human_t ** const);
    void * handle;
 };
 
@@ -41,34 +47,36 @@ static Result_codes run_human(const Human_functions * const functions) {
       LOG_EXIT(__FUNCTION__, "human functions is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
    }
    Human_t * human = NULL;
-   Result_codes result = functions->init(human, "Claudius Ptolemaeus"); 
+   Result_codes result = functions->init(&human, "Claudius Ptolemaeus"); 
    if (OK == result) {
       char * name = NULL;
       result = functions->get_name(human, &name);
       if (OK == result) {
          LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
-         name = NULL;
-         functions->set_name(human, "Plato");
-         result = functions->get_name(human, &name);
-         if (OK == result) {
-            LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
-            result = functions->destroy(human);
-            free(human);
-#ifdef MANUAL_DLL_LOAD
+         free(name);
+         result = functions->set_name(human, "Plato");
+         if (result == OK) {
+            name = NULL;
+            result = functions->get_name(human, &name);
             if (OK == result) {
+               LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
+               free(name);
+               functions->destroy(&human);
+               assert_many(human == NULL, "assert failed: ", "s p", "pointer to human == ", human);
+#ifdef MANUAL_DLL_LOAD
                result = close_handle(&(functions->handle));
                assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
                return result;
-            }
 #endif
+            }
          }
       }
    }
 #ifdef MANUAL_DLL_LOAD
    close_handle(&(functions->handle));
 #endif
-   if (human)
-      free(human);
+   free(human);
+   assert_many(human == NULL, "assert failed: ", "s p", "pointer to human == ", human);
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }

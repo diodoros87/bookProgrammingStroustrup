@@ -1,3 +1,6 @@
+#ifndef HUMAN_H
+#define HUMAN_H
+
 #include <regex.h>
 
 struct Human_t;
@@ -10,11 +13,11 @@ extern regex_t * NAME_REGEX;*/
 extern "C" {
 #endif
    */
-Human_t* Human_malloc();
+Human_t* Human_malloc(void);
 
-int Human_init(Human_t *, const char * const);
+int Human_init(Human_t **, const char * const);
 
-void Human_destroy(Human_t * const);
+void Human_destroy(Human_t **);
 
 int Human_set(Human_t * const, const char * const);
 
@@ -25,3 +28,5 @@ int Human_get_name(const Human_t * const, char **);
 #endif
 */
 typedef int bool_t;
+
+#endif

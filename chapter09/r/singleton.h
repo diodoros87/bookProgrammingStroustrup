@@ -1,3 +1,6 @@
+#ifndef SINGLETON_H
+#define SINGLETON_H
+
 #include <stdlib.h>
 
 #define ALLOC(buffer, type, n) \
@@ -42,3 +45,5 @@ if ((buffer) == NULL) { \
                   }                                         \
                   return instance;                       \
                }
+
+#endif

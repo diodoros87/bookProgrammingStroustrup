@@ -1,5 +1,5 @@
-#ifndef FILE_EDIT_H
-#define FILE_EDIT_H
+#ifndef FILE_MODIFY_H
+#define FILE_MODIFY_H
 
 #include <stdio.h>
 
@@ -9,15 +9,15 @@ typedef struct File_modify_t File_modify_t;
 
 File_modify_t* File_modify_malloc();
 
-int File_modify_init(File_modify_t**, const char * filename);
+int File_modify_init(File_modify_t**, const char * const);
 
 void File_modify_destroy(File_modify_t**);
 
 int edit_makefile(File_modify_t*);
 
-int File_modify_set(File_modify_t * object, const char * filename);
+int File_modify_set(File_modify_t * const, const char * const);
 
-int File_modify_get_filename(File_modify_t * object, char ** filename);
+int File_modify_get_filename(const File_modify_t * const, char ** const filename);
 
 typedef int bool_t;
 

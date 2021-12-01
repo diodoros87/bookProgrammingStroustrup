@@ -26,18 +26,22 @@ Result_codes change_makefile(void) {
       result = edit_makefile(modifier);
    File_modify_destroy(&modifier);
    free(modifier);
+   assert_many(modifier == NULL, "assert failed: ", "s p", "pointer to File_modify_t == ", modifier);
    return OK;
 }
 
 Result_codes make_clean_make(void) {
-   char *exec_args[] = { "make", "clean", NULL };
+   char *exec_args[] = { "make", "clean", NULL, NULL};
    int result = execute(exec_args);
    if (result != SYSTEM_ERROR) 
       result = change_makefile();
    if (result == OK) {
+      exec_args[0] = "make 2> compilation_output.txt";
+      result = call_system(exec_args[0]);
+      /*
       exec_args[1] = NULL;
       if (execute(exec_args) != SYSTEM_ERROR)
-         result = OK;
+         result = OK;*/
    }
    LOG("Parent process: pid = %d\nGoodbye!\n", getpid());
    return result;
@@ -47,9 +51,12 @@ int test_linking(const bool_t valgrind) {
    FUNCTION_INFO(__FUNCTION__);
    static const char * const ld_path = "LD_LIBRARY_PATH=.";
    static const char * const exec = "./c_linking_test";
+   /*
    const char * command = concatenate_many(ld_path, " ", exec, NULL);
    int result = call_system(command);
-   free(command);
+   free(command);*/
+   const char * command = NULL;
+   int result = OK;
    if (OK == result && valgrind) {
       static const char * const valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all";
       command = concatenate_many(ld_path, " ", valgrind_str, " ", exec, NULL);

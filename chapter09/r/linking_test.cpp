@@ -8,11 +8,9 @@
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
-   #define LIB_CONNECTOR_SO "libconnector.so"
+   #include "demo_functions.h"
+   #include "shared_lib_open.h"
    #define LIB_HUMAN_SO     "libhuman.so"
-   extern "C" void * get_handle (char * filepath, int flag);
-   extern "C" void * get_symbol (void * handle, char * symbol);
-   extern "C" int close_handle(void ** handle);
 #else
    #include <functional>
    
@@ -28,19 +26,6 @@ void set_handler(void (*func)(void)) {
 void handle_terminate(void) { 
    cerr << TIE( unmove(__cplusplus), __func__, " handler called - must've been some exception ?!\n");
 }
-
-template <typename Function, typename... Args>  
-Result_codes call_catch_exception(Function && func, Args&&... args )
-   try {
-      func(std::forward<Args>(args)...);
-      return OK;
-   } catch (const std::invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << '\n';
-      return INVALID_ARG;
-   } catch (const std::out_of_range& e) {
-      cerr << __func__ << " exception: " << e.what() << '\n';
-      return OUT_OF_RANGE_ERROR;
-   }
    
 #ifdef MANUAL_DLL_LOAD
 void load_demo(Demo_functions & demo_functions) {
@@ -78,6 +63,7 @@ Result_codes test_demo() {
       }
    }
    close_handle(&(demo_functions.handle));
+   demo_functions.destroy();
    assert_many(result == OK, "result == ", result);
 #else
    cerr << "\nAUTOMATIC DLL LOAD\n";

@@ -63,4 +63,8 @@ EXTERNC Result_codes demo_destroy(void);
 
 #undef EXTERNC
 
+#ifdef MANUAL_DLL_LOAD
+   #define LIB_CONNECTOR_SO "libconnector.so"
+#endif
+
 #endif

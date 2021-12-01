@@ -96,7 +96,7 @@ File_modify_t* File_modify_malloc() {
    return new;
 }
 
-Result_codes File_modify_init(File_modify_t ** object, const char * filename) {
+Result_codes File_modify_init(File_modify_t ** object, const char * const filename) {
    REQUIRE_NON_NULL(object);
    if (*object) {
       LOG_FUNC(__FUNCTION__);
@@ -122,7 +122,7 @@ void File_modify_destroy(File_modify_t ** object) {
    *object = NULL; /* to avoid double free or corruption (fasttop)  */
 }
 
-Result_codes File_modify_set(File_modify_t * object, const char * filename) {
+Result_codes File_modify_set(File_modify_t * const object, const char * const filename) {
    REQUIRE_NON_NULL(object);
    CHECK_FILE(filename);
    free(object->filename);
@@ -133,7 +133,7 @@ Result_codes File_modify_set(File_modify_t * object, const char * filename) {
    return OK;
 }
 
-Result_codes File_modify_get_filename(File_modify_t * object, char ** filename) {
+Result_codes File_modify_get_filename(const File_modify_t * const object, char ** const filename) {
    REQUIRE_NON_NULL(object);
    REQUIRE_NON_NULL(filename);
    if (*filename) {
