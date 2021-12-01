@@ -7,9 +7,9 @@
 
 #include <string.h>
 
-#define REQUIRE_NON_NULL(pointer) \
+#define REQUIRE_NON_NULL(pointer, message) \
 if (! (pointer) ) { \
-   LOG_EXIT(__FUNCTION__, "Pointer is NULL", EXIT_FAILURE); \
+   LOG_EXIT(__FUNCTION__, message, EXIT_FAILURE); \
 }
 
 const char * const NAME_REGEX_STRING = "^[[:upper:]][[:lower:]]*( [[:upper:]][[:lower:]]*)?$";
@@ -29,7 +29,7 @@ Human_t* Human_malloc() {
 
 Result_codes Human_init(Human_t * object, const char * const name) {
    LOG_FUNC(__FUNCTION__);
-   REQUIRE_NON_NULL(name);
+   REQUIRE_NON_NULL(name, "name is null");
    if (! object) 
       object = Human_malloc();
    /*
@@ -52,7 +52,7 @@ Result_codes Human_init(Human_t * object, const char * const name) {
 
 void Human_destroy(Human_t * const object) {
    LOG_FUNC(__FUNCTION__);
-   REQUIRE_NON_NULL(object);
+   REQUIRE_NON_NULL(object, "human is null");
    free(object->name);
    free(object);
    /*
@@ -65,8 +65,8 @@ void Human_destroy(Human_t * const object) {
 
 Result_codes Human_set(Human_t * const object, const char * const name) {
    LOG_FUNC(__FUNCTION__);
-   REQUIRE_NON_NULL(object);
-   REQUIRE_NON_NULL(name);/*
+   REQUIRE_NON_NULL(object, "human is null");
+   REQUIRE_NON_NULL(name, "name is null");/*
    Result_codes result = regex_matches(name, NAME_REGEX_STRING, REG_EXTENDED);
    regex_t ** NAME_REGEX = Singleton_regex_t();
    Result_codes result = match_regex(*NAME_REGEX, name);*/
@@ -84,8 +84,8 @@ Result_codes Human_set(Human_t * const object, const char * const name) {
 
 Result_codes Human_get_name(const Human_t * const object, char ** name) {
    LOG_FUNC(__FUNCTION__);
-   REQUIRE_NON_NULL(object);
-   REQUIRE_NON_NULL(name);
+   REQUIRE_NON_NULL(object, "human is null");
+   REQUIRE_NON_NULL(name, "&name is null");
    if (*name) {
       LOG("%s\n", "*name must be null");
       return INVALID_ARG;

@@ -1,19 +1,23 @@
 #include "demo_functions.h"
+#include "print.h"
+#include "utility.h"
+#include "connector.h"
 
-
-typedef struct {
+struct Demo_functions {
    Result_codes (*init)(const char * );
    Result_codes (*set_name)(const char * );
    Result_codes (*get_name) (char ** );
    Result_codes (*destroy)(void);
    void * handle;
-} Demo_functions;
+};
 
-void load_demo(Demo_functions * demo_functions) {
+const int demo_functions_null = 3;
+
+static void load_demo(Demo_functions * demo_functions) {
    if (! demo_functions) {
       FUNCTION_INFO(__FUNCTION__);
       LOG("%s\n", "demo_functions is NULL ");
-      longjmp(JMP_BUF, 3);
+      longjmp(JMP_BUF, demo_functions_null);
    }
 #ifdef MANUAL_DLL_LOAD
    LOG("%s", "\nMANUAL DLL LOAD\n");
@@ -32,7 +36,7 @@ void load_demo(Demo_functions * demo_functions) {
 #endif
 }
 
-Result_codes run_demo(const Demo_functions * const demo_functions) { 
+static Result_codes run_demo(const Demo_functions * const demo_functions) { 
    if (! demo_functions) {
       LOG_EXIT(__FUNCTION__, "demo_functions is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
    }
@@ -67,7 +71,28 @@ Result_codes run_demo(const Demo_functions * const demo_functions) {
 
 Result_codes test_demo(void) {
    Demo_functions functions;
-   load_human(&functions); 
-   Result_codes result = run_human(&functions);
+   load_demo(&functions); 
+   Result_codes result = run_demo(&functions);
    return result;
+}
+
+Result_codes test_demo_linking(void) {
+   volatile int jmp_value = 0;
+   const int jmp_value_2 = 5;
+   if ((jmp_value = setjmp(JMP_BUF)) != 0) {
+      FUNCTION_INFO(__FUNCTION__);
+      LOG("\nAfter calling test_print_many longjmp set value to %d\n", jmp_value);
+      assert_many(jmp_value_2 == jmp_value, "assert failed: ", "s d", "jmp_value should be ", jmp_value_2);
+      if ((jmp_value = setjmp(JMP_BUF)) != 0) {
+         FUNCTION_INFO(__FUNCTION__);
+         LOG("\nlongjmp set value to %d\n ", jmp_value);
+         assert_many(demo_functions_null == jmp_value, "assert failed: ", "s d", "jmp_value should be ", demo_functions_null);
+      }
+      else 
+         load_demo(NULL);
+
+      return test_demo(); 
+   }
+   else 
+      longjump_test(JMP_BUF, jmp_value_2);
 }

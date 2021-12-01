@@ -27,11 +27,20 @@ c_main: c_main.o print.o file_modify.o c_string.o system.o
 c_main.o: main.c print.h system.h file_modify.h result_codes.h c_string.h
 	$(CC) $(CFLAGS) -c main.c -o c_main.o 
 
-c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o libhuman.so libdemo.so
-	$(CC) $(CFLAGS) $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o -L. -lconnector -ldemo -lhuman -ldl -o c_linking_test 
+c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o utility.o libhuman.so libdemo.so
+	$(CC) $(CFLAGS) $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o utility.o -L. -lconnector -ldemo -lhuman -ldl -o c_linking_test 
 	
-c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.h human.h
+c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.h human.h utility.h demo_functions.h human_functions.h
 	$(CC) $(CFLAGS) -c linking_test.c -o c_linking_test.o 
+	
+demo_functions.o: demo_functions.h demo_functions.c utility.h
+	$(CC) $(CFLAGS) -c demo_functions.c
+	
+human_functions.o: human_functions.h human_functions.c utility.h
+	$(CC) $(CFLAGS) -c human_functions.c
+	
+utility.o: utility.h utility.c
+	$(CC) $(CFLAGS) -c utility.c
 	
 system.o: system.c system.h print.h result_codes.h
 	$(CC) $(CFLAGS) -c system.c 

@@ -6,14 +6,15 @@
 #include "connector.h"
 #include "result_codes.h"
 #include "human.h"
+#include "utility.h"
+#include "human_functions.h"
+#include "demo_functions.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
 #include <float.h>
-#include <setjmp.h>
-#include <stdnoreturn.h>
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
@@ -21,8 +22,6 @@
    #define LIB_CONNECTOR_SO "libconnector.so"
    #define LIB_HUMAN_SO     "libhuman.so"
 #endif
-
-static jmp_buf JMP_BUF;
 
 void handle_terminate(void) { 
    LOG("%s", "handler called - must've been some exception ?!\n");
@@ -187,6 +186,8 @@ static Result_codes run_money(const Number type, const char * dollars, const lon
 
 #undef LOGS_MONEY
 
+const int test_print_many_longjmp = 22;
+
 static _Noreturn void test_print_many(void) {
    float f = 6.0f;
    LOG("\nAddress pointed by money is: %p\n", &f);            /* mandatory casting when using va_list function  */
@@ -197,7 +198,7 @@ static _Noreturn void test_print_many(void) {
    void * nul = &i;
    print_many(" 3 test of print_many", " p  c hd hu F G F G  u  lu ld llu lld ", nul, 'i', (short)7, (unsigned short)USHRT_MAX, 6.0f, 7.0f,
                            77.8, 66.6, (unsigned)99, (unsigned long)ULONG_MAX, (long)LONG_MAX, (unsigned long long)ULLONG_MAX, (long long)LLONG_MAX);
-   longjmp(JMP_BUF, 22);
+   longjmp(JMP_BUF, test_print_many_longjmp);
 }
 
 #define TEST_ALLOC(TYPE, dollars, number, cents) \
@@ -246,68 +247,25 @@ static Result_codes test_money(void) {
 
 #undef TEST_ALLOC
 
-#ifdef MANUAL_DLL_LOAD
-static Result_codes main_single_test_linking(Demo_functions * demo_functions, const Shared_library * const shared_lib) {
-   if (! demo_functions || ! shared_lib) {
-      FUNCTION_INFO(__FUNCTION__);
-      LOG("%s\n", "demo_functions / shared_lib is NULL ");
-      return INVALID_ARG;
-   }
-   load_demo(demo_functions, shared_lib);
-   Result_codes result = run_demo(demo_functions);
-   return result;
-}
-#else
-static Result_codes main_single_test_linking(const Demo_functions * const demo_functions, Result_codes (*a)(const char * ),
-   Result_codes (*b)(const char * ), Result_codes (*c) (char ** ), Result_codes (*d)(void)) {
-   if (! demo_functions || !a || !b || !c || !d) {
-      FUNCTION_INFO(__FUNCTION__);
-      LOG("%s\n", "input argument is NULL ");
-      return INVALID_ARG;
-   }  
-   load_demo(demo_functions, a, b, c, d);
-   Result_codes result = run_demo(demo_functions);
-   return result;
-}
-#endif
-
 static Result_codes main_test_linking(void) {
-   Demo_functions demo_functions;
-   load_demo(&demo_functions); 
-   Result_codes result = run_demo(&demo_functions);
-   test_human();
+   Result_codes result = test_demo_linking();
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
+   if (OK == result)
+      result = test_human_linking();
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (OK == result)
       result = test_money();
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }
-
-static Result_codes main_test_linking(void) {
-   Result_codes result = UNRECOGNIZED_ERROR;
-   Demo_functions demo_functions;
-#ifdef MANUAL_DLL_LOAD
-   Shared_library shared_lib = { LIB_CONNECTOR_SO, "demo_init", "demo_set_name", "demo_get_name", "demo_destroy" };
-   result = main_single_test_linking(&demo_functions, &shared_lib); 
-   shared_lib = { LIB_HUMAN_SO, "Human_init", "Human_set", "Human_get_name", "Human_destroy" };
-   if (OK == result)
-      result = test_money();
-#else
-   result= main_single_test_linking(&demo_functions, demo_init, demo_set_name, demo_get_name, demo_destroy); 
-   if (OK == result)
-      result = main_single_test_linking(&demo_functions, Human_init, Human_set, Human_get_name, Human_destroy);
-#endif
-   if (OK == result)
-      result = test_money();
-   return result;
-}
-
+/*
 static Result_codes test_linking(void) {
    volatile int jmp_value = 0;
    if ((jmp_value = setjmp(JMP_BUF)) != 0) {
       LOG("\nAfter calling test_print_many longjmp set value to %d\n", jmp_value);
       if ((jmp_value = setjmp(JMP_BUF)) != 0) {
          FUNCTION_INFO(__FUNCTION__);
-         LOG("\nlongjmp set value to %d\n Return with %d ?\n", jmp_value, EXIT_FAILURE);/*
-         return EXIT_FAILURE;*/
+         LOG("\nlongjmp set value to %d\n Return with %d ?\n", jmp_value, EXIT_FAILURE);
       }
       else 
          load_demo(NULL);
@@ -317,18 +275,22 @@ static Result_codes test_linking(void) {
    else 
       test_print_many();
 }
-
-static Result_codes test_linking(void) {
+*/
+static Result_codes tests(void) {
    volatile int jmp_value = 0;
+   const int jmp_value_2 = -35;
    if ((jmp_value = setjmp(JMP_BUF)) != 0) {
+      FUNCTION_INFO(__FUNCTION__);
       LOG("\nAfter calling test_print_many longjmp set value to %d\n", jmp_value);
+      assert_many(test_print_many_longjmp == jmp_value, "assert failed: ", "s d", "jmp_value should be ", test_print_many_longjmp);
       if ((jmp_value = setjmp(JMP_BUF)) != 0) {
          FUNCTION_INFO(__FUNCTION__);
-         LOG("\nlongjmp set value to %d\n Return with %d ?\n", jmp_value, EXIT_FAILURE);/*
+         LOG("\nlongjmp set value to %d\n Return with %d ?\n", jmp_value, EXIT_FAILURE);
+         assert_many(jmp_value_2 == jmp_value, "assert failed: ", "s d", "jmp_value should be ", jmp_value_2);/*
          return EXIT_FAILURE;*/
       }
       else 
-         load_human(NULL);
+         longjump_test(JMP_BUF, jmp_value_2);
       
       return main_test_linking(); 
    }
@@ -340,6 +302,7 @@ int main(void) {
    FUNCTION_INFO(__FUNCTION__);
    set_handler(handle_terminate);
    atexit (at_exit);
-   Result_codes result = test_linking();
+   Result_codes result = tests();
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }

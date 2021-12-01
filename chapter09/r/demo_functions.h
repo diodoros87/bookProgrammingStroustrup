@@ -1,3 +1,5 @@
 #include "result_codes.h"
 
-Result_codes test_demo(void);
+typedef struct Demo_functions Demo_functions; 
+
+Result_codes test_demo_linking(void);
