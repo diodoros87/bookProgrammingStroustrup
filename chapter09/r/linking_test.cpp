@@ -87,11 +87,19 @@ Result_codes test_money() {
    return result;
 }
 
-int main() {
+int main(const int argc, const char * argv[]) {
+   cerr << "\n C++ " << __cplusplus << " function = " << __func__ << '\n';
+   size_t pos = string(argv[0]).rfind('/');
+   const string program_name = (pos != string::npos && pos + 1 < string(argv[0]).size()) ? string(argv[0]).substr(pos + 1) : argv[0];
+   cerr << "\n  Program name = " << program_name << '\n';
    set_handler(handle_terminate);
    Result_codes result = test_money();
+   assert_many(result == OK, "result == ", result);
    if (OK == result)
       result = test_demo();
-   cerr << '\n';
+   cerr << "\n  Program name = " << program_name;
+   cerr << "\n C++ " << __cplusplus << " function = " << __func__ << '\n';
+   cerr << " Final result = " << result << '\n';
+   assert_many(result == OK, "result == ", result);
    return result;
 }

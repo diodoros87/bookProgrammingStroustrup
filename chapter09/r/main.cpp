@@ -25,7 +25,8 @@ void makefile() {
    system_utility::execute("make", "make", "clean");
    File_edit file_edit("Makefile");
    file_edit.edit_makefile();
-   system_utility::execute("make 2> compilation_output.txt", "make");
+   //system_utility::execute("make", "make");
+   system_utility::call_system("make 2> compilation_output.txt");
    cerr << "Parent process: pid = " << getpid() << '\n';
 }
 
@@ -35,7 +36,7 @@ int test_linking(const bool valgrind) {
    int result = OK;
    //int result = system_utility::call_system(ld_path + " " + exec);
    if (OK == result && valgrind) {
-      static const string valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all";
+      static const string valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all --exit-on-first-error=yes --error-exitcode=1";
       result = system_utility::call_system(ld_path + " " + valgrind_str + " " + exec);
    }
    return result;

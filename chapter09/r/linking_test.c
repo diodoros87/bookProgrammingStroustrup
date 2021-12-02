@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <limits.h>
+#include <string.h>
 
 void handle_terminate(void) { 
    LOG("%s", "handler called - must've been some exception ?!\n");
@@ -68,11 +69,16 @@ static Result_codes tests(void) {
       test_print_many();
 }
 
-int main(void) {
+int main(const int argc, const char ** argv) {
+   const char * program_name = strrchr(argv[0], '/');
+   LOG("%s\n", program_name ? ++program_name : argv[0]);
    FUNCTION_INFO(__FUNCTION__);
    set_handler(handle_terminate);
    atexit (at_exit);
    Result_codes result = tests();
+   LOG(" Program name = %s", program_name);
+   FUNCTION_INFO(__FUNCTION__);
+   LOG(" Final result = %d\n", result);
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }

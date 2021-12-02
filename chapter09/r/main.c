@@ -35,7 +35,7 @@ Result_codes make_clean_make(void) {
    int result = execute(exec_args);
    if (result != SYSTEM_ERROR) 
       result = change_makefile();
-   if (result == OK) {
+   if (result == OK) { 
       exec_args[0] = "make 2> compilation_output.txt";
       result = call_system(exec_args[0]);
       /*
@@ -58,7 +58,7 @@ int test_linking(const bool_t valgrind) {
    const char * command = NULL;
    int result = OK;
    if (OK == result && valgrind) {
-      static const char * const valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all";
+      static const char * const valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all --exit-on-first-error=yes --error-exitcode=1";
       command = concatenate_many(ld_path, " ", valgrind_str, " ", exec, NULL);
       result = call_system(command);
       free(command);

@@ -75,7 +75,8 @@ static Result_codes run_human(const Human_functions * const functions) {
 #ifdef MANUAL_DLL_LOAD
    close_handle(&(functions->handle));
 #endif
-   free(human);
+   if (human)
+      functions->destroy(&human);
    assert_many(human == NULL, "assert failed: ", "s p", "pointer to human == ", human);
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;

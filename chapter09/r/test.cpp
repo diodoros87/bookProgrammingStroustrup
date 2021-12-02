@@ -7,6 +7,8 @@
 
 using std::string;
 
+#define VALGRIND
+
 int test(int tests, const string & command) {
    if (tests < 0 || tests > 99) 
       throw std::invalid_argument(__func__ + string("improper tests = ") + std::to_string(tests));
@@ -24,7 +26,7 @@ int main(const int argc, const char ** argv) {
    int result = test(2, command);
 #ifdef VALGRIND
    if (result == OK) {
-      command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all ./main_cpp valgrind";
+      command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all --exit-on-first-error=yes --error-exitcode=1 ./main_cpp valgrind";
       result = test(2, command);
    }
 #endif

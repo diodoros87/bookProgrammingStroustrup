@@ -56,7 +56,7 @@ int main(const int argc, const char ** argv) {
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
 #ifdef VALGRIND
    if (result == OK) {
-      command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all ./c_main valgrind";
+      command = "LD_LIBRARY_PATH=. valgrind --leak-check=full --show-leak-kinds=all  --exit-on-first-error=yes --error-exitcode=1 ./c_main valgrind";
       result = test(2, command);
       assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    }
@@ -64,9 +64,9 @@ int main(const int argc, const char ** argv) {
 /*
    if (result == OK)
       result = human_test();*/
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    LOG(" Program name = %s", program_name);
    FUNCTION_INFO(__FUNCTION__);
    LOG(" Final result = %d\n", result);
-   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }
