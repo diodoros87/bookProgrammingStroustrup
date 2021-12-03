@@ -23,31 +23,7 @@ Result_codes test(const int tests, const char * const command) {
       result = call_system(command);
    return result;
 }
-/*
-Result_codes human_test(void) {
-   char * name = NULL;
-   struct Human_t * human = NULL;
-   Result_codes result = Human_init(&human, "Makefile");
-   if (OK == result) {
-      result = Human_get_name(human, &name);
-      LOG(" name = %s\n", name);
-      free(name);
-      if (result == OK) {
-         result = Human_set(human, "Makefile");
-         if (result == OK) {
-            name = NULL;
-            result = Human_get_name(human, &name);
-            LOG(" name = %s\n", name);
-            free(name);
-         }
-      }
-   }
-   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-   Human_destroy(&human);
-   free(human);
-   return result;
-}
-*/
+
 int main(const int argc, const char ** argv) {
    const char * program_name = strrchr(argv[0], '/');
    LOG("%s\n", program_name ? ++program_name : argv[0]);

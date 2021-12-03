@@ -252,6 +252,7 @@ Result_codes demo_get_name(char ** name) {
 Result_codes demo_destroy(void) {
    if (::demo_instance) {
       delete ::demo_instance;
+      ::demo_instance = nullptr;
       return OK;
    }
    cerr  << __func__ << " Error demo_instance = " << ::demo_instance << '\n';

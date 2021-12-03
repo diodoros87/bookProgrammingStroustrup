@@ -19,14 +19,14 @@ static void load_human_functions(Human_functions & functions) {
    functions.init     = reinterpret_cast<Result_codes (*)(Human_t **, const char * const)> (get_symbol(functions.handle, "Human_init"));
    functions.set_name = reinterpret_cast<Result_codes (*)(Human_t * const, const char * const)> (get_symbol(functions.handle, "Human_set"));
    functions.get_name = reinterpret_cast<Result_codes (*)(const Human_t * const, char ** const)> (get_symbol(functions.handle, "Human_get_name"));
-   functions.destroy  = reinterpret_cast<Result_codes (*)(Human_t ** const)> (get_symbol(functions.handle, "Human_destroy"));
+   functions.destroy  = reinterpret_cast<void (*)(Human_t ** const)> (get_symbol(functions.handle, "Human_destroy"));
 #else
    cerr << "\nAUTOMATIC DLL LOAD\n";
    functions.handle = nullptr;
    functions.init = reinterpret_cast<Result_codes (*)(Human_t **, const char * const)> (Human_init);
    functions.set_name = reinterpret_cast<Result_codes (*)(Human_t * const, const char * const)> (Human_set);
    functions.get_name = reinterpret_cast<Result_codes (*)(const Human_t * const, char ** const)> (Human_get_name);
-   functions.destroy = reinterpret_cast<Result_codes (*)(Human_t ** const)> (Human_destroy);
+   functions.destroy = reinterpret_cast<void (*)(Human_t ** const)> (Human_destroy);
 #endif
 }
 
@@ -39,22 +39,23 @@ Result_codes test_human() {
    if (OK == result) {
       char * name = nullptr;
       result = functions.get_name(human, &name);
-      assert_many(string(name) == "Baruch Spinoza", "name == ", name);
       if (OK == result) {
          cerr << TIE( "C++", unmove(__cplusplus), __func__, " human name = ", name) << '\n';
+         assert_many(string(name) == "Baruch Spinoza", "name == ", name);
          free(name);
          result = functions.set_name(human, "Newton");
          if (OK == result) {
             name = nullptr;
             result = functions.get_name(human, &name);
-            assert_many(string(name) == "Newton", "name == ", name);
             if (OK == result) {
                cerr << TIE( "C++", unmove(__cplusplus), __func__, " human name = ", name) << '\n';
+               assert_many(string(name) == "Newton", "name == ", name);
                free(name);
+               name = nullptr;
+#ifdef MANUAL_DLL_LOAD
                functions.destroy(human_2ptr);
                assert_many(human == nullptr, "human == ", human);
                assert_many(*human_2ptr == nullptr, "*human_2ptr == ", human);
-#ifdef MANUAL_DLL_LOAD
                result = static_cast<Result_codes> (close_handle(&(functions.handle)));
                assert_many(result == OK, "result == ", result);
                return result;

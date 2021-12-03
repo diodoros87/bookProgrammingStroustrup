@@ -83,7 +83,7 @@ LOG("%c", '\n')
 typedef Result_codes (*p_func_many)(Money_type * money_ptr, const Money_functions function, const Number type, 
                                   union Number_pointer_union * n_union, const char * ,... );
 
-static Result_codes run_money(const Number type, const char * dollars, const long double cents) {
+static Result_codes run_money(const Number type, const char * const dollars, const long double cents) {
    if (type < SHORT || type > LONG_DOUBLE || ! dollars) {
       LOG(" type = %d \t dollars = %p\n", type, dollars);
       return INVALID_ARG;

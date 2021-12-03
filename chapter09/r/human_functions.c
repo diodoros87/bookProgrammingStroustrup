@@ -45,20 +45,21 @@ static Result_codes run_human(const Human_functions * const functions) {
       char * name = NULL;
       result = functions->get_name(human, &name);
       if (OK == result) {
-         assert_many(strcmp(name, "Claudius Ptolemaeus") == 0, "assert failed: ", "s s", "name == ", name);
          LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
+         assert_many(strcmp(name, "Claudius Ptolemaeus") == 0, "assert failed: ", "s s", "name == ", name);
          free(name);
          result = functions->set_name(human, "Plato");
          if (result == OK) {
             name = NULL;
             result = functions->get_name(human, &name);
             if (OK == result) {
-               assert_many(strcmp(name, "Plato") == 0, "assert failed: ", "s s", "name == ", name);
                LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
+               assert_many(strcmp(name, "Plato") == 0, "assert failed: ", "s s", "name == ", name);
                free(name);
+               name = NULL;
+#ifdef MANUAL_DLL_LOAD
                functions->destroy(&human);
                assert_many(human == NULL, "assert failed: ", "s p", "pointer to human == ", human);
-#ifdef MANUAL_DLL_LOAD
                result = close_handle(&(functions->handle));
                assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
                return result;

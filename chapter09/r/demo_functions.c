@@ -43,19 +43,23 @@ static Result_codes run_demo(const Demo_functions * const demo_functions) {
       result = demo_functions->get_name(&name);
       if (OK == result) {
          LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
-         name = NULL;
-         demo_functions->set_name("Aristotle");
-         result = demo_functions->get_name(&name);
+         assert_many(strcmp(name, "Nicolaus Copernicus") == 0, "assert failed: ", "s s", "name == ", name);
+         result = demo_functions->set_name("Aristotle");
          if (OK == result) {
-            LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
-#ifdef MANUAL_DLL_LOAD
-            result = demo_functions->destroy();
+            name = NULL;
+            result = demo_functions->get_name(&name);
             if (OK == result) {
-               result = close_handle(&(demo_functions->handle));
-               assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-               return result;
-            }
+               LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
+               assert_many(strcmp(name, "Aristotle") == 0, "assert failed: ", "s s", "name == ", name);
+               result = demo_functions->destroy();
+#ifdef MANUAL_DLL_LOAD
+               if (OK == result) {
+                  result = close_handle(&(demo_functions->handle));
+                  assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
+                  return result;
+               }
 #endif
+            }
          }
       }
    }
