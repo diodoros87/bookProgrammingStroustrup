@@ -1,5 +1,6 @@
 #include "demo.hpp"
 #include "print.hpp"
+#include "utility.hpp"
 #include "null.hpp"
 
 using std::cerr;

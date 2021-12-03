@@ -1,21 +1,14 @@
 #include "human_functions.h"
 #include "print.h"
 #include "utility.h"
-#include "human.h"
+
+#include <string.h>
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
    #include "shared_lib_open.h"
    #define LIB_HUMAN_SO     "libhuman.so"
 #endif
-
-struct Human_functions {
-   Result_codes (*init)(Human_t **, const char * const);
-   Result_codes (*set_name)(Human_t * const, const char * const);
-   Result_codes (*get_name) (const Human_t * const, char **);
-   Result_codes (*destroy)(Human_t ** const);
-   void * handle;
-};
 
 const int functions_null = -85;
 
@@ -52,6 +45,7 @@ static Result_codes run_human(const Human_functions * const functions) {
       char * name = NULL;
       result = functions->get_name(human, &name);
       if (OK == result) {
+         assert_many(strcmp(name, "Claudius Ptolemaeus") == 0, "assert failed: ", "s s", "name == ", name);
          LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
          free(name);
          result = functions->set_name(human, "Plato");
@@ -59,6 +53,7 @@ static Result_codes run_human(const Human_functions * const functions) {
             name = NULL;
             result = functions->get_name(human, &name);
             if (OK == result) {
+               assert_many(strcmp(name, "Plato") == 0, "assert failed: ", "s s", "name == ", name);
                LOG("%s: %s human name = %s", LANGUAGE, __FUNCTION__, name);
                free(name);
                functions->destroy(&human);
@@ -71,6 +66,8 @@ static Result_codes run_human(const Human_functions * const functions) {
             }
          }
       }
+      if (name)
+         free(name);
    }
 #ifdef MANUAL_DLL_LOAD
    close_handle(&(functions->handle));

@@ -38,7 +38,7 @@ static Result_codes validate(const char * const name) {
    Result_codes result = match_regex(*NAME_REGEX, name);*/
 }
 
-Result_codes Human_init(Human_t ** object, const char * const name) {
+Result_codes Human_init(Human_t ** const object, const char * const name) {
    LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object, "human is null");
    REQUIRE_NON_NULL(name, "name is null");
@@ -99,7 +99,7 @@ Result_codes Human_set(Human_t * const object, const char * const name) {
    return OK;
 }
 
-Result_codes Human_get_name(const Human_t * const object, char ** name) {
+Result_codes Human_get_name(const Human_t * const object, char ** const name) {
    LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object, "human is null");
    REQUIRE_NON_NULL(name, "name is null");

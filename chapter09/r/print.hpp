@@ -14,9 +14,6 @@ using std::tuple;
 #define assert_many(EX,...) \
   ((EX) || (assert_tuples (std::tie(__VA_ARGS__), #EX, __FILE__, __LINE__, __DATE__, __TIME__)))
 
-template<class T> 
-inline T& unmove(T&& t) { return t; }
-
 template<const unsigned int N>
 struct print_tuple {
    template<typename... T>

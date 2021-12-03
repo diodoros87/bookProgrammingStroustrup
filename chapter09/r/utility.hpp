@@ -32,6 +32,9 @@ struct Constructor {
 	}
 };
 
+template<class T> 
+inline T& unmove(T&& t) { return t; }
+
 template <typename Function, typename... Args>  
 Result_codes call_catch_exception(Function && func, Args&&... args )
    try {
