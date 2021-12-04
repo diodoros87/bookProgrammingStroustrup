@@ -10,17 +10,17 @@ using std::out_of_range;
 #define LOG_FUNC(x) cerr << '\n' << #x " = " << x << '\t'
 #define LOG_ARG(x) cerr << #x " = " << x << '\t'
 
-template<typename Smaller, typename Greater>
-inline bool is_overflow(const Greater & x) {
-   static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
-   return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
-}
-
 template <typename T>
 const string Money<T>::TYPE_NAME = typeid(T).name();
 
 template <typename T>
 const regex Money<T>::REGEX       = Money<T>::set_regex() ;
+
+template<typename Smaller, typename Greater>
+inline bool is_overflow(const Greater & x) {
+   static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
+   return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
+}
 
 template <typename Smaller, typename Greater, class Function, class... Args, std::enable_if_t<std::is_function<Function>::value, bool> = true> 
 Smaller calculate_range(Function && func, Args &&... args) {

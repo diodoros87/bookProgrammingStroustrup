@@ -4,13 +4,25 @@
 #include "connector.h"
 
 #ifdef __cplusplus
-#include "variadic_template.hpp"
+//#include "variadic_template.hpp"
 #include "demo.hpp"
 #include "utility.hpp"
 #include "null.hpp"
 
 using demo::Demo;
 using std::cerr;
+
+extern template class Money<short>;
+extern template class Money<unsigned short>;
+extern template class Money<int>;
+extern template class Money<unsigned int>;
+extern template class Money<long>;
+extern template class Money<unsigned long>;
+extern template class Money<long long>;
+extern template class Money<unsigned long long>;
+extern template class Money<float>;
+extern template class Money<double>;
+extern template class Money<long double>;
 
 using std::bad_alloc; using std::invalid_argument; using std::bad_cast; using std::exception; using std::regex_error; using std::out_of_range;
 Result_codes get_error_code(exception * e) {

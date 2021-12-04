@@ -9,7 +9,7 @@ TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=add
 
 LDFLAGS = #-fsanitize=address -static-libasan 
 
-PROGRAMS  = libdemo.so libconnector.so main_cpp test_cpp      libhuman.so c_main linking_test_cpp c_linking_test c_test 
+PROGRAMS  = libdemo.so libconnector.so main_cpp test_cpp libvariadic_template.so     libhuman.so c_main linking_test_cpp c_linking_test c_test 
 
 .PHONY: clean all
 
@@ -28,7 +28,7 @@ c_main.o: main.c print.h system.h file_modify.h result_codes.h c_string.h
 	$(CC) $(CFLAGS) -c main.c -o c_main.o 
 
 c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o utility.o libhuman.so libdemo.so c_variadic_template_test.o
-	$(CC) $(CFLAGS) $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o utility.o c_variadic_template_test.o -L. -lconnector -ldemo -lhuman -ldl -o c_linking_test 
+	$(CC) $(CFLAGS) $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o utility.o c_variadic_template_test.o -L. -lconnector -ldemo -lhuman -lvariadic_template -ldl -o c_linking_test 
 	
 c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.h human.h utility.h demo_functions.h human_functions.h variadic_template_test.h
 	$(CC) $(CFLAGS) -c linking_test.c -o c_linking_test.o 
@@ -80,7 +80,7 @@ main_cpp: main_cpp.o file_edit.o system_cpp.o
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) main_cpp.o file_edit.o system_cpp.o -o main_cpp 
 	
 linking_test_cpp: linking_test_cpp.o variadic_template_test_cpp.o demo_test.o human_test.o shared_lib_open.o print.o libhuman.so libdemo.so 
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o human_test.o shared_lib_open.o -L. -lconnector -ldemo -lhuman -ldl -o linking_test_cpp 
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o human_test.o shared_lib_open.o -L. -lconnector -lvariadic_template -ldemo -lhuman -ldl -o linking_test_cpp 
 	
 demo_test.o: demo_test.hpp demo_test.cpp utility.hpp shared_lib_open.h result_codes.h connector.h
 	$(CXX) $(CPPFLAGS) -c demo_test.cpp 
@@ -91,10 +91,10 @@ human_test.o: human_test.hpp human_test.cpp utility.hpp shared_lib_open.h result
 variadic_template_test_cpp.o: variadic_template_test.hpp variadic_template_test.cpp shared_lib_open.h result_codes.h
 	$(CXX) $(CPPFLAGS) -c variadic_template_test.cpp -o variadic_template_test_cpp.o 
 	
-libconnector.so: connector.o libdemo.so
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -L. -ldemo -o libconnector.so connector.o 
+libconnector.so: connector.o libdemo.so libvariadic_template.so
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -L. -ldemo -lvariadic_template -o libconnector.so connector.o 
 	
-connector.o: connector.h connector.cpp null.hpp
+connector.o: connector.h connector.cpp null.hpp variadic_template.hpp variadic_template.cpp
 	$(CXX) $(CPPFLAGS) -c -fPIC connector.cpp 
 	
 main_cpp.o: main.cpp print.hpp file_edit.hpp system.hpp result_codes.h
@@ -108,6 +108,12 @@ system_cpp.o: system.cpp system.hpp
 	
 file_edit.o: file_edit.hpp file_edit.cpp
 	$(CXX) $(CPPFLAGS) -c file_edit.cpp 
+	
+libvariadic_template.so: variadic_template_instances.o
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -o libvariadic_template.so variadic_template_instances.o 
+
+variadic_template_instances.o: variadic_template.hpp variadic_template.cpp variadic_template_instances.cpp
+	$(CXX) $(CPPFLAGS) -c -fPIC variadic_template_instances.cpp -o variadic_template_instances.o 
 	
 libdemo.so: demo.o
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -o libdemo.so demo.o 
