@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS =    -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS =    -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -28,7 +28,7 @@ c_main.o: main.c print.h system.h file_modify.h result_codes.h c_string.h
 	$(CC) $(CFLAGS) -c main.c -o c_main.o 
 
 c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o utility.o libhuman.so libdemo.so c_variadic_template_test.o
-	$(CC) $(CFLAGS) $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o utility.o c_variadic_template_test.o -L. -lconnector -ldemo -lhuman -lvariadic_template -ldl -o c_linking_test 
+	$(CC) $(CFLAGS) $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o utility.o c_variadic_template_test.o -L. -lconnector -ldemo -lhuman -Wl,--no-as-needed -lvariadic_template -Wl,--as-needed -ldl -o c_linking_test 
 	
 c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.h human.h utility.h demo_functions.h human_functions.h variadic_template_test.h
 	$(CC) $(CFLAGS) -c linking_test.c -o c_linking_test.o 
@@ -80,7 +80,7 @@ main_cpp: main_cpp.o file_edit.o system_cpp.o
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) main_cpp.o file_edit.o system_cpp.o -o main_cpp 
 	
 linking_test_cpp: linking_test_cpp.o variadic_template_test_cpp.o demo_test.o human_test.o shared_lib_open.o print.o libhuman.so libdemo.so 
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o human_test.o shared_lib_open.o -L. -lconnector -lvariadic_template -ldemo -lhuman -ldl -o linking_test_cpp 
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o human_test.o shared_lib_open.o -L. -lconnector -Wl,--no-as-needed -lvariadic_template -Wl,--as-needed -ldemo -lhuman -ldl -o linking_test_cpp 
 	
 demo_test.o: demo_test.hpp demo_test.cpp utility.hpp shared_lib_open.h result_codes.h connector.h
 	$(CXX) $(CPPFLAGS) -c demo_test.cpp 

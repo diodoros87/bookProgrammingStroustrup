@@ -92,16 +92,16 @@ Result_codes call(Money_type * money_ptr, Type * const type_ptr, const Money_fun
    Result_codes result = UNRECOGNIZED_ERROR;
    switch(function) {
       case INIT_1: 
-         result = call_function<Type>(money_ptr, type_ptr, Constructor<Type, Money>(), std::forward<Args>(args)...);
+         result = call_function<Type>(money_ptr, type_ptr, Template_Constructor<Type, Money>(), std::forward<Args>(args)...);
          break;
       case CREATE_1: 
-         result = call_function<Type>(money_ptr, type_ptr, Creation<Type>(), std::forward<Args>(args)...);
+         result = call_function<Type>(money_ptr, type_ptr, Money_Creation<Type>(), std::forward<Args>(args)...);
          break;
       case INIT_2: 
-         result = call_function<Type>(money_ptr, type_ptr, Constructor<Type, Money>(), std::forward<Args>(args)...);
+         result = call_function<Type>(money_ptr, type_ptr, Template_Constructor<Type, Money>(), std::forward<Args>(args)...);
          break;
       case CREATE_2: 
-         result = call_function<Type>(money_ptr, type_ptr, Creation<Type>(), std::forward<Args>(args)...);
+         result = call_function<Type>(money_ptr, type_ptr, Money_Creation<Type>(), std::forward<Args>(args)...);
          break;
       default:
          result = INVALID_ARG;
@@ -205,6 +205,8 @@ static Demo * demo_instance = nullptr;
 #endif
 
 Result_codes demo_init(const char * name) {
+   if (OK != check_pointer(name, __func__, " Error name")) 
+      return INVALID_ARG;
    try {
       if (::demo_instance == nullptr)
          ::demo_instance = new Demo(name);
@@ -226,6 +228,8 @@ Result_codes demo_init(const char * name) {
 }
 
 Result_codes demo_set_name(const char * name) {
+   if (OK != check_pointer(name, __func__, " Error name")) 
+      return INVALID_ARG;
    if (::demo_instance == nullptr) {
       cerr  << __func__ << " Error demo_instance = " << ::demo_instance << '\n';
       return INVALID_ARG;
@@ -250,7 +254,12 @@ Result_codes demo_get_name(char ** name) {
       return BAD_FUNTION_CALL;
    }
    try {
-      *name = ::demo_instance->get_name();
+      *name = ::demo_instance->get_name_cstring();
+      //string name_string = ::demo_instance->get_name();
+      //*name = name_string.data();
+      //*name = reinterpret_cast<char *>(name_string);
+      //*name = const_cast<char *>(cstring);
+      //char * result = const_cast<char *>(name.c_str());
    } catch (exception & e) {
       cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       return get_error_code(reinterpret_cast<exception *>(&e));

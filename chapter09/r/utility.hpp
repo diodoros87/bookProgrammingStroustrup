@@ -70,7 +70,7 @@ inline Result function_result(Function && func, Args &&... args ) {
 }
 
 template <typename T>
-struct Creation {
+struct Money_Creation {
 	template<typename... Args>
 	Money<T> operator()(Args...args) const {
 		return Money<T>::create(std::forward<Args>(args)...);
@@ -87,11 +87,27 @@ struct Template_static_function {
 };
 */
 template <class Type, template<typename> class Template>
-struct Constructor {
+struct Template_Constructor {
 	template<typename... Args>
 	Template<Type> operator()(Args...args) const {
 		return Template<Type>(forward<Args>(args)...);
 	}
+};
+
+template <typename T>
+struct Constructor {
+   template<typename... Args>
+   T operator()(Args&&...args) const {
+      return T(forward<Args>(args)...);
+   }
+};
+
+template <typename T>
+struct Destructor {
+   template<typename... Args>
+   void operator()() const {
+      ~T();
+   }
 };
 
 template<class T> 

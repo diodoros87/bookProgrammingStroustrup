@@ -8,28 +8,40 @@ using std::cerr;
 namespace demo {
    
 const regex Demo::NAME_REGEX       = Demo::set_regex() ;
-
+/*
 static inline void validate(const char * name, const string & function, const string & message) {
    if (OK != check_pointer(name, function, message)) 
       throw std::invalid_argument(function + " argument of name: '" + name + "' is nullptr");
    if (! regex_match(name, Demo::NAME_REGEX)) 
       throw std::invalid_argument(function + " argument of name: '" + name + "' is not matches by regex");
 }
+*/
+static inline void validate(const string & name, const string & function) {
+   if (! regex_match(name, Demo::NAME_REGEX)) 
+      throw std::invalid_argument(function + " argument of name: '" + name + "' is not matches by regex");
+}
 
-Demo::Demo(const char * name) {
+Demo::Demo(const string & name) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, name) << '\n';
-   validate(name, __func__, " Error name");
+   validate(name, __func__);
    this->name = name;
 }
 
-void Demo::set_name(const char *name) {
+void Demo::set_name(const string & name) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, name) << '\n';
-   validate(name, __func__, " Error name");
+   validate(name, __func__);
    this->name = name;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, this->name) << '\n';
 }
 
-char * Demo::get_name() const {
+string Demo::get_name() const {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__) << '\n';
+   return name;
+   //char * result = const_cast<char *>(name.c_str());
+   //return result;
+}
+
+char * Demo::get_name_cstring() const {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__) << '\n';
    char * result = const_cast<char *>(name.c_str());
    return result;
