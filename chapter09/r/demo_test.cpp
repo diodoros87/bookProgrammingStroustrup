@@ -5,6 +5,9 @@
 
 #include "connector.h"
 
+#include <functional>
+using namespace std::placeholders;
+
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
    #include "demo_functions.h"
@@ -61,6 +64,45 @@ static Result_codes test_demo_linking() {
    assert_many(result == OK, "result == ", result);
    return result;
 }
+#else 
+*/
+#ifdef MANUAL_DLL_LOAD
+typedef struct Functions {
+   Demo * (*create)(const char * const);
+   void (*destroy)(Demo * );
+   void * handle;
+} Functions;
+
+static void load_demo(Functions & demo_functions) {
+   demo_functions.handle   = get_handle("libdemo.so", RTLD_LAZY);
+   demo_functions.create   = reinterpret_cast<Demo * (*)(const char * const )> (get_symbol(demo_functions.handle, "demo_create"));
+   //demo_functions.set_name = reinterpret_cast<Result_codes (*)(const char * )> (get_symbol(demo_functions.handle, "demo_set_name"));
+   //demo_functions.get_name = reinterpret_cast<Result_codes (*)(char ** )> (get_symbol(demo_functions.handle, "demo_get_name"));
+   demo_functions.destroy  = reinterpret_cast<void (*)(Demo * )> (get_symbol(demo_functions.handle, "demo_destroy"));
+}
+
+static Result_codes test_demo_linking() {
+   cerr << "\nMANUAL DLL LOAD\n";
+   Functions demo_functions;
+   load_demo(demo_functions);
+   Demo * demo = demo_functions.create("Marcus Aurelius"); 
+   if (nullptr == demo) {
+      close_handle(&(demo_functions.handle));
+      return INVALID_ARG;
+   }
+   string name = demo->get_name();
+   cerr << TIE( "C++", unmove(__cplusplus), __func__, " human name = ", name) << '\n';
+   assert_many(string(name) == "Marcus Aurelius", "name == ", name);
+   auto set = std::bind(&Demo::set_name, std::ref(*demo), _1);
+   Result_codes result = call_catch_exception(set, "Socrates");
+   name = demo->get_name();
+   cerr << TIE( "C++", unmove(__cplusplus), __func__, " human name = ", name) << '\n';
+   assert_many(string(name) == "Socrates", "name == ", name);
+   demo_functions.destroy(demo);
+   result = static_cast<Result_codes> (close_handle(&(demo_functions.handle)));
+   assert_many(result == OK, "result == ", result);
+   return result;
+}
 #else
 static Result_codes test_demo_linking() {
    cerr << "\nAUTOMATIC DLL LOAD\n";
@@ -76,10 +118,60 @@ static Result_codes test_demo_linking() {
    return result;
 }
 #endif
-*/
 
-void init_wrapper(const string & name) {
-  Constructor<Demo>(name);
+Result_codes test_demo() {
+   auto test = std::bind(&test_demo_linking);
+   Result_codes result = call_catch_exception(test);
+   return result; /*
+   try {
+      Result_codes result = test_demo_linking();
+      
+      return result;
+   } catch (const invalid_argument& const_e) {
+      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
+      invalid_argument &e = const_cast<invalid_argument &>(const_e);
+      return get_error_code(reinterpret_cast<invalid_argument *>(&e));
+   } catch (const out_of_range& const_e) {
+      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
+      out_of_range &e = const_cast<out_of_range &>(const_e);
+      return get_error_code(reinterpret_cast<out_of_range *>(&e));
+   } catch (const bad_alloc & const_e) {
+      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
+      bad_alloc &e = const_cast<bad_alloc &>(const_e);
+      return get_error_code(reinterpret_cast<bad_alloc *>(&e));
+   } catch (const exception & const_e) {
+      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
+      exception &e = const_cast<exception &>(const_e);
+      return get_error_code(reinterpret_cast<exception *>(&e));
+   } catch (...) {
+      cerr  << __func__ << " Unrecognized exception was catched " << '\n';
+      return UNRECOGNIZED_ERROR;
+   } */
+}
+
+/*
+static Demo * demo_ptr = nullptr;
+
+static void init_wrapper(const string & name) {
+   if (::demo_ptr == nullptr)
+      ::demo_ptr = new Demo(name);
+}
+
+static void set_name_wrapper(const string & name) {
+   if (::demo_ptr) {
+      demo_ptr->set_name(name);
+}
+
+static void get_name_wrapper() {
+  if (::demo_ptr) {
+      demo_ptr->get_name(name);
+}
+
+static void destroy_wrapper() {
+   if (::demo_instance) {
+      delete ::demo_ptr;
+      ::demo_ptr = nullptr;
+   }
 }
 
 typedef struct Functions {
@@ -165,10 +257,6 @@ static Result_codes test_demo_linking() {
    return result;
 }
 #endif
-
-Result_codes test_demo() {
-   Result_codes result = test_demo_linking();
-   return result;
-}
+*/
 
 }

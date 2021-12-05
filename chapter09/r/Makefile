@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD     -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD     -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
