@@ -124,7 +124,7 @@ const regex & Money<T>::set_regex() {
       static regex REGEX       = regex { get_regex_string(static_cast<T>(0)), std::regex::ECMAScript } ;
       return REGEX;
    } catch (const std::regex_error & e) {
-      cerr << "regex_error caught: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       throw e;
    }
 }

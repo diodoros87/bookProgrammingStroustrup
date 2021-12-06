@@ -3,6 +3,16 @@
 
 #include "result_codes.h"
 
+#include "demo.hpp"
+
+using demo::Demo;
+
+typedef struct Manual_DLL_interface {
+   Demo * (*create)(const char * const);
+   void (*destroy)(Demo * & );
+   void * handle;
+} Manual_DLL_interface;
+
 namespace tests {
 
 Result_codes test_demo();

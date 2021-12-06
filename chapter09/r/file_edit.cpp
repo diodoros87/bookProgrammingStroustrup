@@ -40,6 +40,7 @@ struct Io_guard {
          stream.open(filename, mode);
       }
       catch (const ios_base::failure & e) {
+         cerr  << __func__ << " " << typeid(e).name() << '\n';
          throw ios_base::failure("Exception opening file. Caught an ios_base::failure.\n" + string(e.what()) +
             "\nError code: " + string(e.code().category().name()) + " : " + to_string((e.code().value())) + "\n");
       }

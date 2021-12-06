@@ -41,15 +41,15 @@ int main(const int argc, const char * argv[]) {
       return result;
    } 
    catch (const std::invalid_argument & e) {
-      cerr << "Exception: " << e.what() << '\n';
+     cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
    } catch (const std::out_of_range& e) {
-      cerr << __func__ << " exception: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
    }
    catch (const std::bad_alloc & e) {
-      cerr << "Exception: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
    }
    catch (const std::exception & e) {
-      cerr << "Exception: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
    }
    catch (...) {
       cerr << "Unrecognized Exception: " << '\n';

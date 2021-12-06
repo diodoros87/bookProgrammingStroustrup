@@ -56,14 +56,14 @@ const regex & Demo::set_regex() {
       static regex NAME_REGEX       = regex { R"(^[[:upper:]][[:lower:]]*( [[:upper:]][[:lower:]]*)?$)", std::regex::extended } ;
       return NAME_REGEX;
    } catch (const std::regex_error & e) {
-      cerr << "regex_error caught: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       throw e;
    }
 }
 
 }
 
-using namespace demo;
+//using namespace demo;
 
 /*  only to use in C++ code in manual dll (shared object) loading  */
 extern "C" demo::Demo * demo_create(const char * const name) {
@@ -74,9 +74,10 @@ extern "C" demo::Demo * demo_create(const char * const name) {
 }
 
 /*  only to use in C++ code in manual dll (shared object) loading  */
-extern "C" void demo_destroy(demo::Demo * demo) {
+extern "C" void demo_destroy(demo::Demo * & demo) {
    if (demo == nullptr) 
       throw std::invalid_argument(string(__func__) + " argument of demo is nullptr");
    
    delete demo;
+   demo = nullptr;
 }

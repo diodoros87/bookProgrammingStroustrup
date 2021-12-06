@@ -119,13 +119,13 @@ Result_codes call_catch_exception(Function && func, Args&&... args )
       func(forward<Args>(args)...);
       return OK;
    } catch (const std::invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       return INVALID_ARG;
    } catch (const std::out_of_range& e) {
-      cerr << __func__ << " exception: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       return OUT_OF_RANGE_ERROR;
    } catch (const std::bad_alloc & e) {
-      cerr << __func__ << " exception: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       return BAD_ALLOC;
    }
    /*

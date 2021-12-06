@@ -62,14 +62,15 @@ int main(const int argc, const char * argv[]) {
       return result;
    } 
    catch (const system_error& e) {
+      cerr  << __func__ << " " << typeid(e).name() << '\n';
       cerr << "Caught system_error with code " << e.code() << " meaning: " << e.what() << '\n';
       return e.code().value();
    }
    catch (const invalid_argument & e) {
-      cerr << "Exception: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
    }
    catch (const exception & e) {
-      cerr << "Exception: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
    }
    catch (...) {
       cerr << "Unrecognized Exception: " << '\n';
