@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <utility>
 #include <iostream>
+#include <functional>
 
 #include "result_codes.h"
 
@@ -24,30 +25,6 @@ extern template class Money<unsigned long long>;
 extern template class Money<float>;
 extern template class Money<double>;
 extern template class Money<long double>;
-/*
-class Money<short>;
-template class Money<unsigned short>;
-template class Money<int>;
-template class Money<unsigned int>;
-template class Money<long>;
-template class Money<unsigned long>;
-template class Money<long long>;
-template class Money<unsigned long long>;
-template class Money<float>;
-template class Money<double>;
-template class Money<long double>;
-
-extern template Money<short> create(const string &);
-extern template Money<unsigned short> create(const string &);
-extern template Money<int> create(const string &);
-extern template Money<unsigned int> create(const string &);
-extern template Money<long> create(const string &);
-extern template Money<unsigned long> create(const string &);
-extern template Money<long long> create(const string &);
-extern template Money<unsigned long long> create(const string &);
-extern template Money<float> create(const string &);
-extern template Money<double> create(const string &);
-extern template Money<long double> create(const string &);*/
 
 template <typename Function, typename... Args, enable_if_t<is_function<Function>::value, bool> = true> 
 inline void call(Function && func, Args &&... args ) { 
@@ -128,6 +105,14 @@ Result_codes call_catch_exception(Function && func, Args&&... args )
       cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       return BAD_ALLOC;
    }
+   
+   
+template <typename Type, typename Function, typename... Args>  
+Result_codes bind_execute_member_function(const Type & object, Function && member_function, Args&&... args ) {
+   auto bind_function = bind(member_function, object, std::placeholders::_1);
+   Result_codes result = call_catch_exception(bind_function, forward<Args>(args)...);
+   return result;
+}
    /*
 template <typename Result, typename Function, typename... Args>  
 Result_codes call_catch_exception(Result & result, Function && func, Args&&... args )

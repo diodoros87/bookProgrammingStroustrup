@@ -1,15 +1,15 @@
 CXX = g++
-CPPFLAGS =              -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD                      -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS =              -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD                      -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
 LDFLAGS = #-fsanitize=address -static-libasan 
 
-PROGRAMS  = libdemo.so libconnector.so main_cpp test_cpp libvariadic_template.so     libhuman.so c_main linking_test_cpp c_linking_test c_test 
+PROGRAMS  = libdemo.so libdemoderived.so libconnector.so main_cpp test_cpp libvariadic_template.so     libhuman.so c_main linking_test_cpp c_linking_test c_test 
 
 .PHONY: clean all
 
@@ -79,11 +79,14 @@ test_cpp.o: test.cpp print.hpp system.hpp result_codes.h
 main_cpp: main_cpp.o file_edit.o system_cpp.o
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) main_cpp.o file_edit.o system_cpp.o -o main_cpp 
 	
-linking_test_cpp: linking_test_cpp.o variadic_template_test_cpp.o demo_test.o human_test.o shared_lib_open.o print.o libhuman.so libdemo.so 
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o human_test.o shared_lib_open.o -L. -lconnector -Wl,--no-as-needed -lvariadic_template -Wl,--as-needed -ldemo -lhuman -ldl -o linking_test_cpp 
+linking_test_cpp: linking_test_cpp.o variadic_template_test_cpp.o demo_test.o demo_derived_test.o human_test.o shared_lib_open.o print.o libhuman.so libdemo.so libdemoderived.so
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o demo_derived_test.o human_test.o shared_lib_open.o -L. -lconnector -Wl,--no-as-needed -lvariadic_template -Wl,--as-needed -ldemo -ldemoderived -lhuman -ldl -o linking_test_cpp 
 	
 demo_test.o: demo_test.hpp demo_test.cpp utility.hpp shared_lib_open.h result_codes.h connector.h
 	$(CXX) $(CPPFLAGS) -c demo_test.cpp 
+	
+demo_derived_test.o: demo_derived_test.hpp demo_derived_test.cpp utility.hpp shared_lib_open.h result_codes.h connector.h
+	$(CXX) $(CPPFLAGS) -c demo_derived_test.cpp -o demo_derived_test.o 
 	
 human_test.o: human_test.hpp human_test.cpp utility.hpp shared_lib_open.h result_codes.h
 	$(CXX) $(CPPFLAGS) -c human_test.cpp 
@@ -114,6 +117,12 @@ libvariadic_template.so: variadic_template_instances.o
 
 variadic_template_instances.o: variadic_template.hpp variadic_template.cpp variadic_template_instances.cpp
 	$(CXX) $(CPPFLAGS) -c -fPIC variadic_template_instances.cpp -o variadic_template_instances.o 
+	
+libdemoderived.so: demoderived.o
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -o libdemoderived.so demoderived.o 
+
+demoderived.o: demo_derived.hpp demo_derived.cpp null.hpp print.hpp utility.hpp
+	$(CXX) $(CPPFLAGS) -c -fPIC demo_derived.cpp -o demoderived.o 
 	
 libdemo.so: demo.o
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -o libdemo.so demo.o 

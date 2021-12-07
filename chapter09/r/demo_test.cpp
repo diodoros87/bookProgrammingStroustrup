@@ -13,12 +13,8 @@ using std::bind;
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
-   #include "demo_functions.h"
+   //#include "demo_functions.h"
    #include "shared_lib_open.h"
-#else
-   #include <functional>
-   
-   using namespace std::placeholders;
 #endif
    
 namespace tests {
@@ -70,13 +66,15 @@ static Result_codes test_demo_linking() {
 #else 
 */
 #ifdef MANUAL_DLL_LOAD
-
+typedef struct Manual_DLL_interface {
+   Demo * (*create)(const string &);
+   void (*destroy)(Demo * & );
+   void * handle;
+} Manual_DLL_interface;
 
 static void load_demo(Manual_DLL_interface & demo_functions) {
    demo_functions.handle   = get_handle("libdemo.so", RTLD_LAZY);
-   demo_functions.create   = reinterpret_cast<Demo * (*)(const char * const )> (get_symbol(demo_functions.handle, "demo_create"));
-   //demo_functions.set_name = reinterpret_cast<Result_codes (*)(const char * )> (get_symbol(demo_functions.handle, "demo_set_name"));
-   //demo_functions.get_name = reinterpret_cast<Result_codes (*)(char ** )> (get_symbol(demo_functions.handle, "demo_get_name"));
+   demo_functions.create   = reinterpret_cast<Demo * (*)(const string & )> (get_symbol(demo_functions.handle, "demo_create"));
    demo_functions.destroy  = reinterpret_cast<void (*)(Demo * & )> (get_symbol(demo_functions.handle, "demo_destroy"));
 }
 
@@ -84,25 +82,26 @@ static Result_codes test_demo_linking() {
    cerr << "\nMANUAL DLL LOAD\n";
    Manual_DLL_interface demo_functions;
    load_demo(demo_functions);
-   Demo * demo = demo_functions.create("Marcus Aurelius"); 
-   if (nullptr == demo) {
+   Demo * human = demo_functions.create("Marcus Aurelius"); 
+   if (nullptr == human) {
       close_handle(&(demo_functions.handle));
       return INVALID_ARG;
    }
-   string name = demo->get_name();
+   string name = human->get_name();
    cerr << TIE( "C++", unmove(__cplusplus), __func__, " human name = ", name) << '\n';
-   assert_many(string(name) == "Marcus Aurelius", "name == ", name);
-   function<void(const string&)> set = bind(&Demo::set_name, demo, _1);
+   assert_many(name == "Marcus Aurelius", "name == ", name);
+   //Result_codes result = bind_execute_member_function(human, &Demo::set_name, "Socrates");
+   function<void(const string&)> set = bind(&Demo::set_name, human, _1);
    Result_codes result = call_catch_exception(set, "Socrates");
    if (OK != result)
       return result;
-   name = demo->get_name();
+   name = human->get_name();
    cerr << TIE( "C++", unmove(__cplusplus), __func__, " human name = ", name) << '\n';
-   assert_many(string(name) == "Socrates", "name == ", name);
-   demo_functions.destroy(demo);
+   assert_many(name == "Socrates", "name == ", name);
+   demo_functions.destroy(human);
    result = static_cast<Result_codes> (close_handle(&(demo_functions.handle)));
    assert_many(result == OK, "result == ", result);
-   assert_many(demo == nullptr, "demo == ", demo);
+   assert_many(human == nullptr, "human pointer == ", human);
    return result;
 }
 #else
@@ -114,7 +113,7 @@ static Result_codes test_demo_linking() {
    assert_many(name == "Leibniz", "name == ", name);
    //auto set = bind(&Demo::set_name, std::ref(human), _1);
    function<void(const string&)> set = bind(&Demo::set_name, std::ref(human), _1);
-   Result_codes result = call_catch_exception(set, "Descartes4");
+   Result_codes result = call_catch_exception(set, "Descartes");
    name = human.get_name();
    cerr << TIE( "C++", unmove(__cplusplus), __func__, name) << '\n';
    assert_many(name == "Descartes", "name == ", name);

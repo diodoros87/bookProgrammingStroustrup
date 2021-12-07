@@ -1,21 +1,21 @@
-#ifndef DEMO_HPP
-#define DEMO_HPP
+#ifndef DEMO_DERIVED_HPP
+#define DEMO_DERIVED_HPP
 
 #include <string>
-#include <regex>
+
+#include "demo.hpp"
 
 using std::string;
-using std::regex;
 
 namespace demo {
 
 class Demo_derived : public Demo {
-   unsigned int birth_year;
+   unsigned int age;
 
 public:
-   Demo_derived(const char *name, const unsigned int year);
-   unsigned int  get_birth_year() const;
-   void set_birth_year(const unsigned int year);
+   Demo_derived(const string & name, const unsigned int year);
+   unsigned int  get_age() const;
+   void set_age(const unsigned int year);
    ~Demo_derived();
 };
 

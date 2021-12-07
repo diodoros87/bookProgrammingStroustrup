@@ -63,21 +63,28 @@ const regex & Demo::set_regex() {
 
 }
 
-//using namespace demo;
+//
 
 /*  only to use in C++ code in manual dll (shared object) loading  */
-extern "C" demo::Demo * demo_create(const char * const name) {
-   if (name == nullptr) 
-      throw std::invalid_argument(string(__func__) + " argument of name is nullptr");
-   
-   return new demo::Demo(name);
+extern "C" demo::Demo * demo_create(const string & name) {
+   //if (name == nullptr) 
+   //   throw std::invalid_argument(string(__func__) + " argument of name is nullptr");
+   using namespace demo;
+   try {
+      Demo * result = new Demo(name);
+      return result;
+   }
+   catch (const std::invalid_argument & e) {
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
+      return nullptr;
+   }
 }
 
 /*  only to use in C++ code in manual dll (shared object) loading  */
-extern "C" void demo_destroy(demo::Demo * & demo) {
-   if (demo == nullptr) 
+extern "C" void demo_destroy(demo::Demo * & pointer) {
+   if (pointer == nullptr) 
       throw std::invalid_argument(string(__func__) + " argument of demo is nullptr");
    
-   delete demo;
-   demo = nullptr;
+   delete pointer;
+   pointer = nullptr;
 }

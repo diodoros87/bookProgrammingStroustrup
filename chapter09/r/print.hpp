@@ -8,6 +8,9 @@ using std::enable_if;
 using std::ostream;
 using std::get;
 using std::tuple;
+using std::cerr;
+
+#include "utility.hpp"
 
 #define TIE(...) (std::tie(__VA_ARGS__))
 
@@ -42,7 +45,7 @@ inline ostream& operator<< (ostream & os, const tuple<S, T...> & t) {
 template <typename ...Args>
 bool assert_tuples(tuple<Args...> info, const char *msg, const char *file, int line,
                    const char * date, const char * time) {
-   std::cerr << "\nAssertion failed:\n"
+   cerr << "\nAssertion failed:\n"
             << "Expression:\t" << msg << "\n"
             << "Source file:\t\t" << file << ", line " << line << "\n"
             << "Date:\t\t"   << date  << "\n"
@@ -51,6 +54,12 @@ bool assert_tuples(tuple<Args...> info, const char *msg, const char *file, int l
    abort();
    //assert(false);
    //return false;
+}
+
+template<typename T>
+inline void print_assert(const T& value, const T& expected_value, const string& value_string, const string& function) {
+   cerr << TIE( "C++", unmove(__cplusplus), function, value) << '\n';
+   assert_many(value == expected_value, unmove(value_string + " == "), value);
 }
 
 #endif

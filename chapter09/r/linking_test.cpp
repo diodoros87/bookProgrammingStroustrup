@@ -2,6 +2,7 @@
 #include "print.hpp"
 #include "variadic_template_test.hpp"
 #include "demo_test.hpp"
+#include "demo_derived_test.hpp"
 #include "human_test.hpp"
 
 using namespace tests;
@@ -21,7 +22,13 @@ static Result_codes main_linking_tests() {
       result = test_human();
    assert_many(result == OK, "result == ", result);
    if (OK == result)
-      result = test_money();
+      result = test_demo_derived();
+   assert_many(result == OK, "result == ", result);
+   //if (OK == result)
+   //   result = test_human_derived();
+   assert_many(result == OK, "result == ", result);
+   //if (OK == result)
+   //   result = test_money();
    assert_many(result == OK, "result == ", result);
    return result;
 }
