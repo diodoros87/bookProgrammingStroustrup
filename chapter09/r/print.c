@@ -1,4 +1,5 @@
 #include "print.h"
+#include "utility.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -157,24 +158,24 @@ static void case_3 (const char * format, const size_t index, va_list arg_list) {
 } 
 
 #undef CHECK_INPUT_ARG
-
+/*
 #define REQUIRE_NON_NULL(pointer) \
 if (! (pointer) ) { \
    assert_one(pointer); \
    LOG_EXIT(__FUNCTION__, "Pointer is NULL", EXIT_FAILURE); \
 }
-
+*/
 void print_spacetime(const char *file, const int line, const char * date, const char * time) {
-   REQUIRE_NON_NULL(date);
-   REQUIRE_NON_NULL(time);
-   REQUIRE_NON_NULL(file);
+   REQUIRE_NON_NULL(date, "date is null");
+   REQUIRE_NON_NULL(time, "time is null");
+   REQUIRE_NON_NULL(file, "file is null");
    LOG("Source file:\t\t%s , Line %d\n", file, line);
    LOG("Date:\t\t%s\n", date);
    LOG("Time:\t\t%s\n", time);
 }
 
 int print_assert(const char *file, const int line, const char * date, const char * time, const char *msg) {
-   REQUIRE_NON_NULL(msg);
+   REQUIRE_NON_NULL(msg, "msg is null");
    LOG("\nAssertion failed:\n \
 Expression:\t\n%s\n", msg);
    print_spacetime(file, line, date, time);

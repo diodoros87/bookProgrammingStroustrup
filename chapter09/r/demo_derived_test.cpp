@@ -47,23 +47,19 @@ static Result_codes test_demo_derived_linking() {
       close_handle(&(demo_functions.handle));
       return INVALID_ARG;
    }
-   print_assert(human->get_name(), string("Marcus Aurelius"), "name", __func__);
-   print_assert(human->get_age(), 77u, "age", __func__);
-   
-   //function<void(const string&)> set_name = bind(&Demo_derived::set_name, human, _1);
-   //Result_codes result = call_catch_exception(set_name, "Socrates");
+   print_and_assert(human->get_name(), string("Marcus Aurelius"), "name", __func__);
+   print_and_assert(human->get_age(), 77u, "age", __func__);
+
    Result_codes result = bind_execute_member_function(human, &Demo_derived::set_name, "Socrates");
    if (OK != result)
       return result;
-   print_assert(human->get_name(), string("Socrates"), "name", __func__);
+   print_and_assert(human->get_name(), string("Socrates"), "name", __func__);
    
    result = bind_execute_member_function(std::ref(human), &Demo_derived::set_age, 28);
-   //function<void(const unsigned int )> set_age = bind(&Demo_derived::set_age, std::ref(human), _1);
-   //result = call_catch_exception(set_age, 28);
-   assert_many(result == OK, "result == ", result);
    if (OK != result)
       return result;
-   print_assert(human->get_age(), 28u, "age", __func__);
+   assert_many(result == OK, "result == ", result);
+   print_and_assert(human->get_age(), 28u, "age", __func__);
 
    demo_functions.destroy(human);
    result = static_cast<Result_codes> (close_handle(&(demo_functions.handle)));
@@ -75,18 +71,18 @@ static Result_codes test_demo_derived_linking() {
 static Result_codes test_demo_derived_linking() {
    cerr << "\nAUTOMATIC DLL LOAD\n";
    Demo_derived human = {"Leibniz", 54};
-   print_assert(human.get_name(), string("Leibniz"), "name", __func__);
-   print_assert(human.get_age(), 54u, "age", __func__);
+   print_and_assert(human.get_name(), string("Leibniz"), "name", __func__);
+   print_and_assert(human.get_age(), 54u, "age", __func__);
    
    function<void(const string&)> set_name = bind(&Demo_derived::set_name, std::ref(human), _1);
    Result_codes result = call_catch_exception(set_name, "Descartes");
    if (OK != result)
       return result;
-   print_assert(human.get_name(), string("Descartes"), "name", __func__);
+   print_and_assert(human.get_name(), string("Descartes"), "name", __func__);
    
    function<void(const unsigned int )> set_age = bind(&Demo_derived::set_age, std::ref(human), _1);
    result = call_catch_exception(set_age, 23);
-   print_assert(human.get_age(), 23u, "age", __func__);
+   print_and_assert(human.get_age(), 23u, "age", __func__);
    return result;
 }
 #endif

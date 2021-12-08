@@ -57,7 +57,7 @@ bool assert_tuples(tuple<Args...> info, const char *msg, const char *file, int l
 }
 
 template<typename T>
-inline void print_assert(const T& value, const T& expected_value, const string& value_string, const string& function) {
+inline void print_and_assert(const T& value, const T& expected_value, const string& value_string, const string& function) {
    cerr << TIE( "C++", unmove(__cplusplus), function, value) << '\n';
    assert_many(value == expected_value, unmove(value_string + " == "), value);
 }

@@ -16,6 +16,8 @@ char * concatenate_many_free_args(const char * first, int call_free, ...);
 char * to_string_u(unsigned long long x);
 char * to_string_i(long long x);
 char * to_string_d(long double x);
+
+char * copy_string(const char * source);
                   
 #define to_string(x) _Generic((x), \
                            short int:              to_string_i, \

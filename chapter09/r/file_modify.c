@@ -1,6 +1,7 @@
 #include "file_modify.h"
 #include "print.h"
 #include "c_string.h"
+#include "utility.h"
 #include "result_codes.h"
 
 #include <unistd.h>
@@ -9,13 +10,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#define REQUIRE_NON_NULL(pointer) \
-if (! (pointer) ) { \
-   LOG_EXIT(__FUNCTION__, "Pointer is NULL", EXIT_FAILURE); \
-}
-
 bool_t exist_file(const char * const name) {
-   REQUIRE_NON_NULL(name);
+   REQUIRE_NON_NULL(name, "name is null");
    struct stat   buffer;
    int result = stat (name, &buffer);
    if (-1 == result) {
@@ -79,8 +75,8 @@ char * read_line(const FILE * const file) {
    return buffer;
 }
 
-#define CHECK_FILE(filename) \
-REQUIRE_NON_NULL(filename) \
+#define CHECK_FILE(filename, null_message) \
+REQUIRE_NON_NULL(filename, (null_message)) \
 if (! exist_file(filename)) { \
       const char * message = concatenate("Error: ", strerror(errno)); \
       LOG_EXIT_FREE(__FUNCTION__, message, EXIT_FAILURE); \
@@ -97,13 +93,13 @@ File_modify_t* File_modify_malloc() {
 }
 
 Result_codes File_modify_init(File_modify_t ** object, const char * const filename) {
-   REQUIRE_NON_NULL(object);
+   REQUIRE_NON_NULL(object, "object is null");
    if (*object) {
       LOG_FUNC(__FUNCTION__);
       LOG("%s\n", "*object must be null");
       return INVALID_ARG;
    }
-   CHECK_FILE(filename);
+   CHECK_FILE(filename, "filename is null");
    *object = File_modify_malloc();
    if (! *object)
       return BAD_ALLOC;
@@ -115,16 +111,16 @@ Result_codes File_modify_init(File_modify_t ** object, const char * const filena
 }
 
 void File_modify_destroy(File_modify_t ** object) {
-   REQUIRE_NON_NULL(object);
-   REQUIRE_NON_NULL(*object);
+   REQUIRE_NON_NULL(object, "object is null");
+   REQUIRE_NON_NULL(*object, "*object is null");
    free((*object)->filename);
    free(*object);
    *object = NULL; /* to avoid double free or corruption (fasttop)  */
 }
 
 Result_codes File_modify_set(File_modify_t * const object, const char * const filename) {
-   REQUIRE_NON_NULL(object);
-   CHECK_FILE(filename);
+   REQUIRE_NON_NULL(object, "object is null");
+   CHECK_FILE(filename, "filename is null");
    free(object->filename);
    ALLOCATE(object->filename, strlen(filename) + 1);
    if (NULL == object->filename)
@@ -134,8 +130,8 @@ Result_codes File_modify_set(File_modify_t * const object, const char * const fi
 }
 
 Result_codes File_modify_get_filename(const File_modify_t * const object, char ** const filename) {
-   REQUIRE_NON_NULL(object);
-   REQUIRE_NON_NULL(filename);
+   REQUIRE_NON_NULL(object, "object is null");
+   REQUIRE_NON_NULL(filename, "filename is null");
    if (*filename) {
       LOG_FUNC(__FUNCTION__);
       LOG("%s\n", "*filename must be null");
@@ -254,7 +250,7 @@ static void insert_manual_dll_load(FILE * file, FILE * edited_file) {
 #endif
 
 Result_codes edit_makefile(File_modify_t * object) {
-   REQUIRE_NON_NULL(object);
+   REQUIRE_NON_NULL(object, "object is null");
    FILE* file = open_file(object->filename, "r");
    const char * filename_tmp = concatenate(object->filename, ".tmp");
    FILE * edited_file = open_file(filename_tmp, "w");

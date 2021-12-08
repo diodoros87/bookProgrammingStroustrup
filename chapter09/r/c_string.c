@@ -73,6 +73,17 @@ char * concatenate_many_free_args(const char * first, int call_free_first, ...) 
    return result;
 }
 
+char * copy_string(const char * source) {
+   if (! source) { 
+      LOG_EXIT(__FUNCTION__, "source string is null", EXIT_FAILURE);
+   }
+   char * result;
+   ALLOCATE(result, strlen(source) + 1);
+   if (NULL != result)
+      strcpy(result, source);
+   return result;
+}
+
 #define digits(x) _Generic((x), \
                            short int:              digits_i, \
                            int:                    digits_i, \
