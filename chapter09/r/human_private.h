@@ -1,10 +1,11 @@
 #ifndef HUMAN_PRIVATE_H
 #define HUMAN_PRIVATE_H
 
-struct Human_t {
+typedef struct Human_t {
    char * name;
-};
+} Human_t;
 
-void Human_destroy_protected(Human_t * const object);
+/*
+void Human_destroy_protected(Human_t * const object);*/
 
 #endif

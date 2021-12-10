@@ -2,6 +2,7 @@
 #define RESULT_CODES_H
 
 typedef enum {
+   INCORRECT_VALUE    = -5,
    OPEN_FILE_ERROR    = -4,
    RENAME_FILE_ERROR  = -3,
    FILE_CLOSE_ERROR   = -2,

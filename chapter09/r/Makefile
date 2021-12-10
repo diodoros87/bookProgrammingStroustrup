@@ -1,19 +1,22 @@
 CXX = g++
-CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD     -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD     -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
 LDFLAGS = #-fsanitize=address -static-libasan 
 
-PROGRAMS  = libdemo.so libdemoderived.so libconnector.so main_cpp test_cpp libvariadic_template.so     libhuman.so c_main linking_test_cpp c_linking_test c_test 
+PROGRAMS  = libdemo.so libdemoderived.so libconnector.so main_cpp test_cpp libvariadic_template.so     libhuman.so libhumanderived.so c_main linking_test_cpp c_linking_test c_test 
 
 .PHONY: clean all
 
-all: $(PROGRAMS)
+all: $(PROGRAMS) 
+
+environment: 
+	export LD_LIBRARY_PATH="."
 
 c_test: c_test.o system.o print.o c_string.o regular_expr.o
 	$(CC) $(TEST_CFLAGS) $(LDFLAGS) c_test.o system.o print.o c_string.o regular_expr.o -o c_test 
@@ -27,8 +30,8 @@ c_main: c_main.o print.o file_modify.o c_string.o system.o
 c_main.o: main.c print.h system.h file_modify.h result_codes.h c_string.h
 	$(CC) $(CFLAGS) -c main.c -o c_main.o 
 
-c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o utility.o libhuman.so libdemo.so libhumanderived.so c_variadic_template_test.o allocate.o
-	$(CC) $(CFLAGS) $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o utility.o c_variadic_template_test.o allocate.o -L. -lconnector -ldemo -lhuman -lhumanderived -Wl,--no-as-needed -lvariadic_template -Wl,--as-needed -ldl -o c_linking_test 
+c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o utility.o libhuman.so libdemo.so libhumanderived.so c_variadic_template_test.o
+	$(CC) $(CFLAGS) $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o utility.o c_variadic_template_test.o -L. -lconnector -ldemo -lhumanderived -Wl,--no-as-needed -lvariadic_template -lhuman -Wl,--as-needed -ldl -o c_linking_test 
 	
 c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.h human.h utility.h demo_functions.h human_functions.h variadic_template_test.h
 	$(CC) $(CFLAGS) -c linking_test.c -o c_linking_test.o 
@@ -36,7 +39,7 @@ c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.
 demo_functions.o: demo_functions.h demo_functions.c utility.h shared_lib_open.h result_codes.h
 	$(CC) $(CFLAGS) -c demo_functions.c 
 	
-human_derived_functions.o: human_derived_functions.h human_derived_functions.c utility.h shared_lib_open.h result_codes.h
+human_derived_functions.o: libhumanderived.so human_derived_functions.h human_derived_functions.c utility.h shared_lib_open.h result_codes.h
 	$(CC) $(CFLAGS) -c human_derived_functions.c 
 	
 human_functions.o: human_functions.h human_functions.c utility.h shared_lib_open.h result_codes.h
@@ -63,11 +66,11 @@ print.o: print.h print.c
 c_string.o: c_string.h c_string.c
 	$(CC) $(CFLAGS) -c -fPIC c_string.c 
 	
-libhumanderived.so: humanderived.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o libhumanderived.so humanderived.o
+libhumanderived.so: libhuman.so humanderived.o allocate.o 
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -L. -lhuman -o libhumanderived.so humanderived.o allocate.o 
 	
-humanderived.o: human_private.h human_derived.c human_derived.h print.h result_codes.h allocate.h
-	$(CC) $(CFLAGS) -c -fPIC human.c  -o humanderived.o
+humanderived.o: human_private.h human_derived.c human_derived.h print.h result_codes.h allocate.h utility.h
+	$(CC) $(CFLAGS) -c -fPIC human_derived.c -o humanderived.o 
 	
 libhuman.so: human.o print.o c_string.o regular_expr.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o libhuman.so human.o print.o c_string.o regular_expr.o 
@@ -79,9 +82,7 @@ regular_expr.o: regular_expr.h regular_expr.c print.h result_codes.h
 	$(CC) $(CFLAGS) -c -fPIC regular_expr.c 
 	
 allocate.o: allocate.h allocate.c
-	$(CC) $(CFLAGS) -c allocate.c
-	
-	
+	$(CC) $(CFLAGS) -c -fPIC allocate.c 
 	
 	
 	
@@ -140,7 +141,7 @@ libdemoderived.so: demoderived.o
 demoderived.o: demo_derived.hpp demo_derived.cpp null.hpp print.hpp utility.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC demo_derived.cpp -o demoderived.o 
 	
-libdemo.so: demo.o
+libdemo.so: demo.o environment
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -o libdemo.so demo.o 
 
 demo.o: demo.hpp demo.cpp null.hpp print.hpp utility.hpp

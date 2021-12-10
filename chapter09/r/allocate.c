@@ -11,6 +11,6 @@ void * copy_bytes(const void * source, const size_t bytes) {
    void * result;
    ALLOCATE(result, bytes);
    if (NULL != result)
-      memcpy(result, source);
+      memcpy(result, source, bytes);
    return result;
 }

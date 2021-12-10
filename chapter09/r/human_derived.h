@@ -4,8 +4,6 @@
 struct Human_derived_t;
 
 typedef struct Human_derived_t Human_derived_t;
-/*
-extern regex_t * NAME_REGEX;*/
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,7 +17,7 @@ void Human_derived_destroy(Human_derived_t ** const);
 
 int Human_derived_set_age(Human_derived_t * const, const unsigned int);
 
-int Human_derived_get_age(const Human_derived_t * const, int ** const);
+int Human_derived_get_age(const Human_derived_t * const, unsigned int ** const);
 
 #ifdef  __cplusplus
 }

@@ -23,6 +23,8 @@ int Human_set(Human_t * const, const char * const);
 
 int Human_get_name(const Human_t * const, char ** const);
 
+void destroy_regex(void);
+
 #ifdef  __cplusplus
 }
 #endif

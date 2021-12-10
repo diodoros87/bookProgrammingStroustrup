@@ -2,13 +2,14 @@
 #include "print.h"
 #include "utility.h"
 #include "human.h"
+#include "human_derived.h"
 
 #include <string.h>
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
    #include "shared_lib_open.h"
-   #define LIB_HUMAN_SO     "libhumanderived.so"
+   #define LIB_HUMAN_DERIVED_SO     "libhumanderived.so"
 #endif
 /*
 #define print_and_assert(value, expected_value, value_string, expression, format) \
@@ -21,7 +22,7 @@ static void load_human(Human_derived_functions * functions) {
    }
 #ifdef MANUAL_DLL_LOAD
    LOG("%s", "\nMANUAL DLL LOAD\n");
-   functions->handle = get_handle(LIB_HUMAN_SO, RTLD_LAZY);
+   functions->handle = get_handle(LIB_HUMAN_DERIVED_SO, RTLD_LAZY);
    functions->init = get_symbol(functions->handle, "Human_derived_init");/*
    functions->set_name = get_symbol(functions->handle, "Human_derived_set_age");
    functions->get_name = get_symbol(functions->handle, "Human_derived_get_age");*/

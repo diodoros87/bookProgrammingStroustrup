@@ -32,11 +32,8 @@ Result_codes Human_derived_init(Human_derived_t ** const object, const char * co
       return result;
    LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object, "object is null");
-   if (*object) {
-      LOG_FUNC(__FUNCTION__);
-      LOG("%s\n", "*object must be null");
-      return INVALID_ARG;
-   }
+   REQUIRE_NON_NULL(*object, "*object is null - after call of base struct");
+   
    result = validate(age);
    if (OK != result)
       return result;
@@ -45,9 +42,9 @@ Result_codes Human_derived_init(Human_derived_t ** const object, const char * co
    if (! *object)
       return BAD_ALLOC;
    
-   object->age = (unsigned int *) copy_bytes(&age, sizeof(unsigned int));/*
+   (*object)->age = (unsigned int *) copy_bytes(&age, sizeof(unsigned int));/*
    ALLOCATE_SINGLE_TYPE(object->age, unsigned int);*/
-   if (NULL == object->age)
+   if (NULL == (*object)->age)
       return BAD_ALLOC;
    return OK;
 }
@@ -56,13 +53,13 @@ void Human_derived_destroy(Human_derived_t ** const object) {
    LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object, "human is null");
    REQUIRE_NON_NULL(*object, "*human is null");
-   free((*object)->age);
-   Human_destroy_protected((Human_t *) *object);
+   free((*object)->age); 
+   /*Human_destroy_protected((Human_t *) *object);*/
    free(*object);
    *object = NULL; /* to avoid double free or corruption (fasttop)  */
 }
 
-Result_codes Human_derived_set(Human_derived_t * const object, const unsigned int age) {
+Result_codes Human_derived_set_age(Human_derived_t * const object, const unsigned int age) {
    LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object, "human is null");
    REQUIRE_NON_NULL(age, "age is null");
@@ -79,7 +76,7 @@ Result_codes Human_derived_set(Human_derived_t * const object, const unsigned in
    return OK;
 }
 
-Result_codes Human_derived_get_name(const Human_derived_t * const object, unsigned int ** const age) {
+Result_codes Human_derived_get_age(const Human_derived_t * const object, unsigned int ** const age) {
    LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object, "human is null");
    REQUIRE_NON_NULL(age, "age is null");
