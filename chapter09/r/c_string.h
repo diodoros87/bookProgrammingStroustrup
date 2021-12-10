@@ -3,10 +3,16 @@
 
 #include <stdlib.h>
 
-#define ALLOCATE(buffer, n) \
+#define ALLOCATE_STRING(buffer, n) \
 (buffer) = (char *) malloc (n); \
 if ((buffer) == NULL) { \
    LOG("%s", "out of memory: malloc() returns NULL ");  \
+}
+
+#define REALLOCATE_STRING(buffer, n) \
+(buffer) = (char *) realloc ((buffer), (n)); \
+if ((buffer) == NULL) { \
+   LOG("%s", "out of memory: realloc() returns NULL ");  \
 }
 
 char * concatenate(const char * first, const char * second);

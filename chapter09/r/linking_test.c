@@ -7,6 +7,7 @@
 #include "human_functions.h"
 #include "human_derived_functions.h"
 #include "demo_functions.h"
+#include "human.h"
 
 #include <stdlib.h>
 #include <limits.h>
@@ -19,6 +20,7 @@ void handle_terminate(void) {
 static void at_exit (void) {
    puts (" At exit\n");
    FUNCTION_INFO(__FUNCTION__);
+   destroy_regex();
 }
 
 static Result_codes main_test_linking(void) {

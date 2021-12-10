@@ -88,7 +88,7 @@ struct File_modify_t {
 
 File_modify_t* File_modify_malloc() {
    File_modify_t * new = NULL;
-   ALLOCATE(new, sizeof (File_modify_t));
+   ALLOCATE_STRING(new, sizeof (File_modify_t));
    return new;
 }
 
@@ -103,7 +103,7 @@ Result_codes File_modify_init(File_modify_t ** object, const char * const filena
    *object = File_modify_malloc();
    if (! *object)
       return BAD_ALLOC;
-   ALLOCATE((*object)->filename, strlen(filename) + 1);
+   ALLOCATE_STRING((*object)->filename, strlen(filename) + 1);
    if (NULL == (*object)->filename)
       return BAD_ALLOC;
    strcpy((*object)->filename, filename);
@@ -122,7 +122,7 @@ Result_codes File_modify_set(File_modify_t * const object, const char * const fi
    REQUIRE_NON_NULL(object, "object is null");
    CHECK_FILE(filename, "filename is null");
    free(object->filename);
-   ALLOCATE(object->filename, strlen(filename) + 1);
+   ALLOCATE_STRING(object->filename, strlen(filename) + 1);
    if (NULL == object->filename)
       return BAD_ALLOC;
    strcpy(object->filename, filename);
@@ -137,7 +137,7 @@ Result_codes File_modify_get_filename(const File_modify_t * const object, char *
       LOG("%s\n", "*filename must be null");
       return INVALID_ARG;
    }
-   ALLOCATE(*filename, strlen(object->filename) + 1);
+   ALLOCATE_STRING(*filename, strlen(object->filename) + 1);
    if (NULL == filename)
       return BAD_ALLOC;
    strcpy(*filename, object->filename);

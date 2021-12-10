@@ -17,7 +17,7 @@ void Human_derived_destroy(Human_derived_t ** const);
 
 int Human_derived_set_age(Human_derived_t * const, const unsigned int);
 
-int Human_derived_get_age(const Human_derived_t * const, unsigned int ** const);
+int Human_derived_get_age(const Human_derived_t * const, unsigned int * const);
 
 #ifdef  __cplusplus
 }

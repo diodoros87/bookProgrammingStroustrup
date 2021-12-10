@@ -58,7 +58,7 @@ int test_linking(const bool_t valgrind) {
    const char * command = NULL;
    int result = OK;
    if (OK == result && valgrind) {
-      static const char * const valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all --exit-on-first-error=yes --error-exitcode=1";
+      static const char * const valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all --exit-on-first-error=yes --error-exitcode=1 --tool=memcheck --track-origins=yes";
       command = concatenate_many(ld_path, " ", valgrind_str, " ", exec, NULL);
       result = call_system(command);
       free(command);

@@ -52,13 +52,12 @@ static Result_codes check_name(const Human_derived_t * human, const char * expec
 
 static Result_codes check_age(const Human_derived_t * human, const unsigned int expected) {
    REQUIRE_NON_NULL(human, "human derived is null");
-   unsigned int * age = NULL;
+   unsigned int age;
    Result_codes result = Human_derived_get_age(human, &age);
    if (OK == result) {
-      LOG("%s: %s human name = %u", LANGUAGE, __FUNCTION__, *age);
-      assert_many(*age == expected, "assert failed: ", "s u", " *age == ", *age);
+      LOG("%s: %s human age = %u", LANGUAGE, __FUNCTION__, age);
+      assert_many(age == expected, "assert failed: ", "s u", " age == ", age);
    }
-   free(age);
    return result;
 }
 

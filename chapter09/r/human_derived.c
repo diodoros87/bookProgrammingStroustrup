@@ -1,5 +1,6 @@
 #include "human_derived.h"
 #include "human_private.h"
+#include "human.h"
 #include "print.h"
 #include "result_codes.h"
 #include "c_string.h"
@@ -16,10 +17,17 @@ struct Human_derived_t {
 Human_derived_t* Human_derived_malloc(void) {
    LOG_FUNC(__FUNCTION__);
    Human_derived_t * new = NULL;
-   ALLOCATE(new, sizeof (Human_derived_t));
+   ALLOCATE_STRING(new, sizeof (Human_derived_t));
    return new;
 }
-
+/*
+static Human_derived_t* Human_derived_realloc(Human_derived_t * object) {
+   LOG_FUNC(__FUNCTION__);
+   Human_derived_t * new = NULL;
+   REALLOCATE_STRING(object, sizeof (Human_derived_t));
+   return new;
+}
+*/
 static Result_codes validate(const unsigned int age) {
    if (age <= 0 || age >= 150) 
       return INVALID_ARG;
@@ -38,7 +46,8 @@ Result_codes Human_derived_init(Human_derived_t ** const object, const char * co
    if (OK != result)
       return result;
    
-   *object = Human_derived_malloc();
+   REALLOCATE_STRING(*object, sizeof (Human_derived_t));
+   /*Human_derived_realloc(*object);*/
    if (! *object)
       return BAD_ALLOC;
    
@@ -53,9 +62,10 @@ void Human_derived_destroy(Human_derived_t ** const object) {
    LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object, "human is null");
    REQUIRE_NON_NULL(*object, "*human is null");
-   free((*object)->age); 
-   /*Human_destroy_protected((Human_t *) *object);*/
-   free(*object);
+   free((*object)->age); /*
+   Human_destroy_protected((Human_t *) *object);*/
+   Human_destroy((Human_t **) object);
+   /*free(*object);*/
    *object = NULL; /* to avoid double free or corruption (fasttop)  */
 }
 
@@ -76,17 +86,12 @@ Result_codes Human_derived_set_age(Human_derived_t * const object, const unsigne
    return OK;
 }
 
-Result_codes Human_derived_get_age(const Human_derived_t * const object, unsigned int ** const age) {
+Result_codes Human_derived_get_age(const Human_derived_t * const object, unsigned int * const age) {
    LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object, "human is null");
-   REQUIRE_NON_NULL(age, "age is null");
-   if (*age) {
-      LOG("%s\n", "*age must be null");
-      return INVALID_ARG;
-   }
-   *age = (unsigned int *) copy_bytes(&(object->age), sizeof(unsigned int));/*
+   *age = *(object->age);/*
    ALLOCATE_SINGLE_TYPE(object->age, unsigned int);*/
-   if (NULL == *age)
+   if (NULL == age)
       return BAD_ALLOC;
    return OK;
 }

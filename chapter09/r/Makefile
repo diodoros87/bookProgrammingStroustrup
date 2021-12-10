@@ -1,10 +1,10 @@
 CXX = g++
-CPPFLAGS = -DMANUAL_DLL_LOAD     -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
-TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+TEST_CPPFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD     -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
-TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+TEST_CFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
 LDFLAGS = #-fsanitize=address -static-libasan 
@@ -66,7 +66,7 @@ print.o: print.h print.c
 c_string.o: c_string.h c_string.c
 	$(CC) $(CFLAGS) -c -fPIC c_string.c 
 	
-libhumanderived.so: libhuman.so humanderived.o allocate.o 
+libhumanderived.so: libhuman.so humanderived.o allocate.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -shared -L. -lhuman -o libhumanderived.so humanderived.o allocate.o 
 	
 humanderived.o: human_private.h human_derived.c human_derived.h print.h result_codes.h allocate.h utility.h

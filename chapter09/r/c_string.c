@@ -77,8 +77,8 @@ char * copy_string(const char * source) {
    if (! source) { 
       LOG_EXIT(__FUNCTION__, "source string is null", EXIT_FAILURE);
    }
-   char * result;
-   ALLOCATE(result, strlen(source) + 1);
+   char * result = NULL;
+   ALLOCATE_STRING(result, strlen(source) + 1);
    if (NULL != result)
       strcpy(result, source);
    return result;
@@ -142,7 +142,7 @@ size_t digits_d(long double x) {
 char * to_string_u(const unsigned long long x) {
    int length = digits(x);
    char * buffer; 
-   ALLOCATE(buffer, length + 1);
+   ALLOCATE_STRING(buffer, length + 1);
    if (NULL == buffer)
       return NULL;
    buffer[length] = '\0';
@@ -162,7 +162,7 @@ char * to_string_i(const long long x) {
    char * buffer; 
    if (x < 0)
       length++;
-   ALLOCATE(buffer, length + 1);
+   ALLOCATE_STRING(buffer, length + 1);
    if (NULL == buffer)
       return NULL;
    if (x < 0)
@@ -184,7 +184,7 @@ char * to_string_d(const long double x) {
    char * buffer; 
    int length = snprintf(NULL, 0, fmt, x);
    LOG(" ++++++++++   length = %d\n", length);
-   ALLOCATE(buffer, length + 1);
+   ALLOCATE_STRING(buffer, length + 1);
    if (NULL == buffer)
       return NULL;
    if (0 > snprintf(buffer, length + 1, fmt, x)) {

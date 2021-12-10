@@ -22,7 +22,7 @@ if (NULL == NAME_REGEX)    \
 Human_t* Human_malloc(void) {
    LOG_FUNC(__FUNCTION__);
    Human_t * new = NULL;
-   ALLOCATE(new, sizeof (Human_t));
+   ALLOCATE_STRING(new, sizeof (Human_t));
    return new;
 }
 
@@ -84,7 +84,7 @@ void Human_destroy(Human_t ** const object) {
    /*
    regex_t ** NAME_REGEX = Singleton_regex_t();
    regfree(*NAME_REGEX);*/
-   destroy_regex();
+   /*destroy_regex();*/
 }
 /*
 void Human_destroy_protected(Human_t * const object) {
