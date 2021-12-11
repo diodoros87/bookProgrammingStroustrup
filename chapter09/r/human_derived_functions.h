@@ -10,7 +10,7 @@ typedef struct Human_derived_functions {
    Result_codes (*set_name)(Human_t * const, const char * const);
    Result_codes (*get_name) (const Human_t * const, char ** const);
    Result_codes (*set_age)(Human_derived_t * const, const unsigned int);
-   Result_codes (*get_age) (const Human_derived_t * const, unsigned int ** const);
+   Result_codes (*get_age) (const Human_derived_t * const, unsigned int * const);
    void (*destroy)(Human_derived_t ** const);
    void * handle;
 } Human_derived_functions;

@@ -4,6 +4,7 @@
 #include "demo_test.hpp"
 #include "demo_derived_test.hpp"
 #include "human_test.hpp"
+#include "human.h"
 
 using namespace tests;
 
@@ -15,11 +16,16 @@ void handle_terminate(void) {
    cerr << TIE( "C++", unmove(__cplusplus), __func__, " handler called - must've been some exception ?!\n");
 }
 
+static void at_exit () {
+   destroy_regex();
+}
+
 static Result_codes main_linking_tests() {
    Result_codes result = test_demo();
    assert_many(result == OK, "result == ", result);
    if (OK == result)
       result = test_human();
+   atexit (at_exit);
    assert_many(result == OK, "result == ", result);
    if (OK == result)
       result = test_demo_derived();

@@ -89,6 +89,7 @@ Result_codes Human_derived_set_age(Human_derived_t * const object, const unsigne
 Result_codes Human_derived_get_age(const Human_derived_t * const object, unsigned int * const age) {
    LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object, "human is null");
+   REQUIRE_NON_NULL(age, "age is null");
    *age = *(object->age);/*
    ALLOCATE_SINGLE_TYPE(object->age, unsigned int);*/
    if (NULL == age)

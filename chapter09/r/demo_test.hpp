@@ -5,7 +5,7 @@
 
 #include "demo.hpp"
 
-using demo::Demo;
+//using demo::Demo;
 
 namespace tests {
 

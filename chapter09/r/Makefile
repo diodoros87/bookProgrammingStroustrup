@@ -1,10 +1,10 @@
 CXX = g++
-CPPFLAGS = -DMANUAL_DLL_LOAD -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
-TEST_CPPFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
-TEST_CFLAGS = -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
 LDFLAGS = #-fsanitize=address -static-libasan 

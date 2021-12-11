@@ -1,21 +1,23 @@
-#include <dlfcn.h>
-
 #include "human_test.hpp"
 #include "print.hpp"
 #include "utility.hpp"
 
 #include "human_functions.h"
 #include "human.h"
-#include "shared_lib_open.h"
 
-#define LIB_HUMAN_SO     "libhuman.so"
+#ifdef MANUAL_DLL_LOAD
+   #include <dlfcn.h>
+   #include "shared_lib_open.h"
+#endif
+
+//#define LIB_HUMAN_SO     "libhuman.so"
 
 namespace tests {
 
 static void load_human_functions(Human_functions & functions) {
 #ifdef MANUAL_DLL_LOAD
    cerr << "\nMANUAL DLL LOAD\n";
-   functions.handle   = get_handle(LIB_HUMAN_SO, RTLD_LAZY);
+   functions.handle   = get_handle("libhuman.so", RTLD_LAZY);
    functions.init     = reinterpret_cast<Result_codes (*)(Human_t **, const char * const)> (get_symbol(functions.handle, "Human_init"));
    functions.set_name = reinterpret_cast<Result_codes (*)(Human_t * const, const char * const)> (get_symbol(functions.handle, "Human_set"));
    functions.get_name = reinterpret_cast<Result_codes (*)(const Human_t * const, char ** const)> (get_symbol(functions.handle, "Human_get_name"));

@@ -28,6 +28,7 @@ static Result_codes main_test_linking(void) {
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (OK == result)
       result = test_human_linking();
+   atexit (at_exit);
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (OK == result)
       result = test_human_derived();
@@ -79,7 +80,6 @@ int main(const int argc, const char ** argv) {
    LOG("%s\n", program_name ? ++program_name : argv[0]);
    FUNCTION_INFO(__FUNCTION__);
    set_handler(handle_terminate);
-   atexit (at_exit);
    Result_codes result = tests();
    LOG(" Program name = %s", program_name);
    FUNCTION_INFO(__FUNCTION__);
