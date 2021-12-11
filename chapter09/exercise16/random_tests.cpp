@@ -247,6 +247,12 @@ void run_different_types(const unsigned long long REPETITIONS) {
       & Generator_set::generators.gen_short.GENERATOR_64,
       & Generator_set::generators.gen_char.GENERATOR_64
    };
+   /*
+   vector<int> hi;
+   hi.push_back(2);
+   const Base_Generator<char>& ij = Generator_set::generators.gen_char.GENERATOR;
+   vector<Base_Generator<char>> h;
+   h.push_back(ij);*/
      /*
    static constexpr array<const Generator_Interface*, 8> GENERATORS = {
       & Generator_set::generators->gen_int.GENERATOR,

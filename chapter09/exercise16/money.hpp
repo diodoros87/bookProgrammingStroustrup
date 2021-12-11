@@ -36,7 +36,12 @@ inline bool is_overflow(const Greater & x) {
    static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
    return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
 }
-
+/*
+template<typename Smaller>
+inline bool is_overflow(const Integer & x) {
+   return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
+}
+*/
 template<typename T>
 constexpr bool is_resetting_stream() {
    return is_convertible<T, stringstream>::value || is_convertible<T, istringstream>::value
@@ -69,7 +74,7 @@ public:
    static Money create(const string & dollars, const long double cents);
    static Money create(const string & dollars);
    
-   static callback fp;
+   //static callback fp;
    
    Money& operator=(const Money& other) { 
       if (this != &other)
@@ -85,7 +90,7 @@ public:
    template<typename Greater>
    Money operator*(const T & n) const;
    Money operator*(const T & n) const;
-   Money operator/(const T & n) const;
+   //Money operator/(const T & n) const;
    
    bool operator==(const Money& other) const { return amount_in_cents == other.amount_in_cents; }
    bool operator!=(const Money& other) const { return !(*this == other); } ;
@@ -96,13 +101,13 @@ public:
    bool operator>=(const Money& other) const { return !operator<(other); };
    
    template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
-   Type get_dollars(Type &) const { return amount_in_cents / CENTS_PER_DOLLAR; }
+   Type get_dollars(Type &) const { return amount_in_cents / Integer::create_Integer(CENTS_PER_DOLLAR); }
    
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
    Type get_dollars(Type &) const { return trunc(amount_in_cents / CENTS_PER_DOLLAR); }
 
    template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
-   Type get_cents(Type &) const { return amount_in_cents % CENTS_PER_DOLLAR; }
+   Type get_cents(Type &) const { return amount_in_cents % Integer::create_Integer(CENTS_PER_DOLLAR); }
    
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
    Type get_cents(Type &) const { return trunc(fmod(amount_in_cents, CENTS_PER_DOLLAR)); }

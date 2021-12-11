@@ -30,7 +30,7 @@ inline void validate_pointer(Pointer pointer) {
       throw invalid_argument(string(typeid(Pointer).name()) + " pointer is null");   
 }
 
-inline void validate_pointer(nullptr_t) {
+inline void validate_pointer(std::nullptr_t) {
    throw invalid_argument("type: nullptr_t - pointer is null");   
 }
 
@@ -79,7 +79,8 @@ inline void GENERAL_ASSERT(const char* expr_str, const bool expr, const char* fi
             << "Source:\t\t" << file << ", line " << line << "\n"
             << "Date:\t\t"   << date  << "\n"
             << "Time:\t\t"   << time  << "\n";
-      exit(EXIT_FAILURE);
+      //exit(EXIT_FAILURE);
+      std::terminate();
    }
 }
 

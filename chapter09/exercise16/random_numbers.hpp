@@ -31,18 +31,22 @@ class Base_Generator : public Generator_Interface {
 public:
    virtual ~ Base_Generator() = default;
    virtual T operator()() const  = 0;
-   Base_Generator(const T & MIN, const T & MAX) : min(MIN) , max(MAX) {
-      if (MIN > MAX)
-         throw invalid_argument("Requirement: MIN <= MAX");
-   }
+   
    static long long generate_seed() {
       time_point<system_clock> point = system_clock::now();
       duration<long long> since_epoch = duration_cast<seconds>(point.time_since_epoch());
       long long seed = since_epoch.count();
       return seed;
    }
+   
+protected:
+   Base_Generator(const T & MIN, const T & MAX) : min(MIN) , max(MAX) {
+      if (MIN > MAX)
+         throw invalid_argument("Requirement: MIN <= MAX");
+   }
    Base_Generator(const Base_Generator & other) : min(other.min), max(other.max) { }
    
+public:
    const T min;
    const T max;
 };
@@ -53,7 +57,7 @@ public:
    explicit Generator(const T & MIN, const T & MAX) : Base_Generator<T>(MIN, MAX) {
       const long long seed = Base_Generator<T>::generate_seed();
       default_random_engine engine (seed);
-      uniform_int_distribution<>::param_type param {MIN, MAX};
+      uniform_int_distribution<>::param_type param { static_cast<int>(MIN, MAX) };
       this->generator = bind(uniform_int_distribution<>{param}, engine);
    }
    T operator()() const override final { return generator(); }

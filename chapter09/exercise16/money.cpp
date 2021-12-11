@@ -320,7 +320,7 @@ Money<T>::Money(const string & dollars) {   // accept floating-point arguments
 }
 
 template <typename T>
-Money<T> Money<T>::create(const string & dollars) {   // accept floating-point arguments
+Money<T> Money<T>::create(const string & dollars) {   
    long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
    if (! equal_integer<long double>(amount))
       throw invalid_argument("Not exact value.");
@@ -329,7 +329,7 @@ Money<T> Money<T>::create(const string & dollars) {   // accept floating-point a
 }
 
 template <typename T>
-Money<T> Money<T>::create(const string & dollars, const long double cents) {   // accept floating-point arguments
+Money<T> Money<T>::create(const string & dollars, const long double cents) {   
    long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
    if (! equal_integer<long double>(amount) || ! equal_integer<long double>(cents))
       throw invalid_argument("Not exact value.");
@@ -428,13 +428,13 @@ Money<T> Money<T>::operator*(const T & FACTOR) const {
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
-
+/*
 template <typename T>
 void* Money<T>::fp(const char * DOLLARS, const double CENTS)
  {
    return Money<T>::create_2(DOLLARS, CENTS);
 }
-
+*/
 /*
 Money Money::operator+(const Money& other) const { 
    long n = numerator * other.denominator + denominator * other.numerator;
