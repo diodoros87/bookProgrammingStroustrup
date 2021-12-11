@@ -55,15 +55,13 @@ inline void validate_cents(const long double & cents) {
    }
 }
 
+#if defined(__clang__)
+
+#elif defined(__GNUG__)
 template <typename T>
 T Money<T>::get_amount(const string & STR) {
    cerr << __func__ << " = " << STR << '\n';
-   if (is_floating_point<T>::value ) {  /*
-      const long double number = stold(STR);
-      if (is_overflow<T, decltype(number)>(number))
-         throw invalid_argument("amount = " + std::to_string(number) + " is overflow for type " + TYPE_NAME);
-      return static_cast<T>(number); 
-      */
+   if (is_floating_point<T>::value ) {  
       if (TYPE_NAME == LONG_DOUBLE_NAME)   
          return stold(STR);
       else if (TYPE_NAME == DOUBLE_NAME)  
@@ -71,18 +69,7 @@ T Money<T>::get_amount(const string & STR) {
       else if (TYPE_NAME == FLOAT_NAME)   
          return stof(STR);
    } 
-   else if (numeric_limits<T>::is_integer) { /*
-      if (regex_match(STR, FLOAT_POINT_REGEX)) {
-         const long double number = stold(STR);
-         if (is_overflow<T, decltype(number)>(number))
-            throw invalid_argument("amount = " + std::to_string(number) + " is overflow for type " + TYPE_NAME);
-         STR = is_overflow
-      }
-      Integer integer = Integer::parse_create(STR);
-      if (! is_same<T, Integer>::value)
-         return T(integer);
-      return integer;
-      */
+   else if (numeric_limits<T>::is_integer) { 
       if (TYPE_NAME == UNSIGNED_LONG_LONG_NAME) 
          return stoull(STR);
       else if (TYPE_NAME == LONG_LONG_NAME)   
@@ -108,17 +95,13 @@ T Money<T>::get_amount(const string & STR) {
             throw out_of_range("amount = " + std::to_string(amount) + " is overflow for type " + TYPE_NAME);
          return static_cast<T>(amount);
       }
-      else if (TYPE_NAME == INTEGER_OBJECT_NAME) {
-         //if (STR.size() > 1 && integer_parsing::string_contain_only_value(STR, '0'))
-         //   return Integer::parse_create(STR.substr(1));
-         //else
+      else if (TYPE_NAME == INTEGER_OBJECT_NAME) 
          return Integer::parse_create(STR);
-      }
       else
          throw invalid_argument("No implementation for type '" + TYPE_NAME + "'");  
-      
    }
 }
+#endif
 
 template <typename T>
 template<typename Greater>
@@ -144,7 +127,8 @@ T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT
       }*/
       amount_in_cents += Greater(cents_round);
    }
-    if (! is_same<T, Integer>::value)
+   
+   if (! is_same<T, Integer>::value)
       if (is_overflow<T, Greater>(amount_in_cents))
          throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
    T result = T(amount_in_cents);
@@ -157,32 +141,15 @@ const Integer CENTS_PER_DOLLAR_INTEGER = Integer::create_Integer(CENTS_PER_DOLLA
 template <typename T>
 //template<typename Integer>
 T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT_CENTS */) const {
-   //static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
    cerr << __func__ << '\n';
    Integer amount_in_cents = Integer::create_Integer(dollars) * CENTS_PER_DOLLAR_INTEGER;
    cerr << __func__ << " amount_in_cents = " << amount_in_cents << '\n';
-   /*
-   if (numeric_limits<T>::is_integer)
-      amount_in_cents = Greater(static_cast<long long>(dollars)) * Greater(static_cast<long double>(CENTS_PER_DOLLAR));
-   else if (is_floating_point<T>::value)
-      amount_in_cents = Greater(static_cast<long double>(dollars)) * Greater(static_cast<long double>(CENTS_PER_DOLLAR)); */
    if (INCORRECT_CENTS == cents)
       amount_in_cents = Money<Integer>::round(amount_in_cents);
    else {
       cerr << __func__ << " cents = " << cents << '\n';
-      Integer cents_round = dollars >= 0 ? Money<Integer>::round(cents) : -Money<Integer>::round(cents);/*
-      Integer cents_round;
-      if (dollars > 0)
-         cents_round = Money<Integer>::round(cents);
-      else if (dollars < 0)
-         cents_round = -Money<Integer>::round(cents);
-      else {   // (dollars == 0)
-         if (cents < 0)
-            cents_round = -Money<Integer>::round(cents);
-         else
-            cents_round = Money<Integer>::round(cents);
-      }*/
-      amount_in_cents += cents_round; // Integer::create_Integer(cents_round);
+      Integer cents_round = dollars >= 0 ? Money<Integer>::round(cents) : -Money<Integer>::round(cents);
+      amount_in_cents += cents_round;
    }
    if (! is_same<T, Integer>::value)
       if (is_overflow<T, Integer>(amount_in_cents))
@@ -370,10 +337,8 @@ string formatted_string(const Integer & dollars, const Integer & cents) {
    ostringstream stream;
    stream << dollars;
    string dollars_string = stream.str();
-   //cerr << __func__ << " dollars_string " << dollars_string << "\n";
    if (dollars > Integer::ZERO)
       dollars_string = dollars_string.substr(1);
-   //cerr << " dollars_string " << dollars_string << "\n";
    reset(stream);
    stream << cents;
    string cents_string = stream.str();
@@ -381,7 +346,6 @@ string formatted_string(const Integer & dollars, const Integer & cents) {
       cents_string = cents_string.substr(1);
    cents_string = cents_string.length() == 1 ? ("0" + cents_string) : cents_string;
    string out = dollars_string + "," + cents_string;
-   //cerr << __func__ << " out " << out << "\n";
    return out;
 }
 
@@ -428,13 +392,7 @@ Money<T> Money<T>::operator*(const T & FACTOR) const {
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
-/*
-template <typename T>
-void* Money<T>::fp(const char * DOLLARS, const double CENTS)
- {
-   return Money<T>::create_2(DOLLARS, CENTS);
-}
-*/
+
 /*
 Money Money::operator+(const Money& other) const { 
    long n = numerator * other.denominator + denominator * other.numerator;

@@ -1,8 +1,17 @@
-CXX = g++
-CPPFLAGS = -fcompare-debug-second -Wfatal-errors -Wall -Wextra  -std=c++14 
-#CXX = clang
+#CXX = g++
+CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 
+CXX = clang
 #CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -L/usr/lib -lstdc++ -lm -v
 #  -fcompare-debug-second -Wconversion
+GCC_CPPFLAGS = -fcompare-debug-second -DMESSAGE='"Compiled with GCC"'
+CLANG_CPPFLAGS = -L/usr/lib -lstdc++ -lm -v -DMESSAGE='"Compiled with Clang"'
+
+ifeq ($(CXX),g++)
+  CPPFLAGS += $(GCC_CPPFLAGS)
+else ifeq ($(CXX),clang)
+  CPPFLAGS += $(CLANG_CPPFLAGS)
+endif
+
 PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests money_test
 #PROGRAMS  =  fundamental_test
 

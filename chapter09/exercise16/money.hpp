@@ -31,17 +31,19 @@ namespace money {
 constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
 constexpr int_fast8_t INCORRECT_CENTS = -112;
 
+#if defined(__clang__)
+template<typename Smaller>
+inline bool is_overflow(const Integer & x) {
+   return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
+}
+#elif defined(__GNUG__)
 template<typename Smaller, typename Greater>
 inline bool is_overflow(const Greater & x) {
    static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
    return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
 }
-/*
-template<typename Smaller>
-inline bool is_overflow(const Integer & x) {
-   return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
-}
-*/
+#endif
+
 template<typename T>
 constexpr bool is_resetting_stream() {
    return is_convertible<T, stringstream>::value || is_convertible<T, istringstream>::value
