@@ -41,7 +41,7 @@ static void load_human(Human_derived_functions * functions) {
 #endif
 }
 
-static Result_codes check_name(Human_derived_functions * functions, const Human_derived_t * human, const char * expected_name) {
+static Result_codes check_name(Human_derived_functions * functions, const Human_derived_t * const human, const char * const expected_name) {
    REQUIRE_NON_NULL(human, "human derived is null");
    REQUIRE_NON_NULL(expected_name, "expected_name is null");
    char * name = NULL;
@@ -54,7 +54,7 @@ static Result_codes check_name(Human_derived_functions * functions, const Human_
    return result;
 }
 
-static Result_codes check_age(Human_derived_functions * functions, const Human_derived_t * human, const unsigned int expected) {
+static Result_codes check_age(Human_derived_functions * functions, const Human_derived_t * const human, const unsigned int expected) {
    REQUIRE_NON_NULL(human, "human derived is null");
    unsigned int age;
    Result_codes result = functions->get_age(human, &age);

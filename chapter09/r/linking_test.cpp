@@ -4,6 +4,7 @@
 #include "demo_test.hpp"
 #include "demo_derived_test.hpp"
 #include "human_test.hpp"
+#include "human_derived_test.hpp"
 #include "human.h"
 
 using namespace tests;
@@ -30,8 +31,8 @@ static Result_codes main_linking_tests() {
    if (OK == result)
       result = test_demo_derived();
    assert_many(result == OK, "result == ", result);
-   //if (OK == result)
-   //   result = test_human_derived();
+   if (OK == result)
+      result = test_human_derived();
    assert_many(result == OK, "result == ", result);
    //if (OK == result)
    //   result = test_money();
