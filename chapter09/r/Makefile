@@ -120,6 +120,12 @@ libconnector.so: connector.o libdemo.so libvariadic_template.so
 connector.o: connector.h connector.cpp null.hpp variadic_template.hpp variadic_template.cpp
 	$(CXX) $(CPPFLAGS) -c -fPIC connector.cpp 
 	
+libdemoderivedconnector.so: libconnector.so connector.o libdemo.so libvariadic_template.so
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -L. -lconnector -o libdemoderivedconnector.so demoderivedconnector.o 
+	
+demoderivedconnector.o: connector.h connector.cpp null.hpp result_codes.h demo_derived.hpp
+	$(CXX) $(CPPFLAGS) -c -fPIC demo_derived_connector.cpp 
+	
 main_cpp.o: main.cpp print.hpp file_edit.hpp system.hpp result_codes.h
 	$(CXX) $(CPPFLAGS) -c main.cpp -o main_cpp.o 
 
@@ -149,6 +155,9 @@ libdemo.so: demo.o environment
 
 demo.o: demo.hpp demo.cpp null.hpp print.hpp utility.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC demo.cpp 
+	
+abstract.o: abstract.cpp abstract.hpp interface.hpp
+	$(CXX) $(CPPFLAGS) -c -fPIC abstract.cpp
 	
 clean :
 	rm $(PROGRAMS) *.o

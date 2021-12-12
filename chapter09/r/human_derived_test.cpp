@@ -6,7 +6,6 @@
 #include "human_derived_test.hpp"
 #include "print.hpp"
 #include "utility.hpp"
-#include "null.hpp"
 
 #include "human_derived_functions.h"
 #include "human.h"
@@ -37,9 +36,6 @@ static void load_human_functions(Human_derived_functions & functions) {
 }
 
 static Result_codes check_name(Human_derived_functions & functions, const Human_derived_t & human, const string & expected_name) {
-   //if ()
-   //REQUIRE_NON_NULL(human, "human derived is null");
-   //REQUIRE_NON_NULL(expected_name, "expected_name is null");
    char * name = NULL;
    Result_codes result = functions.get_name((Human_t *)&human, &name);
    if (OK == result) {
@@ -51,7 +47,6 @@ static Result_codes check_name(Human_derived_functions & functions, const Human_
 }
 
 static Result_codes check_age(Human_derived_functions & functions, const Human_derived_t & human, const unsigned int expected) {
-   //REQUIRE_NON_NULL(human, "human derived is null");
    unsigned int age;
    Result_codes result = functions.get_age(&human, &age);
    if (OK == result) {

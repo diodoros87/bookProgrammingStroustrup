@@ -44,7 +44,7 @@ Abstract::~Abstract() {
 }
 
 /*  only to use in C++ code in manual dll (shared object) loading  */
-extern "C" demo::Demo * abstract_create(const string & name) {
+extern "C" demo::Demo * demo_create(const string & name) {
    //if (name == nullptr) 
    //   throw std::invalid_argument(string(__func__) + " argument of name is nullptr");
    using namespace demo;

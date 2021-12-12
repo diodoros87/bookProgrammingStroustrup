@@ -37,7 +37,7 @@ Demo_derived::~Demo_derived() {
 }
 
 /*  only to use in C++ code in manual dll (shared object) loading  */
-extern "C" demo::Demo_derived * demo_create(const string & name, const unsigned int age) {
+extern "C" demo::Demo_derived * demo_derived_create(const string & name, const unsigned int age) {
    using namespace demo;
    try {
       demo::Demo_derived * result = new demo::Demo_derived(name, age);
@@ -50,7 +50,7 @@ extern "C" demo::Demo_derived * demo_create(const string & name, const unsigned 
 }
 
 /*  only to use in C++ code in manual dll (shared object) loading  */
-extern "C" void demo_destroy(demo::Demo_derived * & pointer) {
+extern "C" void demo_derived_destroy(demo::Demo_derived * & pointer) {
    if (pointer == nullptr) 
       throw std::invalid_argument(string(__func__) + " argument of demo is nullptr");
    
