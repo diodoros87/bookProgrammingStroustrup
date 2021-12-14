@@ -1,7 +1,5 @@
-#include "demo.hpp"
 #include "print.hpp"
-#include "utility.hpp"
-#include "null.hpp"
+#include "abstract.hpp"
 
 #include <cmath>
 #include <cfloat>
@@ -10,17 +8,19 @@ using std::cerr;
 
 namespace Hierarchy {
    
+const string Abstract::class_name = typeid(person).name();
+   
 void Abstract::validate(const double x) {
    if (! std::isfinite(x)) 
       throw std::invalid_argument(function + " argument of x: '" + x + "' is not finite");
 }
-   
-void Abstract::virt_abstract_print() const {
-   cerr << TIE( "C++", unmove(__cplusplus), __func__, " Abstract virtual area = ", virt_area(), '\n');
-}
 
-double Abstract::virt_area() const {
-   return x1;
+void Abstract::virt_print_X() const {
+   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", virt_get_X(), '\n');
+}
+   
+void Abstract::print_area() const {
+   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", area(), '\n');
 }
 
 double Abstract::area() const {
@@ -28,7 +28,7 @@ double Abstract::area() const {
 }
 
 void Abstract::fin_abstract_print() const final {
-   cerr << TIE( "C++", unmove(__cplusplus), __func__, " FINAL Abstract virtual area = ", area(), '\n');
+   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", fin_abstract_number(), '\n');
 }
 
 Abstract::Abstract(const double x) {
@@ -38,7 +38,7 @@ Abstract::Abstract(const double x) {
 }
 
 Abstract::~Abstract() {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, this->name) << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, this->x1) << '\n';
 }
 
 }

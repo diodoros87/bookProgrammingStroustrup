@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS =  -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS =   -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -87,7 +87,7 @@ allocate.o: allocate.h allocate.c
 	
 	
 	
-test_cpp: test_cpp.o system_cpp.o
+test_cpp: test_cpp.o system_cpp.o abstract_cpp.o
 	$(CXX) $(TEST_CPPFLAGS) $(LDFLAGS) test_cpp.o system_cpp.o -o test_cpp 
 	
 test_cpp.o: test.cpp print.hpp system.hpp result_codes.h
@@ -159,8 +159,8 @@ libdemo.so: demo.o
 demo.o: demo.hpp demo.cpp null.hpp print.hpp utility.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC demo.cpp 
 	
-abstract.o: abstract.cpp abstract.hpp interface.hpp
-	$(CXX) $(CPPFLAGS) -c -fPIC abstract.cpp 
+abstract_cpp.o: abstract.cpp abstract.hpp interface.hpp
+	$(CXX) $(CPPFLAGS) -c -fPIC abstract.cpp -o abstract_cpp.o
 	
 clean :
 	rm $(PROGRAMS) *.o

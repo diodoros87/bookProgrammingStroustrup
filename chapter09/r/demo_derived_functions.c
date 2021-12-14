@@ -46,7 +46,6 @@ static Result_codes check_name(Demo_derived_functions * functions, const char * 
       LOG("%s: %s demo name = %s", LANGUAGE, __FUNCTION__, name);
       assert_many(strcmp(name, expected_name) == 0, "assert failed: ", "s s", "name == ", name);
    }
-   /*free(name);*/
    return result;
 }
 
