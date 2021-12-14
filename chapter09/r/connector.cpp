@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cstdarg>
+#include <cassert>
 #include <type_traits>
 
 #include "connector.h"
@@ -24,25 +25,6 @@ extern template class Money<unsigned long long>;
 extern template class Money<float>;
 extern template class Money<double>;
 extern template class Money<long double>;
-
-using std::bad_alloc; using std::invalid_argument; using std::bad_cast; using std::exception; using std::regex_error; using std::out_of_range;
-Result_codes get_error_code(exception * e) {
-   if (dynamic_cast<bad_alloc*> (e) != nullptr)
-      return BAD_ALLOC;
-   if (dynamic_cast<invalid_argument*> (e) != nullptr)
-      return INVALID_ARG;
-   if (dynamic_cast<bad_cast*> (e) != nullptr)
-      return BAD_CAST;
-   if (dynamic_cast<regex_error*> (e) != nullptr)
-      return REGEX_ERROR;
-   if (dynamic_cast<out_of_range*> (e) != nullptr)
-      return OUT_OF_RANGE_ERROR;
-   if (dynamic_cast<std::runtime_error*> (e) != nullptr)
-      return RUNTIME_ERROR;
-   if (dynamic_cast<exception*> (e) != nullptr)
-      return STD_ERROR;
-   return UNRECOGNIZED_ERROR;
-}
 
 template <class T>
 inline Result_codes validate_pointers(Money_type * money_ptr, const char * dollars, const T * type_ptr, const char * function_name) {
@@ -206,87 +188,12 @@ static Demo * demo_instance = nullptr;
 }
 #endif
 
-
-
-using std::enable_if_t; using std::is_pointer; using std::is_constructible;
-
-template <typename Type, typename Function, typename... Args, 
-   enable_if_t<std::is_class<Type>::value, bool> = true 
-   //&& 
-   //enable_if_t<is_pointer<Type *>::value, bool> = true 
-   //std::is_convertible<Type, Demo*>:value = true 
-   >
-static Result_codes init(Function && constructor, Args &&... args) {
-   //if (OK != check_pointer(name, __func__, " Error name")) 
-   //   return INVALID_ARG;
-   //if (::demo_instance == nullptr)
-   //   return BAD_FUNTION_CALL;
-   try {
-      if (::demo_instance == nullptr) {
-         //::demo_instance = operator new( constructor(std::forward<Args>(args)...));
-         void* mem = operator new(sizeof(Type));
-         ::demo_instance = new(mem) Type(constructor(std::forward<Args>(args)...));
-      }
-      else
-         return BAD_FUNTION_CALL;
-   } catch (const bad_alloc & const_e) {
-      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
-      bad_alloc &e = const_cast<bad_alloc &>(const_e);
-      return get_error_code(reinterpret_cast<bad_alloc *>(&e));
-   } catch (const exception & const_e) {
-      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
-      exception &e = const_cast<exception &>(const_e);
-      return get_error_code(reinterpret_cast<exception *>(&e));
-   } catch (...) {
-      cerr  << __func__ << " Unrecognized exception was catched " << '\n';
-      return UNRECOGNIZED_ERROR;
-   }
-   return OK;
-}
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-Result_codes demo_init(const char * name) {
-   if (OK != check_pointer(name, __func__, " Error name")) 
-      return INVALID_ARG;
-   return init<Demo>(Constructor<Demo>(), name);
-   //return init<Demo>(Constructor<Demo>(), name);
-}
-/*
-Result_codes demo_init(const char * name) {
-   if (OK != check_pointer(name, __func__, " Error name")) 
+Result_codes demo_set_name(Demo * const object, const char * name) {
+   if (OK != check_pointer(object, __func__, " Error demo_instance")
+      ||   OK != check_pointer(name, __func__, " Error name")) 
       return INVALID_ARG;
    try {
-      if (::demo_instance == nullptr)
-         ::demo_instance = new Demo(name);
-      else
-         return BAD_FUNTION_CALL;
-   } catch (const bad_alloc & const_e) {
-      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
-      bad_alloc &e = const_cast<bad_alloc &>(const_e);
-      return get_error_code(reinterpret_cast<bad_alloc *>(&e));
-   } catch (const exception & const_e) {
-      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
-      exception &e = const_cast<exception &>(const_e);
-      return get_error_code(reinterpret_cast<exception *>(&e));
-   } catch (...) {
-      cerr  << __func__ << " Unrecognized exception was catched " << '\n';
-      return UNRECOGNIZED_ERROR;
-   }
-   return OK;
-}
-*/
-Result_codes demo_set_name(const char * name) {
-   if (OK != check_pointer(name, __func__, " Error name")) 
-      return INVALID_ARG;
-   if (::demo_instance == nullptr) {
-      cerr  << __func__ << " Error demo_instance = " << ::demo_instance << '\n';
-      return INVALID_ARG;
-   }
-   try {
-      ::demo_instance->set_name(name);
+      object->set_name(name);
    } catch (exception & e) {
       cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       return get_error_code(reinterpret_cast<exception *>(&e));
@@ -297,15 +204,12 @@ Result_codes demo_set_name(const char * name) {
    return OK;
 }
 
-Result_codes demo_get_name(char ** name) {
-   if (OK != check_pointer_1_1(name, __func__, " Error name"))
+Result_codes demo_get_name(const Demo * const object, char ** name) {
+   if (OK != check_pointer_1_1(name, __func__, " Error name")
+      || OK != check_pointer(object, __func__, " Error demo_instance"))
       return INVALID_ARG;
-   if (::demo_instance == nullptr) {
-      cerr  << __func__ << " Error demo_instance = " << ::demo_instance << '\n';
-      return BAD_FUNTION_CALL;
-   }
    try {
-      *name = ::demo_instance->get_name_cstring();
+      *name = object->get_name_cstring();
       //string name_string = ::demo_instance->get_name();
       //*name = name_string.data();
       //*name = reinterpret_cast<char *>(name_string);
@@ -321,14 +225,41 @@ Result_codes demo_get_name(char ** name) {
    return OK;
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+Result_codes demo_init(const char * name) {
+   if (OK != check_pointer(name, __func__, " Error name")) 
+      return INVALID_ARG;
+   //int * y = nullptr;
+   //init<int>(y, Constructor<int>(), 8);
+   //cerr  << __func__ << " *y = " << *y << '\n';
+   //assert(*y == 8);
+   //Result_codes result = init<int>(y, Constructor<int>(), 8);
+   Result_codes result = init<Demo>(::demo_instance, Constructor<Demo>(), name);
+   return result;
+}
+
+Result_codes demo_set_name(const char * name) {
+   if (OK != check_pointer(name, __func__, " Error name")) 
+      return INVALID_ARG;
+   Result_codes result = demo_set_name(::demo_instance, name);
+   return result;
+}
+
+Result_codes demo_get_name(char ** name) {
+   if (OK != check_pointer_1_1(name, __func__, " Error name"))
+      return INVALID_ARG;
+   Result_codes result = demo_get_name(::demo_instance, name);
+   return result;
+}
+
 Result_codes demo_destroy(void) {
-   if (::demo_instance) {
-      delete ::demo_instance;
-      ::demo_instance = nullptr;
-      return OK;
-   }
-   cerr  << __func__ << " Error demo_instance = " << ::demo_instance << '\n';
-   return BAD_FUNTION_CALL;
+   Result_codes result = Destructor<Demo>()(::demo_instance);
+   //Demo* j = nullptr;
+   //Result_codes result = Destructor<Demo>()(j);
+   return result;
 }
 
 #ifdef __cplusplus

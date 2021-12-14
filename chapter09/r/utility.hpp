@@ -13,6 +13,7 @@ using std::cerr;
 using std::is_function;
 using std::enable_if_t;
 using std::forward;
+using std::exception;
 
 extern template class Money<short>;
 extern template class Money<unsigned short>;
@@ -25,6 +26,8 @@ extern template class Money<unsigned long long>;
 extern template class Money<float>;
 extern template class Money<double>;
 extern template class Money<long double>;
+
+Result_codes get_error_code(exception * e);
 
 template <typename Function, typename... Args, enable_if_t<is_function<Function>::value, bool> = true> 
 inline void call(Function && func, Args &&... args ) { 
@@ -78,12 +81,24 @@ struct Constructor {
       return T(forward<Args>(args)...);
    }
 };
-
+/*
 template <typename T>
 struct Destructor {
-   template<typename... Args>
    void operator()() const {
       ~T();
+   }
+};
+*/
+template <typename T>
+struct Destructor {
+   Result_codes operator()(T * & ptr) {
+      if (ptr) {
+         delete ptr;
+         ptr = nullptr;
+         return OK;
+      }
+      cerr  << __func__ << " Error ptr = " << ptr << '\n';
+      return BAD_FUNTION_CALL;
    }
 };
 
@@ -113,6 +128,33 @@ Result_codes bind_execute_member_function(const Type & object, Function && membe
    Result_codes result = call_catch_exception(bind_function, forward<Args>(args)...);
    return result;
 }
+
+using std::bad_alloc; using std::invalid_argument; using std::bad_cast; using std::exception; using std::regex_error; using std::out_of_range;
+template <typename Type, typename Function, typename... Args>
+Result_codes init(Type * & object_pointer, Function && constructor, Args &&... args) {
+   if (object_pointer != nullptr) {
+      cerr  << __func__ << " Error NON-null object_pointer type of " << typeid(Type).name() << '\n';
+      return INVALID_ARG;
+   }
+   try {
+      void * memory = operator new(sizeof(Type));
+      object_pointer = new(memory) Type(constructor(forward<Args>(args)...));
+   } 
+   catch (const bad_alloc & const_e) {
+      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
+      bad_alloc &e = const_cast<bad_alloc &>(const_e);
+      return get_error_code(reinterpret_cast<bad_alloc *>(&e));
+   } catch (const exception & const_e) {
+      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
+      exception &e = const_cast<exception &>(const_e);
+      return get_error_code(reinterpret_cast<exception *>(&e));
+   } catch (...) {
+      cerr  << __func__ << " Unrecognized exception was catched " << '\n';
+      return UNRECOGNIZED_ERROR;
+   }
+   return OK;
+}
+
    /*
 template <typename Result, typename Function, typename... Args>  
 Result_codes call_catch_exception(Result & result, Function && func, Args&&... args )

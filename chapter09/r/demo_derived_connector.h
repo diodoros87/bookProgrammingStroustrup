@@ -4,6 +4,12 @@
 #include "result_codes.h"
 
 #ifdef __cplusplus
+   class Demo_derived_connector {
+      
+   }
+#endif
+
+#ifdef __cplusplus
 extern "C" {
 #endif
    
