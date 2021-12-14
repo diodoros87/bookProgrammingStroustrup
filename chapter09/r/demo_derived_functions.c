@@ -2,6 +2,7 @@
 #include "print.h"
 #include "utility.h"
 #include "connector.h"
+#include "demo_derived_connector.h"
 
 #include <string.h>
 
@@ -45,7 +46,7 @@ static Result_codes check_name(Demo_derived_functions * functions, const char * 
       LOG("%s: %s demo name = %s", LANGUAGE, __FUNCTION__, name);
       assert_many(strcmp(name, expected_name) == 0, "assert failed: ", "s s", "name == ", name);
    }
-   free(name);
+   /*free(name);*/
    return result;
 }
 
@@ -86,6 +87,7 @@ static Result_codes run_demo(const Demo_derived_functions * const functions) {
    }
    close_handle(&(functions->handle));
 #endif
+   functions->destroy();
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }

@@ -18,3 +18,5 @@ Result_codes demo_derived_destroy(void);
 #ifdef  __cplusplus
 }
 #endif
+
+#endif

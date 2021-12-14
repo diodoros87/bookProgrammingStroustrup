@@ -3,6 +3,7 @@
 */
 #include "print.h"
 #include "connector.h"
+#include "demo_derived_functions.h"
 #include "utility.h"
 #include "human_functions.h"
 #include "human_derived_functions.h"
@@ -25,6 +26,9 @@ static void at_exit (void) {
 
 static Result_codes main_test_linking(void) {
    Result_codes result = test_demo_linking();
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
+   if (OK == result)
+      result = test_demo_derived();
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (OK == result)
       result = test_human_linking();

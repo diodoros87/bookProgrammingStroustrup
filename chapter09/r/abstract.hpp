@@ -20,7 +20,8 @@ public:
    
    static void validate(const double x);
    
-   virtual void virt_abstract_print() const;
+   virtual int get_X() const { return x1; };
+   virtual int virt_print() const;
    virtual double virt_area() const;
    double area() const;
    void fin_abstract_print() const final;

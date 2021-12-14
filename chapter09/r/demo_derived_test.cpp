@@ -34,8 +34,8 @@ typedef struct Manual_DLL_interface {
 
 static void load_demo_derived(Manual_DLL_interface & demo_functions) {
    demo_functions.handle   = get_handle("libdemoderived.so", RTLD_LAZY);
-   demo_functions.create   = reinterpret_cast<Demo_derived * (*)(const string &, const unsigned int )> (get_symbol(demo_functions.handle, "demo_create"));
-   demo_functions.destroy  = reinterpret_cast<void (*)(Demo_derived * & )> (get_symbol(demo_functions.handle, "demo_destroy"));
+   demo_functions.create   = reinterpret_cast<Demo_derived * (*)(const string &, const unsigned int )> (get_symbol(demo_functions.handle, "demo_derived_create"));
+   demo_functions.destroy  = reinterpret_cast<void (*)(Demo_derived * & )> (get_symbol(demo_functions.handle, "demo_derived_destroy"));
 }
 
 static Result_codes test_demo_derived_linking() {

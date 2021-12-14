@@ -1,22 +1,19 @@
 CXX = g++
-CPPFLAGS =    -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS =    -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD -g -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
 LDFLAGS = #-fsanitize=address -static-libasan 
 
-PROGRAMS  = libdemo.so libdemoderived.so libconnector.so main_cpp test_cpp libvariadic_template.so     libhuman.so libhumanderived.so c_main linking_test_cpp c_linking_test c_test 
+PROGRAMS  = libdemo.so libdemoderived.so libvariadic_template.so libconnector.so libdemoderivedconnector.so main_cpp test_cpp      libhuman.so libhumanderived.so c_main linking_test_cpp c_linking_test c_test 
 
 .PHONY: clean all
 
 all: $(PROGRAMS) 
-
-environment: 
-	export LD_LIBRARY_PATH="."
 
 c_test: c_test.o system.o print.o c_string.o regular_expr.o
 	$(CC) $(TEST_CFLAGS) $(LDFLAGS) c_test.o system.o print.o c_string.o regular_expr.o -o c_test 
@@ -30,11 +27,14 @@ c_main: c_main.o print.o file_modify.o c_string.o system.o
 c_main.o: main.c print.h system.h file_modify.h result_codes.h c_string.h
 	$(CC) $(CFLAGS) -c main.c -o c_main.o 
 
-c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o utility.o libhuman.so libdemo.so libhumanderived.so c_variadic_template_test.o
-	$(CC) $(CFLAGS) $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o utility.o c_variadic_template_test.o -L. -lconnector -ldemo -lhumanderived -Wl,--no-as-needed -lvariadic_template -lhuman -Wl,--as-needed -ldl -o c_linking_test 
+c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o utility.o libhuman.so libdemo.so libdemoderived.so libhumanderived.so c_variadic_template_test.o demo_derived_functions.o
+	$(CC) $(CFLAGS) $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o utility.o c_variadic_template_test.o demo_derived_functions.o -L. -lhumanderived -ldemoderivedconnector -Wl,--no-as-needed -lvariadic_template -lhuman -ldemoderived -lconnector -ldemo -Wl,--as-needed -ldl -o c_linking_test 
 	
 c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.h human.h utility.h demo_functions.h human_functions.h variadic_template_test.h
 	$(CC) $(CFLAGS) -c linking_test.c -o c_linking_test.o 
+	
+demo_derived_functions.o: demo_derived_functions.h demo_derived_functions.c utility.h shared_lib_open.h result_codes.h
+	$(CC) $(CFLAGS) -c demo_derived_functions.c -o demo_derived_functions.o 
 	
 demo_functions.o: demo_functions.h demo_functions.c utility.h shared_lib_open.h result_codes.h
 	$(CC) $(CFLAGS) -c demo_functions.c 
@@ -120,11 +120,11 @@ libconnector.so: connector.o libdemo.so libvariadic_template.so
 connector.o: connector.h connector.cpp null.hpp variadic_template.hpp variadic_template.cpp
 	$(CXX) $(CPPFLAGS) -c -fPIC connector.cpp 
 	
-libdemoderivedconnector.so: libconnector.so connector.o libdemo.so libvariadic_template.so
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -L. -lconnector -o libdemoderivedconnector.so demoderivedconnector.o 
+libdemoderivedconnector.so: libconnector.so libdemoderived.so demoderivedconnector.o
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -L. -lconnector -ldemoderived -o libdemoderivedconnector.so demoderivedconnector.o 
 	
-demoderivedconnector.o: connector.h connector.cpp null.hpp result_codes.h demo_derived.hpp
-	$(CXX) $(CPPFLAGS) -c -fPIC demo_derived_connector.cpp 
+demoderivedconnector.o: connector.h connector.cpp null.hpp result_codes.h demo_derived.hpp demo_derived_connector.h demo_derived_connector.cpp
+	$(CXX) $(CPPFLAGS) -c -fPIC demo_derived_connector.cpp -o demoderivedconnector.o 
 	
 main_cpp.o: main.cpp print.hpp file_edit.hpp system.hpp result_codes.h
 	$(CXX) $(CPPFLAGS) -c main.cpp -o main_cpp.o 
@@ -150,14 +150,14 @@ libdemoderived.so: demoderived.o
 demoderived.o: demo_derived.hpp demo_derived.cpp null.hpp print.hpp utility.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC demo_derived.cpp -o demoderived.o 
 	
-libdemo.so: demo.o environment
+libdemo.so: demo.o
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -o libdemo.so demo.o 
 
 demo.o: demo.hpp demo.cpp null.hpp print.hpp utility.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC demo.cpp 
 	
 abstract.o: abstract.cpp abstract.hpp interface.hpp
-	$(CXX) $(CPPFLAGS) -c -fPIC abstract.cpp
+	$(CXX) $(CPPFLAGS) -c -fPIC abstract.cpp 
 	
 clean :
 	rm $(PROGRAMS) *.o

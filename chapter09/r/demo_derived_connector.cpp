@@ -1,8 +1,13 @@
 #include "connector.h"
-
+#include "demo_derived_connector.h"
 #include "demo_derived.hpp"
 #include "utility.hpp"
 #include "null.hpp"
+
+using namespace demo;
+using namespace std;
+
+extern Result_codes get_error_code(exception * e);
 
 static Demo_derived * demo_derived_instance = nullptr;
 
@@ -85,7 +90,7 @@ Result_codes demo_derived_set_age(const unsigned int age) {
 }
 
 Result_codes demo_derived_get_age(unsigned int * const age) {
-   if (OK != check_pointer(name, __func__, " Error age"))
+   if (OK != check_pointer(age, __func__, " Error age"))
       return INVALID_ARG;
    if (::demo_derived_instance == nullptr) {
       cerr  << __func__ << " Error demo_derived_instance = " << ::demo_derived_instance << '\n';
