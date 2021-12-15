@@ -87,7 +87,7 @@ allocate.o: allocate.h allocate.c
 	
 	
 	
-test_cpp: test_cpp.o system_cpp.o abstract_cpp.o
+test_cpp: test_cpp.o system_cpp.o abstract_cpp.o base_cpp.o
 	$(CXX) $(TEST_CPPFLAGS) $(LDFLAGS) test_cpp.o system_cpp.o -o test_cpp 
 	
 test_cpp.o: test.cpp print.hpp system.hpp result_codes.h
@@ -158,6 +158,9 @@ libdemo.so: demo.o
 
 demo.o: demo.hpp demo.cpp null.hpp print.hpp utility.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC demo.cpp 
+	
+base_cpp.o: base.cpp abstract.hpp base.hpp
+	$(CXX) $(CPPFLAGS) -c -fPIC base.cpp -o base_cpp.o
 	
 abstract_cpp.o: abstract.cpp abstract.hpp interface.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC abstract.cpp -o abstract_cpp.o

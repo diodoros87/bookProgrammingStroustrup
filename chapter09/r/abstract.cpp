@@ -2,7 +2,6 @@
 #include "abstract.hpp"
 
 #include <cmath>
-#include <cfloat>
 
 using std::cerr;
 using std::to_string;
@@ -23,11 +22,11 @@ void Abstract::virt_set_X(const double number) {
 }
 
 void Abstract::virt_print_X() const {
-   double X = virt_get_X();
-   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", X, unmove('\n'));
+   double cx = X();
+   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", cx, unmove('\n'));
 }
    
-void Abstract::virt_print_area() const {
+void Abstract::print_virt_area() const {
    double area = virt_area();
    cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", area, unmove('\n'));
 }
@@ -57,12 +56,11 @@ Abstract::~Abstract() {
 }
 
 }
-
-/*  only to use in C++ code in manual dll (shared object) loading  */
+/*
 extern "C" Hierarchy::Abstract * abstract_create(const double number) {
    using namespace Hierarchy;
    try {
-      Abstract * result = new Abstract(number);
+      Abstract * result = new Base(number);
       return result;
    }
    catch (const std::invalid_argument & e) {
@@ -71,7 +69,6 @@ extern "C" Hierarchy::Abstract * abstract_create(const double number) {
    }
 }
 
-/*  only to use in C++ code in manual dll (shared object) loading  */
 extern "C" void demo_destroy(Hierarchy::Abstract * & pointer) {
    if (pointer == nullptr) 
       throw std::invalid_argument(string(__func__) + " argument of demo is nullptr");
@@ -79,3 +76,4 @@ extern "C" void demo_destroy(Hierarchy::Abstract * & pointer) {
    delete pointer;
    pointer = nullptr;
 }
+*/

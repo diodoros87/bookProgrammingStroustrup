@@ -9,6 +9,7 @@ public:
    virtual char pv_char() const = 0;
    virtual void pv_print_number() const = 0;
    virtual void pv_print_char() const = 0;
+   //virtual ~Interface();
 };
 
 }
