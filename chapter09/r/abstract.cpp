@@ -5,51 +5,64 @@
 #include <cfloat>
 
 using std::cerr;
+using std::to_string;
 
 namespace Hierarchy {
    
-const string Abstract::class_name = typeid(person).name();
+const string Abstract::class_name = typeid(Abstract).name();
    
-void Abstract::validate(const double x) {
-   if (! std::isfinite(x)) 
-      throw std::invalid_argument(function + " argument of x: '" + x + "' is not finite");
+void Abstract::validate(const double number, const string & function) {
+   if (! std::isfinite(number)) 
+      throw std::invalid_argument(function + " argument of number: '" + to_string(number) + "' is not finite");
+}
+
+void Abstract::virt_set_X(const double number) {
+   validate(number, __func__);
+   this->x = number;
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
 }
 
 void Abstract::virt_print_X() const {
-   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", virt_get_X(), '\n');
+   double X = virt_get_X();
+   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", X, unmove('\n'));
 }
    
-void Abstract::print_area() const {
-   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", area(), '\n');
+void Abstract::virt_print_area() const {
+   double area = virt_area();
+   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", area, unmove('\n'));
 }
 
-double Abstract::area() const {
-   return x1;
+double Abstract::virt_area() const {
+   return x;
 }
 
-void Abstract::fin_abstract_print() const final {
-   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", fin_abstract_number(), '\n');
-}
+void Abstract::print_number() const { 
+   double n = number();
+   cerr << TIE( "C++", unmove(__cplusplus), __func__, class_name, n) << '\n'; 
+};
 
-Abstract::Abstract(const double x) {
-   validate(x, __func__);
-   this->x1 = x;
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, this->x1) << '\n';
+void Abstract::pv_print_number() const  { 
+   int pvn = pv_number();
+   cerr << TIE( "C++", unmove(__cplusplus), __func__, class_name, pvn) << '\n'; 
+};
+
+Abstract::Abstract(const double number) {
+   validate(number, __func__);
+   this->x = number;
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
 }
 
 Abstract::~Abstract() {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), __func__, this->x1) << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
 }
 
 }
 
 /*  only to use in C++ code in manual dll (shared object) loading  */
-extern "C" demo::Demo * abstract_create(const string & name) {
-   //if (name == nullptr) 
-   //   throw std::invalid_argument(string(__func__) + " argument of name is nullptr");
-   using namespace demo;
+extern "C" Hierarchy::Abstract * abstract_create(const double number) {
+   using namespace Hierarchy;
    try {
-      Demo * result = new Demo(name);
+      Abstract * result = new Abstract(number);
       return result;
    }
    catch (const std::invalid_argument & e) {
@@ -59,7 +72,7 @@ extern "C" demo::Demo * abstract_create(const string & name) {
 }
 
 /*  only to use in C++ code in manual dll (shared object) loading  */
-extern "C" void demo_destroy(demo::Demo * & pointer) {
+extern "C" void demo_destroy(Hierarchy::Abstract * & pointer) {
    if (pointer == nullptr) 
       throw std::invalid_argument(string(__func__) + " argument of demo is nullptr");
    
