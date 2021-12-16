@@ -7,7 +7,14 @@
 #include "human_derived_test.hpp"
 #include "human.h"
 
+#include <functional>
+
 using namespace tests;
+
+//using namespace std::placeholders;
+using std::function;
+using std::bind;
+using std::vector;
 
 void set_handler(void (*func)(void)) { 
    std::set_terminate(func); 
@@ -21,7 +28,29 @@ static void at_exit () {
    destroy_regex();
 }
 
+template <typename Function, typename... Args>  
+inline static Result_codes call_function(Function && func, Args&&... args) {
+   Result_codes result = func(forward<Args>(args)...);
+   assert_many(result == OK, "result == ", result);
+   return result;
+}
+
+inline Result_codes main_tests() {
+   Result_codes result = UNRECOGNIZED_ERROR;
+   vector < function <Result_codes()> > vec = { bind(::test_demo), bind(test_demo_derived), 
+                     bind(test_human), bind(test_human_derived)};
+   for (auto fun : vec) {
+      result = call_function(fun);
+      if (OK != result)
+         break;
+   }
+   return result;   
+}
+
 static Result_codes main_linking_tests() {
+   atexit (at_exit);
+   Result_codes result = main_tests();
+   /*
    Result_codes result = test_demo();
    assert_many(result == OK, "result == ", result);
    if (OK == result)
@@ -36,7 +65,7 @@ static Result_codes main_linking_tests() {
    assert_many(result == OK, "result == ", result);
    //if (OK == result)
    //   result = test_money();
-   assert_many(result == OK, "result == ", result);
+   assert_many(result == OK, "result == ", result);*/
    return result;
 }
 

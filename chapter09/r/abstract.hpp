@@ -18,19 +18,20 @@ private:
    
 public:
    static const string class_name;
+   //static string get_class_name() { return class_name; }
    
    virtual double pv_Y() const = 0;
    virtual void pv_print_Y() const = 0;
    
    static void validate(const double, const string &);
    
-   double X() const { return x; };
+   virtual double X() const final { return x; };
    virtual void virt_set_X (const double x);
    virtual void virt_print_X() const final;
    
    virtual double virt_area() const;
-   void print_virt_area() const;
-   //void print_virt_area() const final;
+   //virtual void print_virt_area() const ;
+   virtual void print_virt_area() const final;
 
    int number() const { return ABSTRACT; };
    void print_number() const;

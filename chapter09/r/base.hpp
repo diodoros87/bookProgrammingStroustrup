@@ -13,12 +13,13 @@ private:
    double y = BASE;
    
 public:
+   static const string class_name;
    
    virtual double pv_Y() const override final { return y; };
    virtual void virt_set_Y (const double );
-   virtual void pv_print_Y() const override final;
+   virtual void pv_print_Y() const override;
    
-   virtual void virt_print_number() const final;
+   virtual void virt_print_number() const;
    
    //virtual double virt_area() const;
    virtual double virt_area() const override;

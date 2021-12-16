@@ -11,19 +11,22 @@ private:
    static const char DERIVED_CHAR = 'B';
    
    double z = DERIVED;
-   
 public:
+   static const string class_name;
    static void validate(const double, const string &);
    
-   void set_Z (const double z);
-   double Z() const { return z; };
+   virtual void virt_set_Z (const double z);
+   virtual double Z() const final { return z; };
+   virtual void virt_print_Z() const final;
    
-   virtual void virt_set_X (const double x) override;
-   virtual void virt_print_X() const final;
+   virtual void virt_set_X (const double x) override final;
+   virtual void virt_set_Y (const double ) override ;
    
-   virtual double pv_Y() const override final { return y; };
-   virtual void virt_set_Y (const double ) override final;
-   virtual void pv_print_Y() const override final;
+   virtual void pv_print_Y() const override;
+   
+   //virtual double virt_Z() const final { return z; };
+   //virtual void virt_set_Z (const double ) override final;
+   //virtual void pv_print_Y() const override final;
    
    virtual void virt_print_number() const final;
    

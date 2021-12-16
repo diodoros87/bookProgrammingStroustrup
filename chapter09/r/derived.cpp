@@ -1,24 +1,33 @@
 #include "print.hpp"
 #include "derived.hpp"
 
-#include <cmath>
-
 using std::cerr;
 using std::to_string;
 
 namespace Hierarchy {
    
-const string Abstract::class_name = typeid(Derived).name();
+const string Derived::class_name = typeid(Derived).name();
 
 void Derived::validate(const double number, const string & function) {
-   if (! std::isfinite(number) || 0 == number) 
-      throw std::invalid_argument(function + " argument of number: '" + to_string(number) + "' is not finite or is 0");
+   if (0 == number) 
+      throw std::invalid_argument(function + " argument of number: '" + to_string(number) + "' is 0");
+}
+
+void Derived::virt_set_Z(const double n) {
+   Abstract::validate(n, __func__);
+   Derived::validate(n, __func__);
+   this->z = n;
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->z) << '\n';
+}
+
+void Derived::virt_print_Z() const {
+   cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", z, unmove('\n'));
 }
 
 void Derived::virt_set_Y(const double n) {
-   Abstract::validate(n, __func__);
-   this->y = n;
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->y) << '\n';
+   Derived::validate(n, __func__);
+   Base::virt_set_Y(n);
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->z) << '\n';
 }
 
 void Derived::pv_print_Y() const {
@@ -27,7 +36,7 @@ void Derived::pv_print_Y() const {
 }
 
 double Derived::virt_area() const {
-   return X() * y;
+   return Base::virt_area() * z;
 }
 
 void Derived::virt_print_number() const { 
@@ -45,22 +54,23 @@ void Derived::pv_print_char() const {
    cerr << TIE( "C++", unmove(__cplusplus), __func__, class_name, c) << '\n'; 
 };
 
-Derived::Derived(const double n1, const double n2) : Abstract(n1) {
-   Abstract::validate(n2, __func__);
-   this->y = n2;
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), this->y) << '\n';
+Derived::Derived(const double n1, const double n2, const double n3) : Base(n1, n2) {
+   Abstract::validate(n3, __func__);
+   Derived::validate(n3, __func__);
+   this->z = n3;
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), unmove(pv_Y()), this->z) << '\n';
 }
 
 Derived::~Derived() {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), this->y) << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), unmove(pv_Y()), this->z) << '\n';
 }
 
 }
 
-extern "C" Hierarchy::Abstract * derived_create(const double n1, const double n2, const double n3) {
+extern "C" Hierarchy::Interface * derived_create(const double n1, const double n2, const double n3) {
    using namespace Hierarchy;
    try {
-      Abstract * result = new Derived(n1, n2, n3);
+      Interface * result = new Derived(n1, n2, n3);
       return result;
    }
    catch (const std::invalid_argument & e) {
@@ -69,7 +79,7 @@ extern "C" Hierarchy::Abstract * derived_create(const double n1, const double n2
    }
 }
 
-extern "C" void derived_destroy(Hierarchy::Abstract * & pointer) {
+extern "C" void derived_destroy(Hierarchy::Interface * & pointer) {
    if (pointer == nullptr) 
       throw std::invalid_argument(string(__func__) + " argument of derived is nullptr");
    

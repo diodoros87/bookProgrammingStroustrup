@@ -8,7 +8,7 @@ using std::to_string;
 
 namespace Hierarchy {
    
-const string Abstract::class_name = typeid(Base).name();
+const string Base::class_name = typeid(Base).name();
 
 void Base::virt_set_Y(const double n) {
    Abstract::validate(n, __func__);
@@ -52,10 +52,10 @@ Base::~Base() {
 
 }
 
-extern "C" Hierarchy::Abstract * base_create(const double n1, const double n2) {
+extern "C" Hierarchy::Interface * base_create(const double n1, const double n2) {
    using namespace Hierarchy;
    try {
-      Abstract * result = new Base(n1, n2);
+      Interface * result = new Base(n1, n2);
       return result;
    }
    catch (const std::invalid_argument & e) {
@@ -64,7 +64,7 @@ extern "C" Hierarchy::Abstract * base_create(const double n1, const double n2) {
    }
 }
 
-extern "C" void base_destroy(Hierarchy::Abstract * & pointer) {
+extern "C" void base_destroy(Hierarchy::Interface * & pointer) {
    if (pointer == nullptr) 
       throw std::invalid_argument(string(__func__) + " argument of base is nullptr");
    
