@@ -30,6 +30,12 @@ void Derived::virt_set_Y(const double n) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->z) << '\n';
 }
 
+void Derived::virt_set_X(const double n) {
+   Derived::validate(n, __func__);
+   Base::virt_set_Y(n);
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->z) << '\n';
+}
+
 void Derived::pv_print_Y() const {
    double Y = pv_Y();
    cerr << TIE( "C++", unmove(__cplusplus), class_name, __func__, " = ", Y, unmove('\n'));

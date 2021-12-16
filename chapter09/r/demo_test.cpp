@@ -1,6 +1,7 @@
 #include "demo_test.hpp"
 #include "print.hpp"
 #include "utility.hpp"
+#include "demo.hpp"
 
 #include "connector.h"
 

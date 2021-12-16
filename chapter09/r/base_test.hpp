@@ -3,9 +3,13 @@
 
 #include "result_codes.h"
 
+#include "demo.hpp"
+
+//using demo::Demo;
+
 namespace tests {
 
-Result_codes test_demo();
+Result_codes test_base();
 
 }
 

@@ -14,7 +14,7 @@ using namespace tests;
 //using namespace std::placeholders;
 using std::function;
 using std::bind;
-using std::vector;
+using std::initializer_list;
 
 void set_handler(void (*func)(void)) { 
    std::set_terminate(func); 
@@ -29,16 +29,19 @@ static void at_exit () {
 }
 
 template <typename Function, typename... Args>  
-inline static Result_codes call_function(Function && func, Args&&... args) {
+static inline  Result_codes call_function(Function && func, Args&&... args) {
    Result_codes result = func(forward<Args>(args)...);
    assert_many(result == OK, "result == ", result);
    return result;
 }
 
-inline Result_codes main_tests() {
+static Result_codes main_tests() {
    Result_codes result = UNRECOGNIZED_ERROR;
-   vector < function <Result_codes()> > vec = { bind(::test_demo), bind(test_demo_derived), 
-                     bind(test_human), bind(test_human_derived)};
+   initializer_list < function <Result_codes()> > vec = { bind(::test_demo), bind(test_demo_derived), 
+                     bind(test_human), bind(test_human_derived)
+                     //, bind(test_money)
+      
+   };
    for (auto fun : vec) {
       result = call_function(fun);
       if (OK != result)
@@ -69,7 +72,7 @@ static Result_codes main_linking_tests() {
    return result;
 }
 
-int main(const int argc, const char * argv[]) {
+int main(const int, const char * argv[]) {
    try {
       cerr << "\n C++ " << __cplusplus << " function = " << __func__ << '\n';
       size_t pos = string(argv[0]).rfind('/');
