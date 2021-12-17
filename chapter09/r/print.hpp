@@ -66,13 +66,9 @@ template <typename Object, typename Value, typename Func_1, typename Func_2, typ
 Result_codes bind_execute_member_function_assert(Object & object, Func_1 && m_funct, 
                                                         const Value & expected_value, const string& value_string, const string& function,
                                                         Func_2 && m_funct_args, Args&&... args ) {
-   //std::reference_wrapper<Object> object_ref_wrapper = std::ref(object);
-   //Result_codes result = bind_execute_member_function(object_ref_wrapper, m_funct_args, args ...);
    Result_codes result = bind_execute_member_function(object, m_funct_args, args ...);
    if (OK != result)
       return result;
-   //auto bind_function = bind(m_funct, std::cref(object), std::placeholders::_1);
-   cerr << " \n-----------------------------\n";
    auto bind_function = std::mem_fn(m_funct);
    Value value = bind_function(object);
    print_and_assert(value, expected_value, value_string, function);

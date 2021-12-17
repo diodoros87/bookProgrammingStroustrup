@@ -7,6 +7,14 @@ using std::to_string;
 namespace Hierarchy {
    
 const string Derived::class_name = typeid(Derived).name();
+const int Derived::DERIVED = 2;
+const char Derived::DERIVED_CHAR = 'D';
+
+void Derived::check(const double n, const string & func) {
+   validate(n, func);
+   if (! pv_valid(n))
+      throw std::invalid_argument(func + " argument of number: '" + to_string(n) + "' is not valid");
+}
 
 void Derived::validate(const double number, const string & function) {
    if (0 == number) 
@@ -14,8 +22,8 @@ void Derived::validate(const double number, const string & function) {
 }
 
 void Derived::virt_set_Z(const double n) {
-   Abstract::validate(n, __func__);
-   Derived::validate(n, __func__);
+   Base::check(n, __func__);
+   check(n, __func__);
    this->z = n;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->z) << '\n';
 }
@@ -25,14 +33,14 @@ void Derived::virt_print_Z() const {
 }
 
 void Derived::virt_set_Y(const double n) {
-   Derived::validate(n, __func__);
+   check(n, __func__);
    Base::virt_set_Y(n);
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->z) << '\n';
 }
 
 void Derived::virt_set_X(const double n) {
-   Derived::validate(n, __func__);
-   Base::virt_set_Y(n);
+   check(n, __func__);
+   Abstract::virt_set_X(n);
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->z) << '\n';
 }
 
@@ -61,8 +69,8 @@ void Derived::pv_print_char() const {
 };
 
 Derived::Derived(const double n1, const double n2, const double n3) : Base(n1, n2) {
-   Abstract::validate(n3, __func__);
-   Derived::validate(n3, __func__);
+   Base::check(n3, __func__);
+   check(n3, __func__);
    this->z = n3;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), unmove(pv_Y()), this->z) << '\n';
 }

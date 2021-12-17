@@ -7,12 +7,11 @@ namespace Hierarchy {
 
 class Derived : public Base {
 private:
-   static const int DERIVED = 1;
-   static const char DERIVED_CHAR = 'B';
-   
    double z = DERIVED;
 public:
    static const string class_name;
+   static const int DERIVED;
+   static const char DERIVED_CHAR;
    static void validate(const double, const string &);
    
    virtual void virt_set_Z (const double z);
@@ -43,6 +42,10 @@ public:
    
    ~Derived();
    Derived(const double, const double, const double);
+protected:
+   void check(const double n, const string & func);
+   inline virtual bool pv_valid(const double n) const override { 
+      return (n > 100) ? false : true; };
 };
 
 }

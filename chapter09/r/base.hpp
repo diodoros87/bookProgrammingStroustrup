@@ -7,12 +7,10 @@ namespace Hierarchy {
 
 class Base : public Abstract {
 private:
-   static const int BASE = 1;
-   static const char BASE_CHAR = 'B';
-   
    double y = BASE;
-   
 public:
+   static const int BASE;
+   static const char BASE_CHAR;
    static const string class_name;
    
    virtual double pv_Y() const override final { return y; };
@@ -35,7 +33,9 @@ public:
    ~Base();
    Base(const double, const double);
 protected:
-   
+   void check(const double n, const string & func);
+   inline virtual bool pv_valid(const double n) const override { 
+      return (n < 0) ? false : true; };
 };
 
 }

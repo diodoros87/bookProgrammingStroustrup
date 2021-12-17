@@ -3,6 +3,6 @@
 
 namespace Hierarchy {
 
-const int Interface::nb = -8;
+const int Interface::NB = -8;
 
 }

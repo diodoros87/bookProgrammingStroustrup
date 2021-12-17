@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS = -DMANUAL_DLL_LOAD     -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS =    -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD     -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS =    -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -97,7 +97,7 @@ main_cpp: main_cpp.o file_edit.o system_cpp.o
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) main_cpp.o file_edit.o system_cpp.o -o main_cpp 
 	
 linking_test_cpp: linking_test_cpp.o variadic_template_test_cpp.o demo_test.o demo_derived_test.o base_test.o human_test.o human_derived_test.o shared_lib_open.o print.o libhuman.so libdemo.so libdemoderived.so
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o demo_derived_test.o base_test.o human_test.o human_derived_test.o shared_lib_open.o -L. -lbase_cpp -lconnector -ldemo -ldemoderived -lhumanderived -Wl,--no-as-needed -lvariadic_template -lhuman -Wl,--as-needed -ldl -o linking_test_cpp 
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o demo_derived_test.o base_test.o human_test.o human_derived_test.o shared_lib_open.o -L. -lbase_cpp -lderived_cpp -lconnector -ldemo -ldemoderived -lhumanderived -Wl,--no-as-needed -lvariadic_template -lhuman -Wl,--as-needed -ldl -o linking_test_cpp 
 	
 base_test.o: base_test.hpp base_test.cpp utility.hpp shared_lib_open.h result_codes.h connector.h print.hpp
 	$(CXX) $(CPPFLAGS) -c base_test.cpp 
@@ -162,8 +162,8 @@ libdemo.so: demo.o
 demo.o: demo.hpp demo.cpp null.hpp print.hpp utility.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC demo.cpp 
 	
-libderived_cpp.so:  base_cpp.o  derived_cpp.o abstract_cpp.o interface_cpp.o
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -o libderived_cpp.so derived_cpp.o base_cpp.o abstract_cpp.o interface_cpp.o 
+libderived_cpp.so:  derived_cpp.o
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -o libderived_cpp.so derived_cpp.o 
 	
 derived_cpp.o: derived.cpp base.hpp derived.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC derived.cpp -o derived_cpp.o 
@@ -173,9 +173,6 @@ libbase_cpp.so:  base_cpp.o abstract_cpp.o interface_cpp.o
 	
 base_cpp.o: base.cpp abstract.hpp base.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC base.cpp -o base_cpp.o 
-	
-#libabstract_cpp.so: abstract_cpp.o interface_cpp.o
-#	$(CXX) $(CPPFLAGS) $(LDFLAGS) -shared -o libabstract_cpp.so abstract_cpp.o interface_cpp.o 
 	
 abstract_cpp.o: abstract.cpp abstract.hpp interface.hpp
 	$(CXX) $(CPPFLAGS) -c -fPIC abstract.cpp -o abstract_cpp.o 

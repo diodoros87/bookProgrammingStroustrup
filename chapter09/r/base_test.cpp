@@ -46,11 +46,23 @@ static Result_codes test_base_linking() {
    if (result == OK) {
       print_and_assert(b->X(), 4.0, "x", __func__);
       print_and_assert(b->pv_Y(), 8.0, "y", __func__);
+      print_and_assert(b->pv_char(), Base::BASE_CHAR, "BASE_CHAR", __func__);
+      print_and_assert(b->number(), Base::BASE, "number", __func__);
+      
       result = bind_execute_member_function_assert(b, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);
       if (OK == result)
          result = bind_execute_member_function_assert(b, &Base::pv_Y, -9.8, "y", __func__, &Base::virt_set_Y, -9.8);
+      if (INVALID_ARG == result)
+         result = OK;
+      else
+         assert_many(result != INVALID_ARG, "result == ", result);
+      
       if (OK == result)
+         result = bind_execute_member_function_assert(b, &Base::pv_Y, 105.8, "y", __func__, &Base::virt_set_Y, 105.8); 
+      if (OK == result) {
+         print_and_assert(b->virt_area(), 7.5 * 105.8, "virt_area", __func__);
          result = static_cast<Result_codes> (close_handle(&(base_functions.handle)));
+      }
    }
    base_functions.destroy(b);
    if (result != OK)
@@ -65,20 +77,23 @@ static Result_codes test_base_linking() {
    Base b = {-6, 0};
    print_and_assert(b.X(), -6.0, "x", __func__);
    print_and_assert(b.pv_Y(), 0.0, "y", __func__);
+   print_and_assert(b.pv_char(), Base::BASE_CHAR, "BASE_CHAR", __func__);
+   print_and_assert(b.number(), Base::BASE, "number", __func__);
 
    Result_codes result = bind_execute_member_function_assert(b, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);
    if (OK == result)
-      result = bind_execute_member_function_assert(b, &Base::pv_Y, -9.8, "y", __func__, &Base::virt_set_Y, -9.8);
-   /*
-   string name = b.get_name();
-   cerr << TIE( "C++", unmove(__cplusplus), __func__, name) << '\n';
-   assert_many(name == "Leibniz", "name == ", name);
-   function<void(const string&)> set = bind(&Base::set_name, std::ref(b), _1);
-   Result_codes result = call_catch_exception(set, "Descartes");
-   name = b.get_name();
-   cerr << TIE( "C++", unmove(__cplusplus), __func__, name) << '\n';
-   assert_many(name == "Descartes", "name == ", name);
-   */
+      result = bind_execute_member_function_assert(b, &Base::pv_Y, std::numeric_limits<double>::infinity(), "y", __func__, &Base::virt_set_Y, std::numeric_limits<double>::infinity());
+   if (INVALID_ARG == result)
+      result = OK;
+   else
+      assert_many(result != INVALID_ARG, "result == ", result);
+   
+   if (OK == result)
+      result = bind_execute_member_function_assert(b, &Base::pv_Y, 105.8, "y", __func__, &Base::virt_set_Y, 105.8);
+   if (OK == result)
+      print_and_assert(b.virt_area(), 7.5 * 105.8, "virt_area", __func__);
+   
+   assert_many(result == OK, "result == ", result);
    return result;
 }
 #endif
