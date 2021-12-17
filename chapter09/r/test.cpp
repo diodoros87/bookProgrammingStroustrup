@@ -18,7 +18,7 @@ int test(int tests, const string & command) {
    return result;
 }
 
-int main(const int argc, const char ** argv) {
+int main(const int, const char ** argv) {
    const size_t pos = string(argv[0]).rfind('/');
    const string program_name = (pos != string::npos && pos + 1 < string(argv[0]).size()) ? string(argv[0]).substr(pos + 1) : argv[0];
    cerr << "\n  Program name = " << program_name << '\n';

@@ -6,6 +6,7 @@
 #include "human_test.hpp"
 #include "human_derived_test.hpp"
 #include "human.h"
+#include "base_test.hpp"
 
 #include <functional>
 
@@ -40,6 +41,7 @@ static Result_codes main_tests() {
    initializer_list < function <Result_codes()> > vec = { bind(::test_demo), bind(test_demo_derived), 
                      bind(test_human), bind(test_human_derived)
                      //, bind(test_money)
+                     , bind(test_base)
       
    };
    for (auto fun : vec) {

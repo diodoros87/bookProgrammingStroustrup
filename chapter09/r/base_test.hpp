@@ -1,5 +1,5 @@
-#ifndef DEMO_TEST_HPP
-#define DEMO_TEST_HPP
+#ifndef BASE_TEST_HPP
+#define BASE_TEST_HPP
 
 #include "result_codes.h"
 

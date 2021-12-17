@@ -124,21 +124,9 @@ Result_codes call_catch_exception(Function && func, Args&&... args )
    
    
 template <typename Type, typename Function, typename... Args>  
-inline Result_codes bind_execute_member_function(const Type & object, Function && member_function, Args&&... args ) {
+inline Result_codes bind_execute_member_function(Type & object, Function && member_function, Args&&... args ) {
    auto bind_function = bind(member_function, object, std::placeholders::_1);
    Result_codes result = call_catch_exception(bind_function, forward<Args>(args)...);
-   return result;
-}
-
-template <typename Object, typename Value, typename Func_1, typename Func_2, typename... Args>  
-Result_codes bind_execute_member_function_assert(const Object & object, Func_1 && m_funct, 
-                                                        const Value & expected_value, const string& value_string, const string& function,
-                                                        Func_2 && m_funct_args, Args&&... args ) {
-   Result_codes result = bind_execute_member_function(object, m_funct_args, args ...);
-   if (OK != result)
-      return result;
-   auto bind_function = bind(m_funct);
-   print_and_assert(bind_function, expected_value, value_string, function);
    return result;
 }
 
