@@ -40,24 +40,21 @@ static Result_codes test_base_linking() {
    Manual_DLL_interface base_functions;
    load_base(base_functions);
    Base * b = base_functions.create(4, 8); 
-   if (nullptr == b) {
-      close_handle(&(base_functions.handle));
-      return INVALID_ARG;
+   Result_codes result = OK;
+   if (nullptr == b)
+      result = INCORRECT_VALUE;
+   if (result == OK) {
+      print_and_assert(b->X(), 4.0, "x", __func__);
+      print_and_assert(b->pv_Y(), 8.0, "y", __func__);
+      result = bind_execute_member_function_assert(b, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);
+      if (OK == result)
+         result = bind_execute_member_function_assert(b, &Base::pv_Y, -9.8, "y", __func__, &Base::virt_set_Y, -9.8);
+      if (OK == result)
+         result = static_cast<Result_codes> (close_handle(&(base_functions.handle)));
    }
-   print_and_assert(b->X(), 4.0, "x", __func__);
-   print_and_assert(b->pv_Y(), 8.0, "y", __func__);
-   //cerr << TIE( "C++", unmove(__cplusplus), __func__, " base's name = ", x) << '\n';
-   //assert_many(x == 4, "x == ", x);
-   Result_codes result = bind_execute_member_function(b, &Base::virt_set_X, 7.5);
-   //Result_codes result = bind_execute_member_function_assert(b, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);
-   //if (OK == result)
-   //   result = bind_execute_member_function_assert(b, &Base::pv_Y, -9.8, "y", __func__, &Base::virt_set_Y, -9.8);
-   print_and_assert(b->X(), 7.5, "x", __func__);
-   name = b->get_name();
-   cerr << TIE( "C++", unmove(__cplusplus), __func__, " b name = ", name) << '\n';
-   assert_many(name == "Socrates", "name == ", name);
    base_functions.destroy(b);
-   result = static_cast<Result_codes> (close_handle(&(base_functions.handle)));
+   if (result != OK)
+      close_handle(&(base_functions.handle));
    assert_many(result == OK, "result == ", result);
    assert_many(b == nullptr, "b pointer == ", b);
    return result;
@@ -66,17 +63,12 @@ static Result_codes test_base_linking() {
 static Result_codes test_base_linking() {
    cerr << "\nAUTOMATIC DLL LOAD\n";
    Base b = {-6, 0};
-   Base & b_ref = b;
    print_and_assert(b.X(), -6.0, "x", __func__);
    print_and_assert(b.pv_Y(), 0.0, "y", __func__);
-   //Result_codes result =OK;
-   //Result_codes result = bind_execute_member_function(std::ref(b), &Base::virt_set_X, 7.5);
-   //b.virt_set_X(7.5);
-   //assert_many(b.X() == 7.5, "x == ", unmove(b.X()));
-   //print_and_assert(b.X(), 7.5, "x", __func__);
-   Result_codes result = bind_execute_member_function_assert(b_ref, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);
+
+   Result_codes result = bind_execute_member_function_assert(b, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);
    if (OK == result)
-      result = bind_execute_member_function_assert(b_ref, &Base::pv_Y, -9.8, "y", __func__, &Base::virt_set_Y, -9.8);
+      result = bind_execute_member_function_assert(b, &Base::pv_Y, -9.8, "y", __func__, &Base::virt_set_Y, -9.8);
    /*
    string name = b.get_name();
    cerr << TIE( "C++", unmove(__cplusplus), __func__, name) << '\n';

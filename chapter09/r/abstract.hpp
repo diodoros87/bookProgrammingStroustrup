@@ -42,7 +42,7 @@ public:
    int pv_number() const override { return ABSTRACT; };
    void pv_print_number() const override final;
    
-   virtual ~Abstract();
+   virtual ~Abstract() ;
 protected:
    Abstract(const double);
 };
