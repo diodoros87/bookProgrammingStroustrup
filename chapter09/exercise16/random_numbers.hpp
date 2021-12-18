@@ -23,6 +23,11 @@ class Generator_Interface {
 public:
    virtual long long operator()(char &&) const = 0;   // argument of char to save memory
    virtual ~ Generator_Interface() = default;
+   
+   Generator_Interface(Generator_Interface const &) = delete;
+   Generator_Interface& operator=(Generator_Interface const &) = delete;
+protected:
+   Generator_Interface() { }
 };
 
 template <class T> 
@@ -39,6 +44,7 @@ public:
       return seed;
    }
    
+   Base_Generator& operator=(Base_Generator const &) = delete;
 protected:
    Base_Generator(const T & MIN, const T & MAX) : min(MIN) , max(MAX) {
       if (MIN > MAX)

@@ -43,6 +43,9 @@ public:
    void pv_print_number() const override final;
    
    virtual ~Abstract() ;
+   
+   Abstract(Abstract const &) = delete;
+   Abstract& operator=(Abstract const &) = delete;
 protected:
    Abstract(const double);
 };

@@ -11,11 +11,13 @@ namespace Hierarchy {
 const string Abstract::class_name = typeid(Abstract).name();
    
 void Abstract::validate(const double number, const string & function) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    if (! std::isfinite(number)) 
       throw std::invalid_argument(function + " argument of number: '" + to_string(number) + "' is not finite");
 }
 
 void Abstract::virt_set_X(const double number) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    validate(number, __func__);
    this->x = number;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
@@ -32,6 +34,7 @@ void Abstract::print_virt_area() const {
 }
 
 double Abstract::virt_area() const {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    return x;
 }
 
@@ -46,6 +49,7 @@ void Abstract::pv_print_number() const  {
 };
 
 Abstract::Abstract(const double number) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    validate(number, __func__);
    this->x = number;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';

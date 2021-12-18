@@ -11,17 +11,20 @@ const int Derived::DERIVED = 2;
 const char Derived::DERIVED_CHAR = 'D';
 
 void Derived::check(const double n, const string & func) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    validate(n, func);
    if (! pv_valid(n))
       throw std::invalid_argument(func + " argument of number: '" + to_string(n) + "' is not valid");
 }
 
 void Derived::validate(const double number, const string & function) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    if (0 == number) 
       throw std::invalid_argument(function + " argument of number: '" + to_string(number) + "' is 0");
 }
 
 void Derived::virt_set_Z(const double n) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    Base::check(n, __func__);
    check(n, __func__);
    this->z = n;
@@ -39,6 +42,7 @@ void Derived::virt_set_Y(const double n) {
 }
 
 void Derived::virt_set_X(const double n) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    check(n, __func__);
    Abstract::virt_set_X(n);
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->z) << '\n';
@@ -50,6 +54,7 @@ void Derived::pv_print_Y() const {
 }
 
 double Derived::virt_area() const {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    return Base::virt_area() * z;
 }
 
@@ -69,6 +74,7 @@ void Derived::pv_print_char() const {
 };
 
 Derived::Derived(const double n1, const double n2, const double n3) : Base(n1, n2) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    Base::check(n3, __func__);
    check(n3, __func__);
    this->z = n3;

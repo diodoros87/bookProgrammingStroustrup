@@ -51,12 +51,14 @@ static Result_codes test_demo_linking() {
    function<void(const string&)> set = bind(&Demo::set_name, human, _1);
    Result_codes result = call_catch_exception(set, "Socrates");
    if (OK != result)
-      return result;
-   name = human->get_name();
-   cerr << TIE( "C++", unmove(__cplusplus), __func__, " human name = ", name) << '\n';
-   assert_many(name == "Socrates", "name == ", name);
+      close_handle(&(demo_functions.handle));
+   else {
+      name = human->get_name();
+      cerr << TIE( "C++", unmove(__cplusplus), __func__, " human name = ", name) << '\n';
+      assert_many(name == "Socrates", "name == ", name);
+      result = static_cast<Result_codes> (close_handle(&(demo_functions.handle)));
+   }
    demo_functions.destroy(human);
-   result = static_cast<Result_codes> (close_handle(&(demo_functions.handle)));
    assert_many(result == OK, "result == ", result);
    assert_many(human == nullptr, "human pointer == ", human);
    return result;

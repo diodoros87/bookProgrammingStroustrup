@@ -3,18 +3,16 @@
 #include "utility.hpp"
 #include "base.hpp"
 
-#include "connector.h"
-
 #include <functional>
 
 using namespace std::placeholders;
 using std::function;
+using std::numeric_limits;
 
 using std::bind;
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
-   //#include "base_functions.h"
    #include "shared_lib_open.h"
 #endif
    
@@ -82,7 +80,7 @@ static Result_codes test_base_linking() {
 
    Result_codes result = bind_execute_member_function_assert(b, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);
    if (OK == result)
-      result = bind_execute_member_function_assert(b, &Base::pv_Y, std::numeric_limits<double>::infinity(), "y", __func__, &Base::virt_set_Y, std::numeric_limits<double>::infinity());
+      result = bind_execute_member_function_assert(b, &Base::pv_Y, numeric_limits<double>::infinity(), "y", __func__, &Base::virt_set_Y, numeric_limits<double>::infinity());
    if (INVALID_ARG == result)
       result = OK;
    else

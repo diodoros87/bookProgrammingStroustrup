@@ -17,8 +17,11 @@ public:
    virtual ~Interface() { 
       std::cerr << '\n' << TIE("C++", unmove(__cplusplus), "Interface", __func__, Interface::NB) << '\n';
    }
+   Interface(Interface const &) = delete;
+   Interface& operator=(Interface const &) = delete;
 protected:
    virtual bool pv_valid(const double) const = 0;
+   Interface() { }
 };
 
 }

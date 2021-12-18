@@ -6,7 +6,7 @@
 #include "connector.h"
 
 #ifdef __cplusplus
-//#include "variadic_template.hpp"
+#include "variadic_template.hpp"
 #include "demo.hpp"
 #include "utility.hpp"
 #include "null.hpp"
