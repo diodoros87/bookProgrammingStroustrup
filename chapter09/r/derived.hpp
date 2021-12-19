@@ -7,7 +7,7 @@ namespace Hierarchy {
 
 class Derived : public Base {
 private:
-   double z = DERIVED;
+   double z {DERIVED};
 public:
    static const string class_name;
    static const int DERIVED;
@@ -40,8 +40,12 @@ public:
    virtual char pv_char() const { return DERIVED_CHAR; };
    virtual void pv_print_char() const;
    
+   Derived& operator=(const Derived &);
+   Derived(const Derived&);
+   
    ~Derived();
    Derived(const double, const double, const double);
+   Derived() { cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n'; }
 protected:
    void check(const double n, const string & func);
    inline virtual bool pv_valid(const double n) const override { 

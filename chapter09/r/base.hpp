@@ -7,7 +7,7 @@ namespace Hierarchy {
 
 class Base : public Abstract {
 private:
-   double y = BASE;
+   double y {BASE};
 public:
    static const int BASE;
    static const char BASE_CHAR;
@@ -32,6 +32,7 @@ public:
    
    ~Base();
    Base(const double, const double);
+   Base() { cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n'; }
 protected:
    void check(const double n, const string & func);
    inline virtual bool pv_valid(const double n) const override { 

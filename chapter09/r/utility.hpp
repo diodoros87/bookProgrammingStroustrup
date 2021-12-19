@@ -157,18 +157,28 @@ Result_codes init(Type * & object_pointer, Function && constructor, Args &&... a
    return OK;
 }
 
-   /*
-template <typename Result, typename Function, typename... Args>  
-Result_codes call_catch_exception(Result & result, Function && func, Args&&... args )
+template <typename Type, typename Function, typename... Args>
+Result_codes init(Type & object_ref, Function && constructor, Args &&... args) {
    try {
-      result = func(forward<Args>(args)...);
-      return OK;
-   } catch (const std::invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << '\n';
-      return INVALID_ARG;
-   } catch (const std::out_of_range& e) {
-      cerr << __func__ << " exception: " << e.what() << '\n';
-      return OUT_OF_RANGE_ERROR;
+      object_ref = constructor(forward<Args>(args)...);
+   } 
+   catch (const bad_alloc & const_e) {
+      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
+      bad_alloc &e = const_cast<bad_alloc &>(const_e);
+      return get_error_code(reinterpret_cast<bad_alloc *>(&e));
    }
-*/
+   catch (const invalid_argument & const_e) {
+      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
+      invalid_argument &e = const_cast<invalid_argument &>(const_e);
+      return get_error_code(reinterpret_cast<invalid_argument *>(&e));
+   } catch (const exception & const_e) {
+      cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
+      exception &e = const_cast<exception &>(const_e);
+      return get_error_code(reinterpret_cast<exception *>(&e));
+   } catch (...) {
+      cerr  << __func__ << " Unrecognized exception was catched " << '\n';
+      return UNRECOGNIZED_ERROR;
+   }
+   return OK;
+}
 #endif

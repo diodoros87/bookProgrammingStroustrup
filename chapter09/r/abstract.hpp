@@ -14,7 +14,7 @@ class Abstract : public Interface {
 private:
    static const int ABSTRACT = 0;
    
-   double x = ABSTRACT;
+   double x {ABSTRACT};
    
 public:
    static const string class_name;
@@ -48,6 +48,7 @@ public:
    Abstract& operator=(Abstract const &) = delete;
 protected:
    Abstract(const double);
+   Abstract() { cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n'; }
 };
 
 }
