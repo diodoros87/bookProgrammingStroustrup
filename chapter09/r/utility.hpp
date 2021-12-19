@@ -127,7 +127,6 @@ template <typename Type, typename Function, typename... Args>
 inline Result_codes bind_execute_member_function(Type & object, Function && member_function, Args&&... args ) {
    std::reference_wrapper<Type> object_ref_wrapper = std::ref(object);
    auto bind_function = bind(member_function, object_ref_wrapper, std::placeholders::_1);
-   //auto bind_function = bind(member_function, object, std::placeholders::_1);
    Result_codes result = call_catch_exception(bind_function, forward<Args>(args)...);
    return result;
 }

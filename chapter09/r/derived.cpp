@@ -44,7 +44,7 @@ void Derived::virt_set_Y(const double n) {
 void Derived::virt_set_X(const double n) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    check(n, __func__);
-   Abstract::virt_set_X(n);
+   Base::virt_set_X(n);
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->z) << '\n';
 }
 
