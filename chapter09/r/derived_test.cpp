@@ -29,7 +29,7 @@ Result_codes incorrect_call(Object & object, Func_1 && m_funct,
    if (INVALID_ARG == result)
       result = OK;
    else
-      assert_many(result != INVALID_ARG, "result == ", result);
+      result = BAD_FUNTION_CALL;
    return result;
 }
 
@@ -46,36 +46,44 @@ static void load_derived(Manual_DLL_interface & derived_functions) {
    derived_functions.destroy  = reinterpret_cast<void (*)(Derived * & )> (get_symbol(derived_functions.handle, "derived_destroy"));
 }
 
+static Derived * test_constructor(Derived * (*create)(const double, const double, const double)) {
+   Derived * d = create(4, -3, 7); 
+   assert_many(d == nullptr, "d pointer == ", d);
+   d = create(4, 55, 107); 
+   assert_many(d == nullptr, "d pointer == ", d);
+   d = create(4, 101, 7); 
+   assert_many(d != nullptr, "d pointer == ", d);
+   return d;
+}
+
 static Result_codes test_derived_linking() {
    cerr << "\nMANUAL DLL LOAD\n";
    Manual_DLL_interface derived_functions;
    load_derived(derived_functions);
-   Derived * d = derived_functions.create(4, 8, 7); 
-   Result_codes result = OK;
-   if (nullptr == d)
-      result = INCORRECT_VALUE;
+   Derived * d = test_constructor(derived_functions.create); 
+   Result_codes result = (nullptr == d) ? INCORRECT_VALUE : OK;
    if (result == OK) {
       print_and_assert(d->X(), 4.0, "x", __func__);
-      print_and_assert(d->pv_Y(), 8.0, "y", __func__);
+      print_and_assert(d->pv_Y(), 101., "y", __func__);
       print_and_assert(d->Z(), 7.0, "z", __func__);
       print_and_assert(d->pv_char(), Derived::DERIVED_CHAR, "DERIVED_CHAR", __func__);
       print_and_assert(d->number(), Derived::DERIVED, "number", __func__);
       
       result = bind_execute_member_function_assert(d, &Derived::X, 7.5, "x", __func__, &Derived::virt_set_X, 7.5);
       if (OK == result)
+         result = bind_execute_member_function_assert(d, &Derived::pv_Y, -105.8, "y", __func__, &Derived::virt_set_Y, -105.8); 
+      if (OK == result)
          result = incorrect_call(d, &Derived::pv_Y, -9.8, "y", __func__, &Derived::virt_set_Y, -9.8);
-      if (OK == result)
-         result = incorrect_call(d, &Derived::pv_Y, 105.8, "y", __func__, &Derived::virt_set_Y, 105.8); 
-      if (OK == result)
-         result = bind_execute_member_function_assert(d, &Derived::pv_Y, 5.8, "y", __func__, &Derived::virt_set_Y, 5.8);
-      if (OK == result)
-         result = incorrect_call(d, &Derived::Z, 0, "y", __func__, &Derived::virt_set_Z, 0);
-      if (OK == result)
-         result = incorrect_call(d, &Derived::Z, 105.8, "y", __func__, &Derived::virt_set_Z, 105.8); 
-      if (OK == result)
-         result = bind_execute_member_function_assert(d, &Derived::Z, 21.2, "y", __func__, &Derived::virt_set_Z, 21.2);
       if (OK == result) {
-         print_and_assert(d->virt_area(), 7.5 * 5.8 * 21.2, "virt_area", __func__);
+         print_and_assert(d->pv_Y(), -105.8, "y", __func__);
+         result = incorrect_call(d, &Derived::Z, 0, "z", __func__, &Derived::virt_set_Z, 0);
+      }  
+      if (OK == result)
+         result = incorrect_call(d, &Derived::Z, 241.2, "z", __func__, &Derived::virt_set_Z, 241.2);
+      if (OK == result)
+         result = bind_execute_member_function_assert(d, &Derived::Z, -165.8, "z", __func__, &Derived::virt_set_Z, -165.8); 
+      if (OK == result) {
+         print_and_assert(d->virt_area(), 7.5 * -9.8 * -165.8, "virt_area", __func__);
          result = static_cast<Result_codes> (close_handle(&(derived_functions.handle)));
       }
    }
@@ -89,25 +97,32 @@ static Result_codes test_derived_linking() {
 #else
 static Result_codes test_derived_linking() {
    cerr << "\nAUTOMATIC DLL LOAD\n";
-   Derived d = {-6, 0, 7};
-   print_and_assert(d.X(), -6.0, "x", __func__);
-   print_and_assert(d.pv_Y(), 0.0, "y", __func__);
+   Derived d = {4, 8, 7};
+   print_and_assert(d.X(), 4.0, "x", __func__);
+   print_and_assert(d.pv_Y(), 8.0, "y", __func__);
+   print_and_assert(d.Z(), 7.0, "z", __func__);
    print_and_assert(d.pv_char(), Derived::DERIVED_CHAR, "DERIVED_CHAR", __func__);
    print_and_assert(d.number(), Derived::DERIVED, "number", __func__);
 
    Result_codes result = bind_execute_member_function_assert(d, &Derived::X, 7.5, "x", __func__, &Derived::virt_set_X, 7.5);
    if (OK == result)
-      result = bind_execute_member_function_assert(d, &Derived::pv_Y, numeric_limits<double>::infinity(), "y", __func__, &Derived::virt_set_Y, numeric_limits<double>::infinity());
-   if (INVALID_ARG == result)
-      result = OK;
-   else
-      assert_many(result != INVALID_ARG, "result == ", result);
-   
+      result = incorrect_call(d, &Derived::X, numeric_limits<double>::infinity(), "x", __func__, &Derived::virt_set_X, numeric_limits<double>::infinity());
+   if (OK == result) {
+      print_and_assert(d.X(), 7.5, "x", __func__);
+      result = bind_execute_member_function_assert(d, &Derived::pv_Y, 0.8, "y", __func__, &Derived::virt_set_Y, 0.8);
+   }
    if (OK == result)
-      result = bind_execute_member_function_assert(d, &Derived::pv_Y, 105.8, "y", __func__, &Derived::virt_set_Y, 105.8);
+         result = incorrect_call(d, &Derived::pv_Y, -105.8, "y", __func__, &Derived::virt_set_Y, -105.8); 
+   if (OK == result) {
+      print_and_assert(d.pv_Y(), 0.8, "y", __func__);
+      result = bind_execute_member_function_assert(d, &Derived::Z, 66.8, "z", __func__, &Derived::virt_set_Z, 66.8);
+   }
    if (OK == result)
-      print_and_assert(d.virt_area(), 7.5 * 105.8, "virt_area", __func__);
-   
+         result = incorrect_call(d, &Derived::Z, -0.0, "z", __func__, &Derived::virt_set_Z, -0.0); 
+   if (OK == result) {
+      print_and_assert(d.pv_Y(), 66.8, "z", __func__);
+      print_and_assert(d.virt_area(), 7.5 * -105.8 * 66.8, "virt_area", __func__);
+   }
    assert_many(result == OK, "result == ", result);
    return result;
 }

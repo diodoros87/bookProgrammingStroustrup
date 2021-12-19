@@ -13,7 +13,7 @@ const char Base::BASE_CHAR = 'B';
 void Base::check(const double n, const string & func) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
    Abstract::validate(n, func);
-   if (! pv_valid(n))
+   if (! Base::pv_valid(n))
       throw std::invalid_argument(func + " argument of number: '" + to_string(n) + "' is not valid (n < 0)");
 }
 

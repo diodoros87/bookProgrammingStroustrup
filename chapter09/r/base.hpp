@@ -35,6 +35,7 @@ public:
 protected:
    void check(const double n, const string & func);
    inline virtual bool pv_valid(const double n) const override { 
+      cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
       return (n < 0) ? false : true; };
 };
 
