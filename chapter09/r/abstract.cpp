@@ -55,6 +55,22 @@ Abstract::Abstract(const double number) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
 }
 
+Abstract::Abstract(const Abstract & object) : Interface(object) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
+   this->x = object.x;
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
+}
+
+Abstract& Abstract::operator=(const Abstract & object) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
+   if (this == &object)
+      return *this;
+   Interface::operator=(object);
+   this->x = object.x;
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
+   return *this;
+}
+
 Abstract::~Abstract() {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
 }

@@ -33,11 +33,15 @@ public:
    ~Base();
    Base(const double, const double);
    Base() { cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n'; }
+   
+   Base(const Base & object);
+   Base& operator=(const Base & object);
 protected:
    void check(const double n, const string & func);
    inline virtual bool pv_valid(const double n) const override { 
       cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
-      return (n < 0) ? false : true; };
+      return (n < 0) ? false : true; 
+   }
 };
 
 }

@@ -44,11 +44,11 @@ public:
    
    virtual ~Abstract() ;
    
-   Abstract(Abstract const &) = delete;
-   Abstract& operator=(Abstract const &) = delete;
 protected:
    Abstract(const double);
    Abstract() { cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n'; }
+   Abstract(Abstract const &);
+   Abstract& operator=(Abstract const &);
 };
 
 }

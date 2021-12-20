@@ -114,7 +114,7 @@ static Result_codes test_derived_linking() {
       return result;
    //Derived d = {4, 8, 7};
    print_and_assert(d.X(), 4.0, "x", __func__);
-   print_and_assert(d.pv_Y(), 8.0, "y", __func__);
+   print_and_assert(d.pv_Y(), 101.0, "y", __func__);
    print_and_assert(d.Z(), 7.0, "z", __func__);
    print_and_assert(d.pv_char(), Derived::DERIVED_CHAR, "DERIVED_CHAR", __func__);
    print_and_assert(d.number(), Derived::DERIVED, "number", __func__);

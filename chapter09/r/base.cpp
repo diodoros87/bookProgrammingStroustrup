@@ -56,6 +56,24 @@ Base::Base(const double n1, const double n2) : Abstract(n1) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), this->y) << '\n';
 }
 
+Base::Base(const Base & object) : Abstract(object) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
+   this->y = object.y;
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), this->y) << '\n';
+}
+
+Base& Base::operator=(const Base & object) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
+   if (this == &object)
+      return *this;
+   this->Abstract::operator=(object);
+   //static_cast<Abstract &>(*this) = object;
+   //this->Abstract::operator=(object);
+   this->y = object.y;
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), this->y) << '\n';
+   return *this;
+}
+
 Base::~Base() {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), this->y) << '\n';
 }

@@ -82,6 +82,23 @@ Derived::Derived(const double n1, const double n2, const double n3) : Base(n1, n
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), unmove(pv_Y()), this->z) << '\n';
 }
 
+Derived::Derived(const Derived & object) : Base(object) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
+   this->z = object.z;
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), unmove(pv_Y()), this->z) << '\n';
+}
+
+Derived& Derived::operator=(const Derived & object) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
+   if (this == &object)
+      return *this;
+   static_cast<Base &>(*this) = object;
+   //this->Base::operator=(object);
+   this->z = object.z;
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), unmove(pv_Y()), this->z) << '\n';
+   return *this;
+}
+
 Derived::~Derived() {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), unmove(pv_Y()), this->z) << '\n';
 }
