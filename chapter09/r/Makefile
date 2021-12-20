@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS =  -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS =     -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS =     -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -100,7 +100,7 @@ linking_test_cpp: linking_test_cpp.o variadic_template_test_cpp.o demo_test.o de
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o demo_derived_test.o base_test.o derived_test.o human_test.o human_derived_test.o shared_lib_open.o -L. -lbase_cpp -lderived_cpp -lconnector -ldemo -ldemoderived -lhumanderived -Wl,--no-as-needed -lvariadic_template -lhuman -Wl,--as-needed -ldl -o linking_test_cpp 
 	
 derived_test.o: derived_test.hpp derived_test.cpp utility.hpp shared_lib_open.h result_codes.h print.hpp derived.hpp
-	$(CXX) $(CPPFLAGS) -c derived_test.cpp
+	$(CXX) $(CPPFLAGS) -c derived_test.cpp 
 	
 base_test.o: base_test.hpp base_test.cpp utility.hpp shared_lib_open.h result_codes.h print.hpp base.hpp
 	$(CXX) $(CPPFLAGS) -c base_test.cpp 
