@@ -8,7 +8,6 @@
 using namespace std::placeholders;
 using std::function;
 using std::numeric_limits;
-
 using std::bind;
 
 #ifdef MANUAL_DLL_LOAD
@@ -21,26 +20,49 @@ namespace tests {
 using namespace Hierarchy;
 
 #ifdef MANUAL_DLL_LOAD
-typedef struct Manual_DLL_interface {
-   Base * (*create)(const double, const double);
-   void (*destroy)(Base * & );
-   void * handle;
-} Manual_DLL_interface;
 
-static void load_base(Manual_DLL_interface & base_functions) {
-   base_functions.handle   = get_handle("libbase_cpp.so", RTLD_LAZY);
-   base_functions.create   = reinterpret_cast<Base * (*)(const double, const double)> (get_symbol(base_functions.handle, "base_create"));
-   base_functions.destroy  = reinterpret_cast<void (*)(Base * & )> (get_symbol(base_functions.handle, "base_destroy"));
+struct Test {
+private:
+   static const Manual_DLL_interface interface;
+   static Base * b;
+public:
+   static test_base_linking(); 
+private:
+   inline static void load_interface();
+   inline static Result_codes load_base();
+   static void  print_assert(const Base * const ptr);
+   static void  print_assert(const Abstract * const ptr);
+   static void  print_assert(const Interface * const ptr);
+}
+
+void Test::print_assert(const Base * const ptr) {
+   Interface_functions
+}
+
+Result_codes Test::load_base() {
+   b = interface.create(4, 8);
+   return (nullptr == b) ? INCORRECT_VALUE : OK;
+}
+
+void Test::load_interface() {
+   interface.handle   = get_handle("libbase_cpp.so", RTLD_LAZY);
+   interface.create   = reinterpret_cast<Base * (*)(const double, const double)> (get_symbol(interface.handle, "base_create"));
+   interface.destroy  = reinterpret_cast<void (*)(Base * & )> (get_symbol(interface.handle, "base_destroy"));
+}
+
+static Result_codes Test::test_abstract() {
+   if (nullptr == base)
+      return INVALID_ARG;
+   print_and_assert(b->X(), 4.0, "x", __func__);
+   print_and_assert(b->pv_Y(), 8.0, "y", __func__);
+   print_and_assert(b->pv_char(), Base::BASE_CHAR, "BASE_CHAR", __func__);
+   print_and_assert(b->number(), Base::BASE, "number", __func__);
 }
 
 static Result_codes test_base_linking() {
    cerr << "\nMANUAL DLL LOAD\n";
-   Manual_DLL_interface base_functions;
-   load_base(base_functions);
-   Base * b = base_functions.create(4, 8); 
-   Result_codes result = OK;
-   if (nullptr == b)
-      result = INCORRECT_VALUE;
+   load_interface();
+   Result_codes result = load_base();
    if (result == OK) {
       print_and_assert(b->X(), 4.0, "x", __func__);
       print_and_assert(b->pv_Y(), 8.0, "y", __func__);
@@ -59,12 +81,12 @@ static Result_codes test_base_linking() {
          result = bind_execute_member_function_assert(b, &Base::pv_Y, 105.8, "y", __func__, &Base::virt_set_Y, 105.8); 
       if (OK == result) {
          print_and_assert(b->virt_area(), 7.5 * 105.8, "virt_area", __func__);
-         result = static_cast<Result_codes> (close_handle(&(base_functions.handle)));
+         result = static_cast<Result_codes> (close_handle(&(interface.handle)));
       }
    }
-   base_functions.destroy(b);
+   interface.destroy(b);
    if (result != OK)
-      close_handle(&(base_functions.handle));
+      close_handle(&(interface.handle));
    assert_many(result == OK, "result == ", result);
    assert_many(b == nullptr, "b pointer == ", b);
    return result;

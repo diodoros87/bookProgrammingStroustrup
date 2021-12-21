@@ -131,6 +131,24 @@ inline Result_codes bind_execute_member_function(Type & object, Function && memb
    return result;
 }
 
+template <typename Object, typename Value, typename Func_1, typename Func_2, typename... Args>  
+Result_codes bind_execute_member_function_assert(Object & object, Func_1 && m_funct, 
+                                                        const Value & expected_value, const string& value_string, const string& function,
+                                                        Func_2 && m_funct_args, Args&&... args );
+
+template <typename Object, typename Value, typename Func_1, typename Func_2, typename... Args>  
+Result_codes incorrect_call(Object & object, Func_1 && m_funct, 
+                                                        const Value & expected_value, const string& value_string, const string& function,
+                                                        Func_2 && m_funct_args, Args&&... args ) {
+   Result_codes result = bind_execute_member_function_assert(object, m_funct, expected_value, value_string, function, 
+                                                             m_funct_args, args ...);
+   if (INVALID_ARG == result)
+      result = OK;
+   else
+      result = BAD_FUNTION_CALL;
+   return result;
+}
+
 using std::bad_alloc; using std::invalid_argument; using std::bad_cast; using std::exception; using std::regex_error; using std::out_of_range;
 template <typename Type, typename Function, typename... Args>
 Result_codes init(Type * & object_pointer, Function && constructor, Args &&... args) {
