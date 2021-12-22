@@ -83,13 +83,13 @@ Derived::Derived(const double n1, const double n2, const double n3) : Base(n1, n
 }
 
 Derived::Derived(const Derived & object) : Base(object) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "copy constructor") << '\n';
    this->z = object.z;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), unmove(pv_Y()), this->z) << '\n';
 }
 
 Derived& Derived::operator=(const Derived & object) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "operator = ") << '\n';
    if (this == &object)
       return *this;
    static_cast<Base &>(*this) = object;

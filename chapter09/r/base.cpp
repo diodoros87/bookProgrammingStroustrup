@@ -57,13 +57,13 @@ Base::Base(const double n1, const double n2) : Abstract(n1) {
 }
 
 Base::Base(const Base & object) : Abstract(object) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "copy constructor") << '\n';
    this->y = object.y;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), this->y) << '\n';
 }
 
 Base& Base::operator=(const Base & object) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "operator = ") << '\n';
    if (this == &object)
       return *this;
    this->Abstract::operator=(object);
