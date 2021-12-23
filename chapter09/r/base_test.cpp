@@ -40,21 +40,17 @@ void Base_test::test_interface(const Interface_expected & expected, const Interf
    print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
 }
  
-#ifdef MANUAL_DLL_LOAD
 void Base_test::test_interface(int n, char c) {
+#ifdef MANUAL_DLL_LOAD
    Interface * inter = base;
    interface_real.set(inter->pv_number(), inter->pv_char());
-   interface_expected.set(n, c);
-   test_interface(interface_expected, interface_real);
-}
 #else
-void Base_test::test_interface(int n, char c) {
    Interface & inter = base;
    interface_real.set(inter.pv_number(), inter.pv_char());
+#endif
    interface_expected.set(n, c);
    test_interface(interface_expected, interface_real);
 }
-#endif
 
 void Base_test::test_abstract(const Abstract_expected & expected, const Abstract_real & real) {
    print_and_assert(real.X, expected.X.second, expected.X.first);
@@ -65,21 +61,17 @@ void Base_test::test_abstract(const Abstract_expected & expected, const Abstract
    print_and_assert(real.number, expected.number.second, expected.number.first);
 }
 
-#ifdef MANUAL_DLL_LOAD
 void Base_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
+#ifdef MANUAL_DLL_LOAD
    Abstract * abs = base;
    abstract_real.set(abs->pv_number(), abs->pv_char(), abs->X(), abs->pv_Y(), abs->virt_area(), abs->number());
-   abstract_expected.set(pv_n, pv_c, x, pv_y, area, n);
-   test_interface(abstract_expected, abstract_real);
-}
 #else
-void Base_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
    Abstract & abs = base;
    abstract_real.set(abs.pv_number(), abs.pv_char(), abs.X(), abs.pv_Y(), abs.virt_area(), abs.number());
+#endif
    abstract_expected.set(pv_n, pv_c, x, pv_y, area, n);
    test_interface(abstract_expected, abstract_real);
 }
-#endif
 
 void Base_test::test_base(const Base_expected & expected, const Base_real & real) {
    print_and_assert(real.X, expected.X.second, expected.X.first);
@@ -90,19 +82,16 @@ void Base_test::test_base(const Base_expected & expected, const Base_real & real
    print_and_assert(real.number, expected.number.second, expected.number.first);
 }
 
+
+void Base_test::test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
 #ifdef MANUAL_DLL_LOAD
-void Base_test::test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
    base_real.set(base->pv_number(), base->pv_char(), base->X(), base->pv_Y(), base->virt_area(), base->number());
-   base_expected.set(pv_n, pv_c, x, pv_y, area, n);
-   test_base(base_expected, base_real);
-}
 #else
-void Base_test::test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
    base_real.set(base.pv_number(), base.pv_char(), base.X(), base.pv_Y(), base.virt_area(), base.number());
+#endif
    base_expected.set(pv_n, pv_c, x, pv_y, area, n);
    test_base(base_expected, base_real);
 }
-#endif
 
 #ifdef MANUAL_DLL_LOAD
 Result_codes Base_test::test_base_linking() {

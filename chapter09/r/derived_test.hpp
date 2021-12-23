@@ -48,6 +48,7 @@ private:
 #else
    static Derived d;
 #endif
+   
    static Interface_expected interface_expected;
    static Abstract_expected abstract_expected;
    static Base_expected base_expected;
@@ -64,6 +65,7 @@ private:
    static void test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n);
    static void test_base(const Base_expected & expected, const Base_real & real);
    static void test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n);
+   static void test_base_cutting(int pv_n, char pv_c, double x, double pv_y, double area, int n);
    static void test_derived(const Derived_expected & expected, const Derived_real & real);
    static void test_derived(int pv_n, char pv_c, double x, double pv_y, double z, double area, int n);
    static void print_assert();

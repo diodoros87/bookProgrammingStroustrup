@@ -58,21 +58,17 @@ void Derived_test::test_interface(const Interface_expected & expected, const Int
    print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
 }
  
-#ifdef MANUAL_DLL_LOAD
 void Derived_test::test_interface(int n, char c) {
+#ifdef MANUAL_DLL_LOAD
    Interface * inter = d;
    interface_real.set(inter->pv_number(), inter->pv_char());
-   interface_expected.set(n, c);
-   test_interface(interface_expected, interface_real);
-}
 #else
-void Derived_test::test_interface(int n, char c) {
    Interface & inter = d;
    interface_real.set(inter.pv_number(), inter.pv_char());
+#endif
    interface_expected.set(n, c);
    test_interface(interface_expected, interface_real);
 }
-#endif
 
 void Derived_test::test_abstract(const Abstract_expected & expected, const Abstract_real & real) {
    print_and_assert(real.X, expected.X.second, expected.X.first);
@@ -83,21 +79,17 @@ void Derived_test::test_abstract(const Abstract_expected & expected, const Abstr
    print_and_assert(real.number, expected.number.second, expected.number.first);
 }
 
-#ifdef MANUAL_DLL_LOAD
 void Derived_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
+#ifdef MANUAL_DLL_LOAD
    Abstract * abs = d;
    abstract_real.set(abs->pv_number(), abs->pv_char(), abs->X(), abs->pv_Y(), abs->virt_area(), abs->number());
-   abstract_expected.set(pv_n, pv_c, x, pv_y, area, n);
-   test_interface(abstract_expected, abstract_real);
-}
 #else
-void Derived_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
    Abstract & abs = d;
    abstract_real.set(abs.pv_number(), abs.pv_char(), abs.X(), abs.pv_Y(), abs.virt_area(), abs.number());
+#endif
    abstract_expected.set(pv_n, pv_c, x, pv_y, area, n);
    test_interface(abstract_expected, abstract_real);
 }
-#endif
 
 void Derived_test::test_base(const Base_expected & expected, const Base_real & real) {
    print_and_assert(real.X, expected.X.second, expected.X.first);
@@ -108,21 +100,28 @@ void Derived_test::test_base(const Base_expected & expected, const Base_real & r
    print_and_assert(real.number, expected.number.second, expected.number.first);
 }
 
-#ifdef MANUAL_DLL_LOAD
 void Derived_test::test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
+#ifdef MANUAL_DLL_LOAD
    Base * b = d;
    base_real.set(b->pv_number(), b->pv_char(), b->X(), b->pv_Y(), b->virt_area(), b->number());
+#else
+   Base & b = d;
+   base_real.set(b.pv_number(), b.pv_char(), b.X(), b.pv_Y(), b.virt_area(), b.number());
+#endif
    base_expected.set(pv_n, pv_c, x, pv_y, area, n);
    test_base(base_expected, base_real);
 }
-#else
-void Derived_test::test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
-   Base & b = d;
+
+void Derived_test::test_base_cutting(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
+#ifdef MANUAL_DLL_LOAD
+   Base b = *d;
+#else   
+   Base b = d;
+#endif
    base_real.set(b.pv_number(), b.pv_char(), b.X(), b.pv_Y(), b.virt_area(), b.number());
    base_expected.set(pv_n, pv_c, x, pv_y, area, n);
    test_base(base_expected, base_real);
 }
-#endif
 
 void Derived_test::test_derived(const Derived_expected & expected, const Derived_real & real) {
    print_and_assert(real.X, expected.X.second, expected.X.first);
@@ -142,7 +141,7 @@ void Derived_test::test_derived(int pv_n, char pv_c, double x, double pv_y, doub
 }
 #else
 void Derived_test::test_derived(int pv_n, char pv_c, double x, double pv_y, double z, double area, int n) {
-   derived_real.set(d.pv_number(), d.pv_char(), d.X(), d.pv_Y(), d.virt_area(), d.number());
+   derived_real.set(d.pv_number(), d.pv_char(), d.X(), d.pv_Y(), d.virt_area(), d.number(), d.Z());
    derived_expected.set(pv_n, pv_c, x, pv_y, area, n, z);
    test_derived(derived_expected, derived_real);
 }
@@ -152,6 +151,7 @@ void Derived_test::print_assert() {
    test_interface(Derived::DERIVED, Derived::DERIVED_CHAR);
    test_abstract(Derived::DERIVED, Derived::DERIVED_CHAR, 4.0, 101.0, 4.0 * 101.0, Derived::DERIVED);
    test_base(Derived::DERIVED, Derived::DERIVED_CHAR, 4.0, 101.0, 4.0 * 101.0 * 7.0, Base::BASE);
+   test_base_cutting(Base::BASE, Base::BASE_CHAR, 4.0, 101.0, 4.0 * 101.0, Base::BASE);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 4.0, 101.0, 7.0, 4.0 * 101.0 * 7.0, Derived::DERIVED);
 }
 
