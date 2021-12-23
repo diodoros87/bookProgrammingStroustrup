@@ -20,6 +20,7 @@ using namespace Hierarchy;
 #else
    Base Base_test::base {-6, 0};
 #endif
+   
 Interface_expected Base_test::interface_expected;
 Abstract_expected Base_test::abstract_expected;
 Base_expected Base_test::base_expected;
@@ -35,8 +36,8 @@ Result_codes Base_test::load_base() {
 #endif
 
 void Base_test::test_interface(const Interface_expected & expected, const Interface_real & real) {
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first, __func__);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first, __func__);
+   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
+   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
 }
  
 #ifdef MANUAL_DLL_LOAD
@@ -56,12 +57,12 @@ void Base_test::test_interface(int n, char c) {
 #endif
 
 void Base_test::test_abstract(const Abstract_expected & expected, const Abstract_real & real) {
-   print_and_assert(real.X, expected.X.second, expected.X.first, __func__);
-   print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first, __func__);
-   print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first, __func__);
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first, __func__);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first, __func__);
-   print_and_assert(real.number, expected.number.second, expected.number.first, __func__);
+   print_and_assert(real.X, expected.X.second, expected.X.first);
+   print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
+   print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
+   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
+   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
+   print_and_assert(real.number, expected.number.second, expected.number.first);
 }
 
 #ifdef MANUAL_DLL_LOAD
@@ -81,12 +82,12 @@ void Base_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, double
 #endif
 
 void Base_test::test_base(const Base_expected & expected, const Base_real & real) {
-   print_and_assert(real.X, expected.X.second, expected.X.first, __func__);
-   print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first, __func__);
-   print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first, __func__);
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first, __func__);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first, __func__);
-   print_and_assert(real.number, expected.number.second, expected.number.first, __func__);
+   print_and_assert(real.X, expected.X.second, expected.X.first);
+   print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
+   print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
+   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
+   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
+   print_and_assert(real.number, expected.number.second, expected.number.first);
 }
 
 #ifdef MANUAL_DLL_LOAD
@@ -123,7 +124,7 @@ Result_codes Base_test::test_base_linking() {
       if (OK == result)
          result = bind_execute_member_function_assert(base, &Base::pv_Y, 105.8, "y", __func__, &Base::virt_set_Y, 105.8); 
       if (OK == result) {
-         print_and_assert(base->virt_area(), 7.5 * 105.8, "virt_area", __func__);
+         print_and_assert(base->virt_area(), 7.5 * 105.8, "virt_area");
          result = static_cast<Result_codes> (close_handle(&(manual_interface.handle)));
       }
    }
@@ -152,7 +153,7 @@ Result_codes Base_test::test_base_linking() {
    if (OK == result)
       result = bind_execute_member_function_assert(base, &Base::pv_Y, 105.8, "y", __func__, &Base::virt_set_Y, 105.8);
    if (OK == result)
-      print_and_assert(base.virt_area(), 7.5 * 105.8, "virt_area", __func__);
+      print_and_assert(base.virt_area(), 7.5 * 105.8, "virt_area");
    
    assert_many(result == OK, "result == ", result);
    return result;

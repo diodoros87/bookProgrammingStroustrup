@@ -16,6 +16,10 @@ using std::cerr;
 
 #define assert_many(EX,...) \
   ((EX) || (assert_tuples (std::tie(__VA_ARGS__), #EX, __FILE__, __LINE__, __DATE__, __TIME__)))
+  
+#define print_and_assert(value, expected_value, value_string) \
+  cerr << TIE( "C++", unmove(__cplusplus), __func__, unmove(value)) << '\n'; \
+   assert_many((value) == (expected_value), unmove(string(value_string) + " == "), unmove(value))
 
 template<const unsigned int N>
 struct print_tuple {
@@ -55,13 +59,13 @@ bool assert_tuples(tuple<Args...> info, const char *msg, const char *file, int l
    //assert(false);
    //return false;
 }
-
+/*
 template<typename T>
-inline void print_and_assert(const T& value, const T& expected_value, const string& value_string, const string& function) {
+inline void (const T& value, const T& expected_value, const string& value_string, const string& function) {
    cerr << TIE( "C++", unmove(__cplusplus), function, value) << '\n';
    assert_many(value == expected_value, unmove(value_string + " == "), value);
 }
-
+*/
 template <typename Object, typename Value, typename Func_1, typename Func_2, typename... Args>  
 Result_codes bind_execute_member_function_assert(Object & object, Func_1 && m_funct, 
                                                         const Value & expected_value, const string& value_string, const string& function,
@@ -71,7 +75,8 @@ Result_codes bind_execute_member_function_assert(Object & object, Func_1 && m_fu
       return result;
    auto bind_function = std::mem_fn(m_funct);
    Value value = bind_function(object);
-   print_and_assert(value, expected_value, value_string, function);
+   //(value, expected_value, value_string, function);
+   print_and_assert(value, expected_value, value_string);
    return result;
 }
 
