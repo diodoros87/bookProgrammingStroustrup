@@ -16,6 +16,56 @@ using std::string;
 
 namespace tests {
    
+using Hierarchy::Base;
+   
+#ifdef MANUAL_DLL_LOAD
+typedef struct Manual_DLL_interface {
+   Base* (*create) (const double, const double);
+   void (*destroy) (Base * & );
+   mutable void * handle;
+   Manual_DLL_interface(const char * shared_library, const char * create, const char *  destroy) {
+      handle   = get_handle(const_cast<char *> (shared_library), RTLD_LAZY);
+      this->create   = reinterpret_cast<Base * (*)(const double, const double)> (get_symbol(handle, const_cast<char *> (create)));
+      this->destroy  = reinterpret_cast<void (*)(Base * & )> (get_symbol(handle, const_cast<char *> (destroy)));
+   }
+} Manual_DLL_interface;
+#endif
+   
+struct Interface_expected;
+struct Abstract_expected;
+struct Base_expected;
+struct Interface_real;
+struct Abstract_real;
+struct Base_real;
+   
+struct Base_test {
+private:
+#ifdef MANUAL_DLL_LOAD
+   static const Manual_DLL_interface manual_interface;
+   static Base * base;
+#else
+   static Base base;
+#endif
+   static Interface_expected interface_expected;
+   static Abstract_expected abstract_expected;
+   static Base_expected base_expected;
+   static Interface_real interface_real;
+   static Abstract_real abstract_real;
+   static Base_real base_real;
+public:
+   static Result_codes test_base_linking(); 
+private:
+#ifdef MANUAL_DLL_LOAD
+   static Result_codes load_base();
+#endif
+   static void test_interface(const Interface_expected & expected, const Interface_real & real);
+   static void test_interface(int n, char c);
+   static void test_abstract(const Abstract_expected & expected, const Abstract_real & real);
+   static void test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n);
+   static void test_base(const Base_expected & expected, const Base_real & real);
+   static void test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n);
+};
+   
 typedef struct Interface_expected {
    void set(int n, char c) {
       pv_number.second = n;
@@ -67,21 +117,6 @@ typedef struct Abstract_real : public Interface_real {
 
 typedef struct Base_real : public Abstract_real {
 } Base_real;
-
-#ifdef MANUAL_DLL_LOAD
-using Hierarchy::Base;
-
-typedef struct Manual_DLL_interface {
-   Base* (*create) (const double, const double);
-   void (*destroy) (Base * & );
-   mutable void * handle;
-   Manual_DLL_interface(const char * shared_library, const char * create, const char *  destroy) {
-      handle   = get_handle(const_cast<char *> (shared_library), RTLD_LAZY);
-      this->create   = reinterpret_cast<Base * (*)(const double, const double)> (get_symbol(handle, const_cast<char *> (create)));
-      this->destroy  = reinterpret_cast<void (*)(Base * & )> (get_symbol(handle, const_cast<char *> (destroy)));
-   }
-} Manual_DLL_interface;
-#endif
 
 Result_codes test_base();
 
