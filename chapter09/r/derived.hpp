@@ -46,6 +46,8 @@ public:
    ~Derived();
    Derived(const double, const double, const double);
    Derived() { cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n'; }
+   Derived(Derived &&) noexcept;
+   Derived& operator=(Derived &&) noexcept;
 protected:
    void check(const double n, const string & func);
    inline virtual bool pv_valid(const double n) const override { 

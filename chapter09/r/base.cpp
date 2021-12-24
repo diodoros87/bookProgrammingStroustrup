@@ -3,6 +3,8 @@
 
 using std::cerr;
 using std::to_string;
+using std::exchange;
+using std::move;
 
 namespace Hierarchy {
    
@@ -63,7 +65,7 @@ Base::Base(const Base & object) : Abstract(object) {
 }
 
 Base& Base::operator=(const Base & object) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "operator = ") << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "operator= ") << '\n';
    if (this == &object)
       return *this;
    this->Abstract::operator=(object);
@@ -71,6 +73,20 @@ Base& Base::operator=(const Base & object) {
    //this->Abstract::operator=(object);
    this->y = object.y;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), this->y) << '\n';
+   return *this;
+}
+
+Base::Base(Base && object) noexcept : Abstract(move(object)) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor") << '\n';
+   this->y = exchange(object.y, 0);  // explicit move of a member of non-class type 
+}
+
+Base& Base::operator=(Base && object) noexcept {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ") << '\n';
+   if(this != &object) {
+      static_cast<Abstract &>(*this) = move(object);
+      this->y = exchange(object.y, 0);
+   }
    return *this;
 }
 

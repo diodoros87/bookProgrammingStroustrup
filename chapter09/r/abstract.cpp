@@ -5,6 +5,8 @@
 
 using std::cerr;
 using std::to_string;
+using std::move;
+using std::exchange;
 
 namespace Hierarchy {
    
@@ -68,6 +70,20 @@ Abstract& Abstract::operator=(const Abstract & object) {
    Interface::operator=(object);
    this->x = object.x;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
+   return *this;
+}
+
+Abstract::Abstract(Abstract && object) noexcept : Interface(move(object)) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor") << '\n';
+   this->x = exchange(object.x, 0);  // explicit move of a member of non-class type 
+}
+
+Abstract& Abstract::operator=(Abstract && object) noexcept {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ") << '\n';
+   if(this != &object) {
+      static_cast<Interface &>(*this) = move(object);
+      this->x = exchange(object.x, 0);
+   }
    return *this;
 }
 

@@ -116,7 +116,7 @@ void Derived_test::test_base_cutting(int pv_n, char pv_c, double x, double pv_y,
 #ifdef MANUAL_DLL_LOAD
    Base b = *d;
 #else   
-   Base b = d;
+   Base b = std::move(d);
 #endif
    base_real.set(b.pv_number(), b.pv_char(), b.X(), b.pv_Y(), b.virt_area(), b.number());
    base_expected.set(pv_n, pv_c, x, pv_y, area, n);
@@ -160,13 +160,13 @@ Result_codes test_derived_linking(Derived & d) {
    if (OK == result)
       result = incorrect_call(d, &Derived::X, numeric_limits<double>::infinity(), "x", __func__, &Derived::virt_set_X, numeric_limits<double>::infinity());
    if (OK == result) {
-      (d.X(), 7.5, "x", __func__);
+      print_and_assert(d.X(), 7.5, "x");
       result = bind_execute_member_function_assert(d, &Derived::pv_Y, 0.8, "y", __func__, &Derived::virt_set_Y, 0.8);
    }
    if (OK == result)
          result = incorrect_call(d, &Derived::pv_Y, -105.8, "y", __func__, &Derived::virt_set_Y, -105.8); 
    if (OK == result) {
-      (d.pv_Y(), 0.8, "y", __func__);
+      print_and_assert(d.pv_Y(), 0.8, "y");
       result = bind_execute_member_function_assert(d, &Derived::Z, -66.8, "z", __func__, &Derived::virt_set_Z, -66.8);
    }
    if (OK == result)
@@ -174,8 +174,8 @@ Result_codes test_derived_linking(Derived & d) {
    if (OK == result)
          result = incorrect_call(d, &Derived::Z, 190.0, "z", __func__, &Derived::virt_set_Z, 190.0);
    if (OK == result) {
-      (d.Z(), -66.8, "z", __func__);
-      (d.virt_area(), 7.5 * 0.8 * -66.8, "virt_area", __func__);
+      print_and_assert(d.Z(), -66.8, "z");
+      print_and_assert(d.virt_area(), 7.5 * 0.8 * -66.8, "virt_area");
    }
    assert_many(result == OK, "result == ", result);
    return result;

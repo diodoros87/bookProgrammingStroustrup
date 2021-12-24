@@ -3,6 +3,8 @@
 
 using std::cerr;
 using std::to_string;
+using std::exchange;
+using std::move;
 
 namespace Hierarchy {
    
@@ -89,13 +91,27 @@ Derived::Derived(const Derived & object) : Base(object) {
 }
 
 Derived& Derived::operator=(const Derived & object) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "operator = ") << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "copy operator= ") << '\n';
    if (this == &object)
       return *this;
    static_cast<Base &>(*this) = object;
    //this->Base::operator=(object);
    this->z = object.z;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, unmove(X()), unmove(pv_Y()), this->z) << '\n';
+   return *this;
+}
+
+Derived::Derived(Derived && object) noexcept : Base(move(object)) {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor") << '\n';
+   this->z = exchange(object.z, 0);  // explicit move of a member of non-class type 
+}
+
+Derived& Derived::operator=(Derived && object) noexcept {
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ", unmove(X()), unmove(pv_Y()), this->z) << '\n';
+   if(this != &object) {
+      static_cast<Base &>(*this) = move(object);
+      this->z = exchange(object.z, 0);
+   }
    return *this;
 }
 

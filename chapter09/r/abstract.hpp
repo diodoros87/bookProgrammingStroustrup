@@ -43,12 +43,14 @@ public:
    void pv_print_number() const override final;
    
    virtual ~Abstract() ;
-   
+   Abstract(Abstract &&) noexcept;
+   Abstract& operator=(Abstract &&) noexcept;
 protected:
    Abstract(const double);
    Abstract() { cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n'; }
    Abstract(Abstract const &);
    Abstract& operator=(Abstract const &);
+   
 };
 
 }

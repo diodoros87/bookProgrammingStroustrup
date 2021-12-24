@@ -36,6 +36,8 @@ public:
    
    Base(const Base & object);
    Base& operator=(const Base & object);
+   Base(Base &&) noexcept;
+   Base& operator=(Base &&) noexcept;
 protected:
    void check(const double n, const string & func);
    inline virtual bool pv_valid(const double n) const override { 
