@@ -65,7 +65,7 @@ Base::Base(const Base & object) : Abstract(object) {
 }
 
 Base& Base::operator=(const Base & object) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "operator= ") << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "copy operator= ") << '\n';
    if (this == &object)
       return *this;
    this->Abstract::operator=(object);

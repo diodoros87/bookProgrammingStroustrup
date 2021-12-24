@@ -8,12 +8,71 @@
 using namespace std::placeholders;
 using std::function;
 using std::numeric_limits;
-
 using std::bind;
+using std::move;
+using std::invalid_argument;
    
 namespace tests {
    
 using namespace Hierarchy;
+
+Derived Derived_test::construct(const double a, const double b, const double c) {
+   double x = a * 2;
+   double y = 2 * b;
+   double z = c * 2;
+#ifdef MANUAL_DLL_LOAD
+   Derived * result = manual_interface.create(x, y, z);
+   if (result == nullptr)
+      throw invalid_argument(__func__ + string(" result is null"));
+   assert_many(result != nullptr, "result pointer == ", result);
+   return *result;
+#else
+   Derived result (x, y, z);
+   return result;
+#endif
+}
+
+#ifdef MANUAL_DLL_LOAD
+Result_codes Derived_test::test_move() {
+   if (d == nullptr)
+      return INVALID_ARG;
+   manual_interface.destroy(d);
+   *d = construct(1, 2, 3);
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 2.0, 4.0, 6.0, 48.0, Derived::DERIVED);
+   
+   Derived object = construct(11, 12, 13);
+   manual_interface.destroy(d);
+   *d = object;
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 22.0, 24.0, 26.0, 8 * 11.0 * 12.0 * 13.0, Derived::DERIVED);
+   
+   Derived other = construct(7, 6, 9);
+   manual_interface.destroy(unmove(&object));
+   *d = move(other);
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 14.0, 12.0, 18.0, 8 * 7.0 * 6.0 * 9.0, Derived::DERIVED);
+   
+   Derived from_move = move(construct(57, 6, 9));
+   manual_interface.destroy(d);
+   *d  = move(from_move);
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 114.0, 12.0, 18.0, 8 * 57.0 * 6.0 * 9.0, Derived::DERIVED);
+}
+#else
+Result_codes Derived_test::test_move() {
+   d  = construct(1, 2, 3);
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 2.0, 4.0, 6.0, 48.0, Derived::DERIVED);
+   
+   Derived object = construct(11, 12, 13);
+   d  = object;
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 22.0, 24.0, 26.0, 8 * 11.0 * 12.0 * 13.0, Derived::DERIVED);
+   
+   Derived other = construct(7, 6, 9);
+   d  = move(other);
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 14.0, 12.0, 18.0, 8 * 7.0 * 6.0 * 9.0, Derived::DERIVED);
+   
+   Derived from_move = move(construct(57, 6, 9));
+   d  = move(from_move);
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 114.0, 12.0, 18.0, 8 * 57.0 * 6.0 * 9.0, Derived::DERIVED);
+}
+#endif
    
 #ifdef MANUAL_DLL_LOAD
 static Derived * test_constructor(Derived * (*create)(const double, const double, const double)) {
@@ -116,7 +175,7 @@ void Derived_test::test_base_cutting(int pv_n, char pv_c, double x, double pv_y,
 #ifdef MANUAL_DLL_LOAD
    Base b = *d;
 #else   
-   Base b = std::move(d);
+   Base b = d;
 #endif
    base_real.set(b.pv_number(), b.pv_char(), b.X(), b.pv_Y(), b.virt_area(), b.number());
    base_expected.set(pv_n, pv_c, x, pv_y, area, n);
@@ -180,7 +239,17 @@ Result_codes test_derived_linking(Derived & d) {
    assert_many(result == OK, "result == ", result);
    return result;
 }
-
+/*
+static Result_codes test_try_catch() {
+   auto test = bind(static_cast<Result_codes(*)()> (&Derived_test::test_derived_linking));
+   Result_codes result = call_catch_exception(test);
+   if (OK == result) {
+      test = bind(static_cast<Result_codes(*)()> (&Derived_test::test_move));
+      result = call_catch_exception(test);
+   }
+   return result; 
+}
+*/
 #ifdef MANUAL_DLL_LOAD
 Result_codes Derived_test::test_derived_linking() {
    cerr << "\nMANUAL DLL LOAD\n";
@@ -189,6 +258,8 @@ Result_codes Derived_test::test_derived_linking() {
    if (result == OK) {
          print_assert();
          result = tests::test_derived_linking(*d);
+      if (OK == result)
+         result = execute_function(&Derived_test::test_move);
       if (result == OK)
          result = static_cast<Result_codes> (close_handle(&(manual_interface.handle)));
       else
@@ -197,6 +268,7 @@ Result_codes Derived_test::test_derived_linking() {
    }
    assert_many(result == OK, "result == ", result);
    assert_many(d == nullptr, "d pointer == ", d);
+
    return result;
 }
 #else
@@ -207,6 +279,8 @@ Result_codes Derived_test::test_derived_linking() {
    if (result == OK) {
       print_assert();
       result = tests::test_derived_linking(d);
+      if (OK == result)
+         result = execute_function(&Derived_test::test_move);
    }
    assert_many(result == OK, "result == ", result);
    return result;
@@ -216,6 +290,10 @@ Result_codes Derived_test::test_derived_linking() {
 Result_codes test_derived() {
    function<Result_codes()> test = bind(static_cast<Result_codes(*)()> (&Derived_test::test_derived_linking));
    Result_codes result = call_catch_exception(test);
+//    if (OK == result) {
+//       test = bind(static_cast<Result_codes(*)()> (&Derived_test::test_move));
+//       result = call_catch_exception(test);
+//    }
    return result; 
 }
 

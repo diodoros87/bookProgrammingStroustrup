@@ -69,6 +69,9 @@ private:
    static void test_derived(const Derived_expected & expected, const Derived_real & real);
    static void test_derived(int pv_n, char pv_c, double x, double pv_y, double z, double area, int n);
    static void print_assert();
+   
+   static Derived construct(const double, const double, const double);
+   static Result_codes test_move();
 };
 
 Result_codes test_derived();

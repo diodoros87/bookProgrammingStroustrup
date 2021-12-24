@@ -122,6 +122,13 @@ Result_codes call_catch_exception(Function && func, Args&&... args )
       return BAD_ALLOC;
    }
    
+template <typename Function, typename... Args>  
+Result_codes execute_function(Function && func, Args&&... args ) {
+   auto bind_function = bind(func);
+   Result_codes result = call_catch_exception(bind_function, forward<Args>(args)...);
+   return result;
+}
+   
    
 template <typename Type, typename Function, typename... Args>  
 inline Result_codes bind_execute_member_function(Type & object, Function && member_function, Args&&... args ) {
