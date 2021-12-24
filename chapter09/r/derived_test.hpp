@@ -70,7 +70,12 @@ private:
    static void test_derived(int pv_n, char pv_c, double x, double pv_y, double z, double area, int n);
    static void print_assert();
    
+#ifdef MANUAL_DLL_LOAD
+   static Derived * construct(const double, const double, const double);
+#else
    static Derived construct(const double, const double, const double);
+#endif
+   
    static Result_codes test_move();
 };
 

@@ -16,44 +16,61 @@ namespace tests {
    
 using namespace Hierarchy;
 
+#ifdef MANUAL_DLL_LOAD
+Derived * Derived_test::construct(const double a, const double b, const double c) {
+   double x = a * 2;
+   double y = 2 * b;
+   double z = c * 2;
+   Derived * result = manual_interface.create(x, y, z);
+   if (result == nullptr)
+      throw invalid_argument(__func__ + string(" result is null"));
+   return result;
+}
+#else
 Derived Derived_test::construct(const double a, const double b, const double c) {
    double x = a * 2;
    double y = 2 * b;
    double z = c * 2;
-#ifdef MANUAL_DLL_LOAD
-   Derived * result = manual_interface.create(x, y, z);
-   if (result == nullptr)
-      throw invalid_argument(__func__ + string(" result is null"));
-   assert_many(result != nullptr, "result pointer == ", result);
-   return *result;
-#else
    Derived result (x, y, z);
    return result;
-#endif
 }
+#endif
+
+//#ifndef NDEBUG 
+static void assert(const Derived & object, const double a, const double b, const double c) {
+   double x = object.X();
+   double y = object.X();
+   double z = object.X();
+   assert_many(x == a, "object.X() == ", x);
+   assert_many(y == b, "object.pv_Y() == ", y);
+   assert_many(z == c, "object.Z() == ", z);
+}
+//#endif
 
 #ifdef MANUAL_DLL_LOAD
 Result_codes Derived_test::test_move() {
-   if (d == nullptr)
-      return INVALID_ARG;
-   manual_interface.destroy(d);
-   *d = construct(1, 2, 3);
+   //if (d == nullptr)
+   //   return INVALID_ARG;
+   //manual_interface.destroy(d);
+   d = construct(1, 2, 3);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 2.0, 4.0, 6.0, 48.0, Derived::DERIVED);
    
-   Derived object = construct(11, 12, 13);
+   Derived object = Derived(11, 12, 13);
    manual_interface.destroy(d);
-   *d = object;
-   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 22.0, 24.0, 26.0, 8 * 11.0 * 12.0 * 13.0, Derived::DERIVED);
+   //d = reinterpret_cast<Derived *>(operator new(sizeof(Derived)));
+   d = &object;
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 11.0, 12.0, 13.0, 11.0 * 12.0 * 13.0, Derived::DERIVED);
    
-   Derived other = construct(7, 6, 9);
-   manual_interface.destroy(unmove(&object));
-   *d = move(other);
-   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 14.0, 12.0, 18.0, 8 * 7.0 * 6.0 * 9.0, Derived::DERIVED);
+   Derived other = Derived(7, 6, 9);
+   //manual_interface.destroy(unmove(&object));
+   d = move(&other);
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 7.0, 6.0, 9.0, 7.0 * 6.0 * 9.0, Derived::DERIVED);
    
-   Derived from_move = move(construct(57, 6, 9));
-   manual_interface.destroy(d);
-   *d  = move(from_move);
-   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 114.0, 12.0, 18.0, 8 * 57.0 * 6.0 * 9.0, Derived::DERIVED);
+   Derived from_move = move(Derived(57, 6, 9));
+   //manual_interface.destroy(d);
+   d  = move(&from_move);
+   assert(from_move, 0, 0, 0);
+   test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 57.0, 6.0, 9.0, 57.0 * 6.0 * 9.0, Derived::DERIVED);
 }
 #else
 Result_codes Derived_test::test_move() {
@@ -70,6 +87,7 @@ Result_codes Derived_test::test_move() {
    
    Derived from_move = move(construct(57, 6, 9));
    d  = move(from_move);
+   assert(from_move, 0, 0, 0);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 114.0, 12.0, 18.0, 8 * 57.0 * 6.0 * 9.0, Derived::DERIVED);
 }
 #endif
@@ -253,22 +271,22 @@ static Result_codes test_try_catch() {
 #ifdef MANUAL_DLL_LOAD
 Result_codes Derived_test::test_derived_linking() {
    cerr << "\nMANUAL DLL LOAD\n";
-   d = test_constructor(manual_interface.create);
-   Result_codes result = (nullptr == d) ? INCORRECT_VALUE : OK;
+   Result_codes result = execute_function(&Derived_test::test_move);
    if (result == OK) {
+      d = test_constructor(manual_interface.create);
+      result = (nullptr == d) ? INCORRECT_VALUE : OK;
+      if (result == OK) {
          print_assert();
          result = tests::test_derived_linking(*d);
-      if (OK == result)
-         result = execute_function(&Derived_test::test_move);
-      if (result == OK)
-         result = static_cast<Result_codes> (close_handle(&(manual_interface.handle)));
-      else
-         close_handle(&(manual_interface.handle));
-      manual_interface.destroy(d);
+         if (result == OK)
+            result = static_cast<Result_codes> (close_handle(&(manual_interface.handle)));
+         else
+            close_handle(&(manual_interface.handle));
+         manual_interface.destroy(d);
+      }
+      assert_many(d == nullptr, "d pointer == ", d);
    }
    assert_many(result == OK, "result == ", result);
-   assert_many(d == nullptr, "d pointer == ", d);
-
    return result;
 }
 #else
