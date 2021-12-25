@@ -77,16 +77,18 @@ Base& Base::operator=(const Base & object) {
 }
 
 Base::Base(Base && object) noexcept : Abstract(move(object)) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor") << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor", unmove(X()), unmove(pv_Y())) << '\n';
    this->y = exchange(object.y, 0);  // explicit move of a member of non-class type 
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor= ", unmove(X()), unmove(pv_Y())) << '\n';
 }
 
 Base& Base::operator=(Base && object) noexcept {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ") << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ", unmove(X()), unmove(pv_Y())) << '\n';
    if(this != &object) {
       static_cast<Abstract &>(*this) = move(object);
       this->y = exchange(object.y, 0);
    }
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ", unmove(X()), unmove(pv_Y())) << '\n';
    return *this;
 }
 

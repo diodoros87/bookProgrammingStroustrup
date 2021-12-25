@@ -11,10 +11,18 @@ using std::numeric_limits;
 using std::bind;
 using std::move;
 using std::invalid_argument;
+using std::is_base_of;
    
 namespace tests {
    
 using namespace Hierarchy;
+
+void derived_print_and_assert(const Derived_expected & expected, const Derived_real & real) {
+   //Abstract_expected & abstract_expected = reinterpret_cast <Abstract_expected &> (const_cast < Derived_expected& >(expected));
+   //Abstract_real & abstract_real = reinterpret_cast <Abstract_real &> (const_cast < Derived_real& >(real));
+   abstract_print_and_assert(expected, real);
+   print_and_assert(real.Z, expected.Z.second, expected.Z.first);
+}
 
 #ifdef MANUAL_DLL_LOAD
 Derived * Derived_test::construct(const double a, const double b, const double c) {
@@ -39,8 +47,8 @@ Derived Derived_test::construct(const double a, const double b, const double c) 
 //#ifndef NDEBUG 
 static void assert(const Derived & object, const double a, const double b, const double c) {
    double x = object.X();
-   double y = object.X();
-   double z = object.X();
+   double y = object.pv_Y();
+   double z = object.Z();
    assert_many(x == a, "object.X() == ", x);
    assert_many(y == b, "object.pv_Y() == ", y);
    assert_many(z == c, "object.Z() == ", z);
@@ -69,7 +77,7 @@ Result_codes Derived_test::test_move() {
    Derived from_move = move(Derived(57, 6, 9));
    //manual_interface.destroy(d);
    d  = move(&from_move);
-   assert(from_move, 0, 0, 0);
+   assert(from_move, 57, 6, 9);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 57.0, 6.0, 9.0, 57.0 * 6.0 * 9.0, Derived::DERIVED);
 }
 #else
@@ -129,11 +137,6 @@ Interface_real Derived_test::interface_real;
 Abstract_real Derived_test::abstract_real;
 Base_real Derived_test::base_real;
 Derived_real Derived_test::derived_real;
-
-void Derived_test::test_interface(const Interface_expected & expected, const Interface_real & real) {
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-}
  
 void Derived_test::test_interface(int n, char c) {
 #ifdef MANUAL_DLL_LOAD
@@ -144,17 +147,17 @@ void Derived_test::test_interface(int n, char c) {
    interface_real.set(inter.pv_number(), inter.pv_char());
 #endif
    interface_expected.set(n, c);
-   test_interface(interface_expected, interface_real);
+   interface_print_and_assert(interface_expected, interface_real);
 }
 
-void Derived_test::test_abstract(const Abstract_expected & expected, const Abstract_real & real) {
-   print_and_assert(real.X, expected.X.second, expected.X.first);
-   print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
-   print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-   print_and_assert(real.number, expected.number.second, expected.number.first);
-}
+// void Derived_test::test_abstract(const Abstract_expected & expected, const Abstract_real & real) {
+//    print_and_assert(real.X, expected.X.second, expected.X.first);
+//    print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
+//    print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
+//    print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
+//    print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
+//    print_and_assert(real.number, expected.number.second, expected.number.first);
+// }
 
 void Derived_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
 #ifdef MANUAL_DLL_LOAD
@@ -165,17 +168,17 @@ void Derived_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, dou
    abstract_real.set(abs.pv_number(), abs.pv_char(), abs.X(), abs.pv_Y(), abs.virt_area(), abs.number());
 #endif
    abstract_expected.set(pv_n, pv_c, x, pv_y, area, n);
-   test_interface(abstract_expected, abstract_real);
+   abstract_print_and_assert(abstract_expected, abstract_real);
 }
 
-void Derived_test::test_base(const Base_expected & expected, const Base_real & real) {
-   print_and_assert(real.X, expected.X.second, expected.X.first);
-   print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
-   print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-   print_and_assert(real.number, expected.number.second, expected.number.first);
-}
+// void Derived_test::test_base(const Base_expected & expected, const Base_real & real) {
+//    print_and_assert(real.X, expected.X.second, expected.X.first);
+//    print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
+//    print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
+//    print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
+//    print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
+//    print_and_assert(real.number, expected.number.second, expected.number.first);
+// }
 
 void Derived_test::test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
 #ifdef MANUAL_DLL_LOAD
@@ -186,7 +189,7 @@ void Derived_test::test_base(int pv_n, char pv_c, double x, double pv_y, double 
    base_real.set(b.pv_number(), b.pv_char(), b.X(), b.pv_Y(), b.virt_area(), b.number());
 #endif
    base_expected.set(pv_n, pv_c, x, pv_y, area, n);
-   test_base(base_expected, base_real);
+   abstract_print_and_assert(base_expected, base_real);
 }
 
 void Derived_test::test_base_cutting(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
@@ -197,36 +200,36 @@ void Derived_test::test_base_cutting(int pv_n, char pv_c, double x, double pv_y,
 #endif
    base_real.set(b.pv_number(), b.pv_char(), b.X(), b.pv_Y(), b.virt_area(), b.number());
    base_expected.set(pv_n, pv_c, x, pv_y, area, n);
-   test_base(base_expected, base_real);
+   abstract_print_and_assert(base_expected, base_real);
 }
 
-void Derived_test::test_derived(const Derived_expected & expected, const Derived_real & real) {
-   print_and_assert(real.X, expected.X.second, expected.X.first);
-   print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
-   print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-   print_and_assert(real.number, expected.number.second, expected.number.first);
-   print_and_assert(real.Z, expected.Z.second, expected.Z.first);
-}
+// void Derived_test::test_derived(const Derived_expected & expected, const Derived_real & real) {
+//    print_and_assert(real.X, expected.X.second, expected.X.first);
+//    print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
+//    print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
+//    print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
+//    print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
+//    print_and_assert(real.number, expected.number.second, expected.number.first);
+//    print_and_assert(real.Z, expected.Z.second, expected.Z.first);
+// }
 
 #ifdef MANUAL_DLL_LOAD
 void Derived_test::test_derived(int pv_n, char pv_c, double x, double pv_y, double z, double area, int n) {
    derived_real.set(d->pv_number(), d->pv_char(), d->X(), d->pv_Y(), d->virt_area(), d->number(), d->Z());
    derived_expected.set(pv_n, pv_c, x, pv_y, area, n, z);
-   test_derived(derived_expected, derived_real);
+   derived_print_and_assert(derived_expected, derived_real);
 }
 #else
 void Derived_test::test_derived(int pv_n, char pv_c, double x, double pv_y, double z, double area, int n) {
    derived_real.set(d.pv_number(), d.pv_char(), d.X(), d.pv_Y(), d.virt_area(), d.number(), d.Z());
    derived_expected.set(pv_n, pv_c, x, pv_y, area, n, z);
-   test_derived(derived_expected, derived_real);
+   derived_print_and_assert(derived_expected, derived_real);
 }
 #endif
 
 void Derived_test::print_assert() {
    test_interface(Derived::DERIVED, Derived::DERIVED_CHAR);
-   test_abstract(Derived::DERIVED, Derived::DERIVED_CHAR, 4.0, 101.0, 4.0 * 101.0, Derived::DERIVED);
+   test_abstract(Derived::DERIVED, Derived::DERIVED_CHAR, 4.0, 101.0, 4.0 * 101.0 * 7.0, Abstract::ABSTRACT);
    test_base(Derived::DERIVED, Derived::DERIVED_CHAR, 4.0, 101.0, 4.0 * 101.0 * 7.0, Base::BASE);
    test_base_cutting(Base::BASE, Base::BASE_CHAR, 4.0, 101.0, 4.0 * 101.0, Base::BASE);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 4.0, 101.0, 7.0, 4.0 * 101.0 * 7.0, Derived::DERIVED);

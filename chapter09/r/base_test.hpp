@@ -8,6 +8,7 @@
 
 using std::pair;
 using std::string;
+using std::is_base_of;
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
@@ -37,7 +38,9 @@ struct Base_expected;
 struct Interface_real;
 struct Abstract_real;
 struct Base_real;
-   
+
+void interface_print_and_assert(const Interface_expected & expected, const Interface_real & real);
+
 struct Base_test {
 private:
 #ifdef MANUAL_DLL_LOAD
@@ -58,11 +61,8 @@ private:
 #ifdef MANUAL_DLL_LOAD
    static Result_codes load_base();
 #endif
-   static void test_interface(const Interface_expected & expected, const Interface_real & real);
    static void test_interface(int n, char c);
-   static void test_abstract(const Abstract_expected & expected, const Abstract_real & real);
    static void test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n);
-   static void test_base(const Base_expected & expected, const Base_real & real);
    static void test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n);
 };
    
@@ -117,6 +117,21 @@ typedef struct Abstract_real : public Interface_real {
 
 typedef struct Base_real : public Abstract_real {
 } Base_real;
+
+template <typename E, typename R, enable_if_t<is_base_of<Abstract_expected, E>::value, bool> = true,
+   enable_if_t<is_base_of<Abstract_real, R>::value, bool> = true> 
+void abstract_print_and_assert(const E & expected, const R & real) {
+   //Interface_expected & interface_expected = reinterpret_cast <Interface_expected &> (const_cast < E& >(expected));
+   //Interface_real & interface_real = reinterpret_cast <Interface_real &> (const_cast < R& >(real));
+   interface_print_and_assert(expected, real);
+   
+   cerr << __func__ << " for classes: " << typeid(E).name() << " and " << typeid(R).name() << '\n';
+   print_and_assert(real.X, expected.X.second, expected.X.first);
+   print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
+   print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
+   print_and_assert(real.number, expected.number.second, expected.number.first);
+}
+   
 
 Result_codes test_base();
 

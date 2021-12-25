@@ -37,6 +37,8 @@ typedef struct Derived_real : public Base_real {
    }
    double Z;
 } Derived_real;
+
+void derived_print_and_assert(const Derived_expected & expected, const Derived_real & real);
    
 struct Derived_test {
 public:   
@@ -59,14 +61,10 @@ private:
    static Base_real base_real;
    static Derived_real derived_real;
 
-   static void test_interface(const Interface_expected & expected, const Interface_real & real);
    static void test_interface(int n, char c);
-   static void test_abstract(const Abstract_expected & expected, const Abstract_real & real);
    static void test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n);
-   static void test_base(const Base_expected & expected, const Base_real & real);
    static void test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n);
    static void test_base_cutting(int pv_n, char pv_c, double x, double pv_y, double area, int n);
-   static void test_derived(const Derived_expected & expected, const Derived_real & real);
    static void test_derived(int pv_n, char pv_c, double x, double pv_y, double z, double area, int n);
    static void print_assert();
    

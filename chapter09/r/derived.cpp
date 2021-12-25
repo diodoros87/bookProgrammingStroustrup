@@ -102,8 +102,9 @@ Derived& Derived::operator=(const Derived & object) {
 }
 
 Derived::Derived(Derived && object) noexcept : Base(move(object)) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor") << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor", unmove(X()), unmove(pv_Y()), this->z) << '\n';
    this->z = exchange(object.z, 0);  // explicit move of a member of non-class type 
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor", unmove(X()), unmove(pv_Y()), this->z) << '\n';
 }
 
 Derived& Derived::operator=(Derived && object) noexcept {
@@ -112,6 +113,7 @@ Derived& Derived::operator=(Derived && object) noexcept {
       static_cast<Base &>(*this) = move(object);
       this->z = exchange(object.z, 0);
    }
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ", unmove(X()), unmove(pv_Y()), this->z) << '\n';
    return *this;
 }
 

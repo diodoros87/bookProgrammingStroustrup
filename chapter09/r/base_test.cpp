@@ -14,6 +14,11 @@ namespace tests {
 
 using namespace Hierarchy;
 
+void interface_print_and_assert(const Interface_expected & expected, const Interface_real & real) {
+   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
+   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
+}
+
 #ifdef MANUAL_DLL_LOAD
    const Manual_DLL_interface Base_test::manual_interface("libbase_cpp.so", "base_create", "base_destroy");
    Base * Base_test::base;
@@ -34,11 +39,6 @@ Result_codes Base_test::load_base() {
    return (nullptr == base) ? INCORRECT_VALUE : OK;
 }
 #endif
-
-void Base_test::test_interface(const Interface_expected & expected, const Interface_real & real) {
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-}
  
 void Base_test::test_interface(int n, char c) {
 #ifdef MANUAL_DLL_LOAD
@@ -49,16 +49,7 @@ void Base_test::test_interface(int n, char c) {
    interface_real.set(inter.pv_number(), inter.pv_char());
 #endif
    interface_expected.set(n, c);
-   test_interface(interface_expected, interface_real);
-}
-
-void Base_test::test_abstract(const Abstract_expected & expected, const Abstract_real & real) {
-   print_and_assert(real.X, expected.X.second, expected.X.first);
-   print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
-   print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-   print_and_assert(real.number, expected.number.second, expected.number.first);
+   interface_print_and_assert(interface_expected, interface_real);
 }
 
 void Base_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
@@ -70,18 +61,8 @@ void Base_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, double
    abstract_real.set(abs.pv_number(), abs.pv_char(), abs.X(), abs.pv_Y(), abs.virt_area(), abs.number());
 #endif
    abstract_expected.set(pv_n, pv_c, x, pv_y, area, n);
-   test_interface(abstract_expected, abstract_real);
+   abstract_print_and_assert(abstract_expected, abstract_real);
 }
-
-void Base_test::test_base(const Base_expected & expected, const Base_real & real) {
-   print_and_assert(real.X, expected.X.second, expected.X.first);
-   print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
-   print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-   print_and_assert(real.number, expected.number.second, expected.number.first);
-}
-
 
 void Base_test::test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
 #ifdef MANUAL_DLL_LOAD
@@ -90,7 +71,7 @@ void Base_test::test_base(int pv_n, char pv_c, double x, double pv_y, double are
    base_real.set(base.pv_number(), base.pv_char(), base.X(), base.pv_Y(), base.virt_area(), base.number());
 #endif
    base_expected.set(pv_n, pv_c, x, pv_y, area, n);
-   test_base(base_expected, base_real);
+   abstract_print_and_assert(base_expected, base_real);
 }
 
 #ifdef MANUAL_DLL_LOAD
@@ -99,7 +80,7 @@ Result_codes Base_test::test_base_linking() {
    Result_codes result = load_base();
    if (result == OK) {
       test_interface(Base::BASE, Base::BASE_CHAR);
-      test_abstract(Base::BASE, Base::BASE_CHAR, 4.0, 8.0, 4.0 * 8.0, Base::BASE);
+      test_abstract(Base::BASE, Base::BASE_CHAR, 4.0, 8.0, 4.0 * 8.0, Abstract::ABSTRACT);
       test_base(Base::BASE, Base::BASE_CHAR, 4.0, 8.0, 4.0 * 8.0, Base::BASE);
       
       result = bind_execute_member_function_assert(base, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);
@@ -128,7 +109,7 @@ Result_codes Base_test::test_base_linking() {
 Result_codes Base_test::test_base_linking() {
    cerr << "\nAUTOMATIC DLL LOAD\n";
    test_interface(Base::BASE, Base::BASE_CHAR);
-   test_abstract(Base::BASE, Base::BASE_CHAR, -6.0, 0.0, -6.0 * 0.0, Base::BASE);
+   test_abstract(Base::BASE, Base::BASE_CHAR, -6.0, 0.0, -6.0 * 0.0, Abstract::ABSTRACT);
    test_base(Base::BASE, Base::BASE_CHAR, -6.0, 0.0, -6.0 * 0.0, Base::BASE);
 
    Result_codes result = bind_execute_member_function_assert(base, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);

@@ -74,16 +74,18 @@ Abstract& Abstract::operator=(const Abstract & object) {
 }
 
 Abstract::Abstract(Abstract && object) noexcept : Interface(move(object)) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor") << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor", unmove(X())) << '\n';
    this->x = exchange(object.x, 0);  // explicit move of a member of non-class type 
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move constructor ", unmove(X())) << '\n';
 }
 
 Abstract& Abstract::operator=(Abstract && object) noexcept {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ") << '\n';
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ", unmove(X())) << '\n';
    if(this != &object) {
       static_cast<Interface &>(*this) = move(object);
       this->x = exchange(object.x, 0);
    }
+   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ", unmove(X())) << '\n';
    return *this;
 }
 

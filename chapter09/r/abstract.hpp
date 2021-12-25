@@ -12,11 +12,9 @@ namespace Hierarchy {
 
 class Abstract : public Interface {
 private:
-   static const int ABSTRACT = 0;
-   
    double x {ABSTRACT};
-   
 public:
+   static const int ABSTRACT = 0;
    static const string class_name;
    //static string get_class_name() { return class_name; }
    
