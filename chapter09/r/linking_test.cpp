@@ -39,10 +39,10 @@ static inline  Result_codes call_function(Function && func, Args&&... args) {
 
 static Result_codes main_tests() {
    Result_codes result = UNRECOGNIZED_ERROR;
-   initializer_list < function <Result_codes()> > vec = { bind(::test_demo), bind(test_demo_derived), 
-                     bind(test_human), bind(test_human_derived)
-                     //, bind(test_money)
-                     , bind(test_base), bind(test_derived)
+   initializer_list < function <Result_codes()> > vec = { bind(tests::test_demo), bind(tests::test_demo_derived), 
+                     bind(tests::test_human), bind(tests::test_human_derived)
+                     , bind(tests::test_money)
+                     , bind(tests::test_base), bind(tests::test_derived)
       
    };
    for (auto fun : vec) {

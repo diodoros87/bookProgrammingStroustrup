@@ -1,5 +1,5 @@
-#ifndef SINGLETON_H
-#define SINGLETON_H
+#ifndef SHARED_LIB_OPEN_H
+#define SHARED_LIB_OPEN_H
 
 #ifdef __cplusplus
  #define EXTERNC extern "C"

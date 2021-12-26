@@ -9,17 +9,22 @@ using namespace std::placeholders;
 using std::function;
 using std::numeric_limits;
 using std::bind;
+
+#ifdef MANUAL_DLL_LOAD
+   #include <dlfcn.h>
+   #include "shared_lib_open.h"
+#endif
    
 namespace tests {
 
 using namespace Hierarchy;
 
-void interface_print_and_assert(const Interface_expected & expected, const Interface_real & real) {
-   print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-   print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-}
-
 #ifdef MANUAL_DLL_LOAD
+   Manual_DLL_interface::Manual_DLL_interface(const char * shared_library, const char * create, const char * destroy) {
+      handle   = get_handle(const_cast<char *> (shared_library), RTLD_LAZY);
+      this->create   = reinterpret_cast<Base * (*)(const double, const double)> (get_symbol(handle, const_cast<char *> (create)));
+      this->destroy  = reinterpret_cast<void (*)(Base * & )> (get_symbol(handle, const_cast<char *> (destroy)));
+   }
    const Manual_DLL_interface Base_test::manual_interface("libbase_cpp.so", "base_create", "base_destroy");
    Base * Base_test::base;
 #else

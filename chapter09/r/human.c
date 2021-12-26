@@ -11,7 +11,7 @@
 
 const char * const NAME_REGEX_STRING = "^[[:upper:]][[:lower:]]*( [[:upper:]][[:lower:]]*)?$";
 
-SINGLETON(regex_t, compile_regex, NAME_REGEX_STRING, REG_EXTENDED);
+SINGLETON_HEAP(regex_t, compile_regex, NAME_REGEX_STRING, REG_EXTENDED);
 
 static regex_t * NAME_REGEX = NULL;
 

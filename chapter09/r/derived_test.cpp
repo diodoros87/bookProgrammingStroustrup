@@ -12,17 +12,15 @@ using std::bind;
 using std::move;
 using std::invalid_argument;
 using std::is_base_of;
+
+#ifdef MANUAL_DLL_LOAD
+   #include <dlfcn.h>
+   #include "shared_lib_open.h"
+#endif
    
 namespace tests {
    
 using namespace Hierarchy;
-
-void derived_print_and_assert(const Derived_expected & expected, const Derived_real & real) {
-   //Abstract_expected & abstract_expected = reinterpret_cast <Abstract_expected &> (const_cast < Derived_expected& >(expected));
-   //Abstract_real & abstract_real = reinterpret_cast <Abstract_real &> (const_cast < Derived_real& >(real));
-   abstract_print_and_assert(expected, real);
-   print_and_assert(real.Z, expected.Z.second, expected.Z.first);
-}
 
 #ifdef MANUAL_DLL_LOAD
 Derived * Derived_test::construct(const double a, const double b, const double c) {
@@ -45,7 +43,7 @@ Derived Derived_test::construct(const double a, const double b, const double c) 
 #endif
 
 //#ifndef NDEBUG 
-static void assert(const Derived & object, const double a, const double b, const double c) {
+static void assert_derived(const Derived & object, const double a, const double b, const double c) {
    double x = object.X();
    double y = object.pv_Y();
    double z = object.Z();
@@ -57,27 +55,21 @@ static void assert(const Derived & object, const double a, const double b, const
 
 #ifdef MANUAL_DLL_LOAD
 Result_codes Derived_test::test_move() {
-   //if (d == nullptr)
-   //   return INVALID_ARG;
-   //manual_interface.destroy(d);
    d = construct(1, 2, 3);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 2.0, 4.0, 6.0, 48.0, Derived::DERIVED);
    
    Derived object = Derived(11, 12, 13);
    manual_interface.destroy(d);
-   //d = reinterpret_cast<Derived *>(operator new(sizeof(Derived)));
    d = &object;
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 11.0, 12.0, 13.0, 11.0 * 12.0 * 13.0, Derived::DERIVED);
    
    Derived other = Derived(7, 6, 9);
-   //manual_interface.destroy(unmove(&object));
    d = move(&other);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 7.0, 6.0, 9.0, 7.0 * 6.0 * 9.0, Derived::DERIVED);
    
    Derived from_move = move(Derived(57, 6, 9));
-   //manual_interface.destroy(d);
    d  = move(&from_move);
-   assert(from_move, 57, 6, 9);
+   assert_derived(from_move, 57, 6, 9);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 57.0, 6.0, 9.0, 57.0 * 6.0 * 9.0, Derived::DERIVED);
 }
 #else
@@ -95,7 +87,7 @@ Result_codes Derived_test::test_move() {
    
    Derived from_move = move(construct(57, 6, 9));
    d  = move(from_move);
-   assert(from_move, 0, 0, 0);
+   assert_derived(from_move, 0, 0, 0);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 114.0, 12.0, 18.0, 8 * 57.0 * 6.0 * 9.0, Derived::DERIVED);
 }
 #endif
@@ -123,6 +115,12 @@ static Result_codes test_constructor(Derived & d) {
 #endif
 
 #ifdef MANUAL_DLL_LOAD
+   Manual_DLL_derived::Manual_DLL_derived(const char * shared_library, const char * create, const char * destroy) {
+      handle   = get_handle(const_cast<char *> (shared_library), RTLD_LAZY);
+      this->create   = reinterpret_cast<Derived * (*)(const double, const double, const double)> (get_symbol(handle, const_cast<char *> (create)));
+      this->destroy  = reinterpret_cast<void (*)(Derived * & )> (get_symbol(handle, const_cast<char *> (destroy)));
+   }
+   
    const Manual_DLL_derived Derived_test::manual_interface("libderived_cpp.so", "derived_create", "derived_destroy");
    Derived * Derived_test::d = nullptr;
 #else
@@ -150,15 +148,6 @@ void Derived_test::test_interface(int n, char c) {
    interface_print_and_assert(interface_expected, interface_real);
 }
 
-// void Derived_test::test_abstract(const Abstract_expected & expected, const Abstract_real & real) {
-//    print_and_assert(real.X, expected.X.second, expected.X.first);
-//    print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
-//    print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
-//    print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-//    print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-//    print_and_assert(real.number, expected.number.second, expected.number.first);
-// }
-
 void Derived_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
 #ifdef MANUAL_DLL_LOAD
    Abstract * abs = d;
@@ -170,15 +159,6 @@ void Derived_test::test_abstract(int pv_n, char pv_c, double x, double pv_y, dou
    abstract_expected.set(pv_n, pv_c, x, pv_y, area, n);
    abstract_print_and_assert(abstract_expected, abstract_real);
 }
-
-// void Derived_test::test_base(const Base_expected & expected, const Base_real & real) {
-//    print_and_assert(real.X, expected.X.second, expected.X.first);
-//    print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
-//    print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
-//    print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-//    print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-//    print_and_assert(real.number, expected.number.second, expected.number.first);
-// }
 
 void Derived_test::test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
 #ifdef MANUAL_DLL_LOAD

@@ -3,7 +3,7 @@
 
 #include "result_codes.h"
 #include "derived.hpp"
-#include "base_test.hpp"
+#include "hierarchy_test.hpp"
 
 namespace tests {
    
@@ -14,31 +14,10 @@ typedef struct Manual_DLL_derived {
    Derived* (*create) (const double, const double, const double);
    void (*destroy) (Derived * & );
    mutable void * handle;
-   Manual_DLL_derived(const char * shared_library, const char * create, const char *  destroy) {
-      handle   = get_handle(const_cast<char *> (shared_library), RTLD_LAZY);
-      this->create   = reinterpret_cast<Derived * (*)(const double, const double, const double)> (get_symbol(handle, const_cast<char *> (create)));
-      this->destroy  = reinterpret_cast<void (*)(Derived * & )> (get_symbol(handle, const_cast<char *> (destroy)));
-   }
+   
+   Manual_DLL_derived(const char * shared_library, const char * create, const char * destroy);
 } Manual_DLL_derived;
 #endif
-
-typedef struct Derived_expected : public Base_expected {
-   void set(int pv_n, char pv_c, double x, double pv_y, double area, int n, double z) {
-      Base_expected::set(pv_n, pv_c, x, pv_y, area, n);
-      Z.second = z;
-   }
-   pair<string, double> Z = {"z", 0};
-} Derived_expected;
-
-typedef struct Derived_real : public Base_real {
-   void set(int pv_n, char pv_c, double x, double pv_y, double area, int n, double z) {
-      Base_real::set(pv_n, pv_c, x, pv_y, area, n);
-      Z = z;
-   }
-   double Z;
-} Derived_real;
-
-void derived_print_and_assert(const Derived_expected & expected, const Derived_real & real);
    
 struct Derived_test {
 public:   
