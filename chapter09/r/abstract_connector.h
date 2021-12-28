@@ -14,9 +14,10 @@
    //using std::invalid_argument;
    using std::is_base_of;
 
-   //// template <class T, enable_if_t<is_base_of<Base, T>::value, bool> = true>
+   //template <class T, enable_if_t<is_base_of<Base, T>::value, bool> = true>
    template <class T>
    class Abstract_connector {
+      static_assert(is_base_of<Base, T>::value);
    public:
       Result_codes pv_number(int * const);
       Result_codes pv_char(char * const);
@@ -27,7 +28,7 @@
       Result_codes virt_area(double * const);
       Result_codes number(int * const);
       Result_codes destruct();
-//       virtual ~Abstract_connector();
+      virtual ~Abstract_connector() { };
    protected:
       static T * instance;
 //       Abstract_connector();

@@ -8,7 +8,7 @@ using namespace std;
 //extern Result_codes demo_set_name(Demo * const object, const char * name);
 //extern Result_codes demo_get_name(const Demo * const object, char ** name);
 
-template<class Base>
+template<>
 Base * Base_connector::Abstract_connector<Base>::instance = nullptr;
 
 static Base_connector connector;
