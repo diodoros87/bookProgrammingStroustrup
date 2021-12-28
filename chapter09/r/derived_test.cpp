@@ -183,16 +183,6 @@ void Derived_test::test_base_cutting(int pv_n, char pv_c, double x, double pv_y,
    abstract_print_and_assert(base_expected, base_real);
 }
 
-// void Derived_test::test_derived(const Derived_expected & expected, const Derived_real & real) {
-//    print_and_assert(real.X, expected.X.second, expected.X.first);
-//    print_and_assert(real.pv_Y, expected.pv_Y.second, expected.pv_Y.first);
-//    print_and_assert(real.virt_area, expected.virt_area.second, expected.virt_area.first);
-//    print_and_assert(real.pv_number, expected.pv_number.second, expected.pv_number.first);
-//    print_and_assert(real.pv_char,expected.pv_char.second, expected.pv_char.first);
-//    print_and_assert(real.number, expected.number.second, expected.number.first);
-//    print_and_assert(real.Z, expected.Z.second, expected.Z.first);
-// }
-
 #ifdef MANUAL_DLL_LOAD
 void Derived_test::test_derived(int pv_n, char pv_c, double x, double pv_y, double z, double area, int n) {
    derived_real.set(d->pv_number(), d->pv_char(), d->X(), d->pv_Y(), d->virt_area(), d->number(), d->Z());

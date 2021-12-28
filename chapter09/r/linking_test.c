@@ -9,6 +9,7 @@
 #include "human_derived_functions.h"
 #include "demo_functions.h"
 #include "human.h"
+#include "base_cpp_test.h"
 
 #include <stdlib.h>
 #include <limits.h>
@@ -38,6 +39,9 @@ static Result_codes main_test_linking(void) {
       result = test_human_derived();
    if (OK == result)
       result = test_money();
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
+   if (OK == result)
+      result = test_base_cpp();
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }
