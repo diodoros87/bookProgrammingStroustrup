@@ -8,9 +8,14 @@
 if ((buffer) == NULL) { \
    LOG("%s", "out of memory: malloc() returns NULL ");  \
 }
-
-#define SINGLETON_STACK(type, ...) type* Singleton_Stack_##type() { \
-                  static type instance = (__VA_ARGS__);               \
+/*
+#define SINGLETON_STACK(type, function, ...) type* Singleton_Stack_##type() { \
+                  static type instance = function(&instance, __VA_ARGS__);               \
+                  return &instance;                       \
+               }
+               */
+#define SINGLETON_STACK(type, value) type* Singleton_Stack_##type() { \
+                  static type instance = value;               \
                   return &instance;                       \
                }
                /*

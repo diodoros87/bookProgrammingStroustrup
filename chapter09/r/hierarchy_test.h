@@ -2,6 +2,7 @@
 #define HIERARCHY_TEST_H
 
 #include "result_codes.h"
+#include "pair.h"
 
 typedef struct Interface_expected {
    pair_int_str pv_number;
@@ -61,5 +62,12 @@ void abstract_print_and_assert(const Abstract_expected * const expected, const A
 void base_print_and_assert(const Base_expected * const expected, const Base_real * const real);
 void derived_print_and_assert(const Derived_expected * const expected, const Derived_real * const real);
 
+Result_codes check_double(Result_codes (*get)(double * const), const char * message,
+                                       const double expected);
+Result_codes getset_coordination(Result_codes (*set)(const double), const double set_value,
+                                Result_codes (*get)(double * const), const char * message);
+
+Result_codes check_char(Result_codes (*get)(char * const), const char * message, const char expected);
+Result_codes check_int(Result_codes (*get)(int * const), const char * message, const int expected);
 
 #endif
