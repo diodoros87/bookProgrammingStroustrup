@@ -13,7 +13,7 @@
 #endif
 /*
 #define print_and_assert(value, expected_value, value_string, expression, format) \
-   LOG("%s: %s %s = %s", LANGUAGE, __FUNCTION__, value_string, #value); \
+   LOG("%s: %s %s = "#format, LANGUAGE, __FUNCTION__, value_string, value); \
    assert_many((expression), "assert failed: ", format, name, " == ", name)
 */
 static void load_human(Human_derived_functions * functions) {

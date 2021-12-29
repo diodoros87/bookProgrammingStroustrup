@@ -4,45 +4,62 @@
 #include "result_codes.h"
 
 typedef struct Interface_expected {
-   pair_int_str pv_number = {"pv_number", 0};
-   pair_char_str pv_char = {"pv_char", '0'};
+   pair_int_str pv_number;
+   pair_char_str pv_char;
 } Interface_expected;
+void set_interface_expected(Interface_expected * interface_expected, const int n, const char c);
 
-void set_interface_expected(Interface_expected * interface, const int n, const char c);
-
-typedef struct Abstract_expected : public Interface_expected {
-   void set(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
-      Interface_expected::set(pv_n, pv_c);
-      X.second = x;
-      pv_Y.second = pv_y;
-      virt_area.second = area;
-      number.second = n;
-   }
-   pair_double_str X = {"x", 0};
-   pair_double_str pv_Y = {"y", 0};
-   pair_double_str virt_area = {"virt_area", 0};
-   pair_int_str number = {"number", 0};
+typedef struct Abstract_expected {
+   Interface_expected interface;
+   
+   pair_double_str X;
+   pair_double_str pv_Y;
+   pair_double_str virt_area;
+   pair_int_str number;
 } Abstract_expected;
+void set_abstract_expected(Abstract_expected * abstract_expected, int pv_n, char pv_c, double x, double pv_y, double area, int n);
 
-void set_abstract_expected(Abstract_expected * abstract, int pv_n, char pv_c, double x, double pv_y, double area, int n);
-
-typedef struct Base_expected : public Abstract_expected {
+typedef struct Base_expected {
+   Abstract_expected abstract;
 } Base_expected;
+void set_base_expected(Base_expected * base_expected, int pv_n, char pv_c, double x, double pv_y, double area, int n);
 
-void set_base_expected(Base_expected * base, int pv_n, char pv_c, double x, double pv_y, double area, int n);
+typedef struct Derived_expected {
+   Base_expected base;
+   pair_double_str Z;
+} Derived_expected;
+void set_derived_expected(Derived_expected * derived_expected, int pv_n, char pv_c, double x, double pv_y, double area, int n, double z);
 
 typedef struct Interface_real {
    int pv_number;
    char pv_char;
 } Interface_real;
+void set_interface_real(Interface_real * interface_real, const int n, const char c);
 
-typedef struct Abstract_real : public Interface_real {
+typedef struct Abstract_real {
    Interface_real interface;
    double X;
    double pv_Y;
    double virt_area;
    int number;
 } Abstract_real;
+void set_abstract_real(Abstract_real * abstract_real, int pv_n, char pv_c, double x, double pv_y, double area, int n);
 
-typedef struct Base_real : public Abstract_real {
+typedef struct Base_real {
+   Abstract_real abstract;
 } Base_real;
+void set_base_real(Base_real * base_real, int pv_n, char pv_c, double x, double pv_y, double area, int n);
+
+typedef struct Derived_real {
+   Base_real base;
+   double Z;
+} Derived_real;
+void set_derived_real(Derived_real * derived_real, int pv_n, char pv_c, double x, double pv_y, double area, int n, double z);
+
+void interface_print_and_assert(const Interface_expected * const expected, const Interface_real * const real);
+void abstract_print_and_assert(const Abstract_expected * const expected, const Abstract_real * const real);
+void base_print_and_assert(const Base_expected * const expected, const Base_real * const real);
+void derived_print_and_assert(const Derived_expected * const expected, const Derived_real * const real);
+
+
+#endif

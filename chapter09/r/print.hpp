@@ -18,7 +18,7 @@ using std::cerr;
   ((EX) || (assert_tuples (std::tie(__VA_ARGS__), #EX, __FILE__, __LINE__, __DATE__, __TIME__)))
   
 #define print_and_assert(value, expected_value, value_string) \
-  cerr << TIE( "C++", unmove(__cplusplus), __func__, unmove(value)) << '\n'; \
+   cerr << TIE( "C++", unmove(__cplusplus), __func__, unmove(value)) << '\n'; \
    assert_many((value) == (expected_value), unmove(string(value_string) + " == "), unmove(value))
 
 template<const unsigned int N>

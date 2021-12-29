@@ -9,8 +9,8 @@ if ((buffer) == NULL) { \
    LOG("%s", "out of memory: malloc() returns NULL ");  \
 }
 
-#define SINGLETON_STACK(type, value) type* Singleton_Static_##type() { \
-                  static type instance = value;               \
+#define SINGLETON_STACK(type, ...) type* Singleton_Stack_##type() { \
+                  static type instance = (__VA_ARGS__);               \
                   return &instance;                       \
                }
                /*
@@ -36,7 +36,7 @@ if ((buffer) == NULL) { \
                }
 */
                
-#define SINGLETON_HEAP(type, function, ...) type* Singleton_##type() { \
+#define SINGLETON_HEAP(type, function, ...) type* Singleton_Heap_##type() { \
                   static type* instance = NULL;             \
                   if (NULL == instance) {                   \
                      ALLOC(instance, type, 1);           \
@@ -46,8 +46,8 @@ if ((buffer) == NULL) { \
                   return instance;                       \
                }
                
-#define MODIFY_SINGLETON(variable, singleton_function)   \
-if (NULL == variable)    \
-      variable = singleton_function();
+#define INIT_SINGLETON(pointer, singleton_function)   \
+if (NULL == pointer)    \
+      pointer = singleton_function();
 
 #endif

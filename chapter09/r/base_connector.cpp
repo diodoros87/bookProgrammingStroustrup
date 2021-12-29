@@ -14,7 +14,7 @@ Base * Base_connector::Abstract_connector<Base>::instance = nullptr;
 static Base_connector connector;
 
 Result_codes Base_connector::init(const double x, const double y) {
-   Result_codes result = ::init<Base>(Abstract_connector<Base>::instance, Constructor<Base>(), x, y);
+   Result_codes result = ::init<Base>(instance, Constructor<Base>(), x, y);
    return result;
 }
 

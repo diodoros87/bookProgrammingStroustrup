@@ -1,8 +1,9 @@
-
+#include "singleton.h"
 #include "print.h"
 #include "utility.h"
 #include "base_cpp_test.h"
 #include "base_connector.h"
+#include "hierarchy_test.h"
 
 #include <string.h>
 
@@ -11,6 +12,35 @@
    #include "shared_lib_open.h"
    #define LIB_BASE_CONNECTOR_SO     "libbase_cpp_connector.so"
 #endif
+
+static Interface_expected * interface_expected = NULL;
+SINGLETON_STACK(Interface_expected, ( { {"pv_number", 0}, {"pv_char", '0'} } ));
+
+static Interface_expected * abstract_expected = NULL;
+SINGLETON_STACK(Abstract_expected, { { {"pv_number", 0}, {"pv_char", '0'} },
+                {"x", 0}, {"y", 0}, {"virt_area", 0}, {"number", 0} });
+
+static Interface_expected * base_expected = NULL;
+SINGLETON_STACK(Base_expected, { { { {"pv_number", 0}, {"pv_char", '0'} },
+                {"x", 0}, {"y", 0}, {"virt_area", 0}, {"number", 0} } });
+
+static Derived_expected * derived_expected = NULL;
+SINGLETON_STACK(Derived_expected, { { { { {"pv_number", 0}, {"pv_char", '0'} },
+                {"x", 0}, {"y", 0}, {"virt_area", 0}, {"number", 0} } }, 
+   {"z", 0}
+});
+
+static Interface_real * interface_real = NULL;
+SINGLETON_STACK(Interface_real, { 0, '0'});
+
+static Abstract_real * abstract_real = NULL;
+SINGLETON_STACK(Abstract_real, { { 0, '0'}, 0, 0, 0, 0 });
+
+static Base_real * base_real = NULL;
+SINGLETON_STACK(Base_real, { { { 0, '0'}, 0, 0, 0, 0 } });
+
+static Derived_real * derived_real = NULL;
+SINGLETON_STACK(Derived_real, { { { { 0, '0'}, 0, 0, 0, 0 } }, 0 });
 
 static void load_base_connector(Base_connector * functions) {
    if (! functions) {
@@ -73,6 +103,19 @@ static Result_codes run_base_connector(const Base_connector * const functions) {
       LOG_EXIT(__FUNCTION__, "base_connector functions is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
    }
    Result_codes result = functions->init(5, 8); 
+   double x;
+   if (OK == result)
+      result = functions->abstract.pv_X(&x); 
+   LOG("%s: %s base_connector x = %f\n", LANGUAGE, __FUNCTION__, x);
+   if (OK == result)
+      result = functions->abstract.virt_set_X(7); 
+   //LOG("%s: %s base_connector y = %f\n", LANGUAGE, __FUNCTION__, x);
+   if (OK == result)
+      result = functions->abstract.pv_X(&x); 
+   LOG("%s: %s base_connector y = %f\n", LANGUAGE, __FUNCTION__, x);
+   if (OK == result)
+      result = functions->abstract.pv_Y(&x); 
+   LOG("%s: %s base_connector y = %f\n", LANGUAGE, __FUNCTION__, x);
 //    if (OK == result)
 //       result = check_name(functions, "Claudius Ptolemaeus"); 
 //    if (OK == result)

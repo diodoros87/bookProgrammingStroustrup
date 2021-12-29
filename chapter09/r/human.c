@@ -17,7 +17,7 @@ static regex_t * NAME_REGEX = NULL;
 
 #define INIT_REGEX   \
 if (NULL == NAME_REGEX)    \
-      NAME_REGEX = Singleton_regex_t();
+      NAME_REGEX = Singleton_Heap_regex_t();
 
 Human_t* Human_malloc(void) {
    LOG_FUNC(__FUNCTION__);
@@ -32,7 +32,7 @@ static Result_codes validate(const char * const name) {
    Result_codes result = match_regex(NAME_REGEX, name);
    return result;
    /*
-   regex_t ** NAME_REGEX = Singleton_regex_t();
+   regex_t ** NAME_REGEX = Singleton_Heap_regex_t();
    Result_codes result = match_regex(*NAME_REGEX, name);*/
 }
 
@@ -63,7 +63,7 @@ Result_codes Human_init(Human_t ** const object, const char * const name) {
 }
 
 void destroy_regex(void) {
-   /*regex_t * NAME_REGEX = Singleton_regex_t();*/
+   /*regex_t * NAME_REGEX = Singleton_Heap_regex_t();*/
    if (NAME_REGEX) {
       regfree(NAME_REGEX);
       free(NAME_REGEX);
@@ -82,7 +82,7 @@ void Human_destroy(Human_t ** const object) {
    free(*object);
    *object = NULL; /* to avoid double free or corruption (fasttop)  */
    /*
-   regex_t ** NAME_REGEX = Singleton_regex_t();
+   regex_t ** NAME_REGEX = Singleton_Heap_regex_t();
    regfree(*NAME_REGEX);*/
    /*destroy_regex();*/
 }
