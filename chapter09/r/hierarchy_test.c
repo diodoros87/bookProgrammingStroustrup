@@ -25,6 +25,20 @@ Result_codes getset_coordination(Result_codes (*set)(const double), const double
    return result;
 }
 
+Result_codes incorrect_set_coordination(Result_codes (*set)(const double), const double set_value,
+                                Result_codes (*get)(double * const), const char * message) {
+   REQUIRE_NON_NULL(set, "set is null");
+   Result_codes result = set(set_value);
+   if (INVALID_ARG == result)
+      result = OK;
+   else {
+      if (OK == result)
+         check_double(get, message, set_value);
+      assert_many(result != INVALID_ARG, "assert failed: ", "s d", "result == ", result);
+   }
+   return result;
+}
+
 Result_codes check_int(Result_codes (*get)(int * const), const char * message, const int expected) {
    REQUIRE_NON_NULL(get, "get is null");
    REQUIRE_NON_NULL(message, "message is null");

@@ -11,7 +11,7 @@ typedef struct __attribute__ ((__packed__)) Interface_connector {
 
 typedef struct __attribute__ ((__packed__)) Abstract_connector {
    Interface_connector interface;
-   Result_codes (*pv_X)(double * const );
+   Result_codes (*X)(double * const );
    Result_codes (*virt_set_X) (const double);
    Result_codes (*pv_Y)(double * const );
    Result_codes (*virt_set_Y) (const double);

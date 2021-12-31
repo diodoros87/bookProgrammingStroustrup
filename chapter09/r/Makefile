@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS =    -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS =    -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -33,11 +33,11 @@ c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_str
 c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.h human.h utility.h demo_functions.h human_functions.h variadic_template_test.h
 	$(CC) $(CFLAGS) -c linking_test.c -o c_linking_test.o 
 	
-base_cpp_test.o: base_cpp_test.c base_cpp_test.h utility.h shared_lib_open.h result_codes.h pair.h base_connector.h singleton.h hierarchy_test.h
+base_cpp_test.o: base_cpp_test.c base_cpp_test.h shared_lib_open.h result_codes.h pair.h base_connector.h hierarchy_test.h
 	$(CC) $(CFLAGS) -c base_cpp_test.c 
 	
 c_hierarchy_test.o: hierarchy_test.c hierarchy_test.h utility.h pair.h singleton.h hierarchy_test.h
-	$(CC) $(CFLAGS) -c hierarchy_test.c -o c_hierarchy_test.o
+	$(CC) $(CFLAGS) -c hierarchy_test.c -o c_hierarchy_test.o 
 	
 demo_derived_functions.o: demo_derived_functions.h demo_derived_functions.c utility.h shared_lib_open.h result_codes.h
 	$(CC) $(CFLAGS) -c demo_derived_functions.c -o demo_derived_functions.o 

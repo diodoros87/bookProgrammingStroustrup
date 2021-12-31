@@ -1,9 +1,7 @@
-#include "singleton.h"
+
 #include "print.h"
-#include "utility.h"
 #include "base_cpp_test.h"
 #include "base_connector.h"
-#include "hierarchy_test.h"
 
 #include <string.h>
 
@@ -23,7 +21,7 @@ static void load_base_connector() {
    functions.destroy = get_symbol(functions.handle, "base_cpp_destroy");
    functions.abstract.interface.pv_number = get_symbol(functions.handle, "base_cpp_pv_number");
    functions.abstract.interface.pv_char = get_symbol(functions.handle, "base_cpp_pv_char");
-   functions.abstract.pv_X = get_symbol(functions.handle, "base_cpp_pv_X");
+   functions.abstract.X = get_symbol(functions.handle, "base_cpp_X");
    functions.abstract.virt_set_X = get_symbol(functions.handle, "base_cpp_virt_set_X");
    functions.abstract.pv_Y = get_symbol(functions.handle, "base_cpp_pv_Y");
    functions.abstract.virt_set_Y = get_symbol(functions.handle, "base_cpp_virt_set_Y");
@@ -36,7 +34,7 @@ static void load_base_connector() {
    functions.destroy = base_cpp_destroy;
    functions.abstract.interface.pv_number = base_cpp_pv_number;
    functions.abstract.interface.pv_char = base_cpp_pv_char;
-   functions.abstract.pv_X = base_cpp_pv_X;
+   functions.abstract.X = base_cpp_X;
    functions.abstract.virt_set_X = base_cpp_virt_set_X;
    functions.abstract.pv_Y = base_cpp_pv_Y;
    functions.abstract.virt_set_Y = base_cpp_virt_set_Y;
@@ -48,7 +46,7 @@ static void load_base_connector() {
 static Result_codes run_base_connector() { 
    Result_codes result = functions.init(5, 8); 
    if (OK == result)
-      result = check_double(functions.abstract.pv_X, "Base pv_X", 5);
+      result = check_double(functions.abstract.X, "Base X", 5);
    if (OK == result)
       result = check_double(functions.abstract.pv_Y, "Base pv_Y", 8);
    if (OK == result)
@@ -56,12 +54,15 @@ static Result_codes run_base_connector() {
    if (OK == result)
       result = check_int(functions.abstract.interface.pv_number, "Base pv_number", 1);
    if (OK == result)
-      result = check_int(functions.abstract.number, "Base number", 1);
+      result = check_int(functions.abstract.number, "Base number", STATICS.number);
    if (OK == result)
-      result = check_char(functions.abstract.interface.pv_char, "Base pv_char", 'B');
+      result = check_char(functions.abstract.interface.pv_char, "Base pv_char", STATICS.ch);
+   if (OK == result)
+      result = incorrect_set_coordination(functions.abstract.virt_set_Y, -5.8, 
+                                   functions.abstract.pv_Y, "Base pv_Y");
    if (OK == result)
       result = getset_coordination(functions.abstract.virt_set_X, 7,
-                                functions.abstract.pv_X, "Base pv_X");
+                                functions.abstract.X, "Base X");
    if (OK == result)
       result = getset_coordination(functions.abstract.virt_set_Y, 99,
                                 functions.abstract.pv_Y, "Base pv_Y"); 

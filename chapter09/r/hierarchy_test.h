@@ -66,6 +66,8 @@ Result_codes check_double(Result_codes (*get)(double * const), const char * mess
                                        const double expected);
 Result_codes getset_coordination(Result_codes (*set)(const double), const double set_value,
                                 Result_codes (*get)(double * const), const char * message);
+Result_codes incorrect_set_coordination(Result_codes (*set)(const double), const double set_value,
+                                Result_codes (*get)(double * const), const char * message);
 
 Result_codes check_char(Result_codes (*get)(char * const), const char * message, const char expected);
 Result_codes check_int(Result_codes (*get)(int * const), const char * message, const int expected);

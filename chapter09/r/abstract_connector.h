@@ -18,9 +18,12 @@
    class Abstract_connector {
       static_assert(is_base_of<Base, T>::value);
    public:
+      static const int  NUMBER;
+      static const char CHAR; 
+      
       Result_codes pv_number(int * const);
       Result_codes pv_char(char * const);
-      virtual Result_codes pv_X(double * const) = 0;
+      virtual Result_codes X(double * const);
       Result_codes virt_set_X(const double);
       Result_codes pv_Y(double * const);
       Result_codes virt_set_Y(const double);
@@ -50,8 +53,16 @@
    }
    
    template <class T>
+   Result_codes Abstract_connector<T>::X(double * const x) {
+      if (OK != check_pointer(x, __func__, " Error number pointer")) 
+         return INVALID_ARG;
+      *x = instance->X();
+      return OK;
+   }
+   
+   template <class T>
    Result_codes Abstract_connector<T>::virt_set_X(const double x) {
-      Result_codes result = bind_execute_member_function(instance, &Base::virt_set_X, x);
+      Result_codes result = bind_execute_member_function(instance, &T::virt_set_X, x);
       return result;
    }
    
@@ -65,7 +76,7 @@
    
    template <class T>
    Result_codes Abstract_connector<T>::virt_set_Y(const double y) {
-      Result_codes result = bind_execute_member_function(instance, &Base::virt_set_Y, y);
+      Result_codes result = bind_execute_member_function(instance, &T::virt_set_Y, y);
       return result;
    }
    
@@ -100,7 +111,5 @@ extern "C" {
 #ifdef  __cplusplus
 }
 #endif
-
-//Result_codes test_base_connector(void);
 
 #endif

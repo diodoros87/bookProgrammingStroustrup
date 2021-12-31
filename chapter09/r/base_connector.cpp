@@ -5,24 +5,24 @@
 using namespace Hierarchy;
 using namespace std;
 
-//extern Result_codes demo_set_name(Demo * const object, const char * name);
-//extern Result_codes demo_get_name(const Demo * const object, char ** name);
-
 template<>
 Base * Base_connector::Abstract_connector<Base>::instance = nullptr;
+
+template<>
+const int Base_connector::Abstract_connector<Base>::NUMBER = Base::BASE;
+
+template<>
+const char Base_connector::Abstract_connector<Base>::CHAR = Base::BASE_CHAR;
+
+const Static_number_char STATICS = { .number = Base_connector::Abstract_connector<Base>::NUMBER,
+                                    .ch = Base_connector::Abstract_connector<Base>::CHAR
+};
 
 static Base_connector connector;
 
 Result_codes Base_connector::init(const double x, const double y) {
    Result_codes result = ::init<Base>(instance, Constructor<Base>(), x, y);
    return result;
-}
-
-Result_codes Base_connector::pv_X(double * const x) {
-   if (OK != check_pointer(x, __func__, " Error number pointer")) 
-      return INVALID_ARG;
-   *x = instance->X();
-   return OK;
 }
 
 Result_codes base_cpp_init(const double x, const double y) {
@@ -40,8 +40,8 @@ Result_codes base_cpp_pv_char(char * const c) {
    return result;
 }
 
-Result_codes base_cpp_pv_X(double  * const  x) {
-   Result_codes result = connector.pv_X(x);
+Result_codes base_cpp_X(double  * const  x) {
+   Result_codes result = connector.X(x);
    return result;
 }
 
@@ -75,28 +75,3 @@ Result_codes base_cpp_destroy() {
    Result_codes result = connector.destruct();
    return result;
 }
-   
-// Result_codes demo_derived_set_name(const char * name) {
-//    Result_codes result = Base_connector::set_name(name);
-//    return result;
-// }
-// 
-// Result_codes demo_derived_get_name(char ** name) {
-//    Result_codes result = Base_connector::get_name(name);
-//    return result;
-// }
-// 
-// Result_codes demo_derived_set_age(const unsigned int age) {
-//    Result_codes result = Base_connector::set_age(age);
-//    return result;
-// }
-// 
-// Result_codes demo_derived_get_age(unsigned int * const age) {
-//    Result_codes result = Base_connector::get_age(age);
-//    return result;
-// }
-// 
-// Result_codes demo_derived_destroy(void) {
-//    Result_codes result = Base_connector::destruct();
-//    return result;
-// }
