@@ -14,16 +14,11 @@ const int Base_connector::Abstract_connector<Base>::NUMBER = Base::BASE;
 template<>
 const char Base_connector::Abstract_connector<Base>::CHAR = Base::BASE_CHAR;
 
-const Static_number_char STATICS = { .number = Base_connector::Abstract_connector<Base>::NUMBER,
-                                    .ch = Base_connector::Abstract_connector<Base>::CHAR
+const Static_number_char BASE_STATICS = { .number = Base_connector::Abstract_connector<Base>::NUMBER,
+                                          .ch = Base_connector::Abstract_connector<Base>::CHAR
 };
 
 static Base_connector connector;
-
-Result_codes Base_connector::init(const double x, const double y) {
-   Result_codes result = ::init<Base>(instance, Constructor<Base>(), x, y);
-   return result;
-}
 
 Result_codes base_cpp_init(const double x, const double y) {
    Result_codes result = connector.init(x, y);

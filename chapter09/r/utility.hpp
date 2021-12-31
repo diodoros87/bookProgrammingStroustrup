@@ -54,7 +54,7 @@ template <typename T>
 struct Money_Creation {
 	template<typename... Args>
 	Money<T> operator()(Args...args) const {
-		return Money<T>::create(std::forward<Args>(args)...);
+		return Money<T>::create(forward<Args>(args)...);
 	}
 };
 

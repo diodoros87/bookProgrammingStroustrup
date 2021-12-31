@@ -17,13 +17,13 @@ typedef struct __attribute__ ((__packed__)) Abstract_connector {
    Result_codes (*virt_set_Y) (const double);
    Result_codes (*virt_area)(double * const);
    Result_codes (*number) (int * const);
+   Result_codes (*destroy)(void);
+   void * handle;
 } Abstract_connector;
 
 typedef struct __attribute__ ((__packed__)) Base_connector {
    Abstract_connector abstract;
    Result_codes (*init)(const double, const double);
-   Result_codes (*destroy)(void);
-   void * handle;
 } Base_connector;
 
 Result_codes test_base_cpp(void);

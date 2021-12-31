@@ -214,15 +214,15 @@ Result_codes test_derived_linking(Derived & d) {
       result = bind_execute_member_function_assert(d, &Derived::pv_Y, 0.8, "y", __func__, &Derived::virt_set_Y, 0.8);
    }
    if (OK == result)
-         result = incorrect_call(d, &Derived::pv_Y, -105.8, "y", __func__, &Derived::virt_set_Y, -105.8); 
+      result = incorrect_call(d, &Derived::pv_Y, -105.8, "y", __func__, &Derived::virt_set_Y, -105.8); 
    if (OK == result) {
       print_and_assert(d.pv_Y(), 0.8, "y");
       result = bind_execute_member_function_assert(d, &Derived::Z, -66.8, "z", __func__, &Derived::virt_set_Z, -66.8);
    }
    if (OK == result)
-         result = incorrect_call(d, &Derived::Z, -0.0, "z", __func__, &Derived::virt_set_Z, -0.0); 
+      result = incorrect_call(d, &Derived::Z, -0.0, "z", __func__, &Derived::virt_set_Z, -0.0); 
    if (OK == result)
-         result = incorrect_call(d, &Derived::Z, 190.0, "z", __func__, &Derived::virt_set_Z, 190.0);
+      result = incorrect_call(d, &Derived::Z, 190.0, "z", __func__, &Derived::virt_set_Z, 190.0);
    if (OK == result) {
       print_and_assert(d.Z(), -66.8, "z");
       print_and_assert(d.virt_area(), 7.5 * 0.8 * -66.8, "virt_area");

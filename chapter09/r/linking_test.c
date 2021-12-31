@@ -10,6 +10,7 @@
 #include "demo_functions.h"
 #include "human.h"
 #include "base_cpp_test.h"
+#include "derived_cpp_test.h"
 
 #include <stdlib.h>
 #include <limits.h>
@@ -25,7 +26,17 @@ static void at_exit (void) {
    destroy_regex();
 }
 
+static Result_codes call_test(Result_codes * result, Result_codes (*test)(void)) {
+   REQUIRE_NON_NULL(result, "pointer to result is null");
+   REQUIRE_NON_NULL(result, "pointer to test function is null");
+   
+   return *result;
+   
+}
+
 static Result_codes main_test_linking(void) {
+   //static const Result_codes (*test)(void) TESTS [] = { test_demo_linking, }
+   
    Result_codes result = test_demo_linking();
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (OK == result)
@@ -42,6 +53,9 @@ static Result_codes main_test_linking(void) {
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (OK == result)
       result = test_base_cpp();
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
+   if (OK == result)
+      result = test_derived_cpp();
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }

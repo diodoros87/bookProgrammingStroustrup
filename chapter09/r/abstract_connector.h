@@ -3,6 +3,11 @@
 
 #include "result_codes.h"
 
+typedef struct Static_number_char {
+   const int number;
+   const char ch;
+} Static_number_char;
+
 #ifdef __cplusplus
 
    #include "base.hpp"
@@ -23,13 +28,18 @@
       
       Result_codes pv_number(int * const);
       Result_codes pv_char(char * const);
-      virtual Result_codes X(double * const);
+      Result_codes X(double * const);
       Result_codes virt_set_X(const double);
       Result_codes pv_Y(double * const);
       Result_codes virt_set_Y(const double);
       Result_codes virt_area(double * const);
       Result_codes number(int * const);
+      
       Result_codes destruct();
+      
+      template <typename... Args>
+      Result_codes init(Args ...args);
+      
       virtual ~Abstract_connector() { };
    protected:
       static T * instance;
@@ -94,6 +104,13 @@
          return INVALID_ARG;
       *number = instance->number();
       return OK;
+   }
+   
+   template <class T> 
+   template <typename... Args>
+   Result_codes Abstract_connector<T>::init(Args ...args) {
+      Result_codes result = ::init<T>(instance, Constructor<T>(), std::forward<Args>(args)...);
+      return result;
    }
    
    template <class T>
