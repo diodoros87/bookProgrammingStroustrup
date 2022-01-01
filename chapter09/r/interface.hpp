@@ -27,6 +27,7 @@ public:
    Interface& operator=(Interface &&) noexcept {
       cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator=", Interface::NB) << '\n';
    }
+   
 protected:
    virtual bool pv_valid(const double) const = 0;
    Interface() { 

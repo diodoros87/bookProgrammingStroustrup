@@ -53,7 +53,7 @@ private:
    static Derived construct(const double, const double, const double);
 #endif
    
-   static Result_codes test_move();
+   static void test_move();
 };
 
 Result_codes test_derived();

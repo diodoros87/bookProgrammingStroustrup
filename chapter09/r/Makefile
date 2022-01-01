@@ -1,4 +1,4 @@
-#CXX = g++
+CXX = g++
 CXX = clang
 CPPFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
@@ -15,10 +15,10 @@ PROGRAMS  = libdemo.so libdemoderived.so libbase_cpp.so libbase_cpp_connector.so
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with G++"'
 CLANG_CPPFLAGS = -L/usr/lib -lstdc++ -lm -v -DMESSAGE='"Compiled with Clang"'
 
-ifeq ($(CXX),g++)
+ifeq ($(CXX), g++)
   CPPFLAGS += $(GCC_CPPFLAGS)
   TEST_CPPFLAGS += $(GCC_CPPFLAGS)
-else ifeq ($(CXX),clang)
+else ifeq ($(CXX), clang)
   CPPFLAGS += $(CLANG_CPPFLAGS)
   TEST_CPPFLAGS += $(CLANG_CPPFLAGS)
 endif

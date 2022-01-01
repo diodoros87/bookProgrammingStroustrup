@@ -54,7 +54,7 @@ static void assert_derived(const Derived & object, const double a, const double 
 //#endif
 
 #ifdef MANUAL_DLL_LOAD
-Result_codes Derived_test::test_move() {
+void Derived_test::test_move() {
    d = construct(1, 2, 3);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 2.0, 4.0, 6.0, 48.0, Derived::DERIVED);
    
@@ -73,7 +73,7 @@ Result_codes Derived_test::test_move() {
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 57.0, 6.0, 9.0, 57.0 * 6.0 * 9.0, Derived::DERIVED);
 }
 #else
-Result_codes Derived_test::test_move() {
+void Derived_test::test_move() {
    d  = construct(1, 2, 3);
    test_derived(Derived::DERIVED, Derived::DERIVED_CHAR, 2.0, 4.0, 6.0, 48.0, Derived::DERIVED);
    
@@ -244,21 +244,19 @@ static Result_codes test_try_catch() {
 #ifdef MANUAL_DLL_LOAD
 Result_codes Derived_test::test_derived_linking() {
    cerr << "\nMANUAL DLL LOAD\n";
-   Result_codes result = execute_function(&Derived_test::test_move);
+   execute_function(&Derived_test::test_move);
+   d = test_constructor(manual_interface.create);
+   Result_codes result = (nullptr == d) ? INCORRECT_VALUE : OK;
    if (result == OK) {
-      d = test_constructor(manual_interface.create);
-      result = (nullptr == d) ? INCORRECT_VALUE : OK;
-      if (result == OK) {
-         print_assert();
-         result = tests::test_derived_linking(*d);
-         if (result == OK)
-            result = static_cast<Result_codes> (close_handle(&(manual_interface.handle)));
-         else
-            close_handle(&(manual_interface.handle));
-         manual_interface.destroy(d);
-      }
-      assert_many(d == nullptr, "d pointer == ", d);
+      print_assert();
+      result = tests::test_derived_linking(*d);
+      if (result == OK)
+         result = static_cast<Result_codes> (close_handle(&(manual_interface.handle)));
+      else
+         close_handle(&(manual_interface.handle));
+      manual_interface.destroy(d);
    }
+   assert_many(d == nullptr, "d pointer == ", d);
    assert_many(result == OK, "result == ", result);
    return result;
 }
@@ -269,10 +267,9 @@ Result_codes Derived_test::test_derived_linking() {
    assert_many(result == OK, "result == ", result);
    if (result == OK) {
       print_assert();
-      result = tests::test_derived_linking(d);
-      if (OK == result)
-         result = execute_function(&Derived_test::test_move);
+      result = tests::test_derived_linking(d); 
    }
+   execute_function(&Derived_test::test_move);
    assert_many(result == OK, "result == ", result);
    return result;
 }
