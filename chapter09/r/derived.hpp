@@ -7,7 +7,7 @@ namespace Hierarchy {
 
 class Derived : public Base {
 private:
-   double z {DERIVED};
+   double z { static_cast<double>(DERIVED) };
 public:
    static const string class_name;
    static const int DERIVED;
@@ -43,7 +43,7 @@ public:
    Derived& operator=(const Derived &);
    Derived(const Derived&);
    
-   ~Derived();
+   virtual ~Derived();
    Derived(const double, const double, const double);
    Derived() { cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n'; }
    Derived(Derived &&) noexcept;

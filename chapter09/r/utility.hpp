@@ -163,20 +163,26 @@ Result_codes init(Type * & object_pointer, Function && constructor, Args &&... a
       cerr  << __func__ << " Error NON-null object_pointer type of " << typeid(Type).name() << '\n';
       return INVALID_ARG;
    }
+   //Type * memory = nullptr;
+   void * memory = nullptr;
    try {
-      void * memory = operator new(sizeof(Type));
+      //memory = reinterpret_cast<Type *>( operator new(sizeof(Type)) );
+      memory = operator new(sizeof(Type));
       object_pointer = new(memory) Type(constructor(forward<Args>(args)...));
    } 
    catch (const bad_alloc & const_e) {
       cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
       bad_alloc &e = const_cast<bad_alloc &>(const_e);
+      delete memory;
       return get_error_code(reinterpret_cast<bad_alloc *>(&e));
    } catch (const exception & const_e) {
       cerr  << __func__ << " " << typeid(const_e).name() << " " << const_e.what() << '\n';
       exception &e = const_cast<exception &>(const_e);
+      delete memory;
       return get_error_code(reinterpret_cast<exception *>(&e));
    } catch (...) {
       cerr  << __func__ << " Unrecognized exception was catched " << '\n';
+      delete memory;
       return UNRECOGNIZED_ERROR;
    }
    return OK;

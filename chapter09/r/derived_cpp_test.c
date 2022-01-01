@@ -14,7 +14,7 @@
 
 static Derived_connector functions;
 
-static void load_derived_connector() {
+static void load_derived_connector(void) {
 #ifdef MANUAL_DLL_LOAD
    LOG("%s", "\nMANUAL DLL LOAD\n");
    functions.abstract.handle = get_handle(LIB_DERIVED_CONNECTOR_SO, RTLD_LAZY);
@@ -74,7 +74,7 @@ static Result_codes test_constructor(void) {
    return result;
 }
 
-static Result_codes run_derived_connector() { 
+static Result_codes run_derived_connector(void) { 
    Result_codes result = test_constructor(); 
    if (OK == result)
       result = getset_coordination(functions.abstract.virt_set_X, 7.5, functions.abstract.X, "Derived X");
@@ -116,7 +116,7 @@ static Result_codes run_derived_connector() {
 
 Result_codes test_derived_cpp(void) {
    FUNCTION_INFO(__FUNCTION__);
-   load_derived_connector(&functions);
-   Result_codes result = run_derived_connector(&functions);
+   load_derived_connector();
+   Result_codes result = run_derived_connector();
    return result;
 }

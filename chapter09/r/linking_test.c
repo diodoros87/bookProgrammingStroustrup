@@ -11,6 +11,7 @@
 #include "human.h"
 #include "base_cpp_test.h"
 #include "derived_cpp_test.h"
+#include "variadic_template_test.h"
 
 #include <stdlib.h>
 #include <limits.h>
@@ -23,40 +24,22 @@ void handle_terminate(void) {
 static void at_exit (void) {
    puts (" At exit\n");
    FUNCTION_INFO(__FUNCTION__);
-   destroy_regex();
-}
-
-static Result_codes call_test(Result_codes * result, Result_codes (*test)(void)) {
-   REQUIRE_NON_NULL(result, "pointer to result is null");
-   REQUIRE_NON_NULL(result, "pointer to test function is null");
-   
-   return *result;
-   
+   destroy_regex();  /* test_human_linking and test_human_derived use NAME_REGEX allocated in heap  */
 }
 
 static Result_codes main_test_linking(void) {
-   //static const Result_codes (*test)(void) TESTS [] = { test_demo_linking, }
-   
-   Result_codes result = test_demo_linking();
-   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-   if (OK == result)
-      result = test_demo_derived();
-   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-   if (OK == result)
-      result = test_human_linking();
+   static const Result_codes (*TESTS [])(void) = { test_demo_linking, test_demo_derived,
+      test_human_linking, test_human_derived, test_money,
+      test_base_cpp, test_derived_cpp
+   };
    atexit (at_exit);
-   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-   if (OK == result)
-      result = test_human_derived();
-   if (OK == result)
-      result = test_money();
-   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-   if (OK == result)
-      result = test_base_cpp();
-   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-   if (OK == result)
-      result = test_derived_cpp();
-   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
+   const size_t SIZE = sizeof(TESTS) / sizeof(TESTS[0]);
+   Result_codes result = OK;
+   for (size_t i = 0; i < SIZE && result == OK; i++) {
+      result = TESTS[i]();
+      assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
+   }
+
    return result;
 }
 

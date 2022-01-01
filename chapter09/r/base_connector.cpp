@@ -66,7 +66,7 @@ Result_codes base_cpp_number(int * const number) {
    return result;
 }
 
-Result_codes base_cpp_destroy() {
+Result_codes base_cpp_destroy(void) {
    Result_codes result = connector.destruct();
    return result;
 }

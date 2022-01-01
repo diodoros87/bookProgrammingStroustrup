@@ -38,7 +38,7 @@ inline Result_codes check_pointer_1_1(T **pointer, const string & function, cons
    return INVALID_ARG;
 }
 
-inline Result_codes check_pointer(nullptr_t) {
+inline Result_codes check_pointer(std::nullptr_t) {
    cerr  << "type: nullptr_t - pointer is null" << '\n';  
    return INVALID_ARG;
 }

@@ -7,7 +7,7 @@ namespace Hierarchy {
 
 class Base : public Abstract {
 private:
-   double y {BASE};
+   double y { static_cast<double>(BASE) };
 public:
    static const int BASE;
    static const char BASE_CHAR;

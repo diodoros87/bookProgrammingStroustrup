@@ -76,6 +76,7 @@ Result_codes bind_execute_member_function_assert(Object & object, Func_1 && m_fu
    auto bind_function = std::mem_fn(m_funct);
    Value value = bind_function(object);
    //(value, expected_value, value_string, function);
+   cerr << " Function: " << function << '\n';
    print_and_assert(value, expected_value, value_string);
    return result;
 }
