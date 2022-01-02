@@ -67,7 +67,7 @@ Abstract& Abstract::operator=(const Abstract & object) {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "copy operator= ") << '\n';
    if (this == &object)
       return *this;
-   //Interface::operator=(object);
+   Interface::operator=(object);
    this->x = object.x;
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
    return *this;
@@ -82,7 +82,7 @@ Abstract::Abstract(Abstract && object) noexcept : Interface(move(object)) {
 Abstract& Abstract::operator=(Abstract && object) noexcept {
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ", unmove(X())) << '\n';
    if(this != &object) {
-      //static_cast<Interface &>(*this) = move(object);
+      static_cast<Interface &>(*this) = move(object);
       this->x = exchange(object.x, 0);
    }
    cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator= ", unmove(X())) << '\n';

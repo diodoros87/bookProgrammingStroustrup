@@ -12,15 +12,15 @@ LDFLAGS = #-fsanitize=address -static-libasan
 
 PROGRAMS  = libdemo.so libdemoderived.so libbase_cpp.so libbase_cpp_connector.so libderived_cpp_connector.so libderived_cpp.so  libvariadic_template.so libconnector.so libdemoderivedconnector.so main_cpp test_cpp      libhuman.so libhumanderived.so c_main linking_test_cpp c_linking_test c_test 
 
-GCC_CPPFLAGS = -DMESSAGE='"Compiled with G++"'
-CLANG_CPPFLAGS = -L/usr/lib -lstdc++ -lm -v -DMESSAGE='"Compiled with Clang"'
+GCC_CPPFLAGS = -DMESSAGE='"Compiled with G++"' 
+CLANG_CPPFLAGS = -L/usr/lib -lstdc++ -lm -v -DMESSAGE='"Compiled with Clang"' 
 
 ifeq ($(CXX), g++)
-  CPPFLAGS += $(GCC_CPPFLAGS)
-  TEST_CPPFLAGS += $(GCC_CPPFLAGS)
+CPPFLAGS += -DMANUAL_DLL_LOAD $(GCC_CPPFLAGS) 
+TEST_CPPFLAGS += $(GCC_CPPFLAGS) 
 else ifeq ($(CXX), clang)
-  CPPFLAGS += $(CLANG_CPPFLAGS)
-  TEST_CPPFLAGS += $(CLANG_CPPFLAGS)
+CPPFLAGS += -DMANUAL_DLL_LOAD $(CLANG_CPPFLAGS) 
+TEST_CPPFLAGS += $(CLANG_CPPFLAGS) 
 endif
 
 .PHONY: clean all

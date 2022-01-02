@@ -5,7 +5,7 @@
 
 #ifdef __cplusplus
 
-#include "base.hpp""
+#include "base.hpp"
 
    using Hierarchy::Base;
 

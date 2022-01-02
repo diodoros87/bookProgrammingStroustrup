@@ -26,6 +26,7 @@ public:
    }
    Interface& operator=(Interface &&) noexcept {
       cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "move operator=", Interface::NB) << '\n';
+      return *this;
    }
    
 protected:
@@ -38,6 +39,7 @@ protected:
    }
    Interface& operator=(Interface const &) { 
       cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "copy operator=", Interface::NB) << '\n';
+      return *this;
    }
    
 };
