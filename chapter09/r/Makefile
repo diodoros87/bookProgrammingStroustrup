@@ -1,10 +1,10 @@
 CXX = g++
-CXX = clang
-CPPFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+#CXX = clang
+CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -16,10 +16,10 @@ GCC_CPPFLAGS = -DMESSAGE='"Compiled with G++"'
 CLANG_CPPFLAGS = -L/usr/lib -lstdc++ -lm -v -DMESSAGE='"Compiled with Clang"' 
 
 ifeq ($(CXX), g++)
-CPPFLAGS += -DMANUAL_DLL_LOAD $(GCC_CPPFLAGS) 
+CPPFLAGS +=  $(GCC_CPPFLAGS) 
 TEST_CPPFLAGS += $(GCC_CPPFLAGS) 
 else ifeq ($(CXX), clang)
-CPPFLAGS += -DMANUAL_DLL_LOAD $(CLANG_CPPFLAGS) 
+CPPFLAGS +=  $(CLANG_CPPFLAGS) 
 TEST_CPPFLAGS += $(CLANG_CPPFLAGS) 
 endif
 
@@ -104,6 +104,9 @@ regular_expr.o: regular_expr.h regular_expr.c print.h result_codes.h
 	
 allocate.o: allocate.h allocate.c
 	$(CC) $(CFLAGS) -c -fPIC allocate.c 
+	
+interface_c.o: interface.c interface.h interface_private.h print.h result_codes.h c_string.h utility.h
+	$(CC) $(CFLAGS) -c -fPIC interface.c -o interface_c.o 
 	
 	
 	

@@ -32,7 +32,7 @@ public:
 protected:
    virtual bool pv_valid(const double) const = 0;
    Interface() { 
-      cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, Interface::NB) << '\n';
+      cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "Interface() constructor", Interface::NB) << '\n';
    }
    Interface(Interface const &) { 
       cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, "copy constructor", Interface::NB) << '\n';

@@ -30,7 +30,7 @@ public:
    virtual char pv_char() const { return BASE_CHAR; };
    virtual void pv_print_char() const;
    
-   ~Base();
+   virtual ~Base();
    Base(const double, const double);
    Base() { cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n'; }
    
