@@ -14,13 +14,14 @@ struct Human_derived_t {
    unsigned int * age;
 };
 
+/*
 Human_derived_t* Human_derived_malloc(void) {
    LOG_FUNC(__FUNCTION__);
    Human_derived_t * new = NULL;
    ALLOCATE_STRING(new, sizeof (Human_derived_t));
    return new;
 }
-/*
+
 static Human_derived_t* Human_derived_realloc(Human_derived_t * object) {
    LOG_FUNC(__FUNCTION__);
    Human_derived_t * new = NULL;
@@ -28,6 +29,7 @@ static Human_derived_t* Human_derived_realloc(Human_derived_t * object) {
    return new;
 }
 */
+
 static Result_codes validate(const unsigned int age) {
    if (age <= 0 || age >= 150) 
       return INVALID_ARG;

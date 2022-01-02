@@ -15,6 +15,15 @@ if (NULL == pointer) { \
    return INVALID_ARG; \
 }
 
+static void Interface_destroy_local(Interface_t ** const object) {
+   LOG_FUNC(__FUNCTION__);
+   REQUIRE_NON_NULL(object, "interface is null");
+   REQUIRE_NON_NULL(*object, "*interface is null");
+   
+   free(*object);
+   *object = NULL; /* to avoid double free or corruption (fasttop)  */
+}
+
 const int NB = -8;
 const char * const class_name = "Interface";
 
@@ -37,28 +46,28 @@ Result_codes Interface_init(Interface_t ** const object) {
    (*object)->pv_valid_f   = NULL;
    (*object)->pv_number_f  = NULL;
    (*object)->pv_char_f    = NULL;
-   (*object)->interface_destroy = Interface_destroy;
+   (*object)->interface_destroy_f = Interface_destroy_local;
    
    return OK;
 }
 
-Result_codes pv_valid(const Interface_t * const object, bool_t * const b) {
-   return object->pv_valid_f(object, b);
+Result_codes pv_valid(const Interface_t * const object, const double n, bool_t * const b) {
+   REQUIRE_NON_NULL(object, "interface is null");
+   return object->pv_valid_f(object, n, b);
 }
 
 Result_codes pv_number(const Interface_t * const object, int * const number) {
+   REQUIRE_NON_NULL(object, "interface is null");
    return object->pv_number_f(object, number);
 }
 
 Result_codes pv_char(const Interface_t * const object, char * const ch) {
+   REQUIRE_NON_NULL(object, "interface is null");
    return object->pv_char_f(object, ch);
 }
 
 void Interface_destroy(Interface_t ** const object) {
-   LOG_FUNC(__FUNCTION__);
    REQUIRE_NON_NULL(object, "interface is null");
    REQUIRE_NON_NULL(*object, "*interface is null");
-   
-   free(*object);
-   *object = NULL; /* to avoid double free or corruption (fasttop)  */
+   return (*object)->interface_destroy_f(object);
 }

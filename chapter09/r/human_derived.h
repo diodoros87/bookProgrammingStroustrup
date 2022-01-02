@@ -9,7 +9,7 @@ typedef struct Human_derived_t Human_derived_t;
 extern "C" {
 #endif
    
-Human_derived_t* Human_derived_malloc(void);
+/* Human_derived_t* Human_derived_malloc(void); */
 
 int Human_derived_init(Human_derived_t ** const, const char * const, const unsigned int);
 

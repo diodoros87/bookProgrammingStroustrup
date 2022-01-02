@@ -13,7 +13,7 @@ typedef struct Interface_t {
    pv_valid_t pv_valid_f;
    pv_number_t pv_number_f;
    pv_char_t pv_char_f;
-   Interface_destroy_t interface_destroy;
+   Interface_destroy_t interface_destroy_f;
 } Interface_t;
 
 Interface_t * Interface_malloc(void);
