@@ -10,7 +10,7 @@ TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=add
 
 LDFLAGS = #-fsanitize=address -static-libasan 
 
-PROGRAMS  = libdemo.so libdemoderived.so libbase_cpp.so libbase_cpp_connector.so libderived_cpp_connector.so libderived_cpp.so  libvariadic_template.so libconnector.so libdemoderivedconnector.so main_cpp test_cpp      libhuman.so libhumanderived.so c_main linking_test_cpp c_linking_test c_test 
+PROGRAMS  = libdemo.so libdemoderived.so libbase_cpp.so libbase_cpp_connector.so libderived_cpp_connector.so libderived_cpp.so  libvariadic_template.so libconnector.so libdemoderivedconnector.so main_cpp test_cpp      libhuman.so libhumanderived.so libbase_c.so c_main linking_test_cpp c_linking_test c_test 
 
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with G++"' 
 CLANG_CPPFLAGS = -L/usr/lib -lstdc++ -lm -v -DMESSAGE='"Compiled with Clang"' 
@@ -104,6 +104,12 @@ regular_expr.o: regular_expr.h regular_expr.c print.h result_codes.h
 	
 allocate.o: allocate.h allocate.c
 	$(CC) $(CFLAGS) -c -fPIC allocate.c 
+	
+libbase_c.so:  base_c.o abstract_c.o interface_c.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o libbase_c.so base_c.o abstract_c.o interface_c.o 
+	
+base_c.o: base_private.h base.h base.c abstract.h abstract_private.h interface.h interface_private.h print.h result_codes.h c_string.h utility.h allocate.h
+	$(CC) $(CFLAGS) -c -fPIC base.c -o base_c.o 
 	
 abstract_c.o: abstract.c abstract.h abstract_private.h interface.h interface_private.h print.h result_codes.h c_string.h utility.h allocate.h
 	$(CC) $(CFLAGS) -c -fPIC abstract.c -o abstract_c.o 

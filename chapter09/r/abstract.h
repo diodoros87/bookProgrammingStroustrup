@@ -1,6 +1,8 @@
 #ifndef ABSTRACT_H
 #define ABSTRACT_H
 
+#include "result_codes.h"
+
 struct Abstract_t;
 
 typedef struct Abstract_t Abstract_t;
@@ -17,15 +19,18 @@ Result_codes virt_set_X(const Abstract_t * const, const double);
 
 double pv_Y(const Abstract_t * const);
 
-Result_codes validate(const double, const char * const);
+Result_codes Abstract_validate(const double, const char * const);
 
 double virt_area(const Abstract_t * const);
 
-int number(const Abstract_t * const);
+int Abstract_number(const Abstract_t * const);
 
 #ifdef  __cplusplus
 }
 #endif
+
+extern const int ABSTRACT;
+extern const char * const abstract_class_name;
 
 
 #endif

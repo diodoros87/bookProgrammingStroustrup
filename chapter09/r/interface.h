@@ -24,6 +24,6 @@ char pv_char(const Interface_t * const);
 #endif
 
 extern const int NB;
-extern const char * const class_name;
+extern const char * const interface_class_name;
 
 #endif

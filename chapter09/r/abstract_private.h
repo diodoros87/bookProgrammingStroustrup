@@ -2,6 +2,7 @@
 #define ABSTRACT_PRIVATE_H
 
 #include "interface_private.h"
+#include "abstract.h"
 
 typedef double (*pv_Y_t) (const Abstract_t * const);
 typedef double (*X_t) (const Abstract_t * const);
@@ -23,5 +24,7 @@ typedef struct Abstract_t {
 } Abstract_t;
 
 Result_codes Abstract_init(Abstract_t ** const, const double);
+
+void Abstract_destroy_local(Abstract_t ** const object);
 
 #endif

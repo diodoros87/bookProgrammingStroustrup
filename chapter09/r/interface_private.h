@@ -22,4 +22,6 @@ Result_codes Interface_init(Interface_t ** const);
 
 bool_t pv_valid(const Interface_t * const, const double);
 
+void Interface_destroy_local(Interface_t ** const object);
+
 #endif
