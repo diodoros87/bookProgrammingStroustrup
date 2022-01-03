@@ -2,7 +2,6 @@
 #define INTERFACE_H
 
 #include "result_codes.h"
-#include "print.h"
 
 typedef int bool_t;
 
@@ -16,9 +15,9 @@ extern "C" {
 
 void Interface_destroy(Interface_t ** const);
 
-Result_codes pv_number(const Interface_t * const, int * const);
+int pv_number(const Interface_t * const);
 
-Result_codes pv_char(const Interface_t * const, char * const);
+char pv_char(const Interface_t * const);
 
 #ifdef  __cplusplus
 }

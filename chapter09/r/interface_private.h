@@ -3,9 +3,9 @@
 
 #include "interface.h"
 
-typedef Result_codes (*pv_valid_t) (const Interface_t * const, const double, bool_t * const);
-typedef Result_codes (*pv_number_t) (const Interface_t * const, int * const);
-typedef Result_codes (*pv_char_t) (const Interface_t * const, char * const);
+typedef bool_t (*pv_valid_t) (const Interface_t * const, const double);
+typedef int (*pv_number_t) (const Interface_t * const);
+typedef char (*pv_char_t) (const Interface_t * const);
 
 typedef void (*Interface_destroy_t) (Interface_t ** const);
 
@@ -20,6 +20,6 @@ Interface_t * Interface_malloc(void);
 
 Result_codes Interface_init(Interface_t ** const);
 
-Result_codes pv_valid(const Interface_t * const, const double, bool_t * const);
+bool_t pv_valid(const Interface_t * const, const double);
 
 #endif

@@ -10,13 +10,13 @@
 
 #define MUST_NULL(pointer, pointer_name) \
 if (NULL == pointer) { \
-   LOG_FUNC(__FUNCTION__); \
+   LOG("%s %s \n", class_name, __FUNCTION__); \
    LOG("%s must be null\n", pointer_name); \
    return INVALID_ARG; \
 }
 
 static void Interface_destroy_local(Interface_t ** const object) {
-   LOG_FUNC(__FUNCTION__);
+   LOG("%s %s \n", class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "interface is null");
    REQUIRE_NON_NULL(*object, "*interface is null");
    
@@ -28,14 +28,15 @@ const int NB = -8;
 const char * const class_name = "Interface";
 
 Interface_t * Interface_malloc(void) {
-   LOG_FUNC(__FUNCTION__);
+   LOG("%s %s \n", class_name, __FUNCTION__);
+   
    Interface_t * new = NULL;
    ALLOCATE_STRING(new, sizeof (Interface_t));
    return new;
 }
 
 Result_codes Interface_init(Interface_t ** const object) {
-   LOG_FUNC(__FUNCTION__);
+   LOG("%s %s \n", class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "interface is null");
    MUST_NULL(*object, "*interface");
    
@@ -51,23 +52,31 @@ Result_codes Interface_init(Interface_t ** const object) {
    return OK;
 }
 
-Result_codes pv_valid(const Interface_t * const object, const double n, bool_t * const b) {
+bool_t pv_valid(const Interface_t * const object, const double n) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "interface is null");
-   return object->pv_valid_f(object, n, b);
+   
+   return object->pv_valid_f(object, n);
 }
 
-Result_codes pv_number(const Interface_t * const object, int * const number) {
+int pv_number(const Interface_t * const object) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "interface is null");
-   return object->pv_number_f(object, number);
+   
+   return object->pv_number_f(object);
 }
 
-Result_codes pv_char(const Interface_t * const object, char * const ch) {
+char pv_char(const Interface_t * const object) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "interface is null");
-   return object->pv_char_f(object, ch);
+   
+   return object->pv_char_f(object);
 }
 
 void Interface_destroy(Interface_t ** const object) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "interface is null");
    REQUIRE_NON_NULL(*object, "*interface is null");
+   
    return (*object)->interface_destroy_f(object);
 }

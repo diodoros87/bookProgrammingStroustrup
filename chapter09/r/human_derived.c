@@ -94,7 +94,5 @@ Result_codes Human_derived_get_age(const Human_derived_t * const object, unsigne
    REQUIRE_NON_NULL(age, "age is null");
    *age = *(object->age);/*
    ALLOCATE_SINGLE_TYPE(object->age, unsigned int);*/
-   if (NULL == age)
-      return BAD_ALLOC;
    return OK;
 }

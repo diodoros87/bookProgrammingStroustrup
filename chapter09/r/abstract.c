@@ -1,6 +1,7 @@
-#include "print.h"
+#include "interface.h"
 #include "abstract.h"
 #include "abstract_private.h"
+#include "print.h"
 #include "c_string.h"
 #include "allocate.h"
 #include "utility.h"
@@ -10,7 +11,7 @@
 
 #define MUST_NULL(pointer, pointer_name) \
 if (NULL == pointer) { \
-   LOG_FUNC(__FUNCTION__); \
+   LOG("%s %s \n", class_name, __FUNCTION__); \
    LOG("%s must be null\n", pointer_name); \
    return INVALID_ARG; \
 }
@@ -18,17 +19,44 @@ if (NULL == pointer) { \
 const char * const class_name = "Abstract";
 const int ABSTRACT = 0;
 
-static Result_codes pv_number_local(const Abstract_t * const ptr, int * const n) {
+static int pv_number_local(const Abstract_t * const object) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "abstract is null");
+   
    return ABSTRACT; 
 }
 
-int number(const Abstract_t * const ptr) { 
-   REQUIRE_NON_NULL(ptr, "abstract is null");
-   return ABSTRACT; 
+static double X_local(const Abstract_t * const object) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "abstract is null");
+   REQUIRE_NON_NULL(object->x, "pointer to x is null");
+   
+   return *(object->x);
+}
+
+Result_codes virt_set_X_local(const Abstract_t * const object, const double number) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "abstract is null");
+   REQUIRE_NON_NULL(object->x, "pointer to x is null");
+   
+   Result_codes result = validate(number, __FUNCTION__);
+   if (OK == result)
+      *(object->x) = number;
+   return result;
+}
+
+static double virt_area_local(const Abstract_t * const object) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "abstract is null");
+   REQUIRE_NON_NULL(object->x, "pointer to x is null");
+   
+   return *(object->x);
 }
 
 int number(const Abstract_t * const ptr) { 
+   LOG("%s %s \n", class_name, __FUNCTION__);
    REQUIRE_NON_NULL(ptr, "abstract is null");
+   
    return ABSTRACT; 
 }
 
@@ -36,11 +64,12 @@ Result_codes Abstract_init(Abstract_t ** const object, const double x) {
    Result_codes result = Interface_init((Interface_t **)object);
    if (OK != result)
       return result;
-   LOG_FUNC(__FUNCTION__);
+   
+   LOG("%s %s \n", class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "abstract is null");
    REQUIRE_NON_NULL(*object, "*abstract is null - after call of base struct");
    
-   result = validate(age);
+   result = validate(x, __FUNCTION__);
    if (OK != result)
       return result;
    
@@ -48,33 +77,55 @@ Result_codes Abstract_init(Abstract_t ** const object, const double x) {
    if (! *object)
       return BAD_ALLOC;
    
-   (*object)->x = (unsigned int *) copy_bytes(&x, sizeof(double));
+   (*object)->x = (double *) copy_bytes(&x, sizeof(double));
    if (NULL == (*object)->x)
       return BAD_ALLOC;
    
+   (*object)->pv_Y_f  = NULL;
+   (*object)->X_f  = X_local;
+   (*object)->virt_set_X_f = virt_set_X_local;
+   (*object)->virt_area_f = virt_area_local;
    (*object)->interface.pv_number_f  = pv_number_local;
    /* (*object)->interface.pv_char_f    = NULL; */
-   (*object)->interface_destroy_f = Abstract_destroy;
+   /* (*object)->interface.pv_valid_f    = NULL; */
+   (*object)->interface.interface_destroy_f = Abstract_destroy;
    (*object)->abstract_destroy_f  = Abstract_destroy;
    return OK;
 }
 
-Result_codes pv_valid(const Abstract_t * const object, const double n, bool_t * const b) {
-   return object->pv_valid_f(object, n, b);
+double pv_Y(const Abstract_t * const object) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "abstract is null");
+   
+   return object->pv_Y_f(object);
 }
 
-Result_codes pv_number(const Abstract_t * const object, int * const number) {
-   return object->pv_number_f(object, number);
+double X(const Abstract_t * const object) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "abstract is null");
+   
+   return object->X_f(object);
 }
 
-Result_codes pv_char(const Abstract_t * const object, char * const ch) {
-   return object->pv_char_f(object, ch);
+double virt_area(const Abstract_t * const object) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "abstract is null");
+   
+   return object->virt_area_f(object);
+}
+
+Result_codes virt_set_X(const Abstract_t * const object, const double n) {
+   LOG("%s %s \n", class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "abstract is null");
+   
+   return object->virt_set_X_f(object, n);
 }
 
 void Abstract_destroy(Abstract_t ** const object) {
-   LOG_FUNC(__FUNCTION__);
+   LOG("%s %s \n", class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "interface is null");
    REQUIRE_NON_NULL(*object, "*interface is null");
+   
    free((*object)->x);
    Interface_destroy((Interface_t **) object);
    /*free(*object);*/
@@ -82,33 +133,9 @@ void Abstract_destroy(Abstract_t ** const object) {
 }
 
 Result_codes validate(const double number, const char * const function) {
-   LOG_FUNC(__FUNCTION__); 
    if (! isfinite(number)) {
-      LOG(" argument of number: %d is not finite", number, str, regex);
+      LOG(" %s: argument of number: %f is not finite", function, number);
       return INVALID_ARG;
    }
+   return OK;
 }
-
-void Abstract::virt_set_X(const double number) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
-   validate(number, __func__);
-   this->x = number;
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
-}
-
-double Abstract::virt_area() const {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
-   return x;
-}
-
-Abstract::Abstract(const double number) {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__) << '\n';
-   validate(number, __func__);
-   this->x = number;
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
-}
-
-Abstract::~Abstract() {
-   cerr << '\n' << TIE("C++", unmove(__cplusplus), class_name, __func__, this->x) << '\n';
-}
-

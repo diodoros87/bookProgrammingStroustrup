@@ -105,6 +105,9 @@ regular_expr.o: regular_expr.h regular_expr.c print.h result_codes.h
 allocate.o: allocate.h allocate.c
 	$(CC) $(CFLAGS) -c -fPIC allocate.c 
 	
+abstract_c.o: abstract.c abstract.h abstract_private.h interface.h interface_private.h print.h result_codes.h c_string.h utility.h allocate.h
+	$(CC) $(CFLAGS) -c -fPIC abstract.c -o abstract_c.o 
+	
 interface_c.o: interface.c interface.h interface_private.h print.h result_codes.h c_string.h utility.h
 	$(CC) $(CFLAGS) -c -fPIC interface.c -o interface_c.o 
 	
