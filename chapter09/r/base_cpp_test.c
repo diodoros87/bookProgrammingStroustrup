@@ -3,8 +3,6 @@
 #include "base_cpp_test.h"
 #include "base_connector.h"
 
-#include <string.h>
-
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
    #include "shared_lib_open.h"

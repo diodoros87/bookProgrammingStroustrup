@@ -22,7 +22,7 @@ typedef struct __attribute__ ((__packed__)) Abstract_functions {
    Result_codes (*virt_set_X)(const Abstract_t * const, const double);
    double (*pv_Y)(const Abstract_t * const);
    double (*virt_area)(const Abstract_t * const);
-   int (*number)(const Abstract_t * const);
+   int (*Abstract_number)(const Abstract_t * const);
 } Abstract_functions;
 
 typedef struct __attribute__ ((__packed__)) Base_functions {
@@ -31,7 +31,7 @@ typedef struct __attribute__ ((__packed__)) Base_functions {
    Result_codes (*init)(Base_t ** const, const double, const double);
    void (*Base_destroy)(Base_t ** const);
    Result_codes (*virt_set_Y)(const Base_t * const, const double);
-   int (*number)(const Base_t * const);
+   int (*Base_number)(const Base_t * const);
    
    void * handle;
 } Base_functions;
