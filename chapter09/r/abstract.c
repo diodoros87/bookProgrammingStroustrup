@@ -9,13 +9,6 @@
 #include <string.h>
 #include <math.h>
 
-#define MUST_NULL(pointer, pointer_name) \
-if (NULL == pointer) { \
-   LOG("%s %s \n", abstract_class_name, __FUNCTION__); \
-   LOG("%s must be null\n", pointer_name); \
-   return INVALID_ARG; \
-}
-
 const char * const abstract_class_name = "Abstract";
 const int ABSTRACT = 0;
 
@@ -45,7 +38,7 @@ static double X_local(const Abstract_t * const object) {
    return *(object->x);
 }
 
-Result_codes virt_set_X_local(const Abstract_t * const object, const double number) {
+Result_codes virt_set_X_local(Abstract_t * const object, const double number) {
    LOG("%s %s \n", abstract_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "abstract is null");
    REQUIRE_NON_NULL(object->x, "pointer to x is null");
@@ -80,16 +73,8 @@ Result_codes Abstract_init(Abstract_t ** const object, const double x) {
    REQUIRE_NON_NULL(object, "abstract is null");
    REQUIRE_NON_NULL(*object, "*abstract is null - after call of base struct");
    
-   result = Abstract_validate(x, __FUNCTION__);
-   if (OK != result)
-      return result;
-   
    REALLOCATE_STRING(*object, sizeof (Abstract_t));
    if (! *object)
-      return BAD_ALLOC;
-   
-   (*object)->x = (double *) copy_bytes(&x, sizeof(double));
-   if (NULL == (*object)->x)
       return BAD_ALLOC;
    
    (*object)->pv_Y_f  = NULL;
@@ -101,7 +86,15 @@ Result_codes Abstract_init(Abstract_t ** const object, const double x) {
    /* (*object)->interface.pv_valid_f    = NULL; */
    (*object)->interface.interface_destroy_f = Abstract_destroy_local;
    (*object)->abstract_destroy_f  = Abstract_destroy_local;
-   return OK;
+   
+   result = Abstract_validate(x, __FUNCTION__);
+   if (OK == result) {
+      (*object)->x = (double *) copy_bytes(&x, sizeof(double));
+      if (NULL == (*object)->x)
+         return BAD_ALLOC;
+   }
+
+   return result;
 }
 
 double pv_Y(const Abstract_t * const object) {
@@ -125,7 +118,7 @@ double virt_area(const Abstract_t * const object) {
    return object->virt_area_f(object);
 }
 
-Result_codes virt_set_X(const Abstract_t * const object, const double n) {
+Result_codes virt_set_X(Abstract_t * const object, const double n) {
    LOG("%s %s \n", abstract_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "abstract is null");
    
@@ -141,10 +134,11 @@ void Abstract_destroy(Abstract_t ** const object) {
 }
 
 Result_codes Abstract_validate(const double number, const char * const function) {
+   LOG("%s %s \n", abstract_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(function, "function is null");
    
    if (! isfinite(number)) {
-      LOG(" %s: argument of number: %f is not finite", function, number);
+      LOG(" %s: argument of number: %f is not finite \n", function, number);
       return INVALID_ARG;
    }
    return OK;

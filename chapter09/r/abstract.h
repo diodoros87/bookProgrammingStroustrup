@@ -15,7 +15,7 @@ void Abstract_destroy(Abstract_t ** const);
 
 double X(const Abstract_t * const);
 
-Result_codes virt_set_X(const Abstract_t * const, const double);
+Result_codes virt_set_X(Abstract_t * const, const double);
 
 double pv_Y(const Abstract_t * const);
 

@@ -3,7 +3,6 @@
 #include "derived_cpp_test.h"
 #include "derived_connector.h"
 
-#include <string.h>
 #include <math.h>
 
 #ifdef MANUAL_DLL_LOAD

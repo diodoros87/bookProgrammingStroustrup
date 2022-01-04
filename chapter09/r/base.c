@@ -25,14 +25,14 @@ Result_codes Base_check(const Base_t * const object, const double n, const char 
    REQUIRE_NON_NULL(function, "function is null");
    
    Abstract_validate(n, function);
-   if (! pv_valid((Interface_t *)object, n)) {
+   if (! pv_valid(object, n)) {
       LOG(" %s: argument of number: %f is not valid (n < 0)\n", function, n);
       return INVALID_ARG;
    }
    return OK;
 }
 
-static bool_t pv_valid_local(const Base_t * const object, const double n) { 
+bool_t pv_valid_local(const Interface_t * const object, const double n) { 
    LOG("%s %s \n", base_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "base is null");
    
@@ -72,7 +72,7 @@ static double pv_Y_local(const Base_t * const object) {
    return *(object->y);
 }
 
-Result_codes virt_set_Y_local(const Base_t * const object, const double number) {
+Result_codes virt_set_Y_local(Base_t * const object, const double number) {
    LOG("%s %s \n", base_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "base is null");
    REQUIRE_NON_NULL(object->y, "pointer to y is null");
@@ -99,16 +99,8 @@ Result_codes Base_init(Base_t ** const object, const double x, const double y) {
    REQUIRE_NON_NULL(object, "base is null");
    REQUIRE_NON_NULL(*object, "*base is null - after call of base struct");
    
-   result = Base_check((const Base_t * const)object, y, __FUNCTION__);
-   if (OK != result)
-      return result;
-   
    REALLOCATE_STRING(*object, sizeof (Base_t));
    if (! *object)
-      return BAD_ALLOC;
-   
-   (*object)->y = (double *) copy_bytes(&y, sizeof(double));
-   if (NULL == (*object)->y)
       return BAD_ALLOC;
    
    (*object)->abstract.pv_Y_f  = pv_Y_local;
@@ -117,14 +109,22 @@ Result_codes Base_init(Base_t ** const object, const double x, const double y) {
    (*object)->abstract.virt_area_f = virt_area_local;
    (*object)->abstract.interface.pv_number_f  = pv_number_local;
    (*object)->abstract.interface.pv_char_f    = pv_char_local; 
-   (*object)->abstract.interface.pv_valid_f    = pv_valid_local; 
+   (*object)->abstract.interface.pv_valid_f    = &pv_valid_local; 
    (*object)->abstract.interface.interface_destroy_f = Base_destroy_local;
    (*object)->abstract.abstract_destroy_f  = Base_destroy_local;
    (*object)->base_destroy_f  = Base_destroy_local;
-   return OK;
+   
+   result = Base_check((const Base_t * const)(*object), y, __FUNCTION__);
+   if (OK == result) {
+      (*object)->y = (double *) copy_bytes(&y, sizeof(double));
+      if (NULL == (*object)->y)
+         return BAD_ALLOC;
+   }
+   
+   return result;
 }
 
-Result_codes virt_set_Y(const Base_t * const object, const double n) {
+Result_codes virt_set_Y(Base_t * const object, const double n) {
    LOG("%s %s \n", base_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "base is null");
    

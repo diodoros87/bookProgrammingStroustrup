@@ -9,7 +9,7 @@
 #include <string.h>
 
 #define MUST_NULL(pointer, pointer_name) \
-if (NULL == pointer) { \
+if (NULL != pointer) { \
    LOG("%s %s \n", interface_class_name, __FUNCTION__); \
    LOG("%s must be null\n", pointer_name); \
    return INVALID_ARG; \

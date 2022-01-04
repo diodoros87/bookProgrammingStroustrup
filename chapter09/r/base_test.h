@@ -3,6 +3,7 @@
 
 #include "result_codes.h"
 #include "pair.h"
+#include "interface.h"
 #include "base.h"
 #include "hierarchy_test.h"
 
@@ -19,7 +20,7 @@ typedef struct __attribute__ ((__packed__)) Abstract_functions {
    
    void (*Abstract_destroy)(Abstract_t ** const);
    double (*X)(const Abstract_t * const);
-   Result_codes (*virt_set_X)(const Abstract_t * const, const double);
+   Result_codes (*virt_set_X)(Abstract_t * const, const double);
    double (*pv_Y)(const Abstract_t * const);
    double (*virt_area)(const Abstract_t * const);
    int (*Abstract_number)(const Abstract_t * const);
@@ -30,7 +31,7 @@ typedef struct __attribute__ ((__packed__)) Base_functions {
    
    Result_codes (*init)(Base_t ** const, const double, const double);
    void (*Base_destroy)(Base_t ** const);
-   Result_codes (*virt_set_Y)(const Base_t * const, const double);
+   Result_codes (*virt_set_Y)(Base_t * const, const double);
    int (*Base_number)(const Base_t * const);
    
    void * handle;

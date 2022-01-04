@@ -12,6 +12,7 @@
 #include "base_cpp_test.h"
 #include "derived_cpp_test.h"
 #include "variadic_template_test.h"
+#include "base_test.h"
 
 #include <stdlib.h>
 #include <limits.h>
@@ -28,9 +29,10 @@ static void at_exit (void) {
 }
 
 static Result_codes main_test_linking(void) {
-   static const Result_codes (*TESTS [])(void) = { test_demo_linking, test_demo_derived,
+   static const Result_codes (*TESTS [])(void) = { /* test_demo_linking, test_demo_derived,
       test_human_linking, test_human_derived, test_money,
-      test_base_cpp, test_derived_cpp
+      test_base_cpp, test_derived_cpp, */
+      test_base
    };
    atexit (at_exit);
    const size_t SIZE = sizeof(TESTS) / sizeof(TESTS[0]);

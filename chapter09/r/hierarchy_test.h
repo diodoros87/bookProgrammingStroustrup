@@ -72,4 +72,13 @@ Result_codes incorrect_set_coordination(Result_codes (*set)(const double), const
 Result_codes check_char(Result_codes (*get)(char * const), const char * message, const char expected);
 Result_codes check_int(Result_codes (*get)(int * const), const char * message, const int expected);
 
+
+void assert_double(double (*get)(const void * const), const void * const object, const char * message,
+                                       const double expected);
+Result_codes getset_double(Result_codes (*set)(void * const object, const double), void * const object, 
+                           const double set_value, double (*get)(const void * const), const char * message);
+Result_codes incorrect_set_double(Result_codes (*set)(void * const object, const double), void * const object, 
+                                  const double set_value,
+                                Result_codes (*get)(double * const), const char * message);
+
 #endif

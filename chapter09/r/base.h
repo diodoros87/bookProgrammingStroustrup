@@ -15,7 +15,7 @@ Result_codes Base_init(Base_t ** const, const double, const double);
 
 void Base_destroy(Base_t ** const);
 
-Result_codes virt_set_Y(const Base_t * const, const double);
+Result_codes virt_set_Y(Base_t * const, const double);
 
 int Base_number(const Base_t * const);
 

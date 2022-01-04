@@ -63,6 +63,64 @@ Result_codes check_char(Result_codes (*get)(char * const), const char * message,
    return result;
 }
 
+void assert_double(double (*get)(const void * const), const void * const object, const char * message,
+                                       const double expected) {
+   REQUIRE_NON_NULL(object, "object is null");
+   REQUIRE_NON_NULL(get, "get is null");
+   REQUIRE_NON_NULL(message, "message is null");
+   double n = get(object);
+   LOG("%s: %s %s = %f\n", LANGUAGE, __FUNCTION__, message, n);
+   assert_many(n == expected, "assert failed: ", "s f", " n == ", n);
+}
+
+Result_codes getset_double(Result_codes (*set)(void * const object, const double), void * const object, 
+                           const double set_value, double (*get)(const void * const), const char * message) {
+   REQUIRE_NON_NULL(set, "set is null");
+   Result_codes result = set(object, set_value);
+   if (OK == result)
+      assert_double(get, object, message, set_value);
+   return result;
+}
+
+Result_codes incorrect_set_double(Result_codes (*set)(void * const object, const double), void * const object, 
+                                  const double set_value,
+                                Result_codes (*get)(double * const), const char * message) {
+   REQUIRE_NON_NULL(set, "set is null");
+   Result_codes result = set(object, set_value);
+   if (INVALID_ARG == result)
+      result = OK;
+   else {
+      if (OK == result)
+         assert_double(get, object, message, set_value);
+      assert_many(result != INVALID_ARG, "assert failed: ", "s d", "result == ", result);
+   }
+   return result;
+}
+/*
+Result_codes check_int(Result_codes (*get)(int * const), const char * message, const int expected) {
+   REQUIRE_NON_NULL(get, "get is null");
+   REQUIRE_NON_NULL(message, "message is null");
+   int n;
+   Result_codes result = get(&n);
+   if (OK == result) {
+      LOG("%s: %s %s = %d\n", LANGUAGE, __FUNCTION__, message, n);
+      assert_many(n == expected, "assert failed: ", "s d", " n == ", n);
+   }
+   return result;
+}
+
+Result_codes check_char(Result_codes (*get)(char * const), const char * message, const char expected) {
+   REQUIRE_NON_NULL(get, "get is null");
+   REQUIRE_NON_NULL(message, "message is null");
+   char n;
+   Result_codes result = get(&n);
+   if (OK == result) {
+      LOG("%s: %s %s = %c\n", LANGUAGE, __FUNCTION__, message, n);
+      assert_many(n == expected, "assert failed: ", "s c", " n == ", n);
+   }
+   return result;
+}
+*/
 // void test_base(int pv_n, char pv_c, double x, double pv_y, double area, int n) {
 // #ifdef MANUAL_DLL_LOAD
 //    base_real.set(base->pv_number(), base->pv_char(), base->X(), base->pv_Y(), base->virt_area(), base->number());
@@ -140,8 +198,10 @@ void set_derived_real(Derived_real * derived_real, int pv_n, char pv_c, double x
 
 
 void interface_print_and_assert(const Interface_expected * const expected, const Interface_real * const real) {
+   REQUIRE_NON_NULL(expected, "expected is null");
+   REQUIRE_NON_NULL(real, "real is null");
    print_and_assert(real->pv_number, expected->pv_number.number, expected->pv_number.string, "%f", "s f");
-   print_and_assert(real->pv_char,expected->pv_char.ch, expected->pv_char.string, "%c", "s c");
+   print_and_assert(real->pv_char, expected->pv_char.ch, expected->pv_char.string, "%c", "s c");
 }
 
 void abstract_print_and_assert(const Abstract_expected * const expected, const Abstract_real * const real) {
