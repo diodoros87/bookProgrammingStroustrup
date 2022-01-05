@@ -38,7 +38,7 @@ extern int print_assert(const char *file, int line, const char * date, const cha
    
 #define print_and_assert(value, expected_value, value_string, format, assert_format) \
    LOG("%s: %s %s = "#format"\n", LANGUAGE, __FUNCTION__, (value_string), (value)); \
-   assert_many(((value) == (expected_value)), "assert failed: ", assert_format, #value_string" == ", (value))
+   assert_many(((value) == (expected_value)), "assert failed: ", (assert_format), (value_string), (value))
 
 #define LOG_EXIT(function_name, info, status) \
    FUNCTION_INFO(function_name); \

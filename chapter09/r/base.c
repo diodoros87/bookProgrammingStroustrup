@@ -14,9 +14,23 @@ const char BASE_CHAR = 'B';
 
 int Base_number(const Base_t * const ptr) { 
    LOG("%s %s \n", base_class_name, __FUNCTION__);
-   REQUIRE_NON_NULL(ptr, "abstract is null");
+   REQUIRE_NON_NULL(ptr, "ptr is null");
    
    return BASE; 
+}
+
+int pv_number_B(const Base_t * const object) {
+   LOG("%s %s \n", base_class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "base is null");
+   
+   return BASE; 
+}
+
+char pv_char_B(const Base_t * const object) {
+   LOG("%s %s \n", base_class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "base is null");
+   
+   return BASE_CHAR; 
 }
 
 Result_codes Base_check(const Base_t * const object, const double n, const char * const function) {
@@ -32,39 +46,25 @@ Result_codes Base_check(const Base_t * const object, const double n, const char 
    return OK;
 }
 
-bool_t pv_valid_local(const Interface_t * const object, const double n) { 
+bool_t Base_pv_valid_B(const Base_t * const object, const double n) { 
    LOG("%s %s \n", base_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "base is null");
    
    return (n >= 0); 
 }
 
-void Base_destroy_local(Base_t ** const object) {
+void Base_destroy_B(Base_t ** const object) {
    LOG("%s %s \n", base_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "base is null");
    REQUIRE_NON_NULL(*object, "*base is null");
    
    free((*object)->y);
-   Abstract_destroy_local((Abstract_t **) object);
+   Abstract_destroy_A((Abstract_t **) object);
    /*free(*object);*/
    *object = NULL; /* to avoid double free or corruption (fasttop)  */
 }
 
-static int pv_number_local(const Base_t * const object) {
-   LOG("%s %s \n", base_class_name, __FUNCTION__);
-   REQUIRE_NON_NULL(object, "base is null");
-   
-   return BASE; 
-}
-
-static char pv_char_local(const Base_t * const object) {
-   LOG("%s %s \n", base_class_name, __FUNCTION__);
-   REQUIRE_NON_NULL(object, "base is null");
-   
-   return BASE_CHAR; 
-}
-
-static double pv_Y_local(const Base_t * const object) {
+double pv_Y_B(const Base_t * const object) {
    LOG("%s %s \n", base_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "base is null");
    REQUIRE_NON_NULL(object->y, "pointer to y is null");
@@ -72,7 +72,7 @@ static double pv_Y_local(const Base_t * const object) {
    return *(object->y);
 }
 
-Result_codes virt_set_Y_local(Base_t * const object, const double number) {
+Result_codes virt_set_Y_B(Base_t * const object, const double number) {
    LOG("%s %s \n", base_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "base is null");
    REQUIRE_NON_NULL(object->y, "pointer to y is null");
@@ -83,7 +83,7 @@ Result_codes virt_set_Y_local(Base_t * const object, const double number) {
    return result;
 }
 
-static double virt_area_local(const Base_t * const object) {
+double virt_area_B(const Base_t * const object) {
    LOG("%s %s \n", base_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "base is null");
    
@@ -97,29 +97,32 @@ Result_codes Base_init(Base_t ** const object, const double x, const double y) {
    
    LOG("%s %s \n", base_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "base is null");
-   REQUIRE_NON_NULL(*object, "*base is null - after call of base struct");
+   REQUIRE_NON_NULL(*object, "*base is null - after call of Abstract_t struct");
    
    REALLOCATE_STRING(*object, sizeof (Base_t));
    if (! *object)
       return BAD_ALLOC;
    
-   (*object)->abstract.pv_Y_f  = pv_Y_local;
-   (*object)->virt_set_Y_f = virt_set_Y_local;
-   /* (*object)->abstract.X_f  = X_local; */
-   (*object)->abstract.virt_area_f = virt_area_local;
-   (*object)->abstract.interface.pv_number_f  = pv_number_local;
-   (*object)->abstract.interface.pv_char_f    = pv_char_local; 
-   (*object)->abstract.interface.pv_valid_f    = &pv_valid_local; 
-   (*object)->abstract.interface.interface_destroy_f = Base_destroy_local;
-   (*object)->abstract.abstract_destroy_f  = Base_destroy_local;
-   (*object)->base_destroy_f  = Base_destroy_local;
+   (*object)->abstract.pv_Y_f  = pv_Y_B;
+   (*object)->virt_set_Y_f = virt_set_Y_B;
+   /* (*object)->abstract.X_f ; */
+   (*object)->abstract.virt_area_f = virt_area_B;
+   (*object)->abstract.interface.pv_number_f  = pv_number_B;
+   (*object)->abstract.interface.pv_char_f    = pv_char_B; 
+   (*object)->abstract.interface.pv_valid_f    = &Base_pv_valid_B; 
+   (*object)->abstract.interface.interface_destroy_f = Base_destroy_B;
+   (*object)->abstract.abstract_destroy_f  = Base_destroy_B;
+   (*object)->base_destroy_f  = Base_destroy_B;
    
    result = Base_check((const Base_t * const)(*object), y, __FUNCTION__);
    if (OK == result) {
       (*object)->y = (double *) copy_bytes(&y, sizeof(double));
       if (NULL == (*object)->y)
-         return BAD_ALLOC;
+         result = BAD_ALLOC;
    }
+   
+   if (OK != result)
+      Abstract_destroy_A(object);
    
    return result;
 }

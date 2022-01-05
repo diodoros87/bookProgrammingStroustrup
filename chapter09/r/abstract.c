@@ -6,31 +6,37 @@
 #include "allocate.h"
 #include "utility.h"
 
-#include <string.h>
 #include <math.h>
 
 const char * const abstract_class_name = "Abstract";
 const int ABSTRACT = 0;
 
-void Abstract_destroy_local(Abstract_t ** const object) {
+int Abstract_number(const Abstract_t * const ptr) { 
    LOG("%s %s \n", abstract_class_name, __FUNCTION__);
-   REQUIRE_NON_NULL(object, "abstract is null");
-   REQUIRE_NON_NULL(*object, "*abstract is null");
+   REQUIRE_NON_NULL(ptr, "ptr is null");
    
-   free((*object)->x);
-   Interface_destroy_local((Interface_t **) object);
-   /*free(*object);*/
-   *object = NULL; /* to avoid double free or corruption (fasttop)  */
+   return ABSTRACT; 
 }
 
-static int pv_number_local(const Abstract_t * const object) {
+int pv_number_A(const Abstract_t * const object) {
    LOG("%s %s \n", abstract_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "abstract is null");
    
    return ABSTRACT; 
 }
 
-static double X_local(const Abstract_t * const object) {
+void Abstract_destroy_A(Abstract_t ** const object) {
+   LOG("%s %s \n", abstract_class_name, __FUNCTION__);
+   REQUIRE_NON_NULL(object, "abstract is null");
+   REQUIRE_NON_NULL(*object, "*abstract is null");
+   
+   free((*object)->x);
+   Interface_destroy_I((Interface_t **) object);
+   /*free(*object);*/
+   *object = NULL; /* to avoid double free or corruption (fasttop)  */
+}
+
+double X_A(const Abstract_t * const object) {
    LOG("%s %s \n", abstract_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "abstract is null");
    REQUIRE_NON_NULL(object->x, "pointer to x is null");
@@ -38,7 +44,7 @@ static double X_local(const Abstract_t * const object) {
    return *(object->x);
 }
 
-Result_codes virt_set_X_local(Abstract_t * const object, const double number) {
+Result_codes virt_set_X_A(Abstract_t * const object, const double number) {
    LOG("%s %s \n", abstract_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "abstract is null");
    REQUIRE_NON_NULL(object->x, "pointer to x is null");
@@ -49,19 +55,12 @@ Result_codes virt_set_X_local(Abstract_t * const object, const double number) {
    return result;
 }
 
-static double virt_area_local(const Abstract_t * const object) {
+double virt_area_A(const Abstract_t * const object) {
    LOG("%s %s \n", abstract_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "abstract is null");
    REQUIRE_NON_NULL(object->x, "pointer to x is null");
    
    return *(object->x);
-}
-
-int Abstract_number(const Abstract_t * const ptr) { 
-   LOG("%s %s \n", abstract_class_name, __FUNCTION__);
-   REQUIRE_NON_NULL(ptr, "abstract is null");
-   
-   return ABSTRACT; 
 }
 
 Result_codes Abstract_init(Abstract_t ** const object, const double x) {
@@ -71,28 +70,31 @@ Result_codes Abstract_init(Abstract_t ** const object, const double x) {
    
    LOG("%s %s \n", abstract_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "abstract is null");
-   REQUIRE_NON_NULL(*object, "*abstract is null - after call of base struct");
+   REQUIRE_NON_NULL(*object, "*abstract is null - after call of Interface_t struct");
    
    REALLOCATE_STRING(*object, sizeof (Abstract_t));
    if (! *object)
       return BAD_ALLOC;
    
    (*object)->pv_Y_f  = NULL;
-   (*object)->X_f  = X_local;
-   (*object)->virt_set_X_f = virt_set_X_local;
-   (*object)->virt_area_f = virt_area_local;
-   (*object)->interface.pv_number_f  = pv_number_local;
+   (*object)->X_f  = X_A;
+   (*object)->virt_set_X_f = virt_set_X_A;
+   (*object)->virt_area_f = virt_area_A;
+   (*object)->interface.pv_number_f  = pv_number_A;
    /* (*object)->interface.pv_char_f    = NULL; */
    /* (*object)->interface.pv_valid_f    = NULL; */
-   (*object)->interface.interface_destroy_f = Abstract_destroy_local;
-   (*object)->abstract_destroy_f  = Abstract_destroy_local;
+   (*object)->interface.interface_destroy_f = Abstract_destroy_A;
+   (*object)->abstract_destroy_f  = Abstract_destroy_A;
    
    result = Abstract_validate(x, __FUNCTION__);
    if (OK == result) {
       (*object)->x = (double *) copy_bytes(&x, sizeof(double));
       if (NULL == (*object)->x)
-         return BAD_ALLOC;
+         result = BAD_ALLOC;
    }
+   
+   if (OK != result)
+      Interface_destroy_I(object);
 
    return result;
 }

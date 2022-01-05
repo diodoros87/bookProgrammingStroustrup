@@ -6,7 +6,6 @@
 #include "c_string.h"
 #include "utility.h"
 
-#include <string.h>
 
 #define MUST_NULL(pointer, pointer_name) \
 if (NULL != pointer) { \
@@ -15,7 +14,7 @@ if (NULL != pointer) { \
    return INVALID_ARG; \
 }
 
-void Interface_destroy_local(Interface_t ** const object) {
+void Interface_destroy_I(Interface_t ** const object) {
    LOG("%s %s \n", interface_class_name, __FUNCTION__);
    REQUIRE_NON_NULL(object, "interface is null");
    REQUIRE_NON_NULL(*object, "*interface is null");
@@ -47,7 +46,7 @@ Result_codes Interface_init(Interface_t ** const object) {
    (*object)->pv_valid_f   = NULL;
    (*object)->pv_number_f  = NULL;
    (*object)->pv_char_f    = NULL;
-   (*object)->interface_destroy_f = Interface_destroy_local;
+   (*object)->interface_destroy_f = Interface_destroy_I;
    
    return OK;
 }

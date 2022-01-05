@@ -250,12 +250,14 @@ Result_codes Derived_test::test_derived_linking() {
    if (result == OK) {
       print_assert();
       result = tests::test_derived_linking(*d);
-      if (result == OK)
-         result = static_cast<Result_codes> (close_handle(&(manual_interface.handle)));
-      else
-         close_handle(&(manual_interface.handle));
-      manual_interface.destroy(d);
    }
+   if (result == OK)
+      result = static_cast<Result_codes> (close_handle(&(manual_interface.handle)));
+   else
+      close_handle(&(manual_interface.handle));
+   
+   manual_interface.destroy(d);
+   
    assert_many(d == nullptr, "d pointer == ", d);
    assert_many(result == OK, "result == ", result);
    return result;

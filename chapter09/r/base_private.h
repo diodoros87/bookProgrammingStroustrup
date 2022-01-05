@@ -19,6 +19,12 @@ typedef struct Base_t {
 
 Result_codes Base_check(const Base_t * const, const double n, const char * const);
 
-void Base_destroy_local(Base_t ** const object);
+bool_t Base_pv_valid_B(const Base_t * const object, const double n);
+
+void Base_destroy_B(Base_t ** const object);
+
+Result_codes virt_set_Y_B(Base_t * const object, const double number);
+
+double virt_area_B(const Base_t * const object);
 
 #endif

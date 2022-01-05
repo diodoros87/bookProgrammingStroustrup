@@ -25,6 +25,8 @@ typedef struct Abstract_t {
 
 Result_codes Abstract_init(Abstract_t ** const, const double);
 
-void Abstract_destroy_local(Abstract_t ** const object);
+void Abstract_destroy_A(Abstract_t ** const object);
+
+Result_codes virt_set_X_A(Abstract_t * const object, const double number);
 
 #endif

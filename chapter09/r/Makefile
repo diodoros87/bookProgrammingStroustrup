@@ -1,17 +1,17 @@
 CXX = g++
 #CXX = clang
-CPPFLAGS = -DMANUAL_DLL_LOAD   -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -g -DMANUAL_DLL_LOAD   -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
 #CC = clang
-CFLAGS = -DMANUAL_DLL_LOAD   -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS = -g -DMANUAL_DLL_LOAD   -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
 LDFLAGS = #-fsanitize=address -static-libasan 
 
-PROGRAMS  = libdemo.so libdemoderived.so libbase_cpp.so libbase_cpp_connector.so libderived_cpp_connector.so libderived_cpp.so  libvariadic_template.so libconnector.so libdemoderivedconnector.so main_cpp test_cpp      libhuman.so libhumanderived.so libbase_c.so c_main linking_test_cpp c_linking_test c_test 
+PROGRAMS  = libdemo.so libdemoderived.so libbase_cpp.so libbase_cpp_connector.so libderived_cpp_connector.so libderived_cpp.so  libvariadic_template.so libconnector.so libdemoderivedconnector.so main_cpp test_cpp      libhuman.so libhumanderived.so libbase_c.so libderived_c.so c_main linking_test_cpp c_linking_test c_test 
 
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with G++"' 
 CLANG_CPPFLAGS = -L/usr/lib -lstdc++ -lm -v -DMESSAGE='"Compiled with Clang"' 
@@ -51,11 +51,14 @@ c_main: c_main.o print.o file_modify.o c_string.o system.o
 c_main.o: main.c print.h system.h file_modify.h result_codes.h c_string.h
 	$(CC) $(CFLAGS) -c main.c -o c_main.o 
 
-c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o c_utility.o libhuman.so libdemo.so libdemoderived.so libhumanderived.so c_variadic_template_test.o demo_derived_functions.o base_cpp_test.o c_hierarchy_test.o derived_cpp_test.o c_base_test.o
-	$(CC) $(CFLAGS) -lm $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o c_utility.o c_variadic_template_test.o demo_derived_functions.o base_cpp_test.o c_hierarchy_test.o derived_cpp_test.o c_base_test.o -L. -lhumanderived -ldemoderivedconnector -lbase_cpp_connector -lderived_cpp_connector -lbase_c -Wl,--no-as-needed -lbase_cpp -lderived_cpp -lvariadic_template -lhuman -ldemoderived -lconnector -ldemo -Wl,--as-needed -ldl -o c_linking_test 
+c_linking_test: c_linking_test.o libconnector.so shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o c_utility.o libhuman.so libdemo.so libdemoderived.so libhumanderived.so  c_variadic_template_test.o demo_derived_functions.o base_cpp_test.o c_hierarchy_test.o derived_cpp_test.o c_base_test.o c_derived_test.o libbase_cpp_connector.so libderived_cpp_connector.so libbase_c.so libderived_c.so
+	$(CC) $(CFLAGS) -lm $(LDFLAGS) c_linking_test.o shared_lib_open.o print.o c_string.o demo_functions.o human_functions.o human_derived_functions.o c_utility.o c_variadic_template_test.o demo_derived_functions.o base_cpp_test.o c_hierarchy_test.o derived_cpp_test.o c_base_test.o c_derived_test.o -L. -lhumanderived -ldemoderivedconnector -lbase_cpp_connector -lderived_cpp_connector -lderived_c -Wl,--no-as-needed -lbase_cpp -lderived_cpp -lvariadic_template -lhuman -ldemoderived -lconnector -ldemo -lbase_c -Wl,--as-needed -ldl -o c_linking_test 
 	
-c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.h human.h utility.h demo_functions.h human_functions.h variadic_template_test.h
+c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.h human.h utility.h demo_functions.h human_functions.h demo_derived_functions.h variadic_template_test.h base_test.h derived_test.h derived_cpp_test.h base_cpp_test.h
 	$(CC) $(CFLAGS) -c linking_test.c -o c_linking_test.o 
+	
+c_derived_test.o: base_test.h derived_test.h derived_test.c utility.h shared_lib_open.h result_codes.h print.h base.h hierarchy_test.h
+	$(CC) $(CFLAGS) -c derived_test.c -o c_derived_test.o 
 	
 c_base_test.o: base_test.h base_test.c utility.h shared_lib_open.h result_codes.h print.h base.h hierarchy_test.h
 	$(CC) $(CFLAGS) -c base_test.c -o c_base_test.o 
@@ -120,8 +123,14 @@ regular_expr.o: regular_expr.h regular_expr.c print.h result_codes.h
 allocate.o: allocate.h allocate.c
 	$(CC) $(CFLAGS) -c -fPIC allocate.c 
 	
+libderived_c.so: derived_c.o libbase_c.so
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -L. -lbase_c -o libderived_c.so derived_c.o
+	
+derived_c.o: derived_private.h base.h derived.c derived.h abstract.h abstract_private.h interface.h interface_private.h print.h result_codes.h c_string.h utility.h allocate.h
+	$(CC) $(CFLAGS) -c -fPIC derived.c -o derived_c.o
+	
 libbase_c.so:  base_c.o abstract_c.o interface_c.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -lm -shared -o libbase_c.so base_c.o abstract_c.o interface_c.o 
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -lm -o libbase_c.so base_c.o abstract_c.o interface_c.o 
 	
 base_c.o: base_private.h base.h base.c abstract.h abstract_private.h interface.h interface_private.h print.h result_codes.h c_string.h utility.h allocate.h
 	$(CC) $(CFLAGS) -c -fPIC base.c -o base_c.o 

@@ -18,27 +18,18 @@ static Abstract_expected abstract_expected = { { {"pv_number", 0}, {"pv_char", '
 
 static Base_expected base_expected = { { { {"pv_number", 0}, {"pv_char", '0'} },
                 {"x", 0}, {"y", 0}, {"virt_area", 0}, {"number", 0} } };
-/*
-static Derived_expected * derived_expected = { { { { {"pv_number", 0}, {"pv_char", '0'} },
-                {"x", 0}, {"y", 0}, {"virt_area", 0}, {"number", 0} } }, 
-   {"z", 0}
-};
-*/
+
 static Interface_real interface_real =  { 0, '0'};
 
 static Abstract_real abstract_real = { { 0, '0'}, 0, 0, 0, 0 };
 
 static Base_real base_real = { { { 0, '0'}, 0, 0, 0, 0 } };
-/*
-static Derived_real derived_real = { { { { 0, '0'}, 0, 0, 0, 0 } }, 0 }; */
 
 static Base_functions functions;
 
 static Base_t * base = NULL;
 
 static void assert_interface(int n, char c) {  
-   Interface_expected interface_expected = { {"pv_number", 0}, {"pv_char", '0'} };
-   Interface_real interface_real =  { 0, '0'};
    Interface_t * inter = (Interface_t *) base;
    set_interface_real(&interface_real,
             functions.abstract.interface.pv_number(inter), functions.abstract.interface.pv_char(inter));
@@ -80,6 +71,7 @@ static void load_base_functions(void) {
    functions.abstract.pv_Y = get_symbol(functions.handle, "pv_Y");
    functions.virt_set_Y = get_symbol(functions.handle, "virt_set_Y");
    functions.abstract.virt_area = get_symbol(functions.handle, "virt_area");
+   
    functions.abstract.Abstract_number = get_symbol(functions.handle, "Abstract_number");
    functions.Base_number = get_symbol(functions.handle, "Base_number");
 #else
@@ -96,6 +88,7 @@ static void load_base_functions(void) {
    functions.abstract.pv_Y = pv_Y;
    functions.virt_set_Y = virt_set_Y;
    functions.abstract.virt_area = virt_area;
+   
    functions.abstract.Abstract_number = Abstract_number;
    functions.Base_number = Base_number;
 #endif
@@ -104,7 +97,6 @@ static void load_base_functions(void) {
 #ifdef MANUAL_DLL_LOAD
 static Result_codes test_base_linking(void) {
    Result_codes result = functions.init(&base, 4.0, 8.0);
-   print_and_assert(functions.abstract.interface.pv_number(base), 1, "jeden", "%d", "s d");
    if (result == OK) {
       assert_interface(BASE, BASE_CHAR);
       assert_abstract(BASE, BASE_CHAR, 4.0, 8.0, 4.0 * 8.0, ABSTRACT);
