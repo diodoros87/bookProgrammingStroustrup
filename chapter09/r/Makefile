@@ -1,10 +1,11 @@
 CXX = g++
 #CXX = clang
-CPPFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD   -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 CC = gcc
-CFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+#CC = clang
+CFLAGS = -DMANUAL_DLL_LOAD   -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -15,12 +16,23 @@ PROGRAMS  = libdemo.so libdemoderived.so libbase_cpp.so libbase_cpp_connector.so
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with G++"' 
 CLANG_CPPFLAGS = -L/usr/lib -lstdc++ -lm -v -DMESSAGE='"Compiled with Clang"' 
 
+GCC_CFLAGS = -DMESSAGE='"Compiled with GCC"' 
+CLANG_CFLAGS = -lm -v -DMESSAGE='"Compiled with Clang"' 
+
 ifeq ($(CXX), g++)
-CPPFLAGS +=  $(GCC_CPPFLAGS) 
+CPPFLAGS += -DMANUAL_DLL_LOAD   $(GCC_CPPFLAGS) 
 TEST_CPPFLAGS += $(GCC_CPPFLAGS) 
 else ifeq ($(CXX), clang)
-CPPFLAGS +=  $(CLANG_CPPFLAGS) 
+CPPFLAGS += -DMANUAL_DLL_LOAD   $(CLANG_CPPFLAGS) 
 TEST_CPPFLAGS += $(CLANG_CPPFLAGS) 
+endif
+
+ifeq ($(CC), gcc)
+CFLAGS += -DMANUAL_DLL_LOAD   $(GCC_CFLAGS) 
+TEST_CFLAGS += $(GCC_CFLAGS) 
+else ifeq ($(CC), clang)
+CPPFLAGS += -DMANUAL_DLL_LOAD   $(CLANG_CFLAGS) 
+TEST_CPPFLAGS += $(CLANG_CFLAGS) 
 endif
 
 .PHONY: clean all
@@ -46,7 +58,7 @@ c_linking_test.o: connector.h linking_test.c shared_lib_open.h print.h c_string.
 	$(CC) $(CFLAGS) -c linking_test.c -o c_linking_test.o 
 	
 c_base_test.o: base_test.h base_test.c utility.h shared_lib_open.h result_codes.h print.h base.h hierarchy_test.h
-	$(CC) $(CFLAGS) -c base_test.c -o c_base_test.o
+	$(CC) $(CFLAGS) -c base_test.c -o c_base_test.o 
 	
 derived_cpp_test.o: derived_cpp_test.c derived_cpp_test.h shared_lib_open.h derived_connector.h hierarchy_test.h result_codes.h
 	$(CC) $(CFLAGS) -c derived_cpp_test.c 

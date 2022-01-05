@@ -200,7 +200,7 @@ void set_derived_real(Derived_real * derived_real, int pv_n, char pv_c, double x
 void interface_print_and_assert(const Interface_expected * const expected, const Interface_real * const real) {
    REQUIRE_NON_NULL(expected, "expected is null");
    REQUIRE_NON_NULL(real, "real is null");
-   print_and_assert(real->pv_number, expected->pv_number.number, expected->pv_number.string, "%f", "s f");
+   print_and_assert(real->pv_number, expected->pv_number.number, expected->pv_number.string, "%d", "s d");
    print_and_assert(real->pv_char, expected->pv_char.ch, expected->pv_char.string, "%c", "s c");
 }
 

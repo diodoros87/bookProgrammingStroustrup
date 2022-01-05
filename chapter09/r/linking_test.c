@@ -29,9 +29,9 @@ static void at_exit (void) {
 }
 
 static Result_codes main_test_linking(void) {
-   static const Result_codes (*TESTS [])(void) = { /* test_demo_linking, test_demo_derived,
+   static const Result_codes (*TESTS [])(void) = { test_demo_linking, test_demo_derived,
       test_human_linking, test_human_derived, test_money,
-      test_base_cpp, test_derived_cpp, */
+      test_base_cpp, test_derived_cpp,
       test_base
    };
    atexit (at_exit);
