@@ -73,9 +73,24 @@ Result_codes bind_execute_member_function_assert(Object & object, Func_1 && m_fu
    Result_codes result = bind_execute_member_function(object, m_funct_args, args ...);
    if (OK != result)
       return result;
-   auto bind_function = std::mem_fn(m_funct);
-   Value value = bind_function(object);
+   const auto bind_function = std::mem_fn(m_funct);
+   const Value value = bind_function(object);
    //(value, expected_value, value_string, function);
+   cerr << " Function: " << function << '\n';
+   print_and_assert(value, expected_value, value_string);
+   return result;
+}
+
+template <typename Object, typename Cast_1, typename Cast_2, typename Value, typename Func_1, typename Func_2>  
+Result_codes bind_execute_function_assert(Object & object, Func_1 && get, 
+                                          const Value & expected_value, const string& value_string, const string& function,
+                                                        Func_2 && set) {
+   //Result_codes result = execute_function(funct_args, object, args ...);
+   Result_codes result = set(reinterpret_cast<Cast_1> (object), expected_value);
+   if (OK != result)
+      return result;
+   //auto bind_function = bind(funct);
+   const Value value = get(reinterpret_cast<Cast_2> (object));
    cerr << " Function: " << function << '\n';
    print_and_assert(value, expected_value, value_string);
    return result;

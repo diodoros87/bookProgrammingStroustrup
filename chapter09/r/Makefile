@@ -1,11 +1,11 @@
 #CXX = g++
 CXX = clang
-CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 #CC = gcc
 CC = clang
-CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -153,8 +153,8 @@ test_cpp.o: test.cpp print.hpp system.hpp result_codes.h
 main_cpp: main_cpp.o file_edit.o system_cpp.o
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) main_cpp.o file_edit.o system_cpp.o -o main_cpp 
 	
-linking_test_cpp: linking_test_cpp.o variadic_template_test_cpp.o demo_test.o demo_derived_test.o base_test.o derived_test.o hierarchy_test_cpp.o human_test.o human_derived_test.o shared_lib_open.o print.o libhuman.so libdemo.so libdemoderived.so
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o demo_derived_test.o base_test.o derived_test.o hierarchy_test_cpp.o human_test.o human_derived_test.o shared_lib_open.o -L. -lbase_cpp -lderived_cpp -lconnector -ldemo -ldemoderived -lhumanderived -Wl,--no-as-needed -lvariadic_template -lhuman -Wl,--as-needed -ldl -o linking_test_cpp 
+linking_test_cpp: linking_test_cpp.o variadic_template_test_cpp.o demo_test.o demo_derived_test.o base_test.o derived_test.o hierarchy_test_cpp.o human_test.o human_derived_test.o base_c_test.o  shared_lib_open.o print.o libhuman.so libdemo.so libdemoderived.so
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) linking_test_cpp.o variadic_template_test_cpp.o demo_test.o demo_derived_test.o base_test.o derived_test.o hierarchy_test_cpp.o human_test.o human_derived_test.o base_c_test.o  shared_lib_open.o -L. -lbase_cpp -lderived_cpp -lconnector -ldemo -ldemoderived -lhumanderived -Wl,--no-as-needed -lvariadic_template -lhuman -Wl,--as-needed -ldl -o linking_test_cpp 
 	
 hierarchy_test_cpp.o: hierarchy_test.hpp hierarchy_test.cpp
 	$(CXX) $(CPPFLAGS) -c hierarchy_test.cpp -o hierarchy_test_cpp.o 
@@ -171,10 +171,16 @@ demo_test.o: demo_test.hpp demo_test.cpp utility.hpp shared_lib_open.h result_co
 demo_derived_test.o: demo_derived_test.hpp demo_derived_test.cpp utility.hpp shared_lib_open.h result_codes.h connector.h
 	$(CXX) $(CPPFLAGS) -c demo_derived_test.cpp -o demo_derived_test.o 
 	
-human_test.o: human_test.hpp human_test.cpp utility.hpp shared_lib_open.h result_codes.h
+base_c_test.o: base_c_test.hpp base_c_test.cpp utility.hpp shared_lib_open.h result_codes.h
+	$(CXX) $(CPPFLAGS) -c base_c_test.cpp 
+	
+derived_c_test.o: derived_c_test.hpp derived_c_test.cpp utility.hpp shared_lib_open.h result_codes.h
+	$(CXX) $(CPPFLAGS) -c derived_c_test.cpp 
+	
+human_test.o: human_test.hpp human_test.cpp utility.hpp shared_lib_open.h result_codes.h human.h human_functions.h
 	$(CXX) $(CPPFLAGS) -c human_test.cpp 
 	
-human_derived_test.o: human_derived_test.hpp human_derived_test.cpp utility.hpp shared_lib_open.h result_codes.h
+human_derived_test.o: human_derived_test.hpp human_derived_test.cpp utility.hpp shared_lib_open.h result_codes.h human_derived_functions.h human.h human_derived.h
 	$(CXX) $(CPPFLAGS) -c human_derived_test.cpp 
 	
 variadic_template_test_cpp.o: variadic_template_test.hpp variadic_template_test.cpp shared_lib_open.h result_codes.h

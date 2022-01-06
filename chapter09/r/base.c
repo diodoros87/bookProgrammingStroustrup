@@ -38,12 +38,12 @@ Result_codes Base_check(const Base_t * const object, const double n, const char 
    REQUIRE_NON_NULL(object, "base is null");
    REQUIRE_NON_NULL(function, "function is null");
    
-   Abstract_validate(n, function);
-   if (! Base_pv_valid_B(object, n)) {
+   Result_codes result = Abstract_validate(n, function);
+   if (OK == result && ! Base_pv_valid_B(object, n)) {
       LOG(" %s: argument of number: %f is not valid (n < 0)\n", function, n);
-      return INVALID_ARG;
+      result = INVALID_ARG;
    }
-   return OK;
+   return result;
 }
 
 bool_t Base_pv_valid_B(const Base_t * const object, const double n) { 
