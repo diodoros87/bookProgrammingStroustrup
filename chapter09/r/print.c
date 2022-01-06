@@ -96,6 +96,10 @@ static void case_1 (const char * format, const size_t index, va_list arg_list) {
       LOG( " %F ", va_arg( arg_list, double) );  /*  can't use va_arg(arg_list, float) because the types are promoted to double; 
       using of va_arg(arg_list, double) instead */
    }
+   else if (0 == strncmp(format, "f", index)) {
+      LOG( " %f ", va_arg( arg_list, double) );  /*  can't use va_arg(arg_list, float) because the types are promoted to double; 
+      using of va_arg(arg_list, double) instead */
+   }
    else if (0 == strncmp(format, "E", index)) {
       LOG( " %E ", va_arg( arg_list, double) );  /*  can't use va_arg(arg_list, float) because the types are promoted to double; 
       using of va_arg(arg_list, double) instead */

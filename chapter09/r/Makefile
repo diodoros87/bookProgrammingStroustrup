@@ -1,11 +1,11 @@
-CXX = g++
-#CXX = clang
-CPPFLAGS = -g -DMANUAL_DLL_LOAD   -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+#CXX = g++
+CXX = clang
+CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
-CC = gcc
-#CC = clang
-CFLAGS = -g -DMANUAL_DLL_LOAD   -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+#CC = gcc
+CC = clang
+CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -20,18 +20,18 @@ GCC_CFLAGS = -DMESSAGE='"Compiled with GCC"'
 CLANG_CFLAGS = -lm -v -DMESSAGE='"Compiled with Clang"' 
 
 ifeq ($(CXX), g++)
-CPPFLAGS += -DMANUAL_DLL_LOAD   $(GCC_CPPFLAGS) 
+CPPFLAGS +=  $(GCC_CPPFLAGS) 
 TEST_CPPFLAGS += $(GCC_CPPFLAGS) 
 else ifeq ($(CXX), clang)
-CPPFLAGS += -DMANUAL_DLL_LOAD   $(CLANG_CPPFLAGS) 
+CPPFLAGS +=  $(CLANG_CPPFLAGS) 
 TEST_CPPFLAGS += $(CLANG_CPPFLAGS) 
 endif
 
 ifeq ($(CC), gcc)
-CFLAGS += -DMANUAL_DLL_LOAD   $(GCC_CFLAGS) 
+CFLAGS +=  $(GCC_CFLAGS) 
 TEST_CFLAGS += $(GCC_CFLAGS) 
 else ifeq ($(CC), clang)
-CPPFLAGS += -DMANUAL_DLL_LOAD   $(CLANG_CFLAGS) 
+CPPFLAGS +=  $(CLANG_CFLAGS) 
 TEST_CPPFLAGS += $(CLANG_CFLAGS) 
 endif
 
@@ -124,10 +124,10 @@ allocate.o: allocate.h allocate.c
 	$(CC) $(CFLAGS) -c -fPIC allocate.c 
 	
 libderived_c.so: derived_c.o libbase_c.so
-	$(CC) $(CFLAGS) $(LDFLAGS) -shared -L. -lbase_c -o libderived_c.so derived_c.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -L. -lbase_c -o libderived_c.so derived_c.o 
 	
 derived_c.o: derived_private.h base.h derived.c derived.h abstract.h abstract_private.h interface.h interface_private.h print.h result_codes.h c_string.h utility.h allocate.h
-	$(CC) $(CFLAGS) -c -fPIC derived.c -o derived_c.o
+	$(CC) $(CFLAGS) -c -fPIC derived.c -o derived_c.o 
 	
 libbase_c.so:  base_c.o abstract_c.o interface_c.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -shared -lm -o libbase_c.so base_c.o abstract_c.o interface_c.o 

@@ -190,7 +190,7 @@ void set_base_real(Base_real * base_real, int pv_n, char pv_c, double x, double 
 /*   */
 void set_derived_real(Derived_real * derived_real, int pv_n, char pv_c, double x, double pv_y, double area, int n, double z) {
    REQUIRE_NON_NULL(derived_real, "derived_real is null");
-   set_base_expected((Base_real *)derived_real, pv_n, pv_c, x, pv_y, area, n);
+   set_base_real((Base_real *)derived_real, pv_n, pv_c, x, pv_y, area, n);
    derived_real->Z = z;
 }
 

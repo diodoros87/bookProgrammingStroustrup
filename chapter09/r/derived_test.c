@@ -19,7 +19,7 @@ static Abstract_expected abstract_expected = { { {"pv_number", 0}, {"pv_char", '
 static Base_expected base_expected = { { { {"pv_number", 0}, {"pv_char", '0'} },
                 {"x", 0}, {"y", 0}, {"virt_area", 0}, {"number", 0} } };
 
-static Derived_expected * derived_expected = { { { { {"pv_number", 0}, {"pv_char", '0'} },
+static Derived_expected derived_expected = { { { { {"pv_number", 0}, {"pv_char", '0'} },
                 {"x", 0}, {"y", 0}, {"virt_area", 0}, {"number", 0} } }, 
    {"z", 0}
 };

@@ -38,12 +38,12 @@ Result_codes Derived_check(const Derived_t * const object, const double n, const
    REQUIRE_NON_NULL(object, "derived is null");
    REQUIRE_NON_NULL(function, "function is null");
    
-   Derived_validate(n, function);
-   if (! pv_valid(object, n)) {
+   Result_codes result = Derived_validate(n, function);
+   if (OK == result && ! pv_valid(object, n)) {
       LOG(" %s: argument of number: %f is not valid (n > 100)\n", function, n);
-      return INVALID_ARG;
+      result = INVALID_ARG;
    }
-   return OK;
+   return result;
 }
 
 Result_codes Derived_validate(const double number, const char * const function) {
