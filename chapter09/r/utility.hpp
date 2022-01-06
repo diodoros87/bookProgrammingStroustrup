@@ -144,11 +144,29 @@ Result_codes bind_execute_member_function_assert(Object & object, Func_1 && m_fu
                                                         Func_2 && m_funct_args, Args&&... args );
 
 template <typename Object, typename Value, typename Func_1, typename Func_2, typename... Args>  
-Result_codes incorrect_call(Object & object, Func_1 && m_funct, 
+Result_codes incorrect_member_call(Object & object, Func_1 && m_funct, 
                                                         const Value & expected_value, const string& value_string, const string& function,
                                                         Func_2 && m_funct_args, Args&&... args ) {
    Result_codes result = bind_execute_member_function_assert(object, m_funct, expected_value, value_string, function, 
                                                              m_funct_args, args ...);
+   if (INVALID_ARG == result)
+      result = OK;
+   else
+      result = BAD_FUNTION_CALL;
+   return result;
+}
+
+template <typename Object, typename Cast_1, typename Cast_2, typename Value, typename Func_1, typename Func_2, typename... Args>  
+Result_codes bind_execute_function_assert(Object & object, Func_1 && get, const Value & expected_value, 
+                                          const string& value_string, const string& function,
+                                                        Func_2 && set, Args&&... args);
+
+template <typename Object, typename Cast_1, typename Cast_2, typename Value, typename Func_1, typename Func_2, typename... Args> 
+Result_codes incorrect_call(Object & object, Func_1 && get, const Value & expected_value, 
+                                          const string& value_string, const string& function,
+                                                        Func_2 && set, Args&&... args ) {
+   Result_codes result = bind_execute_function_assert<Object, Cast_1, Cast_2>(object, get, expected_value, value_string, function, 
+                                                             set, args ...);
    if (INVALID_ARG == result)
       result = OK;
    else

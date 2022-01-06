@@ -18,7 +18,7 @@ using std::cerr;
   ((EX) || (assert_tuples (std::tie(__VA_ARGS__), #EX, __FILE__, __LINE__, __DATE__, __TIME__)))
   
 #define print_and_assert(value, expected_value, value_string) \
-   cerr << TIE( "C++", unmove(__cplusplus), __func__, unmove(value)) << '\n'; \
+   cerr << TIE( "C++", unmove(__cplusplus), __func__, unmove(string(value_string) + " =="), unmove(value)) << '\n'; \
    assert_many((value) == (expected_value), unmove(string(value_string) + " == "), unmove(value))
 
 template<const unsigned int N>
@@ -75,21 +75,18 @@ Result_codes bind_execute_member_function_assert(Object & object, Func_1 && m_fu
       return result;
    const auto bind_function = std::mem_fn(m_funct);
    const Value value = bind_function(object);
-   //(value, expected_value, value_string, function);
    cerr << " Function: " << function << '\n';
    print_and_assert(value, expected_value, value_string);
    return result;
 }
 
-template <typename Object, typename Cast_1, typename Cast_2, typename Value, typename Func_1, typename Func_2>  
-Result_codes bind_execute_function_assert(Object & object, Func_1 && get, 
-                                          const Value & expected_value, const string& value_string, const string& function,
-                                                        Func_2 && set) {
-   //Result_codes result = execute_function(funct_args, object, args ...);
-   Result_codes result = set(reinterpret_cast<Cast_1> (object), expected_value);
+template <typename Object, typename Cast_1, typename Cast_2, typename Value, typename Func_1, typename Func_2, typename... Args>  
+Result_codes bind_execute_function_assert(Object & object, Func_1 && get, const Value & expected_value, 
+                                          const string& value_string, const string& function,
+                                                        Func_2 && set, Args&&... args) {
+   Result_codes result = set(reinterpret_cast<Cast_1> (object), args ...);
    if (OK != result)
       return result;
-   //auto bind_function = bind(funct);
    const Value value = get(reinterpret_cast<Cast_2> (object));
    cerr << " Function: " << function << '\n';
    print_and_assert(value, expected_value, value_string);

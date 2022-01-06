@@ -7,6 +7,7 @@
 #include "human_derived_test.hpp"
 #include "human.h"
 #include "base_test.hpp"
+#include "base_c_test.hpp"
 #include "derived_test.hpp"
 
 #include <functional>
@@ -43,6 +44,7 @@ static Result_codes main_tests() {
                      bind(tests::test_human), bind(tests::test_human_derived)
                      , bind(tests::test_money)
                      , bind(tests::test_base), bind(tests::test_derived)
+                     , bind(tests::test_base_c)
       
    };
    for (auto fun : vec) {
@@ -56,22 +58,6 @@ static Result_codes main_tests() {
 static Result_codes main_linking_tests() {
    atexit (at_exit);
    Result_codes result = main_tests();
-   /*
-   Result_codes result = test_demo();
-   assert_many(result == OK, "result == ", result);
-   if (OK == result)
-      result = test_human();
-   atexit (at_exit);
-   assert_many(result == OK, "result == ", result);
-   if (OK == result)
-      result = test_demo_derived();
-   assert_many(result == OK, "result == ", result);
-   if (OK == result)
-      result = test_human_derived();
-   assert_many(result == OK, "result == ", result);
-   //if (OK == result)
-   //   result = test_money();
-   assert_many(result == OK, "result == ", result);*/
    return result;
 }
 

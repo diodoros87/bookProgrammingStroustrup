@@ -5,10 +5,8 @@
 
 #include <functional>
 
-using namespace std::placeholders;
 using std::function;
 using std::numeric_limits;
-using std::bind;
 
 #ifdef MANUAL_DLL_LOAD
    #include <dlfcn.h>
@@ -90,12 +88,7 @@ Result_codes Base_test::test_base_linking() {
       
       result = bind_execute_member_function_assert(base, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);
       if (OK == result)
-         result = bind_execute_member_function_assert(base, &Base::pv_Y, -9.8, "y", __func__, &Base::virt_set_Y, -9.8);
-      if (INVALID_ARG == result)
-         result = OK;
-      else
-         assert_many(result != INVALID_ARG, "result == ", result);
-      
+         result = incorrect_member_call(base, &Base::pv_Y, -9.8, "y", __func__, &Base::virt_set_Y, -9.8);
       if (OK == result)
          result = bind_execute_member_function_assert(base, &Base::pv_Y, 105.8, "y", __func__, &Base::virt_set_Y, 105.8); 
       if (OK == result) {
@@ -119,12 +112,7 @@ Result_codes Base_test::test_base_linking() {
 
    Result_codes result = bind_execute_member_function_assert(base, &Base::X, 7.5, "x", __func__, &Base::virt_set_X, 7.5);
    if (OK == result)
-      result = bind_execute_member_function_assert(base, &Base::pv_Y, numeric_limits<double>::infinity(), "y", __func__, &Base::virt_set_Y, numeric_limits<double>::infinity());
-   if (INVALID_ARG == result)
-      result = OK;
-   else
-      assert_many(result != INVALID_ARG, "result == ", result);
-   
+      result = incorrect_member_call(base, &Base::pv_Y, numeric_limits<double>::infinity(), "y", __func__, &Base::virt_set_Y,        numeric_limits<double>::infinity());
    if (OK == result)
       result = bind_execute_member_function_assert(base, &Base::pv_Y, 105.8, "y", __func__, &Base::virt_set_Y, 105.8);
    if (OK == result)
