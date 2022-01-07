@@ -74,10 +74,7 @@ static Result_codes incorrect_human_init(const Human_derived_functions * const f
    assert_many(result == INVALID_ARG, "assert failed: ", "s d", "result == ", result);
    if (INVALID_ARG == result)
       return OK; 
-   
-#ifdef MANUAL_DLL_LOAD
-   close_handle(&(functions->handle));
-#endif
+
    LOG("%s: %s incorrect call of human init result = %d", LANGUAGE, __FUNCTION__, result);
    return RUNTIME_ERROR;
 }

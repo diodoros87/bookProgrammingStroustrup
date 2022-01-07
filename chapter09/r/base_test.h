@@ -9,13 +9,21 @@
 
 Result_codes test_base(void);
 
-typedef struct __attribute__ ((__packed__)) Interface_functions {
+typedef struct 
+#if defined(__clang__)
+   __attribute__ ((__packed__))
+#endif
+Interface_functions {
    void (*Interface_destroy)(Interface_t ** const);
    int (*pv_number)(const Interface_t * const);
    char (*pv_char)(const Interface_t * const);
 } Interface_functions;
 
-typedef struct __attribute__ ((__packed__)) Abstract_functions {
+typedef struct 
+#if defined(__clang__)
+   __attribute__ ((__packed__))
+#endif
+Abstract_functions {
    Interface_functions interface;
    
    void (*Abstract_destroy)(Abstract_t ** const);
@@ -26,7 +34,11 @@ typedef struct __attribute__ ((__packed__)) Abstract_functions {
    int (*Abstract_number)(const Abstract_t * const);
 } Abstract_functions;
 
-typedef struct __attribute__ ((__packed__)) Base_functions {
+typedef struct 
+#if defined(__clang__)
+   __attribute__ ((__packed__))
+#endif
+Base_functions {
    Abstract_functions abstract;
    
    Result_codes (*init)(Base_t ** const, const double, const double);

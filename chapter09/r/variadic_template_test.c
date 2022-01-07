@@ -162,7 +162,10 @@ static Result_codes incorrect_money(void) {
       result = incorrect_money_init(p_function, SHORT, "200000", 80.0L);
    
 #ifdef MANUAL_DLL_LOAD
-   close_handle(&(functions->handle));
+   if (OK == result)
+      result = close_handle(&handle);
+   else
+      close_handle(&handle);
 #endif
    return result;
 }

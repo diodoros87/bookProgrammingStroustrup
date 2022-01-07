@@ -1,11 +1,11 @@
 #CXX = g++
 CXX = clang
-CPPFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
+CPPFLAGS = -DMANUAL_DLL_LOAD   -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 TEST_CPPFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c++14 #-fsanitize=address 
 
 #CC = gcc
 CC = clang
-CFLAGS =  -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
+CFLAGS = -DMANUAL_DLL_LOAD   -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 TEST_CFLAGS = -Wfatal-errors -Wall -Wextra -Wconversion -std=c11 #-fsanitize=address 
 #  -fcompare-debug-second -DMANUAL_DLL_LOAD
 
@@ -20,18 +20,18 @@ GCC_CFLAGS = -DMESSAGE='"Compiled with GCC"'
 CLANG_CFLAGS = -lm -v -DMESSAGE='"Compiled with Clang"' 
 
 ifeq ($(CXX), g++)
-CPPFLAGS +=  $(GCC_CPPFLAGS) 
+CPPFLAGS += -DMANUAL_DLL_LOAD   $(GCC_CPPFLAGS) 
 TEST_CPPFLAGS += $(GCC_CPPFLAGS) 
 else ifeq ($(CXX), clang)
-CPPFLAGS +=  $(CLANG_CPPFLAGS) 
+CPPFLAGS += -DMANUAL_DLL_LOAD   $(CLANG_CPPFLAGS) 
 TEST_CPPFLAGS += $(CLANG_CPPFLAGS) 
 endif
 
 ifeq ($(CC), gcc)
-CFLAGS +=  $(GCC_CFLAGS) 
+CFLAGS += -DMANUAL_DLL_LOAD   $(GCC_CFLAGS) 
 TEST_CFLAGS += $(GCC_CFLAGS) 
 else ifeq ($(CC), clang)
-CPPFLAGS +=  $(CLANG_CFLAGS) 
+CPPFLAGS += -DMANUAL_DLL_LOAD   $(CLANG_CFLAGS) 
 TEST_CPPFLAGS += $(CLANG_CFLAGS) 
 endif
 
