@@ -17,3 +17,14 @@ Result_codes get_error_code(exception * e) {
       return STD_ERROR;
    return UNRECOGNIZED_ERROR;
 }
+
+void print_address(const map<string, unsigned long long> & addresses) {
+   const size_t SIZE = addresses.size();
+   if (SIZE > 0) {
+      cerr << " Addresses of objects printed in " << SIZE << " rows below:\n";
+      for (const pair<string, unsigned long long> &record : addresses) {
+         cerr << "{" << record.first << " = " << record.second << "}" << '\n';
+      }
+      cerr << "End of addresses printing.\n";
+   }
+}

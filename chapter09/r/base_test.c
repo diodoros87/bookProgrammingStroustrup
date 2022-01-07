@@ -133,8 +133,9 @@ static Result_codes test_base_linking(void) {
          result = incorrect_set_double(functions.virt_set_Y, base, INFINITY, functions.abstract.pv_Y, "Base y");
       if (OK == result)
          result = getset_double(functions.virt_set_Y, base, 105.8, functions.abstract.pv_Y, "Base y"); 
-      if (OK == result)
+      if (OK == result) {
          print_and_assert(functions.abstract.virt_area(base), 7.5 * 105.8, "Base virt_area", "%f", "s f");
+      }
    }
    functions.Base_destroy(&base);/*
    functions.abstract.interface.Interface_destroy(&base);*/

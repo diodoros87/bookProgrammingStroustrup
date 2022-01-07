@@ -138,12 +138,15 @@ Result_codes Base_C_test::main_test_base_linking() {
       test_base(::BASE, ::BASE_CHAR, -6.0, 0.0, -6.0 * 0.0, ::BASE);
 
       result = bind_execute_function_assert<Base_t *, Abstract_t *, Abstract_t *>(base, functions.abstract.X, 7.5, "x", __func__, functions.abstract.virt_set_X, 7.5);
+      //functions.virt_set_Y = nullptr;
       if (OK == result)
          result = incorrect_call<Base_t *, Base_t *, Abstract_t *>(base, functions.abstract.pv_Y, numeric_limits<double>::infinity(), "y", __func__, functions.virt_set_Y, numeric_limits<double>::infinity());
+      //functions.abstract.pv_Y= nullptr;
       if (OK == result)
          result = bind_execute_function_assert<Base_t *, Base_t *, Abstract_t *>(base, functions.abstract.pv_Y, 105.8, "y", __func__, functions.virt_set_Y, 105.8); 
-      if (OK == result)
+      if (OK == result) {
          print_and_assert(functions.abstract.virt_area(reinterpret_cast<Abstract_t * > (base)), 7.5 * 105.8, "virt_area");
+      }
    }
    return result;
 }

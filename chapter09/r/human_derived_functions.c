@@ -37,7 +37,7 @@ static void load_human(Human_derived_functions * functions) {
 #endif
 }
 
-static Result_codes check_name(Human_derived_functions * functions, const Human_derived_t * const human, const char * const expected_name) {
+static Result_codes check_name(const Human_derived_functions * const functions, const Human_derived_t * const human, const char * const expected_name) {
    REQUIRE_NON_NULL(functions, "functions derived is null");
    REQUIRE_NON_NULL(human, "human derived is null");
    REQUIRE_NON_NULL(expected_name, "expected_name is null");
@@ -51,7 +51,7 @@ static Result_codes check_name(Human_derived_functions * functions, const Human_
    return result;
 }
 
-static Result_codes check_age(Human_derived_functions * functions, const Human_derived_t * const human, const unsigned int expected) {
+static Result_codes check_age(const Human_derived_functions * const functions, const Human_derived_t * const human, const unsigned int expected) {
    REQUIRE_NON_NULL(functions, "functions derived is null");
    REQUIRE_NON_NULL(human, "human derived is null");
    unsigned int age;
@@ -61,6 +61,25 @@ static Result_codes check_age(Human_derived_functions * functions, const Human_d
       assert_many(age == expected, "assert failed: ", "s u", " age == ", age);
    }
    return result;
+}
+
+static Result_codes incorrect_human_init(const Human_derived_functions * const functions, 
+                                         const char * const name, const unsigned int age) {
+   if (! functions) {
+      LOG_EXIT(__FUNCTION__, "human functions is NULL ", EXIT_FAILURE);   /* brackets - multiline macro */
+   }
+   Human_derived_t * human = NULL;
+   Result_codes result = functions->init(&human, name, age); 
+   assert_many(human == NULL, "assert failed: ", "s p", "pointer to human == ", human);
+   assert_many(result == INVALID_ARG, "assert failed: ", "s d", "result == ", result);
+   if (INVALID_ARG == result)
+      return OK; 
+   
+#ifdef MANUAL_DLL_LOAD
+   close_handle(&(functions->handle));
+#endif
+   LOG("%s: %s incorrect call of human init result = %d", LANGUAGE, __FUNCTION__, result);
+   return RUNTIME_ERROR;
 }
 
 static Result_codes run_human(const Human_derived_functions * const functions) { 
@@ -102,6 +121,10 @@ Result_codes test_human_derived(void) {
    FUNCTION_INFO(__FUNCTION__);
    Human_derived_functions functions;
    load_human(&functions); 
-   Result_codes result = run_human(&functions);
+   Result_codes result = incorrect_human_init(&functions, "Plato", 150);
+   if (OK == result)
+      result = incorrect_human_init(&functions, "1R", 8);
+   if (OK == result)
+      result = run_human(&functions);
    return result;
 }

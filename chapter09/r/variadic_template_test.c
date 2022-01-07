@@ -130,6 +130,43 @@ static Result_codes run_money(const Number type, const char * const dollars, con
    return result;
 }
 
+static Result_codes incorrect_money_init(const p_func_many p_function, const Number type, const char * const dollars, const long double cents) {
+   if (type < SHORT || type > LONG_DOUBLE || ! dollars) {
+      LOG(" type = %d \t dollars = %p\n", type, dollars);
+      return INVALID_ARG;
+   }
+
+   Money_type money = NULL;
+   union Number_pointer_union n_union;
+   const char * format = get_format(type);
+   Result_codes result = p_function(&money, INIT_2, type, &n_union, dollars, cents);
+   assert_many(money == NULL, "assert failed: ", "s p", "pointer to money == ", money);
+   if (INVALID_ARG == result || OUT_OF_RANGE_ERROR == result)
+      return OK; 
+   
+   LOG("%s: %s incorrect call of money init result = %d", LANGUAGE, __FUNCTION__, result);
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
+   return RUNTIME_ERROR;
+}
+
+static Result_codes incorrect_money(void) {
+#ifdef MANUAL_DLL_LOAD
+   void* handle = get_handle(LIB_CONNECTOR_SO, RTLD_LAZY);
+   p_func_many p_function = get_symbol(handle, "Money_type__function");
+#else
+   p_func_many p_function = Money_type__function;
+#endif
+   
+   Result_codes result = incorrect_money_init(p_function, INT, "20i", 80.0L);
+   if (OK == result)
+      result = incorrect_money_init(p_function, SHORT, "200000", 80.0L);
+   
+#ifdef MANUAL_DLL_LOAD
+   close_handle(&(functions->handle));
+#endif
+   return result;
+}
+
 #undef LOGS_MONEY
 
 #define TEST_ALLOC(TYPE, dollars, number, cents) \
@@ -173,5 +210,8 @@ Result_codes test_money(void) {
    char * number_string = to_string(LLONG_MIN);
    LOG("%s\n", number_string);
    free(number_string);
+   
+   if (OK == result)
+      result = incorrect_money();
    return result;
 }

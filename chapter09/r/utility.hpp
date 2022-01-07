@@ -6,6 +6,7 @@
 #include <utility>
 #include <iostream>
 #include <functional>
+#include <map>
 
 #include "result_codes.h"
 
@@ -15,6 +16,8 @@ using std::enable_if_t;
 using std::forward;
 using std::exception;
 using std::bind;
+using std::map;
+using std::pair;
 
 extern template class Money<short>;
 extern template class Money<unsigned short>;
@@ -106,6 +109,33 @@ struct Destructor {
 template<class T> 
 inline T& unmove(T&& t) { return t; }
 
+template <typename Fun>
+inline void iterate_pack(const Fun&) { }
+
+template <typename Fun, typename Arg, typename ... Args>
+void iterate_pack(const Fun &fun, Arg &&arg, Args&& ... args) {
+   fun(forward<Arg>(arg));
+   iterate_pack(fun, forward<Args>(args)...);
+}
+
+template <typename ... Args>
+void print_address(const Args& ... args) {
+   cerr << '\n';
+   iterate_pack([&](auto &arg)
+   {
+      cerr << reinterpret_cast<unsigned long long>(arg) << " \t ";
+   },
+   args...);
+   cerr << '\n';
+}
+
+template <typename T>
+inline unsigned long long address(const T & object) {
+   return reinterpret_cast<unsigned long long>(object);
+}
+
+void print_address(const map<string, unsigned long long> & addresses);
+
 template <typename Function, typename... Args>  
 Result_codes call_catch_exception(Function && func, Args&&... args )
    try {
@@ -165,9 +195,26 @@ template <typename Object, typename Cast_1, typename Cast_2, typename Value, typ
 Result_codes incorrect_call(Object & object, Func_1 && get, const Value & expected_value, 
                                           const string& value_string, const string& function,
                                                         Func_2 && set, Args&&... args ) {
+   if (nullptr == object || nullptr == get || nullptr == set) {
+      cerr << __func__ << " nullptr detected, addresses of objects printed in 2 rows below:\n";
+      cerr << " object \t get \t set ";
+      print_address(object, get, set);
+      cerr << "End of addresses printing.\n";
+      return INVALID_ARG;
+   }
    Result_codes result = bind_execute_function_assert<Object, Cast_1, Cast_2>(object, get, expected_value, value_string, function, 
                                                              set, args ...);
    if (INVALID_ARG == result)
+      result = OK;
+   else
+      result = BAD_FUNTION_CALL;
+   return result;
+}
+
+template <typename Func, typename... Args> 
+Result_codes incorrect_call(Func && func, Args&&... args ) {
+   Result_codes result = call_catch_exception(func, args ...);
+   if (INVALID_ARG == result || OUT_OF_RANGE_ERROR == result)
       result = OK;
    else
       result = BAD_FUNTION_CALL;

@@ -115,8 +115,9 @@ Result_codes Base_test::test_base_linking() {
       result = incorrect_member_call(base, &Base::pv_Y, numeric_limits<double>::infinity(), "y", __func__, &Base::virt_set_Y,        numeric_limits<double>::infinity());
    if (OK == result)
       result = bind_execute_member_function_assert(base, &Base::pv_Y, 105.8, "y", __func__, &Base::virt_set_Y, 105.8);
-   if (OK == result)
-      print_and_assert(base.virt_area(), 7.5 * 105.8, "virt_area");
+   if (OK == result) {
+      print_and_assert(base.virt_area(), 7.5 * 105.8, "virt_area"); // brackets - multiline macro
+   }
    
    assert_many(result == OK, "result == ", result);
    return result;

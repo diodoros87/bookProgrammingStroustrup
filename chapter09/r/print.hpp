@@ -84,6 +84,12 @@ template <typename Object, typename Cast_1, typename Cast_2, typename Value, typ
 Result_codes bind_execute_function_assert(Object & object, Func_1 && get, const Value & expected_value, 
                                           const string& value_string, const string& function,
                                                         Func_2 && set, Args&&... args) {
+   if (nullptr == object || nullptr == get || nullptr == set) {
+      map<string, unsigned long long> m { {"object", address(object)}, {"get", address(get)}, {"set", address(set)}, };
+      cerr << __func__ << " nullptr detected:\n";
+      print_address(m);
+      return INVALID_ARG;
+   }
    Result_codes result = set(reinterpret_cast<Cast_1> (object), args ...);
    if (OK != result)
       return result;

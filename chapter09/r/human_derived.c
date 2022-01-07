@@ -31,8 +31,11 @@ static Human_derived_t* Human_derived_realloc(Human_derived_t * object) {
 */
 
 static Result_codes validate(const unsigned int age) {
-   if (age <= 0 || age >= 150) 
+   if (age <= 0 || age >= 150) {
+      LOG_FUNC(__FUNCTION__);
+      LOG("Requirement: age > %d && age < %d", 0, 150);
       return INVALID_ARG;
+   }
    return OK;
 }
 
@@ -45,8 +48,10 @@ Result_codes Human_derived_init(Human_derived_t ** const object, const char * co
    REQUIRE_NON_NULL(*object, "*object is null - after call of base struct");
    
    result = validate(age);
-   if (OK != result)
+   if (OK != result) {
+      Human_destroy((Human_t **) object);
       return result;
+   }
    
    REALLOCATE_STRING(*object, sizeof (Human_derived_t));
    /*Human_derived_realloc(*object);*/
@@ -54,7 +59,7 @@ Result_codes Human_derived_init(Human_derived_t ** const object, const char * co
       return BAD_ALLOC;
    
    (*object)->age = (unsigned int *) copy_bytes(&age, sizeof(unsigned int));/*
-   ALLOCATE_SINGLE_TYPE(object->age, unsigned int);*/
+   ALLOCATE_SINGLE_TYPE(object->age, unsigned int); multiline macro */
    if (NULL == (*object)->age)
       return BAD_ALLOC;
    return OK;
@@ -82,7 +87,7 @@ Result_codes Human_derived_set_age(Human_derived_t * const object, const unsigne
    free(object->age);
    
    object->age = (unsigned int *) copy_bytes(&age, sizeof(unsigned int));/*
-   ALLOCATE_SINGLE_TYPE(object->age, unsigned int);*/
+   ALLOCATE_SINGLE_TYPE(object->age, unsigned int); multiline macro */
    if (NULL == object->age)
       return BAD_ALLOC;
    return OK;
@@ -93,6 +98,6 @@ Result_codes Human_derived_get_age(const Human_derived_t * const object, unsigne
    REQUIRE_NON_NULL(object, "human is null");
    REQUIRE_NON_NULL(age, "age is null");
    *age = *(object->age);/*
-   ALLOCATE_SINGLE_TYPE(object->age, unsigned int);*/
+   ALLOCATE_SINGLE_TYPE(object->age, unsigned int); multiline macro */
    return OK;
 }
