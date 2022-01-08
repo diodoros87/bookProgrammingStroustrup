@@ -72,6 +72,7 @@ void Base_C_test::load_base_functions() {
 Interface_expected Base_C_test::interface_expected;
 Abstract_expected Base_C_test::abstract_expected;
 Base_expected Base_C_test::base_expected;
+
 Interface_real Base_C_test::interface_real;
 Abstract_real Base_C_test::abstract_real;
 Base_real Base_C_test::base_real;
@@ -115,11 +116,14 @@ Result_codes Base_C_test::main_test_base_linking() {
       test_abstract(BASE, BASE_CHAR, 4.0, 8.0, 4.0 * 8.0, ABSTRACT);
       test_base(BASE, BASE_CHAR, 4.0, 8.0, 4.0 * 8.0, BASE);
       
-      result = bind_execute_function_assert<Base_t *, Abstract_t *, Abstract_t *>(base, functions.abstract.X, 7.5, "x", __func__, functions.abstract.virt_set_X, 7.5);
+      result = bind_execute_function_assert<Base_t *, Abstract_t *, Abstract_t *>(base, functions.abstract.X, 7.5, "x", __func__,
+                                                                     functions.abstract.virt_set_X, 7.5);
       if (OK == result)
-         result = incorrect_call<Base_t *, Base_t *, Abstract_t *>(base, functions.abstract.pv_Y, -9.8, "y", __func__,      functions.virt_set_Y, -9.8);
+         result = incorrect_call<Base_t *, Base_t *, Abstract_t *>(base, functions.abstract.pv_Y, -9.8, "y", __func__,
+                                                   functions.virt_set_Y, -9.8);
       if (OK == result)
-         result = bind_execute_function_assert<Base_t *, Base_t *, Abstract_t *>(base, functions.abstract.pv_Y, 105.8, "y", __func__, functions.virt_set_Y, 105.8); 
+         result = bind_execute_function_assert<Base_t *, Base_t *, Abstract_t *>(base, functions.abstract.pv_Y, 105.8, "y", __func__,
+                                                         functions.virt_set_Y, 105.8); 
       if (OK == result) {
          print_and_assert(functions.abstract.virt_area(reinterpret_cast<Abstract_t * > (base)), 7.5 * 105.8, "virt_area");
          result = static_cast<Result_codes> (close_handle(&(functions.handle)));
@@ -137,13 +141,16 @@ Result_codes Base_C_test::main_test_base_linking() {
       test_abstract(::BASE, ::BASE_CHAR, -6.0, 0.0, -6.0 * 0.0, ::ABSTRACT);
       test_base(::BASE, ::BASE_CHAR, -6.0, 0.0, -6.0 * 0.0, ::BASE);
 
-      result = bind_execute_function_assert<Base_t *, Abstract_t *, Abstract_t *>(base, functions.abstract.X, 7.5, "x", __func__, functions.abstract.virt_set_X, 7.5);
+      result = bind_execute_function_assert<Base_t *, Abstract_t *, Abstract_t *>(base, functions.abstract.X, 7.5, "x", __func__,
+                                                functions.abstract.virt_set_X, 7.5);
       //functions.virt_set_Y = nullptr;
       if (OK == result)
-         result = incorrect_call<Base_t *, Base_t *, Abstract_t *>(base, functions.abstract.pv_Y, numeric_limits<double>::infinity(), "y", __func__, functions.virt_set_Y, numeric_limits<double>::infinity());
+         result = incorrect_call<Base_t *, Base_t *, Abstract_t *>(base, functions.abstract.pv_Y, numeric_limits<double>::infinity(), "y",
+                                                         __func__, functions.virt_set_Y, numeric_limits<double>::infinity());
       //functions.abstract.pv_Y= nullptr;
       if (OK == result)
-         result = bind_execute_function_assert<Base_t *, Base_t *, Abstract_t *>(base, functions.abstract.pv_Y, 105.8, "y", __func__, functions.virt_set_Y, 105.8); 
+         result = bind_execute_function_assert<Base_t *, Base_t *, Abstract_t *>(base, functions.abstract.pv_Y, 105.8, "y", __func__,
+                                                   functions.virt_set_Y, 105.8); 
       if (OK == result) {
          print_and_assert(functions.abstract.virt_area(reinterpret_cast<Abstract_t * > (base)), 7.5 * 105.8, "virt_area");
       }

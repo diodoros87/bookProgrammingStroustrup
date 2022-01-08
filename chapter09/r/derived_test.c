@@ -36,20 +36,26 @@ static Derived_functions functions;
 
 static Derived_t * derived = NULL;
 
-static Result_codes test_constructor(void) {
-   Result_codes result = functions.init(&derived, 4, -3, 7);
+static Result_codes incorrect_init(const double x, const double y, const double z) { 
+   Result_codes result = functions.init(&derived, x, y, z); 
    assert_many(result == INVALID_ARG, "assert failed: ", "s d", "result == ", result);
    assert_many(derived == NULL, "assert failed: ", "s p", "derived pointer == ", derived);
-   if (result == INVALID_ARG) {
-      result = functions.init(&derived, 4, 55, 107);
-      assert_many(result == INVALID_ARG, "assert failed: ", "s d", "result == ", result);
-      assert_many(derived == NULL, "assert failed: ", "s p", "derived pointer == ", derived);
-      if (result == INVALID_ARG) {
-         result = functions.init(&derived, 4, 101, 7);
-         assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
-         assert_many(derived != NULL, "assert failed: ", "s p", "derived pointer == ", derived);
-      }
+   return (result == INVALID_ARG) ? OK : BAD_FUNTION_CALL;
+}
+
+static Result_codes test_constructor(void) {  
+   Result_codes result = incorrect_init(4, -3, 7); 
+   if (OK == result)
+      result = incorrect_init(4, 55, 107); 
+   if (OK == result)
+      result = incorrect_init(4, 55, 0);
+   if (OK == result)
+      result = incorrect_init(INFINITY, 101, 7);
+   if (result == OK) {
+      result = functions.init(&derived, 4, 101, 7);
+      assert_many(derived != NULL, "assert failed: ", "s p", "derived pointer == ", derived);
    }
+   assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    return result;
 }
 

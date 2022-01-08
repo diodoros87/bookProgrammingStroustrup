@@ -9,6 +9,7 @@
 #include "base_test.hpp"
 #include "base_c_test.hpp"
 #include "derived_test.hpp"
+#include "derived_c_test.hpp"
 
 #include <functional>
 
@@ -44,7 +45,7 @@ static Result_codes main_tests() {
                      bind(tests::test_human), bind(tests::test_human_derived)
                      , bind(tests::test_money)
                      , bind(tests::test_base), bind(tests::test_derived)
-                     , bind(tests::test_base_c)
+                     , bind(tests::test_base_c), bind(tests::test_derived_c)
       
    };
    for (auto fun : vec) {

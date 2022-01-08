@@ -96,19 +96,37 @@ void Derived_test::test_move() {
 static Derived * test_constructor(Derived * (*create)(const double, const double, const double)) {
    Derived * d = create(4, -3, 7); 
    assert_many(d == nullptr, "d pointer == ", d);
-   d = create(4, 55, 107); 
+   if (d == nullptr)
+      d = create(4, 55, 107); 
    assert_many(d == nullptr, "d pointer == ", d);
-   d = create(4, 101, 7); 
+   if (d == nullptr)
+      d = create(4, 55, 0); 
+   assert_many(d == nullptr, "d pointer == ", d);
+   if (d == nullptr)
+      d = create(numeric_limits<double>::infinity(), 101, 7); 
+   assert_many(d == nullptr, "d pointer == ", d);
+   if (d == nullptr)
+      d = create(4, 101, 7); 
    assert_many(d != nullptr, "d pointer == ", d);
    return d;
 }
 #else
+static inline Result_codes incorrect_construct(Derived & d, const double x, const double y, const double z) {
+   Result_codes result = init<Derived>(d, Constructor<Derived>(), x, y, z); 
+   assert_many(result == INVALID_ARG, "result == ", result);
+   return (result == INVALID_ARG) ? OK : BAD_FUNTION_CALL;
+}
+
 static Result_codes test_constructor(Derived & d) {
-   Result_codes result = init<Derived>(d, Constructor<Derived>(), 4, -3, 7); 
-   assert_many(result == INVALID_ARG, "result == ", result);
-   result = init<Derived>(d, Constructor<Derived>(), 4, 55, 107);
-   assert_many(result == INVALID_ARG, "result == ", result);
-   result = init<Derived>(d, Constructor<Derived>(), 4, 101, 7);
+   Result_codes result = incorrect_construct(d, 4, -3, 7); 
+   if (result == OK)
+      result = incorrect_construct(d, 4, 55, 107);
+   if (result == OK)
+      result = incorrect_construct(d, 4, 55, 0);
+   if (result == OK)
+      result = incorrect_construct(d, numeric_limits<double>::infinity(), 101, 7);
+   if (result == OK)
+      result = init<Derived>(d, Constructor<Derived>(), 4, 101, 7);
    assert_many(result == OK, "result == ", result);
    return result;
 }
@@ -117,7 +135,8 @@ static Result_codes test_constructor(Derived & d) {
 #ifdef MANUAL_DLL_LOAD
    Manual_DLL_derived::Manual_DLL_derived(const char * shared_library, const char * create, const char * destroy) {
       handle   = get_handle(const_cast<char *> (shared_library), RTLD_LAZY);
-      this->create   = reinterpret_cast<Derived * (*)(const double, const double, const double)> (get_symbol(handle, const_cast<char *> (create)));
+      this->create   = reinterpret_cast<Derived * (*)(const double, const double, const double)> 
+         (get_symbol(handle, const_cast<char *> (create)));
       this->destroy  = reinterpret_cast<void (*)(Derived * & )> (get_symbol(handle, const_cast<char *> (destroy)));
    }
    
@@ -131,6 +150,7 @@ Interface_expected Derived_test::interface_expected;
 Abstract_expected Derived_test::abstract_expected;
 Base_expected Derived_test::base_expected;
 Derived_expected Derived_test::derived_expected;
+
 Interface_real Derived_test::interface_real;
 Abstract_real Derived_test::abstract_real;
 Base_real Derived_test::base_real;
@@ -208,7 +228,8 @@ void Derived_test::print_assert() {
 Result_codes test_derived_linking(Derived & d) {
    Result_codes result = bind_execute_member_function_assert(d, &Derived::X, 7.5, "x", __func__, &Derived::virt_set_X, 7.5);
    if (OK == result)
-      result = incorrect_member_call(d, &Derived::X, numeric_limits<double>::infinity(), "x", __func__, &Derived::virt_set_X, numeric_limits<double>::infinity());
+      result = incorrect_member_call(d, &Derived::X, numeric_limits<double>::infinity(), "x", __func__, &Derived::virt_set_X,
+                                     numeric_limits<double>::infinity());
    if (OK == result) {
       print_and_assert(d.X(), 7.5, "x");
       result = bind_execute_member_function_assert(d, &Derived::pv_Y, 0.8, "y", __func__, &Derived::virt_set_Y, 0.8);

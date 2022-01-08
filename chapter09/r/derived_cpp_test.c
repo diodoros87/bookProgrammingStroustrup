@@ -47,14 +47,26 @@ static void load_derived_connector(void) {
 #endif
 }
 
+static Result_codes incorrect_init(const double x, const double y, const double z) { 
+   Result_codes result = functions.init(x, y, z); 
+   assert_many(result == INVALID_ARG, "assert failed: ", "s d", "result == ", result);
+   functions.abstract.destroy();
+   if (result == INVALID_ARG)
+      return OK;
+   else
+      return BAD_FUNTION_CALL;
+}
+
 static Result_codes test_constructor(void) { 
-   Result_codes result = functions.init(4, -3, 7); 
-   assert_many(result == INVALID_ARG, "assert failed: ", "s d", "result == ", result);
-   functions.abstract.destroy();
-   result = functions.init(4, 55, 107);
-   assert_many(result == INVALID_ARG, "assert failed: ", "s d", "result == ", result);
-   functions.abstract.destroy();
-   result = functions.init(4, 101, 7);
+   Result_codes result = incorrect_init(4, -3, 7); 
+   if (OK == result)
+      result = incorrect_init(4, 55, 107); 
+   if (OK == result)
+      result = incorrect_init(4, 55, 0);
+   if (OK == result)
+      result = incorrect_init(INFINITY, 101, 7);
+   if (OK == result)
+      result = functions.init(4, 101, 7);
    assert_many(result == OK, "assert failed: ", "s d", "result == ", result);
    if (OK == result)
       result = check_double(functions.abstract.X, "Derived X", 4);

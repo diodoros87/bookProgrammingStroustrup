@@ -17,6 +17,7 @@ private:
    static Interface_expected interface_expected;
    static Abstract_expected abstract_expected;
    static Base_expected base_expected;
+   
    static Interface_real interface_real;
    static Abstract_real abstract_real;
    static Base_real base_real;

@@ -10,7 +10,11 @@
 
 Result_codes test_derived(void);
 
-typedef struct __attribute__ ((__packed__)) Derived_functions {
+typedef struct 
+#if defined(__clang__)
+   __attribute__ ((__packed__))
+#endif
+Derived_functions {
    Base_functions base;
    
    Result_codes (*init)(Derived_t ** const, const double, const double, const double);
