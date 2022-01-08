@@ -106,8 +106,9 @@ T Money<T>::get_amount(const string & STR) {
 template <typename T>
 template<typename Greater>
 T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT_CENTS */) const {
-   static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
-                        ! is_same<Greater, Integer>::value );
+   static_assert(((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
+                        ! is_same<Greater, Integer>::value) && "(numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && \
+! is_same<Greater, Integer>::value" );
    Greater amount_in_cents = Greater(dollars) * Greater(CENTS_PER_DOLLAR);
    cerr << __func__ << " amount_in_cents = " << amount_in_cents << '\n';
    if (INCORRECT_CENTS == cents)
@@ -151,13 +152,49 @@ T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT
       Integer cents_round = dollars >= 0 ? Money<Integer>::round(cents) : -Money<Integer>::round(cents);
       amount_in_cents += cents_round;
    }
-   if (! is_same<T, Integer>::value)
+   if (! is_same<T, Integer>::value) {
+#if defined(__clang__)
+      //if (is_overflow<T>(amount_in_cents)) 
+      if (Integer::is_overflow<T>(amount_in_cents))
+#elif defined(__GNUG__)
       if (is_overflow<T, Integer>(amount_in_cents))
+#endif
          throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
+   }
    T result = T(amount_in_cents);
    cerr << __func__ << " result = " << Integer::create_Integer(result) << '\n';
    return result;
 }
+
+#if defined(__clang__)
+template<>
+Money<Integer>::Money(const string & dollars, const long double cents) {
+   cerr << __func__ << " TYPE_NAME = '" << TYPE_NAME << "' " << dollars << '\n';
+   validate_cents(cents);
+   if (! regex_match(dollars, INTEGER_REGEX)) 
+      throw invalid_argument("Regex: dollars must be integer number ");
+   string dollars_string = dollars;
+   if (regex_match(dollars, MINUS_ZERO_REGEX))
+      dollars_string = dollars.substr(1);
+   Integer amount = get_amount(dollars_string);
+   this->amount_in_cents = calculate(amount, cents);
+   cerr << __func__ << " amount = '" << amount << "' std::signbit = '" << std::boolalpha << std::signbit(amount) << "' \n";  
+   if (dollars[0] == '-' && Integer::create_Integer(0) == Integer::create_Integer(amount))
+      this->amount_in_cents = -this->amount_in_cents;
+//    if (dollars[0] == '-') {
+// #if defined(__clang__)
+//       if ((is_same<T, Integer>::value && Integer::create_Integer(0) == Integer::create_Integer(amount)) ||
+//          (! is_same<T, Integer>::value && 0 == amount) )
+// #elif defined(__GNUG__)
+//       if (0 == amount)
+// #endif
+      //if (dollars[0] == '-' && 0 == amount)   
+         //this->amount_in_cents = -this->amount_in_cents;
+   //}
+   
+   cerr << __func__ << " this->amount_in_cents = '" << TYPE_NAME << "' " << this->amount_in_cents << '\n';   
+}
+#endif
 
 template <typename T>
 Money<T>::Money(const string & dollars, const long double cents) {
@@ -174,8 +211,18 @@ Money<T>::Money(const string & dollars, const long double cents) {
    else if (numeric_limits<T>::is_integer)
       this->amount_in_cents = calculate(amount, cents);
    cerr << __func__ << " amount = '" << amount << "' std::signbit = '" << std::boolalpha << std::signbit(amount) << "' \n";  
-   if (0 == amount && dollars[0] == '-')
-      this->amount_in_cents = -this->amount_in_cents;
+   
+//    if (dollars[0] == '-') {
+// #if defined(__clang__)
+//       if ((is_same<T, Integer>::value && Integer::create_Integer(0) == Integer::create_Integer(amount)) ||
+//          (! is_same<T, Integer>::value && 0 == amount) )
+// #elif defined(__GNUG__)
+//       if (0 == amount)
+// #endif
+      if (dollars[0] == '-' && 0 == amount)   
+         this->amount_in_cents = -this->amount_in_cents;
+   //}
+   
    if (is_same<T, char>::value || is_same<T, int_fast8_t>::value)
       cerr << __func__ << " this->amount_in_cents = '" << TYPE_NAME << "' " << static_cast<int>(this->amount_in_cents) << '\n';
    else

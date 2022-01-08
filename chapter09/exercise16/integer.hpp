@@ -109,7 +109,11 @@ public:
          throw out_of_range(string(" type: ") + typeid(Number).name() + " number: " + to_string(x) +
                                     " is out of range for Integer class ");
       long double truncated = trunc(x);
+#if defined(__clang__)
+      long double abs_truncated = std::abs(truncated);
+#elif defined(__GNUG__)
       long double abs_truncated = fabs(truncated);
+#endif
       //digit_type digit = 0;
       //if (*this < numeric_limits<Number>::lowest() || *this > numeric_limits<Number>::max())
       //   throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());

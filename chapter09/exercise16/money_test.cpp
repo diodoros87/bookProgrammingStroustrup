@@ -155,9 +155,16 @@ void construct() {
       construct<T>("10.6435", false, "10,64");
       construct<T>("10.099", false, "10,10");
    }
-   if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) { 
+   if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) {
+#if defined(__clang__)
+      const long double MAX = { numeric_limits<T>::max() };
+      const long double LOWEST = { numeric_limits<T>::lowest() };
+      construct<T>((std::to_string(MAX / CONVERTER)), true, "1,27");
+      construct<T>((std::to_string(LOWEST / CONVERTER)), true, "-1,28");
+#elif defined(__GNUG__)
       construct<T>((std::to_string(numeric_limits<T>::max() / CONVERTER)), true, "1,27");
       construct<T>((std::to_string(numeric_limits<T>::lowest() / CONVERTER)), true, "-1,28");
+#endif
    }
    cerr << "END OF " << __func__ << '\n';
 }
