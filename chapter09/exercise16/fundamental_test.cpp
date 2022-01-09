@@ -299,7 +299,7 @@ int main() {
       cerr << " numeric_limits<Integer>::max() = " << numeric_limits<Integer>::max() << '\n';
       cerr << " numeric_limits<Integer>::min() = " << numeric_limits<Integer>::min() << '\n';
       printf("trunc(NAN) = %+f    isfinite(NAN) = %d\n",   trunc(NAN), isfinite(NAN));
-      cerr << " 5 / 0 = " << Integer::create_Integer(5) / Integer::create_Integer(0) << '\n';
+      cerr << " 5 / 0 = " << Integer::create_Integer(5) / Integer::ZERO << '\n';
       return 0;
    }
    catch (const Arithmetic_Error & e) {

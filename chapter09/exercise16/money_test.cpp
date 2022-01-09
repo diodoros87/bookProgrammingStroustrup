@@ -188,8 +188,15 @@ void construct_incorrect() {
       construct_incorrect(Constructor<T, Money>(), "-1.99999");
       construct_incorrect(Constructor<T, Money>(), "1.99999");
       construct_incorrect(Constructor<T, Money>(), "189.99999");
+#if defined(__clang__)
+      const long double MAX = { numeric_limits<T>::max() };
+      const long double LOWEST = { numeric_limits<T>::lowest() };
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(1 + MAX / CONVERTER)));
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(-1 + LOWEST / CONVERTER)));
+#elif defined(__GNUG__)
       construct_incorrect(Constructor<T, Money>(), (std::to_string((1 + numeric_limits<T>::max()) / CONVERTER)));
       construct_incorrect(Constructor<T, Money>(), (std::to_string((-1 + numeric_limits<T>::lowest()) / CONVERTER)));
+#endif
    }
    //construct_incorrect<T>("-0", 4);
    if (is_unsigned<T>::value)
@@ -201,8 +208,15 @@ void construct_incorrect() {
       construct_incorrect(Constructor<T, Money>(), "8.577555e+02");
    }
    if (is_same<T, float>::value) {
+#if defined(__clang__)
+      const long double MAX = { numeric_limits<T>::max() };
+      const long double LOWEST = { numeric_limits<T>::lowest() };
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(1.0 + MAX / CONVERTER)));
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(-1.0 + LOWEST / CONVERTER)));
+#elif defined(__GNUG__)
       construct_incorrect(Constructor<T, Money>(), (std::to_string((1.0 + numeric_limits<T>::max()) / CONVERTER)));
       construct_incorrect(Constructor<T, Money>(), (std::to_string((-1.0 + numeric_limits<T>::lowest()) / CONVERTER)));
+#endif
    }
    construct_incorrect(Constructor<T, Money>(), "inf", 8);
    construct_incorrect(Constructor<T, Money>(), "inf");
