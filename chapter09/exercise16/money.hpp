@@ -155,10 +155,16 @@ public:
    Money operator%(Money&&) = delete;
 
 private:
+#if defined(__clang__)
+   template<typename Greater>
+   T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
+   
+   T calculate_by_Integer(const T & dollars, const long double cents = INCORRECT_CENTS) const;
+#elif defined(__GNUG__)
    template<typename Greater>
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
-
+#endif
    T calculate_amount_in_cents(const string & dollars);
    
    T amount_in_cents { };

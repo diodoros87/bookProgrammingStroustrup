@@ -16,6 +16,7 @@ static void print_assert(const Money_Template<Number> & money, const string & ex
    cout << "                                       money = '" << money << "'\n";
    auto t = std::make_tuple(static_cast<string>(money), " != ", expected);
 #ifdef DEBUG_OSTREAM
+   cout << "\n\n------------------               DEBUG_OSTREAM\n\n";
    cout << "                                       money = '";
    ostringstream * os = reinterpret_cast<ostringstream *>(& cout);
    os << money;
