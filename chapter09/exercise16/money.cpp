@@ -63,46 +63,40 @@ Integer Money<Integer>::get_amount(const string & STR) {
 
 template <typename T>
 T Money<T>::get_amount(const string & STR) {
-   cerr << __func__ << " = " << STR << '\n';
-   if (is_floating_point<T>::value ) {  
-      if (is_same<T, long double>::value)   
-         return stold(STR);
-      else if (is_same<T, double>::value)  
-         return stod(STR);
-      else if (is_same<T, float>::value)   
-         return stof(STR);
-   } 
-   else if (numeric_limits<T>::is_integer) { 
-      if (is_same<T, unsigned long long>::value) 
+   cerr << __func__ << " = " << STR << '\n';  
+   if (is_same<T, long double>::value)   
+      return stold(STR);
+   else if (is_same<T, double>::value)  
+      return stod(STR);
+   else if (is_same<T, float>::value)   
+      return stof(STR);
+   else if (is_same<T, unsigned long long>::value) 
          return stoull(STR);
-      else if (is_same<T, long long>::value)   
-          return stoll(STR);
-      else if (is_same<T, unsigned long>::value) 
-         return stoul(STR);
-      else if (is_same<T, long>::value)
-         return stol(STR);
-      else if (is_same<T, int>::value)   
-         return stoi(STR);
-      else if (is_same<T, unsigned int>::value 
-            || is_same<T, unsigned short>::value) {
-         unsigned long amount = stoul(STR);
-         if (is_overflow<T, decltype(amount)>(amount))
-            throw out_of_range("amount = " + std::to_string(amount) + " is overflow for type " + TYPE_NAME);
-         return static_cast<T>(amount);
-      }
-      else if (is_same<T, short>::value
-            || is_same<T, char>::value
-            || is_same<T, int_fast8_t>::value) {
-         int amount = stoi(STR);
-         if (is_overflow<T, decltype(amount)>(amount))
-            throw out_of_range("amount = " + std::to_string(amount) + " is overflow for type " + TYPE_NAME);
-         return static_cast<T>(amount);
-      }
-      else if (is_same<T, Integer>::value) 
-         return Integer::parse_create(STR);
-      else
-         throw invalid_argument("No implementation for type '" + TYPE_NAME + "'");  
+   else if (is_same<T, long long>::value)   
+         return stoll(STR);
+   else if (is_same<T, unsigned long>::value) 
+      return stoul(STR);
+   else if (is_same<T, long>::value)
+      return stol(STR);
+   else if (is_same<T, int>::value)   
+      return stoi(STR);
+   else if (is_same<T, unsigned int>::value 
+         || is_same<T, unsigned short>::value) {
+      unsigned long amount = stoul(STR);
+      if (is_overflow<T, decltype(amount)>(amount))
+         throw out_of_range("amount = " + std::to_string(amount) + " is overflow for type " + TYPE_NAME);
+      return static_cast<T>(amount);
    }
+   else if (is_same<T, short>::value
+         || is_same<T, char>::value
+         || is_same<T, int_fast8_t>::value) {
+      int amount = stoi(STR);
+      if (is_overflow<T, decltype(amount)>(amount))
+         throw out_of_range("amount = " + std::to_string(amount) + " is overflow for type " + TYPE_NAME);
+      return static_cast<T>(amount);
+   }
+   else
+      throw invalid_argument("No implementation for type '" + TYPE_NAME + "'");  
 }
 #elif defined(__GNUG__)
 template <typename T>
@@ -177,7 +171,10 @@ Integer Money<Integer>::calculate(const Integer & dollars, const long double cen
       }*/
       amount_in_cents += Greater(cents_round);
    }
-
+   
+   if (is_overflow_for_Integer<Greater>(amount_in_cents))
+   //if (is_overflow<T, Greater>(amount_in_cents))
+      throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
    Integer result = amount_in_cents;
    cerr << __func__ << " result = " << static_cast<long long int>(result) << '\n';
    return result;
@@ -473,7 +470,7 @@ Money<Integer>::Money(const string & dollars) {   // accept floating-point argum
    //T amount = from_string<T>(dollars);
    cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
    if (! regex_match(dollars, FLOAT_POINT_REGEX))
-      throw invalid_argument("Regex: entered string is not floating-point format "); /*
+      throw invalid_argument("Regex: entered string is not non-exponent floating-point format "); /*
    string dollars_string = dollars;
    size_t dot_position = dollars_string.find('.');
    dollars_string = dollars_string.substr(0, dot_position);
@@ -512,7 +509,7 @@ Money<T>::Money(const string & dollars) {   // accept floating-point arguments
    }
    else if (numeric_limits<T>::is_integer) { 
       if (! regex_match(dollars, FLOAT_POINT_REGEX))
-         throw invalid_argument("Regex: entered string is not floating-point format "); /*
+         throw invalid_argument("Regex: entered string is not non-exponent floating-point format "); /*
       string dollars_string = dollars;
       size_t dot_position = dollars_string.find('.');
       dollars_string = dollars_string.substr(0, dot_position);

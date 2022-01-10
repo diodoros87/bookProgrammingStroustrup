@@ -31,12 +31,20 @@ namespace money {
 constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
 constexpr int_fast8_t INCORRECT_CENTS = -112;
 
-//#if defined(__clang__)
-/* template<typename Smaller>
-inline bool is_overflow(const Integer & x) {
-   return Integer::is_overflow<Smaller>(x);
+#if defined(__clang__)
+ template<typename Greater>
+inline bool is_overflow_for_Integer(const Greater & x) {
+   try {
+      Integer::create_Integer(x);
+      return false;
+   } catch (const out_of_range& e) {
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
+      return true;
+   }
+   //return Integer::is_overflow<Greater>(x);
    //return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
-} */
+} 
+#endif
 //#elif defined(__GNUG__)
 template<typename Smaller, typename Greater
 #if defined(__clang__)

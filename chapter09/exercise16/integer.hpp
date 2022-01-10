@@ -246,8 +246,8 @@ public:
                                  || is_integral<Number>::value), bool> = true>
    operator Number() const { 
       //static_assert(! is_same<float, Number>);
-      cerr << " numeric_limits<Number>::lowest() = " << numeric_limits<Number>::lowest();
-      cerr << " \nnumeric_limits<Number>::max() = " << numeric_limits<Number>::max() << '\n';
+      //cerr << " numeric_limits<Number>::lowest() = " << numeric_limits<Number>::lowest();
+      //cerr << " \nnumeric_limits<Number>::max() = " << numeric_limits<Number>::max() << '\n';
       if (is_integral<Number>::value) {
          static const Integer lowest = create_Integer(numeric_limits<Number>::lowest());
          static const Integer max = create_Integer(numeric_limits<Number>::max());

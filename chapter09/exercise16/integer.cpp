@@ -11,6 +11,7 @@
 using std::cerr;
 using std::ostringstream;
 using std::runtime_error;
+using std::out_of_range;
 
 namespace std {
 //using Integer = integer_space::Integer;
@@ -407,7 +408,7 @@ Integer Integer::add_absolute_values(const Integer & first, const Integer & seco
       carrying = sum_of_digits / 10 ;
    }
    if (carrying > 0) 
-      throw Arithmetic_Error
+      throw out_of_range
             ("Arithmetic overflow while adding absolute values of " + string(first) + " and " + string(second));
    return Integer { result_array };
 }
@@ -438,7 +439,7 @@ Integer Integer::subtract_absolute_values(const Integer & first, const Integer &
 
 inline static void check_multiplication_overflow(const int_fast8_t carrying, const Integer & first, const Integer & second) {
    if (carrying > 0) {
-      throw Arithmetic_Error
+      throw out_of_range
             ("Arithmetic overflow while multiplying absolute values of " + string(first) + " and " + string(second));
    }
 }
@@ -455,7 +456,7 @@ void Integer::detect_multiplication_overflow(const Integer & first, const Intege
                short first_magnitude_order  = first.integer_array.size() - 1 - first_index;
                short second_magnitude_order = second.integer_array.size() - 1 - second_index;
                if (first_magnitude_order + second_magnitude_order >= MAX_ARRAY_LENGTH) 
-                  throw Arithmetic_Error
+                  throw out_of_range
                      ("Arithmetic overflow while multiplying absolute value of " + string(first) + " and " + string(second));
             }
          }

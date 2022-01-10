@@ -47,9 +47,9 @@ void construct_incorrect(Function && f, Args&&... args ) {
       f(std::forward<Args>(args)...);
       assert(0);
    } catch (const invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    } catch (const out_of_range& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    }
 }
 
@@ -89,16 +89,16 @@ void incorrect() {
       assert(0);
       cerr << __func__ << "money = " << money << '\n';
    } catch (const invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    }
    try {
       Money<T> money("6", 100);
       assert(0);
       cout << __func__ << "money = " << money << '\n';
    } catch (const invalid_argument& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    } catch (const out_of_range& e) {
-      cerr << __func__ << " exception: " << e.what() << endl;
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    }
 }
 
@@ -178,6 +178,22 @@ struct Constructor {
 	}
 };
 
+#if defined(__clang__)
+
+#elif defined(__GNUG__)
+void test_Integer_overflow() {
+   const array <Integer, 2> EXTREMUMS = { numeric_limits<Integer>::max(), numeric_limits<Integer>::lowest() };
+   for (size_t i = 0; i < EXTREMUMS.size(); i++)
+      try {
+         const string MAX_STR = std::to_string((15 * EXTREMUMS[i]) / CONVERTER);
+         assert(0);
+         cout << __func__ << " MAX_STR for type = " << typeid(Integer).name() << " " << MAX_STR << '\n';
+      } catch (const out_of_range& e) {
+         cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
+      }
+}
+#endif
+
 template <typename T> 
 void construct_incorrect() {
    cerr << __func__ << '\n';
@@ -199,16 +215,19 @@ void construct_incorrect() {
       construct_incorrect(Constructor<T, Money>(), (std::to_string((-1 + numeric_limits<T>::lowest()) / CONVERTER)));
 #endif
    }
-   //construct_incorrect<T>("-0", 4);
-   if (is_unsigned<T>::value)
-      construct_incorrect(Constructor<T, Money>(), "-1", 4);
-   //construct_incorrect<T>("+0", 4);
-   if (numeric_limits<T>::is_integer) {
-      construct_incorrect(Constructor<T, Money>(), "-8577e+03");
-      construct_incorrect(Constructor<T, Money>(), "-8.577444e+02");
-      construct_incorrect(Constructor<T, Money>(), "8.577555e+02");
+   else if (is_same<T, Integer>::value) {
+#if defined(__clang__)
+      const long double MAX = { numeric_limits<T>::max() };
+      const long double LOWEST = { numeric_limits<T>::lowest() };
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(10 * MAX / CONVERTER)));
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(10 * LOWEST / CONVERTER)));
+#elif defined(__GNUG__)
+      test_Integer_overflow();
+      //construct_incorrect(Constructor<T, Money>(), (std::to_string((15 * numeric_limits<T>::max()) / CONVERTER)));
+      //construct_incorrect(Constructor<T, Money>(), (std::to_string((15 * numeric_limits<T>::lowest()) / CONVERTER)));
+#endif
    }
-   if (is_same<T, float>::value) {
+   else if (is_same<T, float>::value) {
 #if defined(__clang__)
       const long double MAX = { numeric_limits<T>::max() };
       const long double LOWEST = { numeric_limits<T>::lowest() };
@@ -219,6 +238,17 @@ void construct_incorrect() {
       construct_incorrect(Constructor<T, Money>(), (std::to_string((-1.0 + numeric_limits<T>::lowest()) / CONVERTER)));
 #endif
    }
+   
+   //construct_incorrect<T>("-0", 4);
+   if (is_unsigned<T>::value)
+      construct_incorrect(Constructor<T, Money>(), "-1", 4);
+   //construct_incorrect<T>("+0", 4);
+   if (numeric_limits<T>::is_integer) {
+      construct_incorrect(Constructor<T, Money>(), "-8577e+03");
+      construct_incorrect(Constructor<T, Money>(), "-8.577444e+02");
+      construct_incorrect(Constructor<T, Money>(), "8.577555e+02");
+   }
+   
    construct_incorrect(Constructor<T, Money>(), "inf", 8);
    construct_incorrect(Constructor<T, Money>(), "inf");
    //construct_incorrect<T>("57.7");
