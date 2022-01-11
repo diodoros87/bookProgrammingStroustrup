@@ -55,7 +55,7 @@ inline void validate_cents(const long double & cents) {
    }
 }
 
-#if defined(__clang__)
+//#if defined(__clang__)
 template <>
 Integer Money<Integer>::get_amount(const string & STR) {
    return Integer::parse_create(STR);
@@ -98,7 +98,7 @@ T Money<T>::get_amount(const string & STR) {
    else
       throw invalid_argument("No implementation for type '" + TYPE_NAME + "'");  
 }
-#elif defined(__GNUG__)
+/*#elif defined(__GNUG__)
 template <typename T>
 T Money<T>::get_amount(const string & STR) {
    cerr << __func__ << " = " << STR << '\n';
@@ -142,9 +142,9 @@ T Money<T>::get_amount(const string & STR) {
          throw invalid_argument("No implementation for type '" + TYPE_NAME + "'");  
    }
 }
-#endif
-
-#if defined(__clang__)
+//#endif
+*/
+//#if defined(__clang__)
 //template<typename Greater>
 template <>
 template <typename Greater>
@@ -175,11 +175,11 @@ Integer Money<Integer>::calculate(const Integer & dollars, const long double cen
    if (is_overflow_for_Integer<Greater>(amount_in_cents))
    //if (is_overflow<T, Greater>(amount_in_cents))
       throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
-   Integer result = amount_in_cents;
+   Integer result = Integer::create_Integer(amount_in_cents);
    cerr << __func__ << " result = " << static_cast<long long int>(result) << '\n';
    return result;
 }
-#endif
+//#endif
 
 template <typename T>
 template<typename Greater>
@@ -240,7 +240,7 @@ Integer Money<Integer>::calculate(const Integer & dollars, const long double cen
 */
 #endif
 
-#if defined(__clang__)
+//#if defined(__clang__)
 template <typename T>
 //template<typename Integer>
 T Money<T>::calculate_by_Integer(const T & dollars, const long double cents /*  = INCORRECT_CENTS */) const {
@@ -262,10 +262,12 @@ T Money<T>::calculate_by_Integer(const T & dollars, const long double cents /*  
    cerr << __func__ << " result = " << Integer::create_Integer(result) << '\n';
    return result;
 }
+//#endif
+/*
 #elif defined(__GNUG__)
 template <typename T>
-//template<typename Integer>
-T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT_CENTS */) const {
+  template<typename Integer>
+T Money<T>::calculate(const T & dollars, const long double cents  = INCORRECT_CENTS  ) const {
    cerr << __func__ << '\n';
    Integer amount_in_cents = Integer::create_Integer(dollars) * CENTS_PER_DOLLAR_INTEGER;
    cerr << __func__ << " amount_in_cents = " << amount_in_cents << '\n';
@@ -284,8 +286,9 @@ T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT
    return result;
 }
 #endif
-
-#if defined(__clang__)
+*/
+//
+//#if defined(__clang__)
 template<>
 Money<Integer>::Money(const string & dollars, const long double cents) {
    cerr << __func__ << " TYPE_NAME = '" << TYPE_NAME << "' " << dollars << '\n';
@@ -313,7 +316,7 @@ Money<Integer>::Money(const string & dollars, const long double cents) {
    
    cerr << __func__ << " this->amount_in_cents = '" << TYPE_NAME << "' " << this->amount_in_cents << '\n';   
 }
-#endif
+//#endif
 
 template <typename T>
 Money<T>::Money(const string & dollars, const long double cents) {
@@ -328,11 +331,11 @@ Money<T>::Money(const string & dollars, const long double cents) {
    if (is_floating_point<T>::value) 
       this->amount_in_cents = calculate<long double>(amount, cents);
    else if (numeric_limits<T>::is_integer) {
-#if defined(__clang__)
+//#if defined(__clang__)
       this->amount_in_cents = calculate_by_Integer(amount, cents);
-#elif defined(__GNUG__)
-      this->amount_in_cents = calculate(amount, cents);
-#endif
+//#elif defined(__GNUG__)
+//      this->amount_in_cents = calculate(amount, cents);
+//#endif
    }
    cerr << __func__ << " amount = '" << amount << "' std::signbit = '" << std::boolalpha << std::signbit(amount) << "' \n";  
    
@@ -381,10 +384,9 @@ Type get_amount_by_Integer(const string & STR) {
    return integer;
 }
 
-#if defined(__clang__)
+//#if defined(__clang__)
 template<>
 Integer Money<Integer>::calculate_amount_in_cents(const string & dollars) {
-   //static_assert(numeric_limits<T>::is_integer);
    Integer result;
    size_t dot_position = dollars.find('.');
    cerr << __func__ << " dot_position = " << dot_position <<  '\n';
@@ -417,7 +419,7 @@ Integer Money<Integer>::calculate_amount_in_cents(const string & dollars) {
    }
    return result;
 }
-#endif
+//#endif
 
 template <typename T>
 //template <typename Number, enable_if_t<numeric_limits<Number>::is_integer, bool> = true>
@@ -438,11 +440,11 @@ T Money<T>::calculate_amount_in_cents(const string & dollars) {
       //string dollars_string = dollars.substr(0, dot_position);
       //T dollars_part = get_amount(dollars_string);
       cerr << __func__ << " dot_position = string::npos " << dot_position <<  '\n';
-#if defined(__clang__)
+//#if defined(__clang__)
       result = calculate_by_Integer(dollars_part);
-#elif defined(__GNUG__)
-      result = calculate(dollars_part);
-#endif
+//#elif defined(__GNUG__)
+//      result = calculate(dollars_part);
+//#endif
       cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents <<  '\n';
    }
    else {
@@ -453,11 +455,11 @@ T Money<T>::calculate_amount_in_cents(const string & dollars) {
       long double cents_part = stold(cents_string);
       if (cents_string.size() == 1)
          cents_part *= 10;
-#if defined(__clang__)
+//#if defined(__clang__)
       result = calculate_by_Integer(dollars_part, cents_part);
-#elif defined(__GNUG__)
-      result = calculate(dollars_part, cents_part);
-#endif
+//#elif defined(__GNUG__)
+//      result = calculate(dollars_part, cents_part);
+//#endif
       if (dollars[0] == '-' && result > 0 && result <= 100)
          result = -result;
    }
@@ -554,8 +556,24 @@ Money<T> Money<T>::create(const string & dollars, const long double cents) {
    return money;
 }
 
-template <typename Number, enable_if_t< is_floating_point<Number>::value> = true>
-string formatted_string(const Number & dollars, const Number & cents) {
+template <typename Number, enable_if_t< is_floating_point<Number>::value, bool> = true> 
+inline Number opposite_sign (const Number & n) {
+   //return signbit(n) ? -n : n;
+   return n == 0 && signbit(n) ? -n : n;
+}
+
+template <typename Number, enable_if_t< is_floating_point<Number>::value, bool> = true>
+string formatted_string(Number & dollars, Number & cents) {
+   cerr << __func__ << " dollars = " << dollars <<  '\n';
+   cerr << __func__ << " cents = " << cents <<  '\n';
+   dollars = opposite_sign(dollars);
+   if (signbit(cents)) {
+      cents = -cents;
+   }
+      //cents = -cents;
+   //cents = opposite_sign(cents);
+   cerr << __func__ << " dollars = " << dollars <<  '\n';
+   cerr << __func__ << " cents = " << cents <<  '\n';
    ostringstream stream;
    stream << fixed << setprecision(0) << setw(0) << dollars << ",";
    stream.fill('0');
@@ -563,9 +581,9 @@ string formatted_string(const Number & dollars, const Number & cents) {
    string out = stream.str();
    return out;
 }
-
-template <typename Number, enable_if_t< is_integral<Number>::value > = true>
-string formatted_string(const Number & dollars, const Number & cents) {
+/*
+template <typename Number, enable_if_t<is_same<Number, char>::value > = true>
+string formatted_string(const Number dollars, const Number cents) {
    string dollars_string;
    string cents_string;
    if (is_same<Number, char>::value || is_same<Number, int_fast8_t>::value) {
@@ -579,6 +597,28 @@ string formatted_string(const Number & dollars, const Number & cents) {
       cents_string = std::to_string(cents);
    }
    cents_string = cents_string.length() == 1 ? ("0" + cents_string) : cents_string;
+   string out = dollars_string + "," + cents_string;
+   return out;
+}*/
+
+template <typename Number, enable_if_t< is_integral<Number>::value, bool> = true>
+string formatted_string(const Number dollars, const Number cents) {
+   string dollars_string;
+   string cents_string;
+   if (is_same<Number, char>::value || is_same<Number, int_fast8_t>::value) {
+      dollars_string = std::to_string(static_cast<int>(dollars));
+      cerr << __func__ << " dollars_string = " << dollars_string <<  '\n';
+      cents_string = std::to_string(static_cast<int>(cents));
+      cerr << __func__ << " cents_string = " << cents_string <<  '\n';
+   }
+   else {
+      dollars_string = std::to_string(dollars);
+      cerr << __func__ << " dollars_string = " << dollars_string <<  '\n';
+      cents_string = std::to_string(cents);
+      cerr << __func__ << " cents_string = " << cents_string <<  '\n';
+   }
+   cents_string = cents_string.length() == 1 ? ("0" + cents_string) : cents_string;
+   //string out = (dollars == 0 && get_amount_in_cents() < static_cast<T>(0)) ? "-" : "";
    string out = dollars_string + "," + cents_string;
    return out;
 }
@@ -599,25 +639,30 @@ string formatted_string(const Integer & dollars, const Integer & cents) {
    return out;
 }
 
-#if defined(__clang__)
+//#if defined(__clang__)
 template<>
 Money<Integer>::operator string() const {
    Integer dollars = get_dollars(TYPE_DEFAULT_OBJECT);
    Integer cents = get_cents(TYPE_DEFAULT_OBJECT);
    if (cents < Integer::ZERO) 
       cents = -cents;
-   string out = (dollars == Integer::ZERO && get_amount_in_cents() < Integer::ZERO) ? "-" : "";
+   string out = (dollars == Integer::ZERO && signbit(get_amount_in_cents())) ? "-" : "";
    out += formatted_string(dollars, cents);
    return out;
 }
-#endif
+//#endif
 template <typename T>
 Money<T>::operator string() const {
    T dollars = get_dollars(TYPE_DEFAULT_OBJECT);
    T cents = get_cents(TYPE_DEFAULT_OBJECT);
-   if (cents < 0) 
+   cerr << __func__ << " get_cents " << cents << '\n';
+   if (is_integral<T>::value && signbit(cents)) {
+      cerr << __func__ << "\n --------------------------- cents < static_cast<T>(0)) " << '\n';
       cents = -cents;
-   string out = (dollars == 0 && get_amount_in_cents() < 0) ? "-" : "";
+   }
+   cerr << __func__ << " cents " << cents << '\n';
+   cerr << __func__ << " get_amount_in_cents() " << get_amount_in_cents() << '\n';
+   string out = (dollars == 0 && get_amount_in_cents() < static_cast<T>(0)) ? "-" : "";
    out += formatted_string(dollars, cents);
    return out;
 }

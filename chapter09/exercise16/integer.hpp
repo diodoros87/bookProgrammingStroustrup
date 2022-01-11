@@ -80,18 +80,13 @@ public:
       validate_init(table, signum);
    }
    
-   Integer(const long long int x) { 
+   explicit Integer(const long long int x) { 
       *this = create_Integer(x);
       //const string STR = to_string(x);
       //this->parse(STR); 
    }
    
    static Integer create_Integer(const Integer & other) { 
-      Integer integer = other; 
-      return integer;
-   }
-   
-   static Integer create_Integer(const Integer && other) { 
       Integer integer = other; 
       return integer;
    }

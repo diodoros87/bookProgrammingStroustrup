@@ -1,4 +1,4 @@
-#define DEBUG_OSTREAM
+//#define DEBUG_OSTREAM
 
 #include "integer.hpp"
 #include "assertions.hpp"
@@ -157,15 +157,15 @@ void construct() {
       construct<T>("10.099", false, "10,10");
    }
    if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) {
-#if defined(__clang__)
+//#if defined(__clang__)
       const long double MAX = { numeric_limits<T>::max() };
       const long double LOWEST = { numeric_limits<T>::lowest() };
       construct<T>((std::to_string(MAX / CONVERTER)), true, "1,27");
       construct<T>((std::to_string(LOWEST / CONVERTER)), true, "-1,28");
-#elif defined(__GNUG__)
-      construct<T>((std::to_string(numeric_limits<T>::max() / CONVERTER)), true, "1,27");
-      construct<T>((std::to_string(numeric_limits<T>::lowest() / CONVERTER)), true, "-1,28");
-#endif
+//#elif defined(__GNUG__)
+      //construct<T>((std::to_string(numeric_limits<T>::max() / CONVERTER)), true, "1,27");
+      //construct<T>((std::to_string(numeric_limits<T>::lowest() / CONVERTER)), true, "-1,28");
+//#endif
    }
    cerr << "END OF " << __func__ << '\n';
 }
@@ -183,9 +183,11 @@ struct Constructor {
 #elif defined(__GNUG__)
 void test_Integer_overflow() {
    const array <Integer, 2> EXTREMUMS = { numeric_limits<Integer>::max(), numeric_limits<Integer>::lowest() };
+   const Integer FACTOR = Integer(15);
+   const Integer Integer_CONVERTER = Integer(CONVERTER);
    for (size_t i = 0; i < EXTREMUMS.size(); i++)
       try {
-         const string MAX_STR = std::to_string((15 * EXTREMUMS[i]) / CONVERTER);
+         const string MAX_STR = std::to_string((Integer(15) * EXTREMUMS[i]) / Integer_CONVERTER);
          assert(0);
          cout << __func__ << " MAX_STR for type = " << typeid(Integer).name() << " " << MAX_STR << '\n';
       } catch (const out_of_range& e) {
@@ -205,15 +207,15 @@ void construct_incorrect() {
       construct_incorrect(Constructor<T, Money>(), "-1.99999");
       construct_incorrect(Constructor<T, Money>(), "1.99999");
       construct_incorrect(Constructor<T, Money>(), "189.99999");
-#if defined(__clang__)
+//#if defined(__clang__)
       const long double MAX = { numeric_limits<T>::max() };
       const long double LOWEST = { numeric_limits<T>::lowest() };
       construct_incorrect(Constructor<T, Money>(), (std::to_string(1 + MAX / CONVERTER)));
       construct_incorrect(Constructor<T, Money>(), (std::to_string(-1 + LOWEST / CONVERTER)));
-#elif defined(__GNUG__)
-      construct_incorrect(Constructor<T, Money>(), (std::to_string((1 + numeric_limits<T>::max()) / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string((-1 + numeric_limits<T>::lowest()) / CONVERTER)));
-#endif
+//#elif defined(__GNUG__)
+//      construct_incorrect(Constructor<T, Money>(), (std::to_string((1 + numeric_limits<T>::max()) / CONVERTER)));
+//      construct_incorrect(Constructor<T, Money>(), (std::to_string((-1 + numeric_limits<T>::lowest()) / CONVERTER)));
+//#endif
    }
    else if (is_same<T, Integer>::value) {
 #if defined(__clang__)
@@ -228,15 +230,15 @@ void construct_incorrect() {
 #endif
    }
    else if (is_same<T, float>::value) {
-#if defined(__clang__)
+//#if defined(__clang__)
       const long double MAX = { numeric_limits<T>::max() };
       const long double LOWEST = { numeric_limits<T>::lowest() };
       construct_incorrect(Constructor<T, Money>(), (std::to_string(1.0 + MAX / CONVERTER)));
       construct_incorrect(Constructor<T, Money>(), (std::to_string(-1.0 + LOWEST / CONVERTER)));
-#elif defined(__GNUG__)
-      construct_incorrect(Constructor<T, Money>(), (std::to_string((1.0 + numeric_limits<T>::max()) / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string((-1.0 + numeric_limits<T>::lowest()) / CONVERTER)));
-#endif
+//#elif defined(__GNUG__)
+//      construct_incorrect(Constructor<T, Money>(), (std::to_string((1.0 + numeric_limits<T>::max()) / CONVERTER)));
+//      construct_incorrect(Constructor<T, Money>(), (std::to_string((-1.0 + numeric_limits<T>::lowest()) / CONVERTER)));
+//#endif
    }
    
    //construct_incorrect<T>("-0", 4);
