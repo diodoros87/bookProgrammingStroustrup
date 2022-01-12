@@ -301,6 +301,8 @@ int main(const int argc, const char * argv[]) {
       const unsigned long long REPETITIONS = examine_command_line(argc, argv);
       random_tests::run_by_one_type(REPETITIONS);
       random_tests::run_different_types(REPETITIONS);
+      
+      cerr << "\n END of ALL TESTS\n";
       return 0;
    }
    catch (const Arithmetic_Error & e) {

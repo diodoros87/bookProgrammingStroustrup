@@ -221,7 +221,7 @@ public:
       try {
          add_print(first_static, second_static);
          assert(false);
-      } catch (const integer_space::Arithmetic_Error & e) {
+      } catch (const out_of_range & e) {
          cerr << __func__ <<  " : Exception while adding: " << e.what() << "\n";
       }
 
@@ -230,7 +230,7 @@ public:
       try {
          subtract_print(first_static, second_static);
          assert(false);
-      } catch (const Arithmetic_Error & e) {
+      } catch (const out_of_range & e) {
          cerr << __func__ <<  " : Exception while subtracting: " << e.what() << "\n";
       }
    }
@@ -414,7 +414,7 @@ public:
       try {
          multiply_print(first_static, second_static);
          assert(false);
-      } catch (const Arithmetic_Error & e) {
+      } catch (const out_of_range & e) {
          cerr << __func__ <<  " : Exception while multiplying: " << e.what() << "\n";
       }
 
@@ -423,7 +423,7 @@ public:
       try {
          multiply_print(second_static, first_static);
          assert(false);
-      } catch (const Arithmetic_Error & e) {
+      } catch (const out_of_range & e) {
          cerr << __func__ <<  " : Exception while multiplying: " << e.what() << "\n";
       }
 
@@ -450,7 +450,7 @@ public:
       try {
          multiply_print(first_static, second_static);
          assert(false);
-      } catch (const Arithmetic_Error & e) {
+      } catch (const out_of_range & e) {
          cerr << __func__ <<  " : Exception while multiplying: " << e.what() << "\n";
       }
    }
@@ -732,6 +732,7 @@ string get_number_string(const char character, const size_t length) {
 int main() {
    try {
       arithmetic_test::run();
+      cerr << "\n END of ALL TESTS\n";
       return 0;
    }
    catch (const Arithmetic_Error & e) {

@@ -25,13 +25,10 @@ using std::signbit;
 
 using integer_space::Integer;
 
-//extern "C" typedef void * callback(const char * DOLLARS, const double CENTS);
-
 namespace money {
 constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
 constexpr int_fast8_t INCORRECT_CENTS = -112;
 
-//#if defined(__clang__)
  template<typename Greater>
 inline bool is_overflow_for_Integer(const Greater & x) {
    try {
@@ -41,25 +38,16 @@ inline bool is_overflow_for_Integer(const Greater & x) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
       return true;
    }
-   //return Integer::is_overflow<Greater>(x);
-   //return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
 } 
-//#endif
-//#elif defined(__GNUG__)
+
 template<typename Smaller, typename Greater
 #if defined(__clang__)
    , enable_if_t<(is_floating_point<Greater>::value || is_integral<Greater>::value), bool> = true
 #endif
 >
 inline bool is_overflow(const Greater & x) {
-//    static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) 
-// #if defined(__clang__)
-//    && ! is_same<Greater, Integer>::value
-// #endif
-//    && "Number required.");
    return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
 }
-//#endif
 
 template<typename T>
 constexpr bool is_resetting_stream() {
@@ -92,8 +80,6 @@ public:
    // create methods disallow rounding of cents and accept only cents without fraction
    static Money create(const string & dollars, const long double cents);
    static Money create(const string & dollars);
-   
-   //static callback fp;
    
    Money& operator=(const Money& other) { 
       if (this != &other)
@@ -129,17 +115,7 @@ public:
       static const Integer CONV = Integer::create_Integer(CENTS_PER_DOLLAR);
       return amount_in_cents / CONV;   
    }
-   /*
-   template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
-   Type get_dollars(Type &) const { 
-#if defined(__clang__)
-      return Integer::create_Integer(amount_in_cents) / Integer::create_Integer(CENTS_PER_DOLLAR); 
-#elif defined(__GNUG__)
-      static const Integer::create_Integer(CENTS_PER_DOLLAR);
-      return amount_in_cents / CENTS_PER_DOLLAR;
-#endif      
-   }
-   */
+
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
    Type get_dollars(Type &) const { return trunc(amount_in_cents / CENTS_PER_DOLLAR); }
    
@@ -152,15 +128,6 @@ public:
       static const Integer CONV = Integer::create_Integer(CENTS_PER_DOLLAR);
       return amount_in_cents % CONV;
    }
-/*
-   template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
-   Type get_cents(Type &) const { 
-#if defined(__clang__)
-      return Integer::create_Integer(amount_in_cents) % Integer::create_Integer(CENTS_PER_DOLLAR); 
-#elif defined(__GNUG__)
-      return amount_in_cents % CENTS_PER_DOLLAR;
-#endif 
-   }*/
    
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
    Type get_cents(Type &) const { return trunc(fmod(amount_in_cents, CENTS_PER_DOLLAR)); }
@@ -185,16 +152,11 @@ public:
    Money operator%(Money&&) = delete;
 
 private:
-//#if defined(__clang__)
    template<typename Greater>
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
    
    T calculate_by_Integer(const T & dollars, const long double cents = INCORRECT_CENTS) const;
-//#elif defined(__GNUG__)
-//   template<typename Greater>
-//   T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
-   //T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
-//#endif
+
    T calculate_amount_in_cents(const string & dollars);
    
    T amount_in_cents { };
