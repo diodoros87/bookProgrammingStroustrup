@@ -1,3 +1,4 @@
+//#define TEST_INDEX_OPERATOR
 #include "integer.hpp"
 #include "integer_parsing.hpp"
 #include "parsing_test.hpp"

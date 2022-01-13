@@ -107,6 +107,15 @@ constexpr long double CONVERTER = (long double)(CENTS_PER_DOLLAR);
 //constexpr int_fast8_t MAX_T = static_cast<T>(numeric_limits<int_fast8_t>::max() / CONVERTER);
 //constexpr int_fast8_t MIN_T = static_cast<T>(numeric_limits<int_fast8_t>::lowest() / CONVERTER);
 
+template <typename T>
+void test_max_8bits_value() {
+   constexpr T MAX_C = numeric_limits<T>::max();
+   constexpr T MIN_C = numeric_limits<T>::lowest();
+   construct<T>((std::to_string(MAX_C / CONVERTER)), true, "1,27");
+   construct<T>((std::to_string(MIN_C / CONVERTER)), true, "-1,28");
+   //assert(false);
+}
+
 template <typename T> 
 void construct() {
    cerr << __func__ << '\n';
@@ -159,22 +168,6 @@ void construct() {
       construct<T>("10.6435", false, "10,64");
       construct<T>("10.099", false, "10,10");
    }
-   else {
-      if (is_same<T, char>::value) {
-         constexpr char MAX_C = numeric_limits<char>::max();
-         constexpr char MIN_C = numeric_limits<char>::lowest();
-         construct<T>((std::to_string(MAX_C / CONVERTER)), true, "1,27");
-         construct<T>((std::to_string(MIN_C / CONVERTER)), true, "-1,28");
-         //assert(false);
-      }
-      else {
-         constexpr int_fast8_t MAX_C = numeric_limits<char>::max();
-         constexpr int_fast8_t MIN_C = numeric_limits<char>::lowest();
-         construct<T>((std::to_string(MAX_C / CONVERTER)), true, "1,27");
-         construct<T>((std::to_string(MIN_C / CONVERTER)), true, "-1,28");
-         //assert(false);
-      }
-   }
    cerr << "END OF " << __func__ << '\n';
 }
 
@@ -221,7 +214,9 @@ void construct_incorrect() {
    else if (is_same<T, Integer>::value) {
       construct_incorrect(Constructor<T, Money>(), (std::to_string(10 * numeric_limits<long double>::max() / CONVERTER)));
       construct_incorrect(Constructor<T, Money>(), (std::to_string(10 * numeric_limits<long double>::lowest() / CONVERTER)));
-      test_Integer_overflow();
+      construct_incorrect(Constructor<T, Money>(), (std::to_string( numeric_limits<float>::max() / CONVERTER)));
+      construct_incorrect(Constructor<T, Money>(), (std::to_string( numeric_limits<float>::lowest() / CONVERTER)));
+      assert(0);
    }
    else if (is_same<T, float>::value) {
       construct_incorrect(Constructor<T, Money>(), (std::to_string(1.0 + numeric_limits<long double>::max() / CONVERTER)));
@@ -260,6 +255,10 @@ int main() {
       test<float>();
       test<Integer>();
       test<unsigned int>();
+      
+      test_max_8bits_value<char>();
+      test_max_8bits_value<int_fast8_t>();
+      test_Integer_overflow();
       
       cerr << "\n END of ALL TESTS\n";
       //test<string>();

@@ -100,21 +100,22 @@ public:
    static Integer create_Integer(const Number x) { 
       if (! isfinite(x))
          throw invalid_argument(string(__func__) + ": Argument " + to_string(x) + " is not finite");
+      cerr << __func__ << " FLOAT_MIN = " << FLOAT_MIN << " FLOAT_MAX = " << FLOAT_MAX << '\n';
       if (x < FLOAT_MIN || x > FLOAT_MAX)
-         throw out_of_range(string(" type: ") + typeid(Number).name() + " number: " + to_string(x) +
+         throw out_of_range(__func__ + string(" type: ") + typeid(Number).name() + " number: " + to_string(x) +
                                     " is out of range for Integer class ");
       long double truncated = trunc(x);
+      long double abs_truncated = 
 #if defined(__clang__)
-      long double abs_truncated = std::abs(truncated);
+                                    std::abs(truncated);
 #elif defined(__GNUG__)
-      long double abs_truncated = fabs(truncated);
+                                    fabs(truncated);
 #endif
       //digit_type digit = 0;
       //if (*this < numeric_limits<Number>::lowest() || *this > numeric_limits<Number>::max())
       //   throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
       array<digit_type, MAX_ARRAY_LENGTH> table { 0 };
-      int_fast8_t i = MAX_ARRAY_LENGTH - 1;
-      for (; abs_truncated > 0 && i >= 0; i--) {
+      for (int_fast8_t i = MAX_ARRAY_LENGTH - 1; abs_truncated > 0 && i >= 0; i--) {
          table[i] = fmod(abs_truncated, BASE); 
          abs_truncated /= 10;
          abs_truncated = trunc(abs_truncated);
@@ -186,8 +187,6 @@ private:
    template <typename Container>
    void validate_set(const Container & TABLE);
    
-   digit_type & operator[](const size_t i) { return integer_array[i]; }
-   
    static void assign_remainder(const Integer & DIVIDEND, const Integer & MULTIPLE_OF_DIVISOR, 
                                        vector<digit_type> & dividend_array);
    static void multiply_divisor(array<digit_type, MAX_ARRAY_LENGTH> & result_array, const short current_dividend_index,
@@ -204,6 +203,11 @@ private:
    friend void set_opposite_signum(Integer & result, const char signum);
    friend void set_signum_subtracting_Non_Zero_result(const Integer& first, const Integer& second,
                                        Integer & result, const int_fast8_t comparing_signum_result);
+#ifdef TEST_INDEX_OPERATOR
+public:
+#endif
+   digit_type & operator[](const size_t i) { return integer_array[i]; }
+   
 public:
    operator string() const;
    void set_integer_array(const vector<digit_type> & vec) {
@@ -243,11 +247,11 @@ public:
       //static_assert(! is_same<float, Number>);
       //cerr << " numeric_limits<Number>::lowest() = " << numeric_limits<Number>::lowest();
       //cerr << " \nnumeric_limits<Number>::max() = " << numeric_limits<Number>::max() << '\n';
-      if (is_integral<Number>::value) {
+      if (is_integral<Number>::value || is_same<Number, float>::value) {
          static const Integer lowest = create_Integer(numeric_limits<Number>::lowest());
          static const Integer max = create_Integer(numeric_limits<Number>::max());
          if (*this < lowest || *this > max)
-            throw out_of_range(" Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
+            throw out_of_range(string(__func__) + " : Integer " + string(*this) + " is out of range for type " + typeid(Number).name());
       }
       Number number = (*this)[0];
       for (int_fast8_t i = 1; i < MAX_ARRAY_LENGTH; i++) 
