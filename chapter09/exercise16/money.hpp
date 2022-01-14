@@ -5,6 +5,7 @@
 #include <string>
 #include <type_traits>
 #include <iomanip>
+#include <regex>
 
 using std::ostream;
 using std::istream;
@@ -22,12 +23,18 @@ using std::stringstream;
 using std::istringstream;
 using std::is_convertible;
 using std::signbit;
+using std::regex;
 
 using integer_space::Integer;
 
 namespace money {
 constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
 constexpr int_fast8_t INCORRECT_CENTS = -112;
+
+const regex E_FLOAT_POINT_REGEX = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)" } ;
+const regex FLOAT_POINT_REGEX   = regex { R"(^[+-]?(\d+([.]\d*)?|[.]\d+)$)" } ;
+const regex INTEGER_REGEX       = regex { R"(^[+-]?(\d+)$)" } ;
+const regex MINUS_ZERO_REGEX    = regex { R"(^-0([.][0-9]+)?$)" } ;
 
 template<typename Greater>
 bool is_overflow_for_Integer(const Greater & x) {
@@ -156,9 +163,80 @@ private:
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
    
    T calculate_by_Integer(const T & dollars, const long double cents = INCORRECT_CENTS) const;
-
-   T calculate_amount_in_cents(const string & dollars);
    
+   //T calculate_amount_in_cents(const string & dollars);
+
+   template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool> = true>
+   Integer calculate_amount_in_cents(const string & dollars) const {
+      Integer result;
+      size_t dot_position = dollars.find('.');
+      cerr << __func__ << " dot_position = " << dot_position <<  '\n';
+      string dollars_string = dollars.substr(0, dot_position);
+      if (regex_match(dollars, MINUS_ZERO_REGEX)) {
+         cerr << __func__ << " dollars_string = " << dollars_string <<  '\n';
+         dollars_string = dollars_string.substr(1);
+         cerr << __func__ << " dollars_string = " << dollars_string <<  '\n';
+      }
+      Integer dollars_part = get_amount(dollars_string);
+      
+      if (dot_position == string::npos) {
+         //string dollars_string = dollars.substr(0, dot_position);
+         //T dollars_part = get_amount(dollars_string);
+         cerr << __func__ << " dot_position = string::npos " << dot_position <<  '\n';
+         result = calculate<long double>(dollars_part);
+         cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents <<  '\n';
+      }
+      else {
+         string cents_string = dollars.substr(dot_position + 1);
+         if (cents_string.size() > 2)
+            cents_string.insert(2, ".");
+         cerr << __func__ << " cents_string = " << cents_string <<  '\n';
+         long double cents_part = stold(cents_string);
+         if (cents_string.size() == 1)
+            cents_part *= 10;
+         result = calculate<long double>(dollars_part, cents_part);
+         if (dollars[0] == '-' && result > Integer::ZERO && result <= Integer::create_Integer(100))
+            result = -result;
+      }
+      return result;
+   }
+   
+   template<typename U = T, enable_if_t<is_floating_point<U>::value, bool>  = true>
+   T calculate_amount_in_cents(const string & dollars) const {
+      U dollars_part = get_amount(dollars);
+      U result  = calculate<long double>(dollars_part);
+      return result;
+   }
+   
+   template<typename U = T, enable_if_t<is_integral<U>::value, bool>  = true>
+   U calculate_amount_in_cents(const string & dollars) const {
+      U result;
+      size_t dot_position = dollars.find('.');
+      cerr << __func__ << " dot_position = " << dot_position <<  '\n';
+      string dollars_string = dollars.substr(0, dot_position);
+      U dollars_part = get_amount(dollars_string);
+      
+      if (dot_position == string::npos) {
+         cerr << __func__ << " dot_position = string::npos " << dot_position <<  '\n';
+         result = calculate_by_Integer(dollars_part);
+         cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents <<  '\n';
+      }
+      else {
+         string cents_string = dollars.substr(dot_position + 1);
+         if (cents_string.size() > 2)
+            cents_string.insert(2, ".");
+         cerr << __func__ << " cents_string = " << cents_string <<  '\n';
+         long double cents_part = stold(cents_string);
+         if (cents_string.size() == 1)
+            cents_part *= 10;
+         
+         result = calculate_by_Integer(dollars_part, cents_part);
+         if (dollars[0] == '-' && result > 0 && result <= 100)
+            result = -result;
+      }
+      return result;
+   }
+
    T amount_in_cents { };
 };
 

@@ -3,13 +3,11 @@
 
 #include <cmath>
 #include <limits>
-#include <regex>
 #include <sstream>
 
 using std::numeric_limits;
 using std::enable_if_t;
 using std::isfinite;
-using std::regex;
 using std::istringstream;
 using std::bad_cast;
 
@@ -36,11 +34,6 @@ const string UNSIGNED_LONG_NAME = typeid(0uL).name();
 const string UNSIGNED_LONG_LONG_NAME = typeid(numeric_limits<unsigned long long>::max()).name();
 const Integer INTEGER_OBJECT = Integer{};
 const string INTEGER_OBJECT_NAME = typeid(INTEGER_OBJECT).name();
-
-const regex E_FLOAT_POINT_REGEX = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)" } ;
-const regex FLOAT_POINT_REGEX   = regex { R"(^[+-]?(\d+([.]\d*)?|[.]\d+)$)" } ;
-const regex INTEGER_REGEX       = regex { R"(^[+-]?(\d+)$)" } ;
-const regex MINUS_ZERO_REGEX    = regex { R"(^-0([.][0-9]+)?$)" } ;
 
 template <typename Number, enable_if_t<
               is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
@@ -323,72 +316,6 @@ Type get_amount_by_Integer(const string & STR) {
    return integer;
 }
 
-template<>
-Integer Money<Integer>::calculate_amount_in_cents(const string & dollars) {
-   Integer result;
-   size_t dot_position = dollars.find('.');
-   cerr << __func__ << " dot_position = " << dot_position <<  '\n';
-   string dollars_string = dollars.substr(0, dot_position);
-   if (regex_match(dollars, MINUS_ZERO_REGEX)) {
-      cerr << __func__ << " dollars_string = " << dollars_string <<  '\n';
-      dollars_string = dollars_string.substr(1);
-      cerr << __func__ << " dollars_string = " << dollars_string <<  '\n';
-   }
-   Integer dollars_part = get_amount(dollars_string);
-   
-   if (dot_position == string::npos) {
-      //string dollars_string = dollars.substr(0, dot_position);
-      //T dollars_part = get_amount(dollars_string);
-      cerr << __func__ << " dot_position = string::npos " << dot_position <<  '\n';
-      result = calculate<long double>(dollars_part);
-      cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents <<  '\n';
-   }
-   else {
-      string cents_string = dollars.substr(dot_position + 1);
-      if (cents_string.size() > 2)
-         cents_string.insert(2, ".");
-      cerr << __func__ << " cents_string = " << cents_string <<  '\n';
-      long double cents_part = stold(cents_string);
-      if (cents_string.size() == 1)
-         cents_part *= 10;
-      result = calculate<long double>(dollars_part, cents_part);
-      if (dollars[0] == '-' && result > Integer::ZERO && result <= Integer::create_Integer(100))
-         result = -result;
-   }
-   return result;
-}
-
-template <typename T>
-//template <typename Number, enable_if_t<numeric_limits<Number>::is_integer, bool> = true>
-T Money<T>::calculate_amount_in_cents(const string & dollars) {
-   //static_assert(numeric_limits<T>::is_integer);
-   T result;
-   size_t dot_position = dollars.find('.');
-   cerr << __func__ << " dot_position = " << dot_position <<  '\n';
-   string dollars_string = dollars.substr(0, dot_position);
-   T dollars_part = get_amount(dollars_string);
-   
-   if (dot_position == string::npos) {
-      cerr << __func__ << " dot_position = string::npos " << dot_position <<  '\n';
-      result = calculate_by_Integer(dollars_part);
-      cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents <<  '\n';
-   }
-   else {
-      string cents_string = dollars.substr(dot_position + 1);
-      if (cents_string.size() > 2)
-         cents_string.insert(2, ".");
-      cerr << __func__ << " cents_string = " << cents_string <<  '\n';
-      long double cents_part = stold(cents_string);
-      if (cents_string.size() == 1)
-         cents_part *= 10;
-      
-      result = calculate_by_Integer(dollars_part, cents_part);
-      if (dollars[0] == '-' && result > 0 && result <= 100)
-         result = -result;
-   }
-   return result;
-}
-
 //#if defined(__clang__)
 template<>
 Money<Integer>::Money(const string & dollars) {   // accept floating-point arguments
@@ -429,8 +356,6 @@ Money<T>::Money(const string & dollars) {   // accept floating-point arguments
    if (is_floating_point<T>::value) {
       if (! regex_match(dollars, E_FLOAT_POINT_REGEX)) 
          throw invalid_argument("Regex: entered string is not floating-point format ");
-      T dollars_part = get_amount(dollars);
-      this->amount_in_cents = calculate<long double>(dollars_part);
    }
    else if (numeric_limits<T>::is_integer) { 
       if (! regex_match(dollars, FLOAT_POINT_REGEX))
@@ -457,8 +382,8 @@ Money<T>::Money(const string & dollars) {   // accept floating-point arguments
          if (dollars[0] == '-' && this->amount_in_cents > 0 && this->amount_in_cents <= 100)
             this->amount_in_cents = -this->amount_in_cents;
       } */
-      this->amount_in_cents = calculate_amount_in_cents(dollars);
    }
+   this->amount_in_cents = calculate_amount_in_cents(dollars);
 }
 
 template <typename T>
