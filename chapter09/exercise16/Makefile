@@ -1,6 +1,6 @@
 CXX = g++
 CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 
-#CXX = clang
+CXX = clang
 #CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -L/usr/lib -lstdc++ -lm -v
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -fcompare-debug-second -DMESSAGE='"Compiled with GCC"'

@@ -1,8 +1,10 @@
-//#define DEBUG_OSTREAM
+#define DEBUG_OSTREAM
 
 #include "integer.hpp"
 #include "assertions.hpp"
 #include "money.hpp"
+
+#include <cmath>
 
 using namespace std;
 using namespace integer_space;
@@ -104,9 +106,6 @@ void incorrect() {
 
 constexpr long double CONVERTER = (long double)(CENTS_PER_DOLLAR);
 
-//constexpr int_fast8_t MAX_T = static_cast<T>(numeric_limits<int_fast8_t>::max() / CONVERTER);
-//constexpr int_fast8_t MIN_T = static_cast<T>(numeric_limits<int_fast8_t>::lowest() / CONVERTER);
-
 template <typename T>
 void test_max_8bits_value() {
    constexpr T MAX_C = numeric_limits<T>::max();
@@ -153,10 +152,19 @@ void construct() {
          construct_cents<T>("-1", 99, true, "-1,99");
       }
       construct<T>("10", true, "10,00");
+      
+      if (is_same<T, Integer>::value) {
+         construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER / 100 ),    false, "34028234663852898660428602284420480,42" );
+         construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER / 100 ), false, "-34028234663852898660428602284420480,42");
+         construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER ),    false, "3402823466385289866042860228442048042,40" );
+         construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER ), false, "-3402823466385289866042860228442048042,40");
+      }
       if (is_floating_point<T>::value) {
          construct<T>("8.577444e+02", false, "857,74");
          construct<T>("8.577555e+02", false, "857,76");
          if (is_same<T, float>::value) {
+            construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER / 100 ),    false, "34028235832468283066569397853224960,92" );
+            construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER / 100 ), false, "-34028235832468283066569397853224960,92");
             construct<T>("-8577e+03", true, "-8577000,68");
          }
          if (is_same<T, double>::value || is_same<T, long double>::value) {
@@ -167,6 +175,7 @@ void construct() {
       construct<T>("10.679", false, "10,68");
       construct<T>("10.6435", false, "10,64");
       construct<T>("10.099", false, "10,10");
+      
    }
    cerr << "END OF " << __func__ << '\n';
 }
@@ -179,23 +188,19 @@ struct Constructor {
 	}
 };
 
-//#if defined(__clang__)
-
-//#elif defined(__GNUG__)
 void test_Integer_overflow() {
    const array <Integer, 2> EXTREMUMS = { numeric_limits<Integer>::max(), numeric_limits<Integer>::lowest() };
    const Integer FACTOR = Integer(15);
    const Integer Integer_CONVERTER = Integer(CONVERTER);
    for (size_t i = 0; i < EXTREMUMS.size(); i++)
       try {
-         const string MAX_STR = std::to_string((Integer(15) * EXTREMUMS[i]) / Integer_CONVERTER);
-         assert(0);
+         const string MAX_STR = std::to_string((FACTOR * EXTREMUMS[i]) / Integer_CONVERTER);
          cout << __func__ << " MAX_STR for type = " << typeid(Integer).name() << " " << MAX_STR << '\n';
+         assert(0);
       } catch (const out_of_range& e) {
          cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
       }
 }
-//#endif
 
 template <typename T> 
 void construct_incorrect() {
@@ -211,19 +216,16 @@ void construct_incorrect() {
       construct_incorrect(Constructor<T, Money>(), (std::to_string(1 + numeric_limits<long double>::max() / CONVERTER)));
       construct_incorrect(Constructor<T, Money>(), (std::to_string(-1 + numeric_limits<long double>::lowest() / CONVERTER)));
    }
-   else if (is_same<T, Integer>::value) {
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(10 * numeric_limits<long double>::max() / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(10 * numeric_limits<long double>::lowest() / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string( numeric_limits<float>::max() / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string( numeric_limits<float>::lowest() / CONVERTER)));
-      assert(0);
-   }
-   else if (is_same<T, float>::value) {
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(1.0 + numeric_limits<long double>::max() / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(-1.0 + numeric_limits<long double>::lowest() / CONVERTER)));
+   else if (is_same<T, Integer>::value || is_same<T, float>::value) {
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<long double>::max() / CONVERTER)));
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<long double>::lowest() / CONVERTER)));
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::max() / CONVERTER)));
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::lowest() / CONVERTER)));
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::max())));
+      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::lowest())));
+      //assert(0);
    }
    
-   //construct_incorrect<T>("-0", 4);
    if (is_unsigned<T>::value)
       construct_incorrect(Constructor<T, Money>(), "-1", 4);
    //construct_incorrect<T>("+0", 4);
@@ -235,6 +237,10 @@ void construct_incorrect() {
    
    construct_incorrect(Constructor<T, Money>(), "inf", 8);
    construct_incorrect(Constructor<T, Money>(), "inf");
+   construct_incorrect(Constructor<T, Money>(), (std::to_string(std::nan(""))));
+   construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::infinity())));
+   construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::infinity())));
+   construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<long double>::infinity())));
    //construct_incorrect<T>("57.7");
    cerr << "END OF " << __func__ << '\n';
 }
@@ -252,9 +258,9 @@ int main() {
       test<int>();
       test<long double>();
       test<double>();
+      test<unsigned int>();
       test<float>();
       test<Integer>();
-      test<unsigned int>();
       
       test_max_8bits_value<char>();
       test_max_8bits_value<int_fast8_t>();

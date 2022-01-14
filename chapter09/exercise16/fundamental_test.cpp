@@ -82,6 +82,7 @@ static Integer default_constructor_test() {
 void set_integer_array_test(Integer & integer) {
    cout << __func__ << "\n";
    char sign = integer.get_signum();
+   
    //if (Integer::NEUTRAL == sign)
    //   sign = Integer::PLUS;
    constexpr array<digit_type, 5> a = { 7, 2, 7, 0};
@@ -97,6 +98,7 @@ void set_integer_array_test(Integer & integer) {
    integer_assert(integer, Integer::NEUTRAL, "0");
    
    vec = { 0, 4 , 5};
+   //constexpr array<digit_type, Integer::MAX_ARRAY_LENGTH> nul  = reinterpret_cast<array<digit_type, Integer::MAX_ARRAY_LENGTH>>(nullptr);
    set(vec, integer);
    integer_assert(integer, Integer::PLUS, "45");
    

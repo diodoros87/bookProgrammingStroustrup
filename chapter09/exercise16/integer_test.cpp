@@ -48,6 +48,205 @@ namespace integer_test {
       cout << "\nEnd of container printing\n";
    }
    
+   namespace conversions {
+   
+      template <typename Number, enable_if_t<(is_floating_point<Number>::value 
+                                    || is_integral<Number>::value), bool> = true>
+      void test_incorrect_conversion(const Integer & integer) {
+         static const string TYPE_NAME = typeid(Number).name();
+         try {
+            Number n = integer.operator Number();
+            //Number n = Number(integer);
+            cerr << " !!! " << __func__ << " object of type '" << TYPE_NAME << "' = " << n << "\n";
+            assert(false);
+         } catch (const out_of_range & e) {
+            cerr << __func__ << " object of type '" << TYPE_NAME << "' message: " <<  e.what() << "\n";
+         }
+      }
+      
+      template <typename Number, enable_if_t<(is_floating_point<Number>::value 
+                                    || is_integral<Number>::value), bool> = true>
+      inline void print_assert_conversion(const Integer & integer, const Number value) {
+         cout << typeid(Number).name() << " Integer value = " << integer;
+         cout << "\nstatic_cast to " << typeid(Number).name() << " = " << static_cast<Number>(integer) << " = "
+            << integer.operator Number() << "\n";
+         assert(static_cast<Number>(integer) == value);
+         assert(integer.operator Number() == value);
+      }
+      
+      template <typename Number, enable_if_t<(is_floating_point<Number>::value 
+                                    || is_integral<Number>::value), bool> = true>
+      void test_conversion(const bool condition, const Number value) {
+         if (condition)
+            print_assert_conversion(Integer::create_Integer(value),
+                                    value);
+         else {
+            static const string TYPE_NAME = typeid(Number).name();
+            if (is_integral<Number>::value) {
+               try {
+                  Integer integer = Integer::create_Integer(value);
+                  cerr << " !!! " << __func__ << " Integer created from object of type '" << TYPE_NAME << "' = " << integer << "\n";
+                  assert(false);
+               } catch (const out_of_range & e) {
+                  cerr << __func__ << " object of type '" << TYPE_NAME << "' message: " <<  e.what() << "\n";
+               }
+            }
+            else {
+               try {
+                  Integer integer = Integer::create_Integer(value);
+                  cerr << " !!! " << __func__ << " Integer created from object of type '" << TYPE_NAME << "' = " << integer << "\n";
+                  assert(false);
+               } catch (const out_of_range & e) {
+                  cerr << __func__ << " object of type '" << TYPE_NAME << "' message: " <<  e.what() << "\n";
+               } catch (const invalid_argument & e) {
+                  cerr << __func__ << " object of type '" << TYPE_NAME << "' message: " <<  e.what() << "\n";
+               }
+            }
+         }
+      }
+      
+      template <typename Number, enable_if_t<(is_floating_point<Number>::value 
+                                    || is_integral<Number>::value), bool> = true>
+      inline void test_conversion(const bool lowest_ok, const bool max_ok) {
+         cout << __func__ << "\nlowest of ";
+         test_conversion(lowest_ok, numeric_limits<Number>::lowest());
+         cout << "\nmax of ";
+         test_conversion(max_ok, numeric_limits<Number>::max());
+      }
+      
+      void test_conversions() {
+         test_conversion<char>(true, true);
+         test_conversion<int_fast8_t>(true, true);
+         test_conversion<short>(true, true);
+         test_conversion<unsigned short>(true, true);
+         test_conversion<int>(true, true);
+         test_conversion<unsigned>(true, true);
+         test_conversion<long>(true, true);
+         test_conversion<unsigned long>(true, true);
+         test_conversion<long long>(true, true);
+         test_conversion<unsigned long long>(true, true);
+         
+         test_conversion<float>(true, true);
+         test_conversion<double>(false, false);
+         test_conversion<long double>(false, false);
+      }
+      
+      template <typename Number, enable_if_t<(is_floating_point<Number>::value 
+                                    || is_integral<Number>::value), bool> = true>
+      inline void test_operator_number(const bool condition, const Integer & integer) {
+         if (condition)
+            print_assert_conversion(integer, integer.operator Number());
+         else 
+            test_incorrect_conversion<Number>(integer);
+      }
+      
+      template <typename Number, enable_if_t<(is_floating_point<Number>::value 
+                                    || is_integral<Number>::value), bool> = true>
+      inline void test_operator_number(const bool lowest_ok, const bool max_ok) {
+         cout << __func__ << "\nlowest of ";
+         test_operator_number<Number>(lowest_ok, numeric_limits<Integer>::lowest());
+         cout << "\nmax of ";
+         test_operator_number<Number>(max_ok, numeric_limits<Integer>::max());
+      }
+      
+      void test_operator_number() {
+         test_operator_number<char>(false, false);
+         test_operator_number<int_fast8_t>(false, false);
+         test_operator_number<short>(false, false);
+         test_operator_number<unsigned short>(false, false);
+         test_operator_number<int>(false, false);
+         test_operator_number<unsigned>(false, false);
+         test_operator_number<long>(false, false);
+         test_operator_number<unsigned long>(false, false);
+         test_operator_number<long long>(false, false);
+         test_operator_number<unsigned long long>(false, false);
+         
+         test_operator_number<float>(false, false);
+         test_operator_number<double>(true, true);
+         test_operator_number<long double>(true, true);
+      }
+      
+   }
+      
+#ifdef TEST_INDEX_OPERATOR
+   namespace index_operator {
+      void test_index_operator() {
+         cout << "\n                              test_index_operator:\n";
+         Integer A  = Integer::create_Integer<7>({7, 2, 3, 0, 6, 5, 0}, Integer::PLUS);
+         cout << "\nInteger 'A' After construct by array and signum's byte of '" << Integer::PLUS << "' : " << A << "\n";
+         assert(static_cast<string>(A)==("+7230650"));
+         conversions::test_incorrect_conversion<char>(A);
+         conversions::test_incorrect_conversion<int_fast8_t>(A);
+         conversions::test_incorrect_conversion<short>(A);
+         conversions::test_incorrect_conversion<unsigned short>(A);
+         //test_incorrect_conversion<double>(A);
+         assert(int(A) == 7230650);
+         assert(unsigned(A) == 7230650);
+         assert(long(A) == 7230650);
+         assert((unsigned long)(A) == 7230650);
+         assert((long long)(A) == 7230650);
+         assert((unsigned long long)(A) == 7230650);
+         assert((long double)(A) == 7230650);
+         assert(double(A) == 7230650);
+         assert(float(A) == 7230650);
+         
+         A[Integer::MAX_ARRAY_LENGTH - 1] = 3;
+         cout << "Integer 'A' After change last index to 3:   "<< A << "\n";
+         
+         Integer B  = A;
+         cout << "Integer 'B' After construct and assign to other integer (copy of integer 'A'): " << static_cast<string>(B) << "\n";
+         assert(static_cast<string>(A)==("+7230653"));
+         assert(static_cast<string>(B)== ("+7230653"));
+         
+         B[Integer::MAX_ARRAY_LENGTH - 1] = 2;
+         cout << "Integer 'B' After change last index to 2:   " << B << "\n";
+         cout << "Integer 'A'  should be unchanged:   " << A << "\n";
+         
+         assert(static_cast<string>(A)==("+7230653"));
+         assert(static_cast<string>(B)== ("+7230652"));
+         
+         Integer C { A } ;
+         cout << "Integer 'C' After construct by other integer (copy of integer 'A'): " << static_cast<string>(C) << "\n";
+         assert(static_cast<string>(C)==("+7230653"));
+         
+         C = B;
+         cout << "Integer 'C' After assign to other integer (integer 'B'): " << static_cast<string>(C) << "\n";
+         assert(static_cast<string>(C)==("+7230652"));
+         assert(static_cast<string>(B)==("+7230652"));
+         
+         Integer D { std::move(A) };
+         cout << "Integer 'D' After construct by other integer (std::move of integer 'A'): " << static_cast<string>(D) << "\n";
+         cout << "Integer 'A' should be unchanged:: " << static_cast<string>(A) << "\n";
+         assert(static_cast<string>(D)==("+7230653"));
+         assert(static_cast<string>(A)==("+7230653"));
+         
+         D = std::move (B);
+         cout << "Integer 'D' After assign to other integer (std::move of integer 'B'): " << static_cast<string>(D) << "\n";
+         cout << "Integer 'B' should be unchanged:: " << static_cast<string>(B) << "\n";
+         assert(static_cast<string>(D)==("+7230652"));
+         assert(static_cast<string>(B)==("+7230652"));
+         
+         A.set_signum(Integer::MINUS);
+         assert(static_cast<string>(A)==("-7230653"));
+         conversions::test_incorrect_conversion<char>(A);
+         conversions::test_incorrect_conversion<int_fast8_t>(A);
+         conversions::test_incorrect_conversion<short>(A);
+         conversions::test_incorrect_conversion<unsigned short>(A);
+         assert(int(A) == -7230653);
+         conversions::test_incorrect_conversion<unsigned>(A);
+         assert(long(A) == -7230653);
+         conversions::test_incorrect_conversion<unsigned long>(A);
+         assert((long long)(A) == -7230653);
+         conversions::test_incorrect_conversion<unsigned long long>(A);
+         assert((long double)(A) == -7230653);
+         assert(double(A) == -7230653);
+         assert(float(A) == -7230653);
+         
+         cout << "\n    END of                          test_index_operator:\n";
+      }
+   }
+#endif
+   
 namespace constructor_test {
    template <typename Container, const unsigned int SIZE>
    void test_incorrect_construct(const string & exception_info, const Container & ARRAY, const char signum) {
@@ -61,201 +260,6 @@ namespace constructor_test {
          cerr << __func__ << " Exception while create_Integer integer '" << exception_info << "' : " << e.what() << "\n";
       }
    }
-   
-   template <typename Number, enable_if_t<(is_floating_point<Number>::value 
-                                 || is_integral<Number>::value), bool> = true>
-   void test_incorrect_conversion(const Integer & integer) {
-      static const string TYPE_NAME = typeid(Number).name();
-      try {
-         Number n = integer.operator Number();
-         //Number n = Number(integer);
-         cerr << " !!! " << __func__ << " object of type '" << TYPE_NAME << "' = " << n << "\n";
-         assert(false);
-      } catch (const out_of_range & e) {
-         cerr << __func__ << " object of type '" << TYPE_NAME << "' message: " <<  e.what() << "\n";
-      }
-   }
-   
-   template <typename Number, enable_if_t<(is_floating_point<Number>::value 
-                                 || is_integral<Number>::value), bool> = true>
-   inline void print_assert_conversion(const Integer & integer, const Number value) {
-      cout << typeid(Number).name() << " Integer value = " << integer;
-      cout << "\nstatic_cast to " << typeid(Number).name() << " = " << static_cast<Number>(integer) << " = "
-         << integer.operator Number() << "\n";
-      assert(static_cast<Number>(integer) == value);
-      assert(integer.operator Number() == value);
-   }
-   
-   template <typename Number, enable_if_t<(is_floating_point<Number>::value 
-                                 || is_integral<Number>::value), bool> = true>
-   void test_conversion(const bool condition, const Number value) {
-      if (condition)
-         print_assert_conversion(Integer::create_Integer(value),
-                                 value);
-      else {
-         static const string TYPE_NAME = typeid(Number).name();
-         if (is_integral<Number>::value) {
-            try {
-               Integer integer = Integer::create_Integer(value);
-               cerr << " !!! " << __func__ << " Integer created from object of type '" << TYPE_NAME << "' = " << integer << "\n";
-               assert(false);
-            } catch (const out_of_range & e) {
-               cerr << __func__ << " object of type '" << TYPE_NAME << "' message: " <<  e.what() << "\n";
-            }
-         }
-         else {
-            try {
-               Integer integer = Integer::create_Integer(value);
-               cerr << " !!! " << __func__ << " Integer created from object of type '" << TYPE_NAME << "' = " << integer << "\n";
-               assert(false);
-            } catch (const out_of_range & e) {
-               cerr << __func__ << " object of type '" << TYPE_NAME << "' message: " <<  e.what() << "\n";
-            } catch (const invalid_argument & e) {
-               cerr << __func__ << " object of type '" << TYPE_NAME << "' message: " <<  e.what() << "\n";
-            }
-         }
-      }
-   }
-   
-   template <typename Number, enable_if_t<(is_floating_point<Number>::value 
-                                 || is_integral<Number>::value), bool> = true>
-   inline void test_conversion(const bool lowest_ok, const bool max_ok) {
-      cout << __func__ << "\nlowest of ";
-      test_conversion(lowest_ok, numeric_limits<Number>::lowest());
-      cout << "\nmax of ";
-      test_conversion(max_ok, numeric_limits<Number>::max());
-   }
-   
-   void test_conversions() {
-      test_conversion<char>(true, true);
-      test_conversion<int_fast8_t>(true, true);
-      test_conversion<short>(true, true);
-      test_conversion<unsigned short>(true, true);
-      test_conversion<int>(true, true);
-      test_conversion<unsigned>(true, true);
-      test_conversion<long>(true, true);
-      test_conversion<unsigned long>(true, true);
-      test_conversion<long long>(true, true);
-      test_conversion<unsigned long long>(true, true);
-      
-      test_conversion<float>(true, true);
-      test_conversion<double>(false, false);
-      test_conversion<long double>(false, false);
-   }
-   
-   template <typename Number, enable_if_t<(is_floating_point<Number>::value 
-                                 || is_integral<Number>::value), bool> = true>
-   inline void test_operator_number(const bool condition, const Integer & integer) {
-      if (condition)
-         print_assert_conversion(integer, integer.operator Number());
-      else 
-         test_incorrect_conversion<Number>(integer);
-   }
-   
-   template <typename Number, enable_if_t<(is_floating_point<Number>::value 
-                                 || is_integral<Number>::value), bool> = true>
-   inline void test_operator_number(const bool lowest_ok, const bool max_ok) {
-      cout << __func__ << "\nlowest of ";
-      test_operator_number<Number>(lowest_ok, numeric_limits<Integer>::lowest());
-      cout << "\nmax of ";
-      test_operator_number<Number>(max_ok, numeric_limits<Integer>::max());
-   }
-   
-   void test_operator_number() {
-      test_operator_number<char>(false, false);
-      test_operator_number<int_fast8_t>(false, false);
-      test_operator_number<short>(false, false);
-      test_operator_number<unsigned short>(false, false);
-      test_operator_number<int>(false, false);
-      test_operator_number<unsigned>(false, false);
-      test_operator_number<long>(false, false);
-      test_operator_number<unsigned long>(false, false);
-      test_operator_number<long long>(false, false);
-      test_operator_number<unsigned long long>(false, false);
-      
-      test_operator_number<float>(false, false);
-      test_operator_number<double>(true, true);
-      test_operator_number<long double>(true, true);
-   }
-   
-#ifdef TEST_INDEX_OPERATOR
-namespace index_operator {
-   void test_index_operator() {
-      cout << "\n                              test_index_operator:\n";
-      Integer A  = Integer::create_Integer<7>({7, 2, 3, 0, 6, 5, 0}, Integer::PLUS);
-      cout << "\nInteger 'A' After construct by array and signum's byte of '" << Integer::PLUS << "' : " << A << "\n";
-      assert(static_cast<string>(A)==("+7230650"));
-      test_incorrect_conversion<char>(A);
-      test_incorrect_conversion<int_fast8_t>(A);
-      test_incorrect_conversion<short>(A);
-      test_incorrect_conversion<unsigned short>(A);
-      //test_incorrect_conversion<double>(A);
-      assert(int(A) == 7230650);
-      assert(unsigned(A) == 7230650);
-      assert(long(A) == 7230650);
-      assert((unsigned long)(A) == 7230650);
-      assert((long long)(A) == 7230650);
-      assert((unsigned long long)(A) == 7230650);
-      assert((long double)(A) == 7230650);
-      assert(double(A) == 7230650);
-      assert(float(A) == 7230650);
-      
-      A[Integer::MAX_ARRAY_LENGTH - 1] = 3;
-      cout << "Integer 'A' After change last index to 3:   "<< A << "\n";
-      
-      Integer B  = A;
-      cout << "Integer 'B' After construct and assign to other integer (copy of integer 'A'): " << static_cast<string>(B) << "\n";
-      assert(static_cast<string>(A)==("+7230653"));
-      assert(static_cast<string>(B)== ("+7230653"));
-      
-      B[Integer::MAX_ARRAY_LENGTH - 1] = 2;
-      cout << "Integer 'B' After change last index to 2:   " << B << "\n";
-      cout << "Integer 'A'  should be unchanged:   " << A << "\n";
-      
-      assert(static_cast<string>(A)==("+7230653"));
-      assert(static_cast<string>(B)== ("+7230652"));
-      
-      Integer C { A } ;
-      cout << "Integer 'C' After construct by other integer (copy of integer 'A'): " << static_cast<string>(C) << "\n";
-      assert(static_cast<string>(C)==("+7230653"));
-      
-      C = B;
-      cout << "Integer 'C' After assign to other integer (integer 'B'): " << static_cast<string>(C) << "\n";
-      assert(static_cast<string>(C)==("+7230652"));
-      assert(static_cast<string>(B)==("+7230652"));
-      
-      Integer D { std::move(A) };
-      cout << "Integer 'D' After construct by other integer (std::move of integer 'A'): " << static_cast<string>(D) << "\n";
-      cout << "Integer 'A' should be unchanged:: " << static_cast<string>(A) << "\n";
-      assert(static_cast<string>(D)==("+7230653"));
-      assert(static_cast<string>(A)==("+7230653"));
-      
-      D = std::move (B);
-      cout << "Integer 'D' After assign to other integer (std::move of integer 'B'): " << static_cast<string>(D) << "\n";
-      cout << "Integer 'B' should be unchanged:: " << static_cast<string>(B) << "\n";
-      assert(static_cast<string>(D)==("+7230652"));
-      assert(static_cast<string>(B)==("+7230652"));
-      
-      A.set_signum(Integer::MINUS);
-      assert(static_cast<string>(A)==("-7230653"));
-      test_incorrect_conversion<char>(A);
-      test_incorrect_conversion<int_fast8_t>(A);
-      test_incorrect_conversion<short>(A);
-      test_incorrect_conversion<unsigned short>(A);
-      assert(int(A) == -7230653);
-      test_incorrect_conversion<unsigned>(A);
-      assert(long(A) == -7230653);
-      test_incorrect_conversion<unsigned long>(A);
-      assert((long long)(A) == -7230653);
-      test_incorrect_conversion<unsigned long long>(A);
-      assert((long double)(A) == -7230653);
-      assert(double(A) == -7230653);
-      assert(float(A) == -7230653);
-      
-      cout << "\n    END of                          test_index_operator:\n";
-   }
-}
-#endif
    
    void test_incorrect_construct(const string & exception_info, const vector<digit_type> & vec, const char signum) {
       try {
@@ -290,20 +294,14 @@ namespace index_operator {
       cout << "After construct by array and signum's byte of '" << signum << "' : " << second << "\n";
       assert(static_cast<string>(second)==("+12306"));
       assert(short(second) == 12306);
-      test_incorrect_conversion<char>(second);
+      conversions::test_incorrect_conversion<char>(second);
 
       Integer third  = second;
       cout << "After construct by other integer: " << static_cast<string>(third) << "\n";
       assert(static_cast<string>(third)==("+12306"));
       assert((unsigned short)third == 12306);
-      test_incorrect_conversion<int_fast8_t>(third);
+      conversions::test_incorrect_conversion<int_fast8_t>(third);
       //test_incorrect_conversion<int>(third);
-      
-#ifdef TEST_INDEX_OPERATOR
-      test_index_operator();
-#endif
-      test_conversions();
-      test_operator_number();
       
       cout << "\n INCORRECT ATTEMPTS TO CONSTRUCT OF OBJECTS:\n";
 
@@ -627,6 +625,7 @@ namespace comparing_test {
 }
 
 using namespace integer_test;
+using namespace integer_test::conversions;
 
 using Array_MAX = array<digit_type, Integer::MAX_ARRAY_LENGTH>; 
 
@@ -696,6 +695,12 @@ int main() {
       comparing_test::assert_comparing_different_signum(first, second);
       comparing_test::assert_comparing_identical_signum(first, second);
       comparing_test::assert_comparing_different_signumZero(first, second);
+      
+#ifdef TEST_INDEX_OPERATOR
+      integer_test::index_operator::test_index_operator();
+#endif
+      test_conversions();
+      test_operator_number();
       
       cerr << "\n END of ALL TESTS\n";
       

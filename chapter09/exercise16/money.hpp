@@ -29,8 +29,8 @@ namespace money {
 constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
 constexpr int_fast8_t INCORRECT_CENTS = -112;
 
- template<typename Greater>
-inline bool is_overflow_for_Integer(const Greater & x) {
+template<typename Greater>
+bool is_overflow_for_Integer(const Greater & x) {
    try {
       Integer::create_Integer(x);
       return false;
