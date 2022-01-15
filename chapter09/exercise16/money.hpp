@@ -88,12 +88,18 @@ public:
    static Money create(const string & dollars, const long double cents);
    static Money create(const string & dollars);
    
+   ~ Money() = default;
+   Money(const Money &) = default;
+   Money(Money &&) = default;
+   Money & operator=(const Money &) = default;
+   Money & operator=(Money &&) = default;
+   /*
    Money& operator=(const Money& other) { 
       if (this != &other)
          amount_in_cents = other.amount_in_cents;
       return *this;
    };
-   
+   */
    Money operator-() const { return Money(-amount_in_cents); }  // unsigned ???
    Money operator+() const { return *this; }
    

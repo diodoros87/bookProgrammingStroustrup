@@ -1,23 +1,64 @@
 CXX = g++
 CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 
-CXX = clang
+#CXX = clang
 #CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -L/usr/lib -lstdc++ -lm -v
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -fcompare-debug-second -DMESSAGE='"Compiled with GCC"'
 CLANG_CPPFLAGS = -L/usr/lib -lstdc++ -lm -DMESSAGE='"Compiled with Clang"'
 
 ifeq ($(CXX), g++)
-  CPPFLAGS += $(GCC_CPPFLAGS)
+	CPPFLAGS += $(GCC_CPPFLAGS)
+	CURL_TEST = curlcpp_test
 else ifeq ($(CXX), clang)
-  CPPFLAGS += $(CLANG_CPPFLAGS)
+	CPPFLAGS += $(CLANG_CPPFLAGS)
+	CURL_TEST = curl_test
 endif
 
-PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests money_test
+PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests money_test asio_test $(CURL_TEST)
 #PROGRAMS  =  fundamental_test
 
 .PHONY: clean all
 
 all: $(PROGRAMS)
+
+asio_test: asio_test.cpp
+	$(CXX) -o $@ $^ -I/home/mat/asio-1.18.2/include  -I/home/mat/json/include $(CPPFLAGS) -lpthread
+	
+LIBXMLNAME = pugixml
+LIBXML = ${LIBXMLNAME}/lib${LIBXMLNAME}.a
+LIBXML_HEADER_DIR = /home/mat/pugixml-1.11/src
+IPATH= -I${LIBXML_HEADER_DIR}
+LPATH= -L${LIBXMLNAME}
+LIBS=  -l${LIBXMLNAME} -lcurl
+
+#LDFLAGS=
+#CLANG_LDFLAGS = -flto -Wl,-flto
+
+ifeq ($(CXX), g++)
+	IPATH+=-I/home/mat/curlcpp/include
+	LPATH+=-L/home/mat/curlcpp/build/src
+	LIBS +=-lcurlcpp
+else ifeq ($(CXX), clang)
+
+endif
+
+$(CURL_TEST): directories ${CURL_TEST}.o ${LIBXML}
+	${CXX} $(CPPFLAGS) ${CURL_TEST}.o ${LPATH} ${LIBS}  -o ${CURL_TEST}
+
+${CURL_TEST}.o: ${CURL_TEST}.cpp 
+	${CXX} -c $(CPPFLAGS) ${IPATH}  $< -o $@
+
+directories:
+	mkdir -p ${LIBXMLNAME}
+
+${LIBXML}: ${LIBXMLNAME}/${LIBXMLNAME}.o
+	ar rcs ${LIBXML} ${LIBXMLNAME}/${LIBXMLNAME}.o
+
+${LIBXMLNAME}/${LIBXMLNAME}.o: ${LIBXML_HEADER_DIR}/${LIBXMLNAME}.cpp
+	${CXX} -c $(CPPFLAGS) -I${LIBXML_HEADER_DIR}  $< -o $@
+
+
+
 
 money_test: money_test.o integer.o integer_parsing.o 
 	$(CXX) $(CPPFLAGS) -o money_test money_test.o integer.o integer_parsing.o
@@ -60,4 +101,4 @@ parsing_test.o: parsing_test.cpp parsing_test.hpp
 	$(CXX) $(CPPFLAGS) -c parsing_test.cpp
 	
 clean :
-	rm $(PROGRAMS) *.o
+	rm -rf ${LIBXMLNAME} $(PROGRAMS) *.o

@@ -75,7 +75,8 @@ private:
    char signum { NEUTRAL };   // less than 0 for integers < 0, more than 0 for integers > 0, 0 for 0   
    Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY);
 public:
-   Integer() { }
+   //Integer() { }
+   
    Integer(const array<digit_type, MAX_ARRAY_LENGTH> & table, const char signum) {
       validate_init(table, signum);
    }
@@ -168,6 +169,7 @@ public:
       validate_init(vec, signum);
    }
    
+   Integer() = default;
    ~ Integer() = default;
    Integer(const Integer &) = default;
    Integer(Integer &&) = default;
