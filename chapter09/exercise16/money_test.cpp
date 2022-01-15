@@ -43,10 +43,12 @@ void call(Function && f, Args &&... args ) {
    f(std::forward<Args>(args)...);
 }
 
-template <typename Function, typename... Args>  
+template <typename T, typename Function, typename... Args>  
 void construct_incorrect(Function && f, Args&&... args ) { 
    try {
       f(std::forward<Args>(args)...);
+      T obj = f(std::forward<Args>(args)...);
+      cerr << __func__ << " !!!!!!!!!!!!!!!!!!" << obj << endl;
       assert(0);
    } catch (const invalid_argument& e) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
@@ -65,7 +67,7 @@ Money<T> construct_cents(const string & DOLLARS, const double CENTS, bool creati
       assert(money == money_creating);
    }
    else
-      construct_incorrect(Creation<T>(), DOLLARS, CENTS);
+      construct_incorrect<Money<T>>(Creation<T>(), DOLLARS, CENTS);
    return money;
 }
 
@@ -80,7 +82,7 @@ Money<T> construct(const string & DOLLARS, bool creating, const string & expecte
       assert(money == money_creating);
    }
    else
-      construct_incorrect(Creation<T>(), DOLLARS);
+      construct_incorrect<Money<T>>(Creation<T>(), DOLLARS);
    return money;
 }
 
@@ -88,15 +90,15 @@ template <typename T>
 void incorrect() { 
    try {
       Money<T> money("6", -34);
-      assert(0);
       cerr << __func__ << "money = " << money << '\n';
+      assert(0);
    } catch (const invalid_argument& e) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    }
    try {
       Money<T> money("6", 100);
-      assert(0);
       cout << __func__ << "money = " << money << '\n';
+      assert(0);
    } catch (const invalid_argument& e) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    } catch (const out_of_range& e) {
@@ -154,17 +156,18 @@ void construct() {
       construct<T>("10", true, "10,00");
       
       if (is_same<T, Integer>::value) {
-         construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER / 100 ),    false, "34028234663852898660428602284420480,42" );
-         construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER / 100 ), false, "-34028234663852898660428602284420480,42");
-         construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER ),    false, "3402823466385289866042860228442048042,40" );
-         construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER ), false, "-3402823466385289866042860228442048042,40");
+         construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER / 100 ),    true, "34028234663852884248860260600420480,42" );
+         construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER / 100 ), true, "-34028234663852884248860260600420480,42");
+         construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER ),    true, "3402823466385288424886026060042048042,40" );
+         construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER ), true, "-3402823466385288424886026060042048042,40");
       }
       if (is_floating_point<T>::value) {
          construct<T>("8.577444e+02", false, "857,74");
          construct<T>("8.577555e+02", false, "857,76");
          if (is_same<T, float>::value) {
-            construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER / 100 ),    false, "34028235832468283066569397853224960,92" );
-            construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER / 100 ), false, "-34028235832468283066569397853224960,92");
+            construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER / 100 ),    true, "34028235832468283066569397853224960,92" );
+            construct<T>(std::to_string( numeric_limits<float>::lowest() /CONVERTER / 100 ), true, "-34028235832468283066569397853224960,92");
+            //assert(0);
             construct<T>("-8577e+03", true, "-8577000,68");
          }
          if (is_same<T, double>::value || is_same<T, long double>::value) {
@@ -203,52 +206,52 @@ void test_Integer_overflow() {
 }
 
 template <typename T> 
-void construct_incorrect() {
+void incorrect_construct() {
    cerr << __func__ << '\n';
    incorrect<T>();
-   construct_incorrect(Constructor<T, Money>(), "20.8", 5.0L);
-   construct_incorrect(Constructor<T, Money>(), "20.8", 5);
-   construct_incorrect(Constructor<T, Money>(), "20t", 7);
+   construct_incorrect<Money<T>>(Constructor<T, Money>(), "20.8", 5.0L);
+   construct_incorrect<Money<T>>(Constructor<T, Money>(), "20.8", 5);
+   construct_incorrect<Money<T>>(Constructor<T, Money>(), "20t", 7);
    if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) {
-      construct_incorrect(Constructor<T, Money>(), "-1.99999");
-      construct_incorrect(Constructor<T, Money>(), "1.99999");
-      construct_incorrect(Constructor<T, Money>(), "189.99999");
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(1 + numeric_limits<long double>::max() / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(-1 + numeric_limits<long double>::lowest() / CONVERTER)));
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-1.99999");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "1.99999");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "189.99999");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(1 + numeric_limits<long double>::max() / CONVERTER)));
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(-1 + numeric_limits<long double>::lowest() / CONVERTER)));
    }
    else if (is_same<T, Integer>::value || is_same<T, float>::value) {
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<long double>::max() / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<long double>::lowest() / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::max() / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::lowest() / CONVERTER)));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::max())));
-      construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::lowest())));
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<long double>::max() / CONVERTER)));
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<long double>::lowest() / CONVERTER)));
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::max() / CONVERTER)));
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::lowest() / CONVERTER)));
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::max())));
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::lowest())));
       //assert(0);
    }
    
    if (is_unsigned<T>::value)
-      construct_incorrect(Constructor<T, Money>(), "-1", 4);
-   //construct_incorrect<T>("+0", 4);
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-1", 4);
+   //construct_incorrect<Money<T>><T>("+0", 4);
    if (numeric_limits<T>::is_integer) {
-      construct_incorrect(Constructor<T, Money>(), "-8577e+03");
-      construct_incorrect(Constructor<T, Money>(), "-8.577444e+02");
-      construct_incorrect(Constructor<T, Money>(), "8.577555e+02");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-8577e+03");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-8.577444e+02");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "8.577555e+02");
    }
    
-   construct_incorrect(Constructor<T, Money>(), "inf", 8);
-   construct_incorrect(Constructor<T, Money>(), "inf");
-   construct_incorrect(Constructor<T, Money>(), (std::to_string(std::nan(""))));
-   construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::infinity())));
-   construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::infinity())));
-   construct_incorrect(Constructor<T, Money>(), (std::to_string(numeric_limits<long double>::infinity())));
-   //construct_incorrect<T>("57.7");
+   construct_incorrect<Money<T>>(Constructor<T, Money>(), "inf", 8);
+   construct_incorrect<Money<T>>(Constructor<T, Money>(), "inf");
+   construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(std::nan(""))));
+   construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::infinity())));
+   construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::infinity())));
+   construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<long double>::infinity())));
+   //construct_incorrect<Money<T>><T>("57.7");
    cerr << "END OF " << __func__ << '\n';
 }
 
 template <typename T>
 inline void test() {
    construct<T>();
-   construct_incorrect<T>();
+   incorrect_construct<T>();
 }
 
 int main() {

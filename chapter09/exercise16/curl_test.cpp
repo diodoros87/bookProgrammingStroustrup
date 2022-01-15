@@ -66,6 +66,10 @@ stringstream get_document(const char* URL, const curl_header & HEADER) {
       //_callback_ptr(write_callback<std::ostringstream>), 
       std::stringstream *_o_stream = &stream;
       //_o_stream(&stream) {}
+      CURL *curl curl_easy_init();
+      if (curl == nullptr) {
+         throw curl_easy_exception("Null pointer intercepted",__FUNCTION__);
+      }
       
       init(CURL_GLOBAL_ALL);
       curl_easy easy(writer);
@@ -76,7 +80,8 @@ stringstream get_document(const char* URL, const curl_header & HEADER) {
       easy.add<CURLOPT_DNS_CACHE_TIMEOUT>(0);
       easy.add<CURLOPT_FOLLOWLOCATION>(1);
 
-      easy.perform();
+      //easy.perform();
+      curl_easy_perform(easyhandle);
    }
    catch (const curl_easy_exception & e) {
       curlcpp_traceback errors = e.get_traceback();

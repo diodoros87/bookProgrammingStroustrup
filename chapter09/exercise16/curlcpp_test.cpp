@@ -65,6 +65,7 @@ string get_xml_document(const char* URL) {
    curl_header header;
    header.add("Accept: application/xml");
    stringstream stream = get_document(URL, header);
+   //curl_global_cleanup();
    return stream.str();
 }
 

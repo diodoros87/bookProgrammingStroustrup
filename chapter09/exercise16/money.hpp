@@ -24,6 +24,7 @@ using std::istringstream;
 using std::is_convertible;
 using std::signbit;
 using std::regex;
+using std::trunc;
 
 using integer_space::Integer;
 

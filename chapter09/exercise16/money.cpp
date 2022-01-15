@@ -10,6 +10,7 @@ using std::enable_if_t;
 using std::isfinite;
 using std::istringstream;
 using std::bad_cast;
+using std::trunc;
 
 namespace money {
    
@@ -38,6 +39,10 @@ const string INTEGER_OBJECT_NAME = typeid(INTEGER_OBJECT).name();
 template <typename Number, enable_if_t<
               is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
 inline bool equal_integer(const Number x) {
+   cerr << __func__ << " x = " << std::to_string(x) << '\n';
+   cerr << " trunc(x) = " << std::to_string(trunc(x)) << '\n';
+   cerr << std::boolalpha << " isfinite(x) = " << isfinite(x) << '\n';
+   cerr << std::boolalpha << " x == trunc(x) = " << (x == trunc(x)) << '\n';
    return isfinite(x) && x == trunc(x);
 }
 
@@ -200,7 +205,8 @@ T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT
    if (is_overflow<T, Greater>(amount_in_cents))
       throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
    T result = T { static_cast<T> (amount_in_cents) };
-   cerr << __func__ << " result = " << static_cast<long long int>(result) << '\n';
+   //cerr << __func__ << " result = " << static_cast<long long int>(result) << '\n';
+   cerr << __func__ << " result = " << std::to_string(result) << '\n';
    return result;
 }
 

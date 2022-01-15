@@ -27,6 +27,7 @@ using std::cerr;
 using std::enable_if_t;
 using std::isfinite;
 using std::is_same;
+using std::trunc;
 
 //typedef int_fast8_t digit_type;
 using digit_type = short;
@@ -110,7 +111,8 @@ public:
 #if defined(__clang__)
                                     std::abs(truncated);
 #elif defined(__GNUG__)
-                                    fabs(truncated);
+                                    std::abs(truncated);
+                                    //std::fabs(truncated);
 #endif
       //digit_type digit = 0;
       //if (*this < numeric_limits<Number>::lowest() || *this > numeric_limits<Number>::max())
