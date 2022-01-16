@@ -117,6 +117,39 @@ void test_max_8bits_value() {
    //assert(false);
 }
 
+template <typename T, enable_if_t<numeric_limits<T>::is_integer, bool>  = true> 
+void construct_extremums() {
+   const T MAX = numeric_limits<T>::max();
+   const T MIN = numeric_limits<T>::lowest();
+   string max_str = std::to_string(MAX);
+   string min_str = std::to_string(MIN);
+   max_str.insert(max_str.size() - 2, ".");
+   min_str.insert(min_str.size() - 2, ".");
+   
+   string max_expected = max_str;
+   max_expected.replace(max_str.size() - 3, 1, ",");
+   string min_expected = min_str;
+   min_expected.replace(min_str.size() - 3, 1, ",");
+   
+   
+   construct<T>(max_str, true, max_expected);
+   construct<T>(min_str, true, min_expected);
+}
+
+void test_extremums() {
+   construct_extremums<char>();
+   construct_extremums<int_fast8_t>();
+   construct_extremums<short>();
+   construct_extremums<unsigned short>();
+   construct_extremums<int>();
+   construct_extremums<unsigned>();
+   construct_extremums<long>();
+   construct_extremums<unsigned long>();
+   construct_extremums<long long>();
+   construct_extremums<unsigned long long>();
+   construct_extremums<Integer>();
+}
+
 template <typename T> 
 void construct() {
    cerr << __func__ << '\n';
@@ -129,6 +162,7 @@ void construct() {
    construct<T>("0.5", true, "0,50");
    construct<T>("0.50", true, "0,50");
    construct<T>("0.500", true, "0,50");
+   
    if (numeric_limits<T>::is_signed) {
       construct_cents<T>("-1", 0, true, "-1,00");
       construct_cents<T>("-1", 1, true, "-1,01");
@@ -156,10 +190,11 @@ void construct() {
       construct<T>("10", true, "10,00");
       
       if (is_same<T, Integer>::value) {
-         construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER / 100 ),    true, "34028234663852884248860260600420480,42" );
-         construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER / 100 ), true, "-34028234663852884248860260600420480,42");
-         construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER ),    true, "3402823466385288424886026060042048042,40" );
-         construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER ), true, "-3402823466385288424886026060042048042,40");
+         construct<T>("34028234663852885981782907897774080.797",    true, "34028234663852885981782907897774080,80" );
+         construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER / 100 ),    true, "34028234663852885981782907897774080,00" );
+         construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER / 100 ), true, "-34028234663852885981782907897774080,00");
+         construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER ),    true, "3402823466385288598232333985305853952,00" );
+         construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER ), true, "-3402823466385288598232333985305853952,00");
       }
       if (is_floating_point<T>::value) {
          construct<T>("8.577444e+02", false, "857,74");
@@ -265,6 +300,7 @@ int main() {
       test<float>();
       test<Integer>();
       
+      test_extremums();
       test_max_8bits_value<char>();
       test_max_8bits_value<int_fast8_t>();
       test_Integer_overflow();

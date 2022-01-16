@@ -212,6 +212,28 @@ T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT
 
 const Integer CENTS_PER_DOLLAR_INTEGER = Integer::create_Integer(CENTS_PER_DOLLAR);
 
+template <>
+//template<typename Integer>
+Integer Money<Integer>::calculate_by_Integer(const Integer & dollars, const long double cents /*  = INCORRECT_CENTS */) const {
+   cerr << __func__ << '\n';
+   const Integer dollars_as_Integer = Integer::create_Integer(dollars);
+   Integer amount_in_cents = dollars_as_Integer * CENTS_PER_DOLLAR_INTEGER;
+   cerr << __func__ << " amount_in_cents = " << amount_in_cents << '\n';
+   //if (INCORRECT_CENTS == cents)
+   //   amount_in_cents = Money<Integer>::round(amount_in_cents);
+   if (INCORRECT_CENTS != cents) {
+      cerr << __func__ << " cents = " << cents << '\n';
+      Integer cents_round = dollars_as_Integer >= Integer::ZERO ? Money<Integer>::round(cents) : -Money<Integer>::round(cents);
+      amount_in_cents += cents_round;
+   }
+   //if (Integer::is_overflow<T>(amount_in_cents))
+   //   throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
+   
+   //T result = amount_in_cents.operator T();
+   cerr << __func__ << " result = " << amount_in_cents << '\n';
+   return amount_in_cents;
+}
+
 template <typename T>
 //template<typename Integer>
 T Money<T>::calculate_by_Integer(const T & dollars, const long double cents /*  = INCORRECT_CENTS */) const {
@@ -219,9 +241,9 @@ T Money<T>::calculate_by_Integer(const T & dollars, const long double cents /*  
    const Integer dollars_as_Integer = Integer::create_Integer(dollars);
    Integer amount_in_cents = dollars_as_Integer * CENTS_PER_DOLLAR_INTEGER;
    cerr << __func__ << " amount_in_cents = " << amount_in_cents << '\n';
-   if (INCORRECT_CENTS == cents)
-      amount_in_cents = Money<Integer>::round(amount_in_cents);
-   else {
+   //if (INCORRECT_CENTS == cents)
+   //   amount_in_cents = Money<Integer>::round(amount_in_cents);
+   if (INCORRECT_CENTS != cents) {
       cerr << __func__ << " cents = " << cents << '\n';
       Integer cents_round = dollars_as_Integer >= Integer::ZERO ? Money<Integer>::round(cents) : -Money<Integer>::round(cents);
       amount_in_cents += cents_round;

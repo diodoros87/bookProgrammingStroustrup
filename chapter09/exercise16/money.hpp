@@ -83,6 +83,12 @@ public:
       return static_cast<T>(floor(x + 0.5));
    }
    
+   /*
+   template<typename U, enable_if_t<numeric_limits<T>::is_integer, bool> = true>
+   static inline U round(const string & x) {
+      return static_cast<T>(floor(x + 0.5));
+   }*/
+   
    Money(const string & dollars, const long double cents);   
    Money(const string & dollars);            // constructors allow rounding of cents 
    // create methods disallow rounding of cents and accept only cents without fraction
@@ -190,7 +196,8 @@ private:
          //string dollars_string = dollars.substr(0, dot_position);
          //T dollars_part = get_amount(dollars_string);
          cerr << __func__ << " dot_position = string::npos " << dot_position <<  '\n';
-         result = calculate<long double>(dollars_part);
+         //result = calculate<long double>(dollars_part);
+         result = calculate_by_Integer(dollars_part);
          cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents <<  '\n';
       }
       else {
@@ -201,7 +208,8 @@ private:
          long double cents_part = stold(cents_string);
          if (cents_string.size() == 1)
             cents_part *= 10;
-         result = calculate<long double>(dollars_part, cents_part);
+         //result = calculate<long double>(dollars_part, cents_part);
+         result = calculate_by_Integer(dollars_part, cents_part);
          if (dollars[0] == '-' && result > Integer::ZERO && result <= Integer::create_Integer(100))
             result = -result;
       }
