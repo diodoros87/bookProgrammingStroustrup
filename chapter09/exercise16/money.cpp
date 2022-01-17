@@ -266,7 +266,8 @@ Money<Integer>::Money(const string & dollars, const long double cents) {
    if (regex_match(dollars, MINUS_ZERO_REGEX))
       dollars_string = dollars.substr(1);
    Integer amount = get_amount(dollars_string);
-   this->amount_in_cents = calculate<long double>(amount, cents);
+   //this->amount_in_cents = calculate<long double>(amount, cents);
+   this->amount_in_cents = calculate_by_Integer(amount, cents);
    cerr << __func__ << " amount = '" << amount << "' std::signbit = '" << std::boolalpha << std::signbit(amount) << "' \n";  
    if (dollars[0] == '-' && Integer::ZERO == amount)
       this->amount_in_cents = -this->amount_in_cents;
@@ -417,23 +418,67 @@ Money<T>::Money(const string & dollars) {   // accept floating-point arguments
    this->amount_in_cents = calculate_amount_in_cents(dollars);
 }
 
-template <typename T>
-Money<T> Money<T>::create(const string & dollars) {   
-   long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
+
+bool is_exact(const string & number) {
+   size_t dot_position = number.find('.');
+   if (dot_position != string::npos) {
+      
+   }
+   
+   return true;
+}
+/*
+template <>
+Money<long double> Money<long double>::create(const string & dollars) {   
+   const long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
    if (! equal_integer<long double>(amount))
       throw invalid_argument("Not exact value dollars = " + to_string(amount));
    Money<T> money = Money<T>(dollars);
+   const long double amount_2 = static_cast<long double>(money.get_amount_in_cents());
+   if (amount_2 != amount)
+      throw invalid_argument("Not exact value dollars = " + to_string(amount) " != " + to_string(amount_2));
+   return money;
+}
+*/
+template <typename T>
+Money<T> Money<T>::create(const string & dollars) {
+   const size_t dot_position = dollars.find('.');
+   if (dot_position != string::npos) {
+      if (numeric_limits<T>::is_integer) {
+         if (dot_position != string::npos) { 
+            static const regex EXACT = regex { R"(^[+-]?(\d+).\d[\d]?[0]*$)" } ;
+            if (! regex_match(dollars, EXACT))
+               throw invalid_argument(string(__func__) +  " Regex: entered string '"
+                     + dollars + "' is not exact format ");
+         }
+      }
+      else if (is_floating_point<T>::value) {
+         const long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
+         if (! equal_integer<long double>(amount))
+            throw invalid_argument("Not exact value dollars = " + to_string(amount));
+      }
+   }
+   
+   //static const regex EXACT = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)" } ;
+   //const long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
+   Money<T> money = Money<T>(dollars);
+   //const long double amount_2 = static_cast<long double>(money.get_amount_in_cents());
+   //if (amount_2 != amount)
+   //   throw invalid_argument("Not exact value dollars = " + to_string(amount) + " != " + to_string(amount_2));
    return money;
 }
 
 template <typename T>
 Money<T> Money<T>::create(const string & dollars, const long double cents) {   
-   long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
-   if (! equal_integer<long double>(amount))
-      throw invalid_argument("Not exact value dollars = " + to_string(amount));
+   //long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR + cents;
+   //if (! equal_integer<long double>(amount))
+   //   throw invalid_argument("Not exact value dollars = " + to_string(amount));
    if (! equal_integer<long double>(cents))
       throw invalid_argument("Not exact value cents = " + to_string(cents));
    Money<T> money = Money<T>(dollars, cents);
+   //const long double amount_2 = static_cast<long double>(money.get_amount_in_cents());
+   //if (amount_2 != amount)
+   //   throw invalid_argument("Not exact value dollars = " + to_string(amount) + " != " + to_string(amount_2));
    return money;
 }
 

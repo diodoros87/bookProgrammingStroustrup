@@ -17,7 +17,7 @@ using std::cerr;
 using integer_space::Integer;
 
 //extern string std::to_string(const integer_space::Integer& integer);
-string to_string(const integer_space::Integer & integer);
+//string to_string(const integer_space::Integer & integer);
 
 template <typename T>
 extern
@@ -26,8 +26,8 @@ Money<T> construct(const string & DOLLARS, bool creating, const string & expecte
 template <typename T>
 class Integers_extremums_test {
    static_assert(numeric_limits<T>::is_integer && "integer required.");
-   static const T MAX;// = numeric_limits<T>::max();
-   static const T MIN;// = numeric_limits<T>::lowest();
+   //static const T MAX;// = numeric_limits<T>::max();
+   //static const T MIN;// = numeric_limits<T>::lowest();
    
    static void test(const T & number) {
       pair<string, string> parameters = as_string(number);
@@ -46,6 +46,8 @@ class Integers_extremums_test {
          expected = s.insert(s.size() - 2, ".");
          expected.replace(s.size() - 3, 1, ",");
       }
+      else 
+         expected.append(",00");
       pair<string, string> result {s, expected};
       cerr << __func__ << " " << result.first << " " << result.second << '\n';
       return result;
@@ -54,15 +56,14 @@ public:
    static void test() {
       static const T MAX = numeric_limits<T>::max();
       static const T MIN = numeric_limits<T>::lowest();
-      cerr << __func__ << " MAX = " << MAX << '\n';
       test(MAX);
       test(MIN);
    }
 };
-
+/*
 template <typename T> 
 const T Integers_extremums_test<T>::MAX = numeric_limits<T>::max();
 template <typename T> 
 const T Integers_extremums_test<T>::MIN = numeric_limits<T>::lowest();
-
+*/
 #endif

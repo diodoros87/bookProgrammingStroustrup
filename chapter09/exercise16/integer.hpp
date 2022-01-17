@@ -74,7 +74,7 @@ public:
 private:
    array<digit_type, MAX_ARRAY_LENGTH> integer_array { 0 };
    char signum { NEUTRAL };   // less than 0 for integers < 0, more than 0 for integers > 0, 0 for 0   
-   Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY);
+   explicit Integer(const array<digit_type, MAX_ARRAY_LENGTH> & ARRAY);
 public:
    //Integer() { }
    

@@ -164,8 +164,11 @@ void construct() {
    construct<T>("0.5", true, "0,50");
    construct<T>("0.50", true, "0,50");
    construct<T>("0.500", true, "0,50");
-   
+   construct_cents<T>("1", 2.5, false, "1,03");
+   construct_cents<T>("0", 2.4, false, "0,02");
    if (numeric_limits<T>::is_signed) {
+      construct_cents<T>("-1", 2.5, false, "-1,03");
+      construct_cents<T>("-0", 2.4, false, "-0,02");
       construct_cents<T>("-1", 0, true, "-1,00");
       construct_cents<T>("-1", 1, true, "-1,01");
       construct_cents<T>("-1", 3, true, "-1,03");
@@ -176,6 +179,7 @@ void construct() {
       construct<T>("-0.5", true, "-0,50");
       construct<T>("-0.50", true, "-0,50");
       construct<T>("-0.500", true, "-0,50");
+      construct_cents<T>("-0", 5.5, false, "-0,06");
    }
    if (! is_same<T, char>::value && ! is_same<T, int_fast8_t>::value) {
       construct<T>("1.99999", false, "2,00");
@@ -186,13 +190,41 @@ void construct() {
          construct_cents<T>("-8577", 45.79, false, "-8577,46");   
          construct<T>("-1.99999", false, "-2,00");
          construct_cents<T>("-1", 99.9, false, "-2,00");
-         construct<T>("-0.5", true, "-0,50");
          construct_cents<T>("-1", 99, true, "-1,99");
+         
+         construct<T>("-10.67", true, "-10,67");
+         construct<T>("-10.679", false, "-10,68");
+         construct<T>("-10.6435", false, "-10,64");
+         construct<T>("-10.099", false, "-10,10");
       }
       construct<T>("10", true, "10,00");
       
       if (is_same<T, Integer>::value) {
-         construct<T>("34028234663852885981782907897774080.797",    true, "34028234663852885981782907897774080,80" );
+         construct_cents<T>("34028234663852885981782907897774079", 99,    true, "34028234663852885981782907897774079,99" );
+         construct_cents<T>("-34028234663852885981782907897774079", 99,    true, "-34028234663852885981782907897774079,99" );
+         construct<T>("34028234663852885981782907897774079.99",    true, "34028234663852885981782907897774079,99" );
+         construct<T>("-34028234663852885981782907897774079.99",    true, "-34028234663852885981782907897774079,99" );
+         construct<T>("34028234663852885981782907897774079.994",    false, "34028234663852885981782907897774079,99" );
+         construct<T>("-34028234663852885981782907897774079.994",    false, "-34028234663852885981782907897774079,99" );
+         construct<T>("34028234663852885981782907897774079.995",    false, "34028234663852885981782907897774080,00" );
+         construct<T>("-34028234663852885981782907897774079.995",    false, "-34028234663852885981782907897774080,00" );
+         construct<T>("34028234663852885981782907897774080.01",    true, "34028234663852885981782907897774080,01" );
+         construct<T>("-34028234663852885981782907897774080.01",    true, "-34028234663852885981782907897774080,01" );
+         construct<T>("34028234663852885981782907897774080.00",    true, "34028234663852885981782907897774080,00" );
+         construct<T>("-34028234663852885981782907897774080.00",    true, "-34028234663852885981782907897774080,00" );
+         construct<T>("34028234663852885981782907897774080.797",    false, "34028234663852885981782907897774080,80" );
+         construct<T>("-34028234663852885981782907897774080.797",    false, "-34028234663852885981782907897774080,80" );
+         construct<T>("34028234663852885981782907897774080.793333333", false, "34028234663852885981782907897774080,79" );
+         construct<T>("-34028234663852885981782907897774080.793333333", false, "-34028234663852885981782907897774080,79" );
+         construct<T>("99999999999999999999999999999999999999.99", true, "99999999999999999999999999999999999999,99" );
+         construct<T>("-99999999999999999999999999999999999999.99", true, "-99999999999999999999999999999999999999,99" );
+         construct<T>("99999999999999999999999999999999999999.990", true, "99999999999999999999999999999999999999,99" );
+         construct<T>("-99999999999999999999999999999999999999.990", true, "-99999999999999999999999999999999999999,99" );
+         construct<T>("99999999999999999999999999999999999999.991", false, "99999999999999999999999999999999999999,99" );
+         construct<T>("-99999999999999999999999999999999999999.991", false, "-99999999999999999999999999999999999999,99" );
+         construct<T>("99999999999999999999999999999999999999.994", false, "99999999999999999999999999999999999999,99" );
+         construct<T>("-99999999999999999999999999999999999999.994", false, "-99999999999999999999999999999999999999,99" );
+
          construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER / 100 ),    true, "34028234663852885981782907897774080,00" );
          construct<T>(std::to_string( numeric_limits<float>::lowest() / CONVERTER / 100 ), true, "-34028234663852885981782907897774080,00");
          construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER ),    true, "3402823466385288598232333985305853952,00" );
@@ -201,6 +233,23 @@ void construct() {
       if (is_floating_point<T>::value) {
          construct<T>("8.577444e+02", false, "857,74");
          construct<T>("8.577555e+02", false, "857,76");
+         construct<T>(".50", true, "0,50");
+         construct<T>(".5", true, "0,50");
+         construct<T>(".500", true, "0,50");
+         construct<T>(".501", false, "0,50");
+         construct<T>("+.501", false, "0,50");
+         construct<T>("50.", true, "50,00");
+         construct<T>("5.", true, "5,00");
+         construct<T>("05.", true, "5,00");
+         construct<T>("-8.577444e+02", false, "-857,74");
+         construct<T>("-8.577555e+02", false, "-857,76");
+         construct<T>("-.50", true, "-0,50");
+         construct<T>("-.5", true, "-0,50");
+         construct<T>("-.500", true, "-0,50");
+         construct<T>("-.501", false, "-0,50");
+         construct<T>("-50.", true, "-50,00");
+         construct<T>("-5.", true, "-5,00");
+         construct<T>("-05.", true, "-5,00");
          if (is_same<T, float>::value) {
             construct<T>(std::to_string( numeric_limits<float>::max() / CONVERTER / 100 ),    true, "34028235832468283066569397853224960,92" );
             construct<T>(std::to_string( numeric_limits<float>::lowest() /CONVERTER / 100 ), true, "-34028235832468283066569397853224960,92");
@@ -211,11 +260,11 @@ void construct() {
             construct<T>("-8577e+03", true, "-8577000,00");
          }
       }
+      construct_cents<T>("20", 5.5, false, "20,06");
       construct<T>("10.67", true, "10,67");
       construct<T>("10.679", false, "10,68");
       construct<T>("10.6435", false, "10,64");
       construct<T>("10.099", false, "10,10");
-      
    }
    cerr << "END OF " << __func__ << '\n';
 }
@@ -263,6 +312,16 @@ void incorrect_construct() {
       construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::lowest() / CONVERTER)));
       construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::max())));
       construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::lowest())));
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "34028234663852885981782907897774080793333.333");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-34028234663852885981782907897774080793333.333");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "99999999999999999999999999999999999999.999" );
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-99999999999999999999999999999999999999.999" );
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "99999999999999999999999999999999999999.995" );
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-99999999999999999999999999999999999999.995" );
+      if (is_same<T, float>::value) {
+         construct_incorrect<Money<float>>(Constructor<float, Money>(), "99999999999999999999999999999999999999.99" );
+         construct_incorrect<Money<float>>(Constructor<float, Money>(), "-99999999999999999999999999999999999999.99" );
+      }
       //assert(0);
    }
    
@@ -273,6 +332,14 @@ void incorrect_construct() {
       construct_incorrect<Money<T>>(Constructor<T, Money>(), "-8577e+03");
       construct_incorrect<Money<T>>(Constructor<T, Money>(), "-8.577444e+02");
       construct_incorrect<Money<T>>(Constructor<T, Money>(), "8.577555e+02");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), ".50");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "50.");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-.50");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-50.");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), ".5");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "05.");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-.5");
+      construct_incorrect<Money<T>>(Constructor<T, Money>(), "-50.");
    }
    
    construct_incorrect<Money<T>>(Constructor<T, Money>(), "inf", 8);
