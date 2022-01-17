@@ -331,7 +331,7 @@ Type from_string(const string & STR, bool eof_checking) {
       throw bad_from_string {};
    if (eof_checking && ! stream.eof()) {
       cerr << " Type = " << typeid(Type).name() << '\n';
-      throw invalid_argument(__func__ + string(" entered string is not accepted format "));
+      throw invalid_argument(__func__ + string(" entered string '" + STR + "'is not accepted format "));
    }
    return result;
 }
@@ -350,7 +350,8 @@ Money<Integer>::Money(const string & dollars) {   // accept floating-point argum
    //T amount = from_string<T>(dollars);
    cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
    if (! regex_match(dollars, FLOAT_POINT_REGEX))
-      throw invalid_argument("Regex: entered string is not non-exponent floating-point format "); /*
+      throw invalid_argument(string(__func__) +  " Regex: entered string '"
+               + dollars + "' is not non-exponent floating-point format "); /*
    string dollars_string = dollars;
    size_t dot_position = dollars_string.find('.');
    dollars_string = dollars_string.substr(0, dot_position);
@@ -383,11 +384,13 @@ Money<T>::Money(const string & dollars) {   // accept floating-point arguments
    cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
    if (is_floating_point<T>::value) {
       if (! regex_match(dollars, E_FLOAT_POINT_REGEX)) 
-         throw invalid_argument("Regex: entered string is not floating-point format ");
+         throw invalid_argument(string(__func__) +  " Regex: entered string '"
+               + dollars + "' is not floating-point format ");
    }
    else if (numeric_limits<T>::is_integer) { 
       if (! regex_match(dollars, FLOAT_POINT_REGEX))
-         throw invalid_argument("Regex: entered string is not non-exponent floating-point format "); /*
+         throw invalid_argument(string(__func__) +  " Regex: entered string '"
+               + dollars + "' is not non-exponent floating-point format "); /*
       string dollars_string = dollars;
       size_t dot_position = dollars_string.find('.');
       dollars_string = dollars_string.substr(0, dot_position);

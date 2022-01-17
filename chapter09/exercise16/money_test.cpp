@@ -6,12 +6,11 @@
 
 #include <cmath>
 
+#include "integers_extremums_tests.hpp"
+
 using namespace std;
 using namespace integer_space;
 using namespace money;
-
-using std::is_signed;
-using std::is_unsigned;
   
 template <class Number, template<typename> class Money_Template>
 static void print_assert(const Money_Template<Number> & money, const string & expected = "") {
@@ -73,7 +72,7 @@ Money<T> construct_cents(const string & DOLLARS, const double CENTS, bool creati
 
 
 template <typename T> 
-Money<T> construct(const string & DOLLARS, bool creating, const string & expected = "") { 
+Money<T> construct(const string & DOLLARS, bool creating, const string & expected/* = ""*/) { 
    Money<T> money(DOLLARS);
    print_assert(money, expected);
    if (creating) {
@@ -117,6 +116,7 @@ void test_max_8bits_value() {
    //assert(false);
 }
 
+/*
 template <typename T, enable_if_t<numeric_limits<T>::is_integer, bool>  = true> 
 void construct_extremums() {
    const T MAX = numeric_limits<T>::max();
@@ -131,23 +131,25 @@ void construct_extremums() {
    string min_expected = min_str;
    min_expected.replace(min_str.size() - 3, 1, ",");
    
+   if (max_expected)
+   
    
    construct<T>(max_str, true, max_expected);
    construct<T>(min_str, true, min_expected);
 }
-
+*/
 void test_extremums() {
-   construct_extremums<char>();
-   construct_extremums<int_fast8_t>();
-   construct_extremums<short>();
-   construct_extremums<unsigned short>();
-   construct_extremums<int>();
-   construct_extremums<unsigned>();
-   construct_extremums<long>();
-   construct_extremums<unsigned long>();
-   construct_extremums<long long>();
-   construct_extremums<unsigned long long>();
-   construct_extremums<Integer>();
+   Integers_extremums_test<Integer>::test();
+   Integers_extremums_test<char>::test();
+   Integers_extremums_test<int_fast8_t>::test();
+   Integers_extremums_test<short>::test();
+   Integers_extremums_test<unsigned short>::test();
+   Integers_extremums_test<int>::test();
+   Integers_extremums_test<unsigned>::test();
+   Integers_extremums_test<long>::test();
+   Integers_extremums_test<unsigned long>::test();
+   Integers_extremums_test<long long>::test();
+   Integers_extremums_test<unsigned long long>::test();
 }
 
 template <typename T> 

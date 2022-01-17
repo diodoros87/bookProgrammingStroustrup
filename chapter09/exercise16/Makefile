@@ -76,7 +76,7 @@ integer_test: integer_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o integer_test integer_test.o integer.o integer_parsing.o parsing_test.o
 	
 
-money_test.o: money_test.cpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp
+money_test.o: money_test.cpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp
 	$(CXX) $(CPPFLAGS) -c money_test.cpp
 	
 fundamental_test.o: fundamental_test.cpp integer.hpp integer_parsing.hpp assertions.hpp parsing_test.hpp
