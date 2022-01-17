@@ -57,6 +57,36 @@ inline bool is_overflow(const Greater & x) {
    return x < numeric_limits<Smaller>::lowest() || x > numeric_limits<Smaller>::max();
 }
 
+template <typename Number, enable_if_t<
+              is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
+inline bool equal_integer(const Number x) {
+   cerr << __func__ << " x = " << std::to_string(x) << '\n';
+   cerr << " trunc(x) = " << std::to_string(trunc(x)) << '\n';
+   cerr << std::boolalpha << " isfinite(x) = " << isfinite(x) << '\n';
+   cerr << std::boolalpha << " x == trunc(x) = " << (x == trunc(x)) << '\n';
+   return isfinite(x) && x == trunc(x);
+}
+
+struct bad_from_string : public std::bad_cast {
+   const char * what() const noexcept override {
+      return "Bad cast from string";
+   }
+};
+
+template <typename Type>
+Type from_string(const string & STR, bool eof_checking) {
+   istringstream stream { STR };
+   Type result;
+   stream >> result;
+   if (!stream)
+      throw bad_from_string {};
+   if (eof_checking && ! stream.eof()) {
+      cerr << " Type = " << typeid(Type).name() << '\n';
+      throw invalid_argument(__func__ + string(" entered string '" + STR + "'is not accepted format "));
+   }
+   return result;
+}
+
 template<typename T>
 constexpr bool is_resetting_stream() {
    return is_convertible<T, stringstream>::value || is_convertible<T, istringstream>::value
@@ -93,7 +123,30 @@ public:
    Money(const string & dollars);            // constructors allow rounding of cents 
    // create methods disallow rounding of cents and accept only cents without fraction
    static Money create(const string & dollars, const long double cents);
-   static Money create(const string & dollars);
+   //static Money create(const string & dollars);
+   
+   template<typename U = T, enable_if_t<is_floating_point<U>::value, bool>  = true>
+   static Money<U> create(const string & dollars) {
+      const long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
+      if (! equal_integer<long double>(amount))
+         throw invalid_argument("Not exact value dollars = " + to_string(amount));
+      
+      Money<U> money = Money<U>(dollars);
+      return money;
+   }
+   
+   template<typename U = T, enable_if_t<numeric_limits<U>::is_integer, bool>  = true>
+   static Money<U> create(const string & dollars) {
+      const size_t dot_position = dollars.find('.');
+      if (dot_position != string::npos) {
+         static const regex EXACT = regex { R"(^[+-]?(\d+).\d[\d]?[0]*$)" } ;
+         if (! regex_match(dollars, EXACT))
+            throw invalid_argument(string(__func__) +  " Regex: entered string '"
+                  + dollars + "' is not exact format ");
+      }
+      Money<U> money = Money<U>(dollars);
+      return money;
+   }
    
    ~ Money() = default;
    Money(const Money &) = default;

@@ -7,10 +7,10 @@
 
 using std::numeric_limits;
 using std::enable_if_t;
-using std::isfinite;
+//using std::isfinite;
 using std::istringstream;
-using std::bad_cast;
-using std::trunc;
+//using std::bad_cast;
+//using std::trunc;
 
 namespace money {
    
@@ -35,16 +35,6 @@ const string UNSIGNED_LONG_NAME = typeid(0uL).name();
 const string UNSIGNED_LONG_LONG_NAME = typeid(numeric_limits<unsigned long long>::max()).name();
 const Integer INTEGER_OBJECT = Integer{};
 const string INTEGER_OBJECT_NAME = typeid(INTEGER_OBJECT).name();
-
-template <typename Number, enable_if_t<
-              is_floating_point<Number>::value || is_integral<Number>::value, bool> = true>
-inline bool equal_integer(const Number x) {
-   cerr << __func__ << " x = " << std::to_string(x) << '\n';
-   cerr << " trunc(x) = " << std::to_string(trunc(x)) << '\n';
-   cerr << std::boolalpha << " isfinite(x) = " << isfinite(x) << '\n';
-   cerr << std::boolalpha << " x == trunc(x) = " << (x == trunc(x)) << '\n';
-   return isfinite(x) && x == trunc(x);
-}
 
 inline void validate_cents(const long double & cents) {
    if (0 > cents || cents >= CENTS_PER_DOLLAR) {
@@ -316,26 +306,6 @@ Money<T>::Money(const string & dollars, const long double cents) {
    else
       cerr << __func__ << " this->amount_in_cents = '" << TYPE_NAME << "' " << this->amount_in_cents << '\n';   
 }
- 
-struct bad_from_string : public bad_cast {
-   const char * what() const noexcept override {
-      return "Bad cast from string";
-   }
-};
- 
-template <typename Type>
-Type from_string(const string & STR, bool eof_checking) {
-   istringstream stream { STR };
-   Type result;
-   stream >> result;
-   if (!stream)
-      throw bad_from_string {};
-   if (eof_checking && ! stream.eof()) {
-      cerr << " Type = " << typeid(Type).name() << '\n';
-      throw invalid_argument(__func__ + string(" entered string '" + STR + "'is not accepted format "));
-   }
-   return result;
-}
 
 template <typename Type, enable_if_t<numeric_limits<Type>::is_integer, bool> = true>
 Type get_amount_by_Integer(const string & STR) {
@@ -440,33 +410,6 @@ Money<long double> Money<long double>::create(const string & dollars) {
    return money;
 }
 */
-template <typename T>
-Money<T> Money<T>::create(const string & dollars) {
-   const size_t dot_position = dollars.find('.');
-   if (dot_position != string::npos) {
-      if (numeric_limits<T>::is_integer) {
-         if (dot_position != string::npos) { 
-            static const regex EXACT = regex { R"(^[+-]?(\d+).\d[\d]?[0]*$)" } ;
-            if (! regex_match(dollars, EXACT))
-               throw invalid_argument(string(__func__) +  " Regex: entered string '"
-                     + dollars + "' is not exact format ");
-         }
-      }
-      else if (is_floating_point<T>::value) {
-         const long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
-         if (! equal_integer<long double>(amount))
-            throw invalid_argument("Not exact value dollars = " + to_string(amount));
-      }
-   }
-   
-   //static const regex EXACT = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)$)" } ;
-   //const long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
-   Money<T> money = Money<T>(dollars);
-   //const long double amount_2 = static_cast<long double>(money.get_amount_in_cents());
-   //if (amount_2 != amount)
-   //   throw invalid_argument("Not exact value dollars = " + to_string(amount) + " != " + to_string(amount_2));
-   return money;
-}
 
 template <typename T>
 Money<T> Money<T>::create(const string & dollars, const long double cents) {   
