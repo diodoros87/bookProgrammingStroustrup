@@ -7,6 +7,10 @@
 #include <iomanip>
 #include <regex>
 
+#include <cmath>
+
+#include "integer.hpp"
+
 using std::ostream;
 using std::istream;
 using std::string;
@@ -25,6 +29,7 @@ using std::is_convertible;
 using std::signbit;
 using std::regex;
 using std::trunc;
+using std::floor;
 
 using integer_space::Integer;
 
@@ -36,6 +41,8 @@ const regex E_FLOAT_POINT_REGEX = regex { R"(^[+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|
 const regex FLOAT_POINT_REGEX   = regex { R"(^[+-]?(\d+([.]\d*)?|[.]\d+)$)" } ;
 const regex INTEGER_REGEX       = regex { R"(^[+-]?(\d+)$)" } ;
 const regex MINUS_ZERO_REGEX    = regex { R"(^-0([.][0-9]+)?$)" } ;
+
+extern const Integer CENTS_PER_DOLLAR_INTEGER;
 
 template<typename Greater>
 bool is_overflow_for_Integer(const Greater & x) {
@@ -163,12 +170,52 @@ public:
    Money operator-() const { return Money(-amount_in_cents); }  // unsigned ???
    Money operator+() const { return *this; }
    
-   Money operator+(const Money& other) const { return Money(-amount_in_cents); }
+   Money operator+(const Money& other) const ;//{ return Money(-amount_in_cents); }
    Money operator-(const Money& other) const { return operator+(-other); }
+   
+   template<typename Greater>
+   Money operator+(const Money& other) const;
+   
+   template<typename U = T, enable_if_t<is_floating_point<U>::value, bool>  = true>
+   Money operator+(const Money& other) const {
+      
+   }
+   
+   template<typename Greater, typename U = T, enable_if_t<is_floating_point<U>::value, bool>  = true>
+   Money operator+(const Money& other) const {
+      //static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
+      //                     ! is_same<Greater, Integer>::value );
+      Greater sum = Greater(this->amount_in_cents) + Greater(other->amount_in_cents);
+      sum = Money<Greater>::round(sum);
+      cerr << __func__ << " sum = " << sum << '\n';
+      if (is_overflow<T, Greater>(sum))
+         throw out_of_range(__func__ + "amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
+      const string dollars = std::to_string(sum);
+      Money<T> result = Money<T>(dollars);
+      cerr << __func__ << " result = " << result << '\n';
+      return result;
+   }
+   
+   template<typename Greater, typename U = T, enable_if_t<numeric_limits<U>::value, bool>  = true>
+   Money operator+(const Money& other) const {
+      //static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
+      //                     ! is_same<Greater, Integer>::value );
+      Integer sum = Integer::create_Integer(this->amount_in_cents) + Integer::create_Integer(other->amount_in_cents);
+      //sum = Money<Greater>::round(sum);
+      cerr << __func__ << " sum = " << sum << '\n';
+      if (Integer::is_overflow<T>(sum))
+         throw out_of_range(__func__ + " amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
+      const string dollars = std::to_string(sum);
+      Money<T> result = Money<T>(dollars);
+      cerr << __func__ << " result = " << result << '\n';
+      return result;
+   }
+   
+   
    template<typename Greater>
    Money operator*(const T & n) const;
    Money operator*(const T & n) const;
-   //Money operator/(const T & n) const;
+   Money operator/(const T & n) const;
    
    bool operator==(const Money& other) const { return amount_in_cents == other.amount_in_cents; }
    bool operator!=(const Money& other) const { return !(*this == other); } ;
@@ -185,8 +232,8 @@ public:
    
    //template <typename Type, enable_if_t<is_integral<Type>::value, bool> = true>
    Integer get_dollars(const Integer &) const { 
-      static const Integer CONV = Integer::create_Integer(CENTS_PER_DOLLAR);
-      return amount_in_cents / CONV;   
+      //static const Integer CONV = Integer::create_Integer(CENTS_PER_DOLLAR);
+      return amount_in_cents / CENTS_PER_DOLLAR_INTEGER;   
    }
 
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
@@ -198,8 +245,8 @@ public:
    }
    
    Integer get_cents(const Integer &) const { 
-      static const Integer CONV = Integer::create_Integer(CENTS_PER_DOLLAR);
-      return amount_in_cents % CONV;
+      //static const Integer CONV = Integer::create_Integer(CENTS_PER_DOLLAR);
+      return amount_in_cents % CENTS_PER_DOLLAR_INTEGER;
    }
    
    template <typename Type, enable_if_t<is_floating_point<Type>::value, bool> = true>
@@ -225,8 +272,10 @@ public:
    Money operator%(Money&&) = delete;
 
 private:
-   template<typename Greater>
-   T calculate(const T & dollars, const long double cents = INCORRECT_CENTS) const;
+   template <typename Greater>
+   T calculate(const T & dollars, const long double cents = INCORRECT_CENTS   ) const;
+   
+   
    
    T calculate_by_Integer(const T & dollars, const long double cents = INCORRECT_CENTS) const;
    
@@ -341,8 +390,9 @@ private:
       *os << setw(2) << (cents < 0 ? -cents : cents);
       return *os;
    }
-
-   ostringstream& operator<<(ostringstream * os, const Money<Integer>& money) {
+   
+   template <class Number, template<typename> class Money_Template, enable_if_t<is_same<Number, Integer>::value, bool> = true>
+   ostringstream& operator<<(ostringstream * os, const Money_Template<Number>& money) {
       validate_pointer(os);
       Integer dollars = money.get_dollars(Money<Integer>::TYPE_DEFAULT_OBJECT);
       Integer cents = money.get_cents(Money<Integer>::TYPE_DEFAULT_OBJECT);
@@ -366,12 +416,12 @@ private:
    }
 
 
-template <class Number, enable_if_t<is_floating_point<Number>::value || numeric_limits<Number>::is_integer, bool> = true>
-ostream& operator<<(ostream& os, const Money<Number>& money) {
-   ostringstream ostrs;
-   string output = operator<<(&ostrs, money).str();
-   return os << output;
-}
+   template <class Number, enable_if_t<is_floating_point<Number>::value || numeric_limits<Number>::is_integer, bool> = true>
+   ostream& operator<<(ostream& os, const Money<Number>& money) {
+      ostringstream ostrs;
+      string output = operator<<(&ostrs, money).str();
+      return os << output;
+   }
 #else
 
 template <class Number, enable_if_t<numeric_limits<Number>::is_integer || is_floating_point<Number>::value, bool> = true>

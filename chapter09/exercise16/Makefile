@@ -60,8 +60,8 @@ ${LIBXMLNAME}/${LIBXMLNAME}.o: ${LIBXML_HEADER_DIR}/${LIBXMLNAME}.cpp
 
 
 
-money_test: money_test.o integer.o integer_parsing.o 
-	$(CXX) $(CPPFLAGS) -o money_test money_test.o integer.o integer_parsing.o
+money_test: money_test.o integer.o integer_parsing.o money_init_test.o money.o
+	$(CXX) $(CPPFLAGS) -o money_test money_test.o integer.o integer_parsing.o money_init_test.o money.o
 
 fundamental_test: fundamental_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o fundamental_test fundamental_test.o integer.o integer_parsing.o parsing_test.o
@@ -76,8 +76,14 @@ integer_test: integer_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o integer_test integer_test.o integer.o integer_parsing.o parsing_test.o
 	
 
-money_test.o: money_test.cpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp
+money_test.o: money_test.cpp money.cpp money_init_test.hpp integers_extremums_tests.hpp money_utility_test.hpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp
 	$(CXX) $(CPPFLAGS) -c money_test.cpp
+	
+money_init_test.o: money_init_test.cpp money_init_test.hpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_utility_test.hpp
+	$(CXX) $(CPPFLAGS) -c money_init_test.cpp
+	
+money.o: money.cpp money.hpp money_utility.cpp
+	$(CXX) $(CPPFLAGS) -c money_utility.cpp -o money.o
 	
 fundamental_test.o: fundamental_test.cpp integer.hpp integer_parsing.hpp assertions.hpp parsing_test.hpp
 	$(CXX) $(CPPFLAGS) -c fundamental_test.cpp

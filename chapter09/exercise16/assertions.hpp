@@ -84,7 +84,7 @@ inline void GENERAL_ASSERT(const char* expr_str, const bool expr, const char* fi
    }
 }
 
-void INTEGER_ASSERT(const Integer& x, const char expected_signum, const string& expected_number,
+inline void INTEGER_ASSERT(const Integer& x, const char expected_signum, const string& expected_number,
                   const char* file, const int line,
                   const char* date, const char* time) {
    const string signum_str = expected_signum == Integer::NEUTRAL ? "" : string(1, expected_signum);
@@ -96,7 +96,7 @@ void INTEGER_ASSERT(const Integer& x, const char expected_signum, const string& 
    }
 }
 
-void ASSERT_INTEGER(const Integer& x, const string& expected_number,
+inline void ASSERT_INTEGER(const Integer& x, const string& expected_number,
                   const char* file, const int line,
                   const char* date, const char* time) {
    const string signum_str = expected_number == "0" ? "" : string(1, x.get_signum());
@@ -108,7 +108,7 @@ void ASSERT_INTEGER(const Integer& x, const string& expected_number,
    }
 }
 
-void ASSERT_NUMBER_INTEGER(const long long & NUMBER, const Integer & OBJECT,
+inline void ASSERT_NUMBER_INTEGER(const long long & NUMBER, const Integer & OBJECT,
                      const char* file, const int line,
                      const char* date, const char* time) {
    ostringstream stream;
