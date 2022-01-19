@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 
-#CXX = clang
+CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -Wconversion
+CXX = clang
 #CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -L/usr/lib -lstdc++ -lm -v
 #  -fcompare-debug-second -Wconversion
-GCC_CPPFLAGS = -fcompare-debug-second -DMESSAGE='"Compiled with GCC"'
+GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'
 CLANG_CPPFLAGS = -L/usr/lib -lstdc++ -lm -DMESSAGE='"Compiled with Clang"'
 
 ifeq ($(CXX), g++)
@@ -60,8 +60,8 @@ ${LIBXMLNAME}/${LIBXMLNAME}.o: ${LIBXML_HEADER_DIR}/${LIBXMLNAME}.cpp
 
 
 
-money_test: money_test.o integer.o integer_parsing.o money_init_test.o money.o
-	$(CXX) $(CPPFLAGS) -o money_test money_test.o integer.o integer_parsing.o money_init_test.o money.o
+money_test: money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o
+	$(CXX) $(CPPFLAGS) -o money_test money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o
 
 fundamental_test: fundamental_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o fundamental_test fundamental_test.o integer.o integer_parsing.o parsing_test.o
@@ -76,8 +76,11 @@ integer_test: integer_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o integer_test integer_test.o integer.o integer_parsing.o parsing_test.o
 	
 
-money_test.o: money_test.cpp money.cpp money_init_test.hpp integers_extremums_tests.hpp money_utility_test.hpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp
+money_test.o: money_test.cpp money.cpp money_init_test.hpp money_init_test.cpp integers_extremums_tests.hpp money_utility_test.hpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_operations_test.hpp money_operations_test.cpp
 	$(CXX) $(CPPFLAGS) -c money_test.cpp
+	
+money_operations_test.o: money_operations_test.cpp money_operations_test.hpp money_init_test.cpp money_init_test.hpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_utility_test.hpp
+	$(CXX) $(CPPFLAGS) -c money_operations_test.cpp
 	
 money_init_test.o: money_init_test.cpp money_init_test.hpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_utility_test.hpp
 	$(CXX) $(CPPFLAGS) -c money_init_test.cpp

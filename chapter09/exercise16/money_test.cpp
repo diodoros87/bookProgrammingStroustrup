@@ -4,6 +4,7 @@
 #include "assertions.hpp"
 #include "money.hpp"
 #include "money_init_test.hpp"
+#include "money_operations_test.hpp"
 
 #include <functional>
 
@@ -48,7 +49,7 @@ static inline  bool call_function(Function && func, Args&&... args) {
 }
 
 bool perform_tests() {
-   initializer_list < function <void()> > vec = { bind(money_init_test::perform),// bind(tests::test_demo_derived), 
+   initializer_list < function <void()> > vec = { bind(money_init_test::perform), bind(money_operations_test::perform) 
                      /* bind(tests::test_human), bind(tests::test_human_derived)
                      , bind(tests::test_money)
                      , bind(tests::test_base), bind(tests::test_derived)

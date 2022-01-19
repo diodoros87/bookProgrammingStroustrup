@@ -223,7 +223,7 @@ Money<T>::Money(const string & dollars, const long double cents) {
    if (! regex_match(dollars, INTEGER_REGEX)) 
       throw invalid_argument("Regex: dollars must be integer number ");
    string dollars_string = dollars;
-   T amount = get_amount(dollars_string);
+   T amount = Money<T>::get_amount(dollars_string);
    if (is_floating_point<T>::value) 
       this->amount_in_cents = calculate<long double>(amount, cents);
    else if (numeric_limits<T>::is_integer) 

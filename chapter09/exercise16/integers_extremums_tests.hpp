@@ -16,10 +16,6 @@ using std::numeric_limits;
 using money::Money;
 using std::cerr;
 using integer_space::Integer;
-//using money_init_test::construct;
-
-//extern string std::to_string(const integer_space::Integer& integer);
-//string to_string(const integer_space::Integer & integer);
 
 namespace money_init_test {
    template <typename T>

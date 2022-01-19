@@ -5,8 +5,9 @@
 namespace money {
    
 const Integer CENTS_PER_DOLLAR_INTEGER = Integer::create_Integer(CENTS_PER_DOLLAR);
+
 //#if defined(__clang__)
-template <>
+template<>
 Integer Money<Integer>::get_amount(const string & STR) {
    return Integer::parse_create(STR);
 }
@@ -44,7 +45,7 @@ Money<Integer>::Money(const string & dollars, const long double cents) {
    string dollars_string = dollars;
    if (regex_match(dollars, MINUS_ZERO_REGEX))
       dollars_string = dollars.substr(1);
-   Integer amount = get_amount(dollars_string);
+   Integer amount = Money<Integer>::get_amount(dollars_string);
    //this->amount_in_cents = calculate<long double>(amount, cents);
    this->amount_in_cents = calculate_by_Integer(amount, cents);
    cerr << __func__ << " amount = '" << amount << "' std::signbit = '" << std::boolalpha << std::signbit(amount) << "' \n";  
