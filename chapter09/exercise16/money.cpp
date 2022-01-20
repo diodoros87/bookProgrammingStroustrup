@@ -438,21 +438,6 @@ Money<T> Money<T>::operator*(const T & FACTOR) const {
    return result;
 }
 
-template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
-            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
-Money<Smaller> operator+(const Money<Smaller>& A, const Money<Smaller>& B) {
-   static const string TYPE_NAME = typeid(Smaller).name();
-   Greater sum = Greater(A.amount_in_cents) + Greater(B.amount_in_cents);
-   sum = Money<Greater>::round(sum);
-   cerr << __func__ << " sum = " << sum << '\n';
-   if (is_overflow<Smaller, Greater>(sum))
-      throw out_of_range(__func__ + "amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
-   const string dollars = std::to_string(sum);
-   Money<Smaller> result = Money<Smaller>(dollars);
-   cerr << __func__ << " result = " << result << '\n';
-   return result;
-}
-
 /*
 Money Money::operator+(const Money& other) const { 
    long n = numerator * other.denominator + denominator * other.numerator;

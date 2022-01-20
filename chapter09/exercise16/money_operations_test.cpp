@@ -66,7 +66,7 @@ void binary_operation(Type& (Type::*func)(const Type&) /*const*/, const string &
    const Type B(B_DOLLARS, B_CENTS);
    Type RESULT = (A.*func)(B);
    print_assert(RESULT, expected);
-   A + B;
+   //A + B;
    print_assert(A, expected);
 }
 
@@ -356,6 +356,10 @@ void perform() {
    //binary_operation<Money<char>>(&Money<char>::operator+, "0", 23, "0", 34, "0,57");
    test_adding<Integer, Money>("100", 23, "-450", 34, "-350,11");
    test_adding<char, Money>("0", 23, "0", 34, "0,57");
+   test_adding<char, Money>("-0", 23, "-0", 34, "-0,57");
+   test_adding<char, Money>("-0", 23, "0", 34, "0,11");
+   test_adding<char, Money>("0", 23, "-0", 34, "-0,11");
+   
    
    ///binary_operation<Money<Integer>>(&Money<Integer>::operator+, "100", 23, "-450", 34, "-350,11");
    //binary_operation<Money<Integer>>(Money<Integer> (&operator+)(const Money<Integer> &, const Money<Integer> &), "100", 23, "-450", 34, "-350,11");
