@@ -60,15 +60,22 @@ void construct_incorrect(Function && f, Args&&... args ) {
 //typedef  int (Fred::*FredMemFn)(char x, float y);
 //template <typename T, typename T (T::*oper)(const& T)> 
 template <typename Type> 
-void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
+void binary_operation(Type& (Type::*func)(const Type&) /*const*/, const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
+                      const double B_CENTS, const string & expected = "") { 
+   Type       A(A_DOLLARS, A_CENTS);
+   const Type B(B_DOLLARS, B_CENTS);
+   Type RESULT = (A.*func)(B);
+   print_assert(RESULT, expected);
+   A + B;
+   print_assert(A, expected);
+}
+
+template <typename Type, typename Function> 
+void binary_operation(Function && func, const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
                       const double B_CENTS, const string & expected = "") { 
    const Type A(A_DOLLARS, A_CENTS);
    const Type B(B_DOLLARS, B_CENTS);
-   //function<void(const string&)> set = bind(func, std::ref(A), _1);
-   //A.func(B);
-   //const Money<T> RESULT = func(A, B);
-   //const Type RESULT = (A).*(func)(B);
-   const Type RESULT = (A.*func)(B);
+   const Type RESULT = func(A, B);
    print_assert(RESULT, expected);
 }
 
@@ -337,14 +344,23 @@ void test_Integer_overflow() {
 }
 */
 
-
-
-
-
+template <typename Type, template<typename> class Template>
+inline void test_adding(const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
+                      const double B_CENTS, const string & expected = "") { 
+   binary_operation<Template<Type>> (&Template<Type>::operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+   binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+}
 
 void perform() {
    //binary_operation<char, Money<char> Money<char>::(const Money<char>& other)>(Money<char>::operator+, "23", 0, "34", 0, "57,00");
-   binary_operation<Money<char>>(&Money<char>::operator+, "0", 23, "0", 34, "0,57");
+   //binary_operation<Money<char>>(&Money<char>::operator+, "0", 23, "0", 34, "0,57");
+   test_adding<Integer, Money>("100", 23, "-450", 34, "-350,11");
+   test_adding<char, Money>("0", 23, "0", 34, "0,57");
+   
+   ///binary_operation<Money<Integer>>(&Money<Integer>::operator+, "100", 23, "-450", 34, "-350,11");
+   //binary_operation<Money<Integer>>(Money<Integer> (&operator+)(const Money<Integer> &, const Money<Integer> &), "100", 23, "-450", 34, "-350,11");
+   ///binary_operation<Money<Integer>, Money<Integer>(const Money<Integer>&, const Money<Integer>&)>(operator+, "100", 23, "-450", 34, "-350,11");
+   //binary_operation<Money<Integer>>(&Money<Integer>::operator*, "100", 23, "-450", 34, "-350,11");
    /*
    binary_operation<int_fast8_t>();
    binary_operation<short>();

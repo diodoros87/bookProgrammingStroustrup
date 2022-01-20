@@ -107,6 +107,32 @@ Money<Integer>::operator string() const {
    out += formatted_string(dollars, cents);
    return out;
 }
+
+template<>
+Money<Integer>& Money<Integer>::operator+(const Money<Integer>& other) {
+   this->amount_in_cents += other.amount_in_cents;
+   cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
+   return *this;
+}
+
+Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b) {
+   Integer sum = Integer::create_Integer(a.amount_in_cents) + Integer::create_Integer(b.amount_in_cents);
+   cerr << __func__ << " sum = " << sum << '\n';
+   const Integer dollars = sum / CENTS_PER_DOLLAR_INTEGER;
+   Integer cents = sum % CENTS_PER_DOLLAR_INTEGER;
+   //if (Integer::MINUS == cents.get_signum())
+   //   cents.set_signum(Integer::PLUS);
+   cents = std::move(std::abs(cents));
+   //const Money<U> addition = static_cast<U>(sum);
+   //const U dollars = addition.get_dollars(Money<U>::TYPE_DEFAULT_OBJECT);
+   //const U cents = addition.get_cents(Money<U>::TYPE_DEFAULT_OBJECT);
+   Money<Integer> result = Money<Integer>(std::to_string(dollars), static_cast<long double>(cents));
+   cerr << __func__ << " result = " << result << '\n';
+   return result;
+}
+
+//template<typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
+//            is_integral<Smaller>::value, bool> = true >
    
    /*
 #ifdef DEBUG_OSTREAM

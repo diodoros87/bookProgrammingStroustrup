@@ -27,6 +27,14 @@ bool signbit(const integer_space::Integer & integer) {
       return true;
    return false;
 }
+
+Integer abs(const Integer & integer) {
+   Integer result = integer;
+   if (Integer::MINUS == integer.get_signum())
+      result.set_signum(Integer::PLUS);
+   return result;
+}
+
 }
 
 namespace integer_space {
