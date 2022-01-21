@@ -100,6 +100,26 @@ constexpr bool is_resetting_stream() {
                || is_convertible<T, ostringstream>::value;
 }
 
+template<typename Greater, typename Smaller, enable_if_t<! is_same<Greater, Integer>::value>, bool = true >
+constexpr bool is_NOT_smaller() {
+   return (false == is_same<Greater, Smaller>::value) && 
+   (numeric_limits<Greater>::lowest() <= numeric_limits<Smaller>::lowest()
+     || numeric_limits<Greater>::max() >= numeric_limits<Smaller>::max());
+}
+
+template<typename Greater, typename Smaller >
+constexpr bool is_NOT_smaller() {
+   return (false == is_same<Greater, Smaller>::value) && 
+   (numeric_limits<Greater>::lowest() <= numeric_limits<Smaller>::lowest()
+     || numeric_limits<Greater>::max() >= numeric_limits<Smaller>::max());
+}
+/*
+template<typename Greater, typename Smaller, enable_if_t<! is_same<Greater, Integer>::value && is_same<Smaller, Integer>::value>, bool = true>
+constexpr bool is_NOT_smaller() {
+   return (numeric_limits<Greater>::lowest() <= static_cast<Greater>(numeric_limits<Smaller>::lowest())
+     || numeric_limits<Greater>::max() >= static_cast<Greater>(numeric_limits<Smaller>::max()));
+}
+*/
 template<typename T>
 void reset(T & stream) {
    static_assert(is_resetting_stream<T>());
@@ -174,23 +194,25 @@ public:
    Money operator-(const Money& other) const { return operator+(-other); }
    
    //Money<Integer> operator+(const Money<Integer>& other) const;
-   Money<Integer>& operator+(const Money<Integer>& other);
+   //Money<Integer>& operator+=(const Money<Integer>& other);
+   //Money<long double>& operator+=(const Money<long double>& other);
+   
+   template<typename U = T, enable_if_t<is_same<U, long double>::value || is_same<U, Integer>::value, bool>  = true>
+   Money& operator+=(const Money& other) {
+      this->amount_in_cents += other.amount_in_cents;
+      cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
+      return *this;
+   }
    
    template<typename U = T, enable_if_t<is_integral<U>::value, bool>  = true>
-   Money<U>& operator+(const Money<U>& other) {
-      //static_assert((numeric_limits<U>::is_integer);
-      operator+<Integer, U>(other);
-      return *this;
+   Money<U>& operator+=(const Money<U>& other) {
+      return operator+=<Integer, U>(other);
    }
    
-   template<typename U = T, enable_if_t<is_floating_point<U>::value, bool>  = true>
-   Money<U>& operator+(const Money<U>& other) {
-      //static_assert((numeric_limits<U>::is_integer);
-      //                     ! is_same<Greater, Integer>::value );
-      operator+<long double, U>(other);
-      return *this;
+   template<typename U = T, enable_if_t<is_floating_point<U>::value && ! is_same<U, long double>::value, bool>  = true>
+   Money<U>& operator+=(const Money<U>& other) {
+      return operator+=<long double, U>(other);
    }
-   
    
    template<typename Greater>
    Money operator*(const T & n) const;
@@ -249,17 +271,24 @@ public:
    Money operator%(Money) = delete;
    Money operator%(Money&&) = delete;
    
-   friend Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b);
-   
+   //friend Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b);
+   //friend Money<long long> operator+(const Money<long long>& a, const Money<long long>& b);
+   template <typename Type, enable_if_t<is_same<Type, Integer>::value || is_same<Type, long double>::value, bool > >
+   friend Money<Type> operator+(const Money<Type>& a, const Money<Type>& b);
+   /*
    template<typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
             is_integral<Smaller>::value, bool> >
    friend Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);
+   *
+   template<typename Greater, typename Smaller, enable_if_t<(is_floating_point<Smaller>::value && ! is_same<Greater, long double>::value)
+            || (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
+   friend Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);*/
    
    template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
             (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
    friend Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);
    
-   template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool>/*  = true*/>
+   template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> >
    friend Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);
 
 private:
@@ -273,37 +302,27 @@ private:
    
    template<typename Greater, typename U = T, enable_if_t<is_floating_point<U>::value ||
             (is_integral<U>::value && ! is_same<Greater, Integer>::value), bool>  = true>
-   Money& operator+(const Money<U>& other) {
-      //static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
-      //                     ! is_same<Greater, Integer>::value );
-      Greater sum = Greater(this->amount_in_cents) + Greater(other->amount_in_cents);
+   Money& operator+=(const Money<U>& other) {
+      static_assert(is_NOT_smaller<Greater, U>() && "is_NOT_smaller<Greater, U> required");
+      Greater sum = Greater(this->amount_in_cents) + Greater(other.amount_in_cents);
       sum = Money<Greater>::round(sum);
       cerr << __func__ << " sum = " << sum << '\n';
       if (is_overflow<T, Greater>(sum))
-         throw out_of_range(__func__ + "amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
-      this->amount_in_cents = sum;
+         throw out_of_range(string(__func__) + " amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
+      this->amount_in_cents = static_cast<U>(sum);
       cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
       return *this;
    }
    
    template<typename Greater, typename U = T, enable_if_t<is_integral<U>::value && is_same<Greater, Integer>::value, bool>  = true>
-   Money& operator+(const Money<U>& other) {
-      //static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
-      //                     ! is_same<Greater, Integer>::value );
+   Money& operator+=(const Money<U>& other) {
+      //static_assert(is_NOT_smaller<Greater, U>() && "is_NOT_smaller<Greater, U> required");
       Integer sum = Integer::create_Integer(this->amount_in_cents) + Integer::create_Integer(other.amount_in_cents);
-      //sum = Money<Greater>::round(sum);
       cerr << __func__ << " sum = " << sum << '\n';
       if (Integer::is_overflow<T>(sum))
          throw out_of_range(string(__func__) + " amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
-      this->amount_in_cents = sum;
+      this->amount_in_cents = sum.operator U();
       cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
-      //const Integer dollars = sum / CENTS_PER_DOLLAR_INTEGER;
-      //const Integer cents = sum % CENTS_PER_DOLLAR_INTEGER;
-      //const Money<U> addition = static_cast<U>(sum);
-      //const U dollars = addition.get_dollars(Money<U>::TYPE_DEFAULT_OBJECT);
-      //const U cents = addition.get_cents(Money<U>::TYPE_DEFAULT_OBJECT);
-      //Money<T> result = Money<T>(std::to_string(dollars), static_cast<long double>(cents));
-      //cerr << __func__ << " result = " << result << '\n';
       return *this;
    }
    
@@ -504,29 +523,16 @@ ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
 }
 #endif
 
-Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b);
+//Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b);
+//Money<long long> operator+(const Money<long long>& a, const Money<long long>& b);
 /*
-template<typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
-            is_integral<Smaller>::value, bool> = true >
-Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);
-*/
 template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
-            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> = true >
+            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool>  >
 Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);
 
 template<typename Greater, typename Smaller, enable_if_t<
-            is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> = true >
-Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);
-
-template<typename Smaller, enable_if_t<is_integral<Smaller>::value, bool>  = true>
-Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
-   return operator+<Integer, Smaller>(a, b);
-}
-
-template<typename Smaller, enable_if_t<is_floating_point<Smaller>::value, bool>  = true>
-Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
-   return operator+<long double, Smaller>(a, b);
-}
+            is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool>  >
+Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);*/
 /*
 template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
             (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
@@ -545,41 +551,14 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
    return result;
 }
 */
-template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool>/*  = true*/>
-Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
-   //static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
-   //                     ! is_same<Greater, Integer>::value );
-   static const string TYPE_NAME = typeid(Smaller).name();
-   Integer sum = Integer::create_Integer(a.amount_in_cents) + Integer::create_Integer(b.amount_in_cents);
-   //sum = Money<Greater>::round(sum);
-   cerr << __func__ << " sum = " << sum << '\n';
-   if (Integer::is_overflow<Smaller>(sum))
-      throw out_of_range(string(__func__) + " amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
-   const Integer dollars = sum / CENTS_PER_DOLLAR_INTEGER;
-   Integer cents = sum % CENTS_PER_DOLLAR_INTEGER;
-   cents = std::move(std::abs(cents));
-   //const Money<U> addition = static_cast<U>(sum);
-   //const U dollars = addition.get_dollars(Money<U>::TYPE_DEFAULT_OBJECT);
-   //const U cents = addition.get_cents(Money<U>::TYPE_DEFAULT_OBJECT);
-   Money<Smaller> result = Money<Smaller>(std::to_string(dollars), static_cast<long double>(cents));
-   cerr << __func__ << " result = " << result << '\n';
-   return result;
-}
 
-template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
-            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool  /*= true */> >
-Money<Smaller> operator+(const Money<Smaller>& A, const Money<Smaller>& B) {
-   static const string TYPE_NAME = typeid(Smaller).name();
-   Greater sum = Greater(A.amount_in_cents) + Greater(B.amount_in_cents);
-   sum = Money<Greater>::round(sum);
-   cerr << __func__ << " sum = " << sum << '\n';
-   if (is_overflow<Smaller, Greater>(sum))
-      throw out_of_range(__func__ + "amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
-   const string dollars = std::to_string(sum);
-   Money<Smaller> result = Money<Smaller>(dollars);
-   cerr << __func__ << " result = " << result << '\n';
-   return result;
-}
+struct Constructor_Args {
+   const string DOLLARS;
+   const long double CENTS;
+};
+
+Constructor_Args constructor_args(const Integer& AMOUNT);
+
 
 }
 

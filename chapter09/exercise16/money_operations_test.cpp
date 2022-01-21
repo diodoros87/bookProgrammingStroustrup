@@ -66,17 +66,37 @@ void binary_operation(Type& (Type::*func)(const Type&) /*const*/, const string &
    const Type B(B_DOLLARS, B_CENTS);
    Type RESULT = (A.*func)(B);
    print_assert(RESULT, expected);
-   //A + B;
+   cerr << "\n A + B = \n";
+   A += B;
+   B += A;
+   //print_assert(A, expected);
+}
+
+template <typename Type> 
+void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
+                      const double B_CENTS, const string & expected = "") { 
+   Type       A(A_DOLLARS, A_CENTS);
+   const Type B(B_DOLLARS, B_CENTS);
+   Type RESULT = (A.*func)(B);
+   print_assert(RESULT, expected);
+   cerr << "\n A + B = \n";
+   A + B;
+   B + A;
    print_assert(A, expected);
 }
 
 template <typename Type, typename Function> 
 void binary_operation(Function && func, const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
                       const double B_CENTS, const string & expected = "") { 
-   const Type A(A_DOLLARS, A_CENTS);
+   Type A(A_DOLLARS, A_CENTS);
    const Type B(B_DOLLARS, B_CENTS);
    const Type RESULT = func(A, B);
    print_assert(RESULT, expected);
+   A + B;
+   B + A;
+   A += B;
+   A += A;
+   //B += A;
 }
 
 template <typename T, typename Function> 
@@ -344,22 +364,44 @@ void test_Integer_overflow() {
 }
 */
 
-template <typename Type, template<typename> class Template>
+template <typename Type, template<typename> class Template = Money>
 inline void test_adding(const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
                       const double B_CENTS, const string & expected = "") { 
-   binary_operation<Template<Type>> (&Template<Type>::operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+   //binary_operation<Template<Type>> (&Template<Type>::operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
    binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+}
+
+template <typename T, template<typename> class Template = Money>
+void perform() {
+   if (numeric_limits<T>::is_signed) {
+      if (! is_same<T, char>::value &&  ! is_same<T, int_fast8_t>::value) {
+         if (! is_same<T, short>::value &&  ! is_same<T, unsigned short>::value)
+            test_adding<T>("100", 23, "-450", 34, "-350,11");
+      }
+      test_adding<T, Template>("-0", 23, "-0", 34, "-0,57");
+      test_adding<T, Template>("-0", 23, "0", 34, "0,11");
+      test_adding<T, Template>("0", 23, "-0", 34, "-0,11");
+   }
+   test_adding<T>("0", 23, "0", 34, "0,57");
 }
 
 void perform() {
    //binary_operation<char, Money<char> Money<char>::(const Money<char>& other)>(Money<char>::operator+, "23", 0, "34", 0, "57,00");
    //binary_operation<Money<char>>(&Money<char>::operator+, "0", 23, "0", 34, "0,57");
-   test_adding<Integer, Money>("100", 23, "-450", 34, "-350,11");
-   test_adding<char, Money>("0", 23, "0", 34, "0,57");
-   test_adding<char, Money>("-0", 23, "-0", 34, "-0,57");
-   test_adding<char, Money>("-0", 23, "0", 34, "0,11");
-   test_adding<char, Money>("0", 23, "-0", 34, "-0,11");
-   
+   perform<Integer, Money>();
+   perform<char>();
+   perform<int_fast8_t>();
+   perform<short>();
+   perform<unsigned short>();
+   perform<int>();
+   perform<unsigned>();
+   perform<long>();
+   perform<unsigned long>();
+   perform<long long>();
+   perform<unsigned long long>();
+   perform<float>();
+   perform<double>();
+   perform<long double>();
    
    ///binary_operation<Money<Integer>>(&Money<Integer>::operator+, "100", 23, "-450", 34, "-350,11");
    //binary_operation<Money<Integer>>(Money<Integer> (&operator+)(const Money<Integer> &, const Money<Integer> &), "100", 23, "-450", 34, "-350,11");

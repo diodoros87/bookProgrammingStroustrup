@@ -427,13 +427,91 @@ Money<T> Money<T>::operator*(const T & FACTOR) const {
    //static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && "Number required.");
    cerr << __func__ << '\n';
    Integer product = Integer::create_Integer(this->amount_in_cents) * Integer::create_Integer(FACTOR);
-   product = Money<Integer>::round(product);
+   //product = Money<Integer>::round(product);
    cerr << __func__ << " product = " << product << '\n';
    if (! is_same<T, Integer>::value)
       if (is_overflow<T, Integer>(amount_in_cents))
          throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
    const string dollars = std::to_string(product);
    Money<T> result = Money<T>(dollars);
+   cerr << __func__ << " result = " << result << '\n';
+   return result;
+}
+
+template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool>
+#ifdef __clang__
+   = true
+#endif
+>
+Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
+   //static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
+   static const string TYPE_NAME = typeid(Smaller).name();
+   Integer sum = Integer::create_Integer(a.amount_in_cents) + Integer::create_Integer(b.amount_in_cents);
+   cerr << __func__ << " sum = " << sum << '\n';
+   if (Integer::is_overflow<Smaller>(sum))
+      throw out_of_range(string(__func__) + " amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
+   const Constructor_Args args = constructor_args(sum);
+   Money<Smaller> result = Money<Smaller>(args.DOLLARS, args.CENTS);
+   cerr << __func__ << " result = " << result << '\n';
+   return result;
+}
+
+template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
+            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool>
+#ifdef __clang__
+   = true
+#endif
+>
+Money<Smaller> operator+(const Money<Smaller>& A, const Money<Smaller>& B) {
+   static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
+   static const string TYPE_NAME = typeid(Smaller).name();
+   Greater sum = Greater(A.amount_in_cents) + Greater(B.amount_in_cents);
+   sum = Money<Greater>::round(sum);
+   cerr << __func__ << " sum = " << sum << '\n';
+   if (is_overflow<Smaller, Greater>(sum))
+      throw out_of_range(string(__func__) + "amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
+   const string dollars = std::to_string(sum / static_cast<long double>(CENTS_PER_DOLLAR));
+   Money<Smaller> result = Money<Smaller>(dollars);
+   cerr << __func__ << " result = " << result << '\n';
+   return result;
+}
+
+template<typename Smaller, enable_if_t<is_integral<Smaller>::value, bool> = true>
+Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
+#ifdef __clang__
+   return operator+<Integer, Smaller>(a, b);
+#elif defined(__GNUG__)
+   return operator+<Integer, Smaller, true>(a, b);
+#endif
+}
+
+template<typename Smaller, enable_if_t<is_floating_point<Smaller>::value && ! is_same<Smaller, long double>::value, bool > = true>
+Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
+#ifdef __clang__
+   return operator+<long double, Smaller>(a, b);
+#elif defined(__GNUG__)
+   return operator+<long double, Smaller, true>(a, b);
+#endif
+}
+
+template <typename Type>
+Constructor_Args constructor_args(const Type& AMOUNT) {
+   const Type dollars = AMOUNT / static_cast<Type>(CENTS_PER_DOLLAR);
+   Type cents = AMOUNT % static_cast<Type>(CENTS_PER_DOLLAR);
+   cents = std::abs(cents);
+   string dollars_string = std::to_string(dollars);
+   if (dollars == 0 && AMOUNT < 0)
+      dollars_string.insert(0, 1, Integer::MINUS);
+   Constructor_Args RESULT {dollars_string, static_cast<long double>(cents)};
+   return RESULT;
+}
+
+template <typename Type, enable_if_t<is_same<Type, Integer>::value || is_same<Type, long double>::value, bool > = true>
+Money<Type> operator+(const Money<Type>& a, const Money<Type>& b) {
+   const Type sum = a.amount_in_cents + b.amount_in_cents;
+   cerr << __func__ << " sum = " << sum << '\n';
+   const Constructor_Args args = constructor_args(sum);
+   Money<Type> result = Money<Type>(args.DOLLARS, args.CENTS);
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }

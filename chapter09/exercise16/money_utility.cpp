@@ -107,30 +107,68 @@ Money<Integer>::operator string() const {
    out += formatted_string(dollars, cents);
    return out;
 }
-
+/*
 template<>
-Money<Integer>& Money<Integer>::operator+(const Money<Integer>& other) {
+Money<Integer>& Money<Integer>::operator+=(const Money<Integer>& other) {
    this->amount_in_cents += other.amount_in_cents;
    cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
    return *this;
 }
 
-Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b) {
-   Integer sum = Integer::create_Integer(a.amount_in_cents) + Integer::create_Integer(b.amount_in_cents);
+template<>
+Money<long double>& Money<long double>::operator+=(const Money<long double>& other) {
+   this->amount_in_cents += other.amount_in_cents;
+   cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
+   return *this;
+}
+*/
+/*
+template<>
+Money<Integer> Money<Integer>::operator+(const Money<Integer>& other) const {
+   Integer sum = this->amount_in_cents + other.amount_in_cents;
    cerr << __func__ << " sum = " << sum << '\n';
    const Integer dollars = sum / CENTS_PER_DOLLAR_INTEGER;
    Integer cents = sum % CENTS_PER_DOLLAR_INTEGER;
-   //if (Integer::MINUS == cents.get_signum())
-   //   cents.set_signum(Integer::PLUS);
    cents = std::move(std::abs(cents));
-   //const Money<U> addition = static_cast<U>(sum);
-   //const U dollars = addition.get_dollars(Money<U>::TYPE_DEFAULT_OBJECT);
-   //const U cents = addition.get_cents(Money<U>::TYPE_DEFAULT_OBJECT);
    Money<Integer> result = Money<Integer>(std::to_string(dollars), static_cast<long double>(cents));
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
 
+
+Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b) {
+   const Integer sum = a.amount_in_cents + b.amount_in_cents;
+   cerr << __func__ << " sum = " << sum << '\n';
+   const Constructor_Args args = constructor_args(sum);
+   Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS);
+   cerr << __func__ << " result = " << result << '\n';
+   return result;
+}
+
+Money<long long> operator+(const Money<long long>& a, const Money<long long>& b) {
+   const long long sum = a.amount_in_cents + b.amount_in_cents;
+   cerr << __func__ << " sum = " << sum << '\n';
+   const Constructor_Args args = constructor_args<long long>(sum);
+   Money<long long> result = Money<long long>(args.DOLLARS, args.CENTS);
+   cerr << __func__ << " result = " << result << '\n';
+   return result;
+}
+*/
+Constructor_Args constructor_args(const Integer& AMOUNT) {
+   const Integer dollars = AMOUNT / CENTS_PER_DOLLAR_INTEGER;
+   Integer cents = AMOUNT % CENTS_PER_DOLLAR_INTEGER;
+   cents = std::move(std::abs(cents));
+   string dollars_string = std::to_string(dollars);
+   if (dollars.is_zero() && AMOUNT < Integer::ZERO)
+      dollars_string.insert(0, 1, Integer::MINUS);
+   Constructor_Args RESULT {dollars_string, static_cast<long double>(cents)};
+   return RESULT;
+}
+/*
+Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b) {
+   return a.operator+(b);
+}
+*/
 //template<typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
 //            is_integral<Smaller>::value, bool> = true >
    

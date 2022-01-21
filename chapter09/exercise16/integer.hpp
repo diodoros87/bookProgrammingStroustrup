@@ -247,7 +247,7 @@ public:
    
    template <typename Number, enable_if_t<(is_floating_point<Number>::value 
                                  || is_integral<Number>::value), bool> = true>
-   operator Number() const { 
+   explicit operator Number() const { 
       //static_assert(! is_same<float, Number>);
       //cerr << " numeric_limits<Number>::lowest() = " << numeric_limits<Number>::lowest();
       //cerr << " \nnumeric_limits<Number>::max() = " << numeric_limits<Number>::max() << '\n';
