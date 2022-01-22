@@ -130,29 +130,7 @@ T Money<T>::get_amount(const string & STR) {
    }
 }
 #endif
-/*
-template <>
-template <typename Greater>
-Integer Money<Integer>::calculate(const Integer & dollars, const long double cents   = INCORRECT_CENTS ) const {
-   static_assert(((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
-                        ! is_same<Greater, Integer>::value) && "(numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) && \
-! is_same<Greater, Integer>::value" );
-   Greater amount_in_cents = Greater(dollars) * Greater(CENTS_PER_DOLLAR);
-   cerr << __func__ << " amount_in_cents = " << amount_in_cents << '\n';
-   if (INCORRECT_CENTS == cents)
-      amount_in_cents = Money<Greater>::round(amount_in_cents);
-   else {
-      Greater cents_round = dollars >= Integer::ZERO ? Money<Greater>::round(cents) : -Money<Greater>::round(cents);
-      amount_in_cents += Greater(cents_round);
-   }
-   
-   if (is_overflow_for_Integer<Greater>(amount_in_cents))
-      throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
-   Integer result = Integer::create_Integer(amount_in_cents);
-   cerr << __func__ << " result = " << result << '\n';
-   return result;
-}
-*/
+
 template <typename T>
 template<typename Greater>
 T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT_CENTS */) const {
@@ -165,17 +143,6 @@ T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT
       amount_in_cents = Money<Greater>::round(amount_in_cents);
    else {
       Greater cents_round = dollars >= 0 ? Money<Greater>::round(cents) : -Money<Greater>::round(cents);
-      /*Greater cents_round;
-      if (dollars > 0)
-         cents_round = Money<Greater>::round(cents);
-      else if (dollars < 0)
-         cents_round = -Money<Greater>::round(cents);
-      else {   // (dollars == 0)
-         if (cents < 0)
-            cents_round = -Money<Greater>::round(cents);
-         else
-            cents_round = Money<Greater>::round(cents);
-      }*/
       amount_in_cents += Greater(cents_round);
    }
    
@@ -194,8 +161,6 @@ T Money<T>::calculate_by_Integer(const T & dollars, const long double cents /*  
    const Integer dollars_as_Integer = Integer::create_Integer(dollars);
    Integer amount_in_cents = dollars_as_Integer * CENTS_PER_DOLLAR_INTEGER;
    cerr << __func__ << " amount_in_cents = " << amount_in_cents << '\n';
-   //if (INCORRECT_CENTS == cents)
-   //   amount_in_cents = Money<Integer>::round(amount_in_cents);
    if (INCORRECT_CENTS != cents) {
       cerr << __func__ << " cents = " << cents << '\n';
       Integer cents_round = dollars_as_Integer >= Integer::ZERO ? Money<Integer>::round(cents) : -Money<Integer>::round(cents);
@@ -230,17 +195,9 @@ Money<T>::Money(const string & dollars, const long double cents) {
       this->amount_in_cents = calculate_by_Integer(amount, cents);
 
    cerr << __func__ << " amount = '" << amount << "' std::signbit = '" << std::boolalpha << std::signbit(amount) << "' \n";  
-   
-//    if (dollars[0] == '-') {
-// #if defined(__clang__)
-//       if ((is_same<T, Integer>::value && Integer::ZERO == Integer::create_Integer(amount)) ||
-//          (! is_same<T, Integer>::value && 0 == amount) )
-// #elif defined(__GNUG__)
-//       if (0 == amount)
-// #endif
+
    if (dollars[0] == '-' && 0 == amount)   
       this->amount_in_cents = -this->amount_in_cents;
-   //}
    
    if (is_same<T, char>::value || is_same<T, int_fast8_t>::value)
       cerr << __func__ << " this->amount_in_cents = '" << TYPE_NAME << "' " << static_cast<int>(this->amount_in_cents) << '\n';
@@ -256,13 +213,8 @@ Type get_amount_by_Integer(const string & STR) {
    return integer;
 }
 
-//#if defined(__clang__)
-
-//#endif
-
 template <typename T>
 Money<T>::Money(const string & dollars) {   // accept floating-point arguments
-   //T amount = from_string<T>(dollars);
    cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
    if (is_floating_point<T>::value) {
       if (! regex_match(dollars, E_FLOAT_POINT_REGEX)) 
@@ -272,68 +224,16 @@ Money<T>::Money(const string & dollars) {   // accept floating-point arguments
    else if (numeric_limits<T>::is_integer) { 
       if (! regex_match(dollars, FLOAT_POINT_REGEX))
          throw invalid_argument(string(__func__) +  " Regex: entered string '"
-               + dollars + "' is not non-exponent floating-point format "); /*
-      string dollars_string = dollars;
-      size_t dot_position = dollars_string.find('.');
-      dollars_string = dollars_string.substr(0, dot_position);
-      T dollars_part = get_amount(dollars_string);
-      cerr << __func__ << " dot_position = " << dot_position <<  '\n';
-      if (dot_position == string::npos) {
-         //string dollars_string = dollars.substr(0, dot_position);
-         //T dollars_part = get_amount(dollars_string);
-         cerr << __func__ << " dot_position = string::npos " << dot_position <<  '\n';
-         this->amount_in_cents = calculate(dollars_part);
-         cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents <<  '\n';
-      }
-      else {
-         string cents_string = dollars.substr(dot_position + 1);
-         if (cents_string.size() > 2)
-            cents_string.insert(2, ".");
-         cerr << __func__ << " cents_string = " << cents_string <<  '\n';
-         long double cents_part = stold(cents_string);
-         this->amount_in_cents = calculate(dollars_part, cents_part);
-         if (dollars[0] == '-' && this->amount_in_cents > 0 && this->amount_in_cents <= 100)
-            this->amount_in_cents = -this->amount_in_cents;
-      } */
+               + dollars + "' is not non-exponent floating-point format "); 
    }
    this->amount_in_cents = calculate_amount_in_cents(dollars);
 }
 
-/*
-bool is_exact(const string & number) {
-   size_t dot_position = number.find('.');
-   if (dot_position != string::npos) {
-      
-   }
-   
-   return true;
-}
-*/
-/*
-template <>
-Money<long double> Money<long double>::create(const string & dollars) {   
-   const long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
-   if (! equal_integer<long double>(amount))
-      throw invalid_argument("Not exact value dollars = " + to_string(amount));
-   Money<T> money = Money<T>(dollars);
-   const long double amount_2 = static_cast<long double>(money.get_amount_in_cents());
-   if (amount_2 != amount)
-      throw invalid_argument("Not exact value dollars = " + to_string(amount) " != " + to_string(amount_2));
-   return money;
-}
-*/
-
 template <typename T>
 Money<T> Money<T>::create(const string & dollars, const long double cents) {   
-   //long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR + cents;
-   //if (! equal_integer<long double>(amount))
-   //   throw invalid_argument("Not exact value dollars = " + to_string(amount));
    if (! equal_integer<long double>(cents))
       throw invalid_argument("Not exact value cents = " + to_string(cents));
    Money<T> money = Money<T>(dollars, cents);
-   //const long double amount_2 = static_cast<long double>(money.get_amount_in_cents());
-   //if (amount_2 != amount)
-   //   throw invalid_argument("Not exact value dollars = " + to_string(amount) + " != " + to_string(amount_2));
    return money;
 }
 
@@ -411,7 +311,7 @@ Money<T> Money<T>::operator*(const T & FACTOR) const {
    static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
                         ! is_same<Greater, Integer>::value );
    Greater product = Greater(this->amount_in_cents) * Greater(FACTOR);
-   product = Money<Greater>::round(product);
+   //product = Money<Greater>::round(product);
    cerr << __func__ << " product = " << product << '\n';
    if (is_overflow<T, Greater>(product))
       throw out_of_range(__func__ + "amount = " + std::to_string(product) + " is overflow for type " + TYPE_NAME);
@@ -451,7 +351,7 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
    if (Integer::is_overflow<Smaller>(sum))
       throw out_of_range(string(__func__) + " amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
    const Constructor_Args args = constructor_args(sum);
-   Money<Smaller> result = Money<Smaller>(args.DOLLARS, args.CENTS);
+   Money<Smaller> result = Money<Smaller>::create(args.DOLLARS, args.CENTS);
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
@@ -466,12 +366,12 @@ Money<Smaller> operator+(const Money<Smaller>& A, const Money<Smaller>& B) {
    static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
    static const string TYPE_NAME = typeid(Smaller).name();
    Greater sum = Greater(A.amount_in_cents) + Greater(B.amount_in_cents);
-   sum = Money<Greater>::round(sum);
+   //sum = Money<Greater>::round(sum);
    cerr << __func__ << " sum = " << sum << '\n';
    if (is_overflow<Smaller, Greater>(sum))
       throw out_of_range(string(__func__) + "amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
    const string dollars = std::to_string(sum / static_cast<long double>(CENTS_PER_DOLLAR));
-   Money<Smaller> result = Money<Smaller>(dollars);
+   Money<Smaller> result = Money<Smaller>::create(dollars);
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
@@ -493,7 +393,7 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
    return operator+<long double, Smaller, true>(a, b);
 #endif
 }
-
+/*
 template <typename Type>
 Constructor_Args constructor_args(const Type& AMOUNT) {
    const Type dollars = AMOUNT / static_cast<Type>(CENTS_PER_DOLLAR);
@@ -505,16 +405,8 @@ Constructor_Args constructor_args(const Type& AMOUNT) {
    Constructor_Args RESULT {dollars_string, static_cast<long double>(cents)};
    return RESULT;
 }
+*/
 
-template <typename Type, enable_if_t<is_same<Type, Integer>::value || is_same<Type, long double>::value, bool > = true>
-Money<Type> operator+(const Money<Type>& a, const Money<Type>& b) {
-   const Type sum = a.amount_in_cents + b.amount_in_cents;
-   cerr << __func__ << " sum = " << sum << '\n';
-   const Constructor_Args args = constructor_args(sum);
-   Money<Type> result = Money<Type>(args.DOLLARS, args.CENTS);
-   cerr << __func__ << " result = " << result << '\n';
-   return result;
-}
 
 /*
 Money Money::operator+(const Money& other) const { 

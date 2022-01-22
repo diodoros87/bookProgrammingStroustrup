@@ -3,7 +3,7 @@ CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -Wconversion
 CXX = clang
 #CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -L/usr/lib -lstdc++ -lm -v
 #  -fcompare-debug-second -Wconversion
-GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"' -Wabi
+GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'
 CLANG_CPPFLAGS = -Wfatal-errors -L/usr/lib -lstdc++ -lm -DMESSAGE='"Compiled with Clang"'
 
 ifeq ($(CXX), g++)
@@ -15,7 +15,7 @@ else ifeq ($(CXX), clang)
 endif
 
 PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests money_test asio_test $(CURL_TEST)
-#PROGRAMS  =  fundamental_test
+#PROGRAMS  = 
 
 .PHONY: clean all
 

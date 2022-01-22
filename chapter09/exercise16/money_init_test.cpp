@@ -27,6 +27,8 @@ void construct_incorrect(Function && f, Args&&... args ) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    } catch (const out_of_range& e) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
+   } catch (const bad_cast& e) {
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    }
 }
 

@@ -27,7 +27,7 @@ extern
 Money<T> construct(const string & DOLLARS, bool creating, const string & expected/* = ""*/);
 
 namespace money_operations_test {
-  /* 
+  
 template <typename T, typename Function, typename... Args>  
 void operation_incorrect(Function && f, Args&&... args ) { 
    try {
@@ -39,69 +39,82 @@ void operation_incorrect(Function && f, Args&&... args ) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    } catch (const out_of_range& e) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   }
-}
-
-template <typename T, typename Function, typename... Args>  
-void construct_incorrect(Function && f, Args&&... args ) { 
-   try {
-      f(std::forward<Args>(args)...);
-      T obj = f(std::forward<Args>(args)...);
-      cerr << __func__ << " !!!!!!!!!!!!!!!!!!" << obj << endl;
-      assert(0);
-   } catch (const invalid_argument& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   } catch (const out_of_range& e) {
+   } catch (const bad_cast& e) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    }
 }
-*/
   
 //typedef  int (Fred::*FredMemFn)(char x, float y);
 //template <typename T, typename T (T::*oper)(const& T)> 
 template <typename Type> 
-void binary_operation(Type& (Type::*func)(const Type&) /*const*/, const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
-                      const double B_CENTS, const string & expected = "") { 
-   Type       A(A_DOLLARS, A_CENTS);
-   const Type B(B_DOLLARS, B_CENTS);
+void binary_operation(Type& (Type::*func)(const Type&) , const string & A_DOLLARS, const string & B_DOLLARS, 
+                      const string & expected = "") { 
+   Type       A(A_DOLLARS);
+   const Type B(B_DOLLARS);
    Type RESULT = (A.*func)(B);
    print_assert(RESULT, expected);
-   cerr << "\n A + B = \n";
-   A += B;
-   B += A;
-   //print_assert(A, expected);
+   print_assert(A, expected);
 }
 
 template <typename Type> 
-void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
+void binary_operation(Type& (Type::*func)(const Type&) , const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
+                      const double B_CENTS, const string & expected = "") { 
+   Type       A(A_DOLLARS, A_CENTS);
+   const Type B(B_DOLLARS, B_CENTS);
+   Type RESULT = (A.*func)(B);
+   print_assert(RESULT, expected);
+   print_assert(A, expected);
+}
+
+template <typename Type> 
+void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const string & B_DOLLARS, 
+                      const string & expected = "") { 
+   Type       A(A_DOLLARS);
+   const Type B(B_DOLLARS);
+   Type RESULT = (A.*func)(B);
+   print_assert(RESULT, expected);
+   print_assert(A, expected);
+   print_assert(B, expected);
+}
+
+template <typename Type> 
+void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const double B_CENTS, const string & expected = "") { 
    Type       A(A_DOLLARS, A_CENTS);
    const Type B(B_DOLLARS, B_CENTS);
    Type RESULT = (A.*func)(B);
    print_assert(RESULT, expected);
    cerr << "\n A + B = \n";
-   A + B;
-   B + A;
    print_assert(A, expected);
 }
 
 template <typename Type, typename Function> 
-void binary_operation(Function && func, const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
-                      const double B_CENTS, const string & expected = "") { 
+void binary_operation(Function && func, const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
+                      const long double B_CENTS, const string & expected = "") { 
    Type A(A_DOLLARS, A_CENTS);
    const Type B(B_DOLLARS, B_CENTS);
    const Type RESULT = func(A, B);
    print_assert(RESULT, expected);
-   A + B;
-   B + A;
-   A += B;
-   A += A;
-   //B += A;
+}
+
+template <typename Type, typename Function> 
+void binary_operation(Function && func, const string & A_DOLLARS, const string & B_DOLLARS, const string & expected = "") { 
+   Type A(A_DOLLARS);
+   const Type B(B_DOLLARS);
+   const Type RESULT = func(A, B);
+   print_assert(RESULT, expected);
 }
 
 template <typename T, typename Function> 
-void unary_operation(Function && func, const string & A_DOLLARS, const double A_CENTS, const string & expected = "") { 
+void unary_operation(Function && func, const string & A_DOLLARS, const long double A_CENTS, const string & expected = "") { 
    const Money<T> A(A_DOLLARS, A_CENTS);
+   const Money<T> RESULT = func(A);
+   print_assert(RESULT, expected);
+}
+
+template <typename T, typename Function> 
+void unary_operation(Function && func, const string & A_DOLLARS, const string & expected = "") { 
+   const Money<T> A(A_DOLLARS);
    const Money<T> RESULT = func(A);
    print_assert(RESULT, expected);
 }
@@ -367,8 +380,9 @@ void test_Integer_overflow() {
 template <typename Type, template<typename> class Template = Money>
 inline void test_adding(const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
                       const double B_CENTS, const string & expected = "") { 
-   //binary_operation<Template<Type>> (&Template<Type>::operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
    binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+   binary_operation<Template<Type>> (&Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+   binary_operation<Template<Type>> (&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
 }
 
 template <typename T, template<typename> class Template = Money>
