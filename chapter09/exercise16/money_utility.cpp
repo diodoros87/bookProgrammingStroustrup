@@ -130,11 +130,7 @@ Constructor_Args constructor_args(const long double AMOUNT) {
    return RESULT;
 }
 */
-string dollars_from_amount(const long double AMOUNT) {
-   const long double dollars = AMOUNT / CENTS_PER_DOLLAR;
-   string dollars_string = std::to_string(dollars);
-   return dollars_string;
-}
+
 /*
 template <typename Type, enable_if_t<is_same<Type, Integer>::value || is_same<Type, long double>::value, bool > = true>
 Money<Type> operator+(const Money<Type>& a, const Money<Type>& b) {

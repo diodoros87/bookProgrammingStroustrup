@@ -44,7 +44,11 @@ const regex MINUS_ZERO_REGEX    = regex { R"(^-0([.][0-9]+)?$)" } ;
 
 extern const Integer CENTS_PER_DOLLAR_INTEGER;
 
-string dollars_from_amount(const long double AMOUNT);
+inline string dollars_from_amount(const long double AMOUNT) {
+   const long double dollars = AMOUNT / CENTS_PER_DOLLAR;
+   string dollars_string = std::to_string(dollars);
+   return dollars_string;
+}
 
 template<typename Greater>
 bool is_overflow_for_Integer(const Greater & x) {
@@ -207,21 +211,14 @@ public:
    Money(Money &&) = default;
    Money & operator=(const Money &) = default;
    Money & operator=(Money &&) = default;
-   /*
-   Money& operator=(const Money& other) { 
-      if (this != &other)
-         amount_in_cents = other.amount_in_cents;
-      return *this;
-   };
-   */
    
    Money& operator+() const { return *this; }
    
-   template<typename U = T, enable_if_t<numeric_limits<U>::is_unsigned, bool>  = true>
+   template<typename U = T, enable_if_t<! numeric_limits<U>::is_signed, bool>  = true>
    Money operator-() const = delete;
-   template<typename U = T, enable_if_t<numeric_limits<U>::is_unsigned, bool>  = true>
+   template<typename U = T, enable_if_t<false == numeric_limits<U>::is_signed, bool>  = true>
    Money operator-() = delete;
-   template<typename U = T, enable_if_t<numeric_limits<U>::is_unsigned, bool>  = true>
+   template<typename U = T, enable_if_t<! numeric_limits<U>::is_signed, bool>  = true>
    Money& operator-() = delete;
    
    template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool>  = true>
@@ -267,13 +264,19 @@ public:
    //Money<long double>& operator+=(const Money<long double>& other);
    template<typename U = T, enable_if_t<numeric_limits<U>::is_signed, bool>  = true>
    Money& operator-=(const Money& other) {
-      return operator+=(-other); 
+      try {
+         return operator+=(-other); 
+      } catch (const out_of_range &) {
+         Money result = other + (-*this);
+         *this = -result; 
+         return *this;
+      }
    }
    
-   template<typename U = T, enable_if_t<numeric_limits<U>::is_unsigned, bool>  = true>
+   template<typename U = T, enable_if_t< ! numeric_limits<U>::is_signed, bool>  = true>
    Money& operator-=(const Money& other) {
       if (other > *this)
-         throw out_of_range(string(__func__) + " other amount is " + std::to_string(other.amount_in_cents) + " > this->amount is " +
+         throw out_of_range(string(__func__) + " other amount is " + std::to_string(other.amount_in_cents) + " > this->amount is "
             + std::to_string(this->amount_in_cents) + " This is overflow for type " + TYPE_NAME);
       this->amount_in_cents -= other.amount_in_cents;
       cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
