@@ -376,6 +376,35 @@ Money<Smaller> operator+(const Money<Smaller>& A, const Money<Smaller>& B) {
    return result;
 }
 
+template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool>>
+Money<Smaller> operator-(const Money<Smaller>& a) {
+   static const string TYPE_NAME = typeid(Smaller).name();
+   Integer minus = -Integer::create_Integer(a.amount_in_cents);
+   cerr << __func__ << " minus = " << minus << '\n';
+   if (Integer::is_overflow<Smaller>(minus))
+      throw out_of_range(string(__func__) + " amount = " + std::to_string(minus) + " is overflow for type " + TYPE_NAME);
+   const Constructor_Args args = constructor_args(minus);
+   Money<Smaller> result = Money<Smaller>(args.DOLLARS, args.CENTS);
+   cerr << __func__ << " result = " << result << '\n';
+   return result;
+}
+
+template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
+            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool>>
+Money<Smaller> operator-(const Money<Smaller>& A) {
+   static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
+   static const string TYPE_NAME = typeid(Smaller).name();
+   Greater minus = - Greater(A.amount_in_cents);
+   //minus = Money<Greater>::round(minus);
+   cerr << __func__ << " minus = " << minus << '\n';
+   if (is_overflow<Smaller, Greater>(minus))
+      throw out_of_range(string(__func__) + "amount = " + std::to_string(minus) + " is overflow for type " + TYPE_NAME);
+   const string dollars = std::to_string(minus / static_cast<long double>(CENTS_PER_DOLLAR));
+   Money<Smaller> result = Money<Smaller>::create(dollars);
+   cerr << __func__ << " result = " << result << '\n';
+   return result;
+}
+
 template<typename Smaller, enable_if_t<is_integral<Smaller>::value, bool> = true>
 Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
 #ifdef __clang__

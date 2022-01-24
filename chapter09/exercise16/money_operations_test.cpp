@@ -69,40 +69,46 @@ void binary_operation(Type& (Type::*func)(const Type&) , const string & A_DOLLAR
 template <typename Type> 
 void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const string & B_DOLLARS, 
                       const string & expected = "") { 
-   Type       A(A_DOLLARS);
+   const Type       A(A_DOLLARS);
    const Type B(B_DOLLARS);
    Type RESULT = (A.*func)(B);
    print_assert(RESULT, expected);
    print_assert(A, expected);
-   print_assert(B, expected);
 }
 
 template <typename Type> 
 void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const double B_CENTS, const string & expected = "") { 
-   Type       A(A_DOLLARS, A_CENTS);
+   const Type       A(A_DOLLARS, A_CENTS);
    const Type B(B_DOLLARS, B_CENTS);
    Type RESULT = (A.*func)(B);
    print_assert(RESULT, expected);
-   cerr << "\n A + B = \n";
    print_assert(A, expected);
+}
+
+template <typename Type, typename Function> 
+void binary_operation(Function && func, const string & A_DOLLARS, const string & B_DOLLARS, const string & expected = "") { 
+   const Type A(A_DOLLARS);
+   const Type B(B_DOLLARS);
+   const Type RESULT = func(A, B);
+   print_assert(RESULT, expected);
 }
 
 template <typename Type, typename Function> 
 void binary_operation(Function && func, const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const long double B_CENTS, const string & expected = "") { 
-   Type A(A_DOLLARS, A_CENTS);
+   const Type A(A_DOLLARS, A_CENTS);
    const Type B(B_DOLLARS, B_CENTS);
    const Type RESULT = func(A, B);
    print_assert(RESULT, expected);
 }
 
-template <typename Type, typename Function> 
-void binary_operation(Function && func, const string & A_DOLLARS, const string & B_DOLLARS, const string & expected = "") { 
-   Type A(A_DOLLARS);
-   const Type B(B_DOLLARS);
-   const Type RESULT = func(A, B);
+template <typename Type> 
+void unary_operation(Type& (Type::*func)(const Type&) , const string & A_DOLLARS, const string & expected = "") { 
+   Type       A(A_DOLLARS);
+   Type RESULT = (A.*func)();
    print_assert(RESULT, expected);
+   print_assert(A, expected);
 }
 
 template <typename T, typename Function> 
@@ -118,7 +124,14 @@ void unary_operation(Function && func, const string & A_DOLLARS, const string & 
    const Money<T> RESULT = func(A);
    print_assert(RESULT, expected);
 }
-
+/*
+template <typename Type> 
+void unary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const long double A_CENTS, const string & expected = "") { 
+   Type       A(A_DOLLARS, A_CENTS);
+   Type RESULT = (A.*func)(B);
+   print_assert(RESULT, expected);
+}
+*/
 /*
 template <typename T>
 Money<T> construct(const string & DOLLARS, bool creating, const string & expected = ") { 
@@ -382,7 +395,14 @@ inline void test_adding(const string & A_DOLLARS, const double A_CENTS, const st
                       const double B_CENTS, const string & expected = "") { 
    binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
    binary_operation<Template<Type>> (&Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+   
+}
+
+template <typename Type, template<typename> class Template = Money>
+inline void test_subtracting(const string & A_DOLLARS, const double A_CENTS, const string & B_DOLLARS, 
+                      const double B_CENTS, const string & expected = "") { 
    binary_operation<Template<Type>> (&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+   //binary_operation<Template<Type>> (&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
 }
 
 template <typename T, template<typename> class Template = Money>
@@ -397,6 +417,9 @@ void perform() {
       test_adding<T, Template>("0", 23, "-0", 34, "-0,11");
    }
    test_adding<T>("0", 23, "0", 34, "0,57");
+   
+   test_subtracting<T>("0", 99, "0", 99, "0,00");
+   test_subtracting<T>("1", 14, "0", 67, "0,47");
 }
 
 void perform() {
@@ -406,16 +429,17 @@ void perform() {
    perform<char>();
    perform<int_fast8_t>();
    perform<short>();
-   perform<unsigned short>();
+   //perform<unsigned short>();
    perform<int>();
-   perform<unsigned>();
+   //perform<unsigned>();
    perform<long>();
-   perform<unsigned long>();
+   //perform<unsigned long>();
    perform<long long>();
-   perform<unsigned long long>();
+   //perform<unsigned long long>();
    perform<float>();
    perform<double>();
    perform<long double>();
+   
    
    ///binary_operation<Money<Integer>>(&Money<Integer>::operator+, "100", 23, "-450", 34, "-350,11");
    //binary_operation<Money<Integer>>(Money<Integer> (&operator+)(const Money<Integer> &, const Money<Integer> &), "100", 23, "-450", 34, "-350,11");

@@ -64,6 +64,7 @@ Money<Integer>::operator string() const {
    out += formatted_string(dollars, cents);
    return out;
 }
+
 /*
 template<>
 Money<Integer>& Money<Integer>::operator+=(const Money<Integer>& other) {
@@ -129,7 +130,7 @@ Constructor_Args constructor_args(const long double AMOUNT) {
    return RESULT;
 }
 */
-inline string dollars_from_amount(const long double AMOUNT) {
+string dollars_from_amount(const long double AMOUNT) {
    const long double dollars = AMOUNT / CENTS_PER_DOLLAR;
    string dollars_string = std::to_string(dollars);
    return dollars_string;
