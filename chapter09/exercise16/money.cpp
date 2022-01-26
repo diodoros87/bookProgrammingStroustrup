@@ -400,12 +400,12 @@ Money<Smaller> operator-(const Money<Smaller>& A) {
    if (is_overflow<Smaller, Greater>(minus))
       throw out_of_range(string(__func__) + "amount = " + std::to_string(minus) + " is overflow for type " + TYPE_NAME);
    const string dollars = std::to_string(minus / static_cast<long double>(CENTS_PER_DOLLAR));
-   Money<Smaller> result = Money<Smaller>::create(dollars);
+   Money<Smaller> result = Money<Smaller>(dollars);
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
 
-template<typename Smaller, enable_if_t<is_integral<Smaller>::value, bool> = true>
+template<typename Smaller, enable_if_t<is_integral<Smaller>::value, bool>/* = true */>
 Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
 #ifdef __clang__
    return operator+<Integer, Smaller>(a, b);
@@ -414,7 +414,7 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
 #endif
 }
 
-template<typename Smaller, enable_if_t<is_floating_point<Smaller>::value && ! is_same<Smaller, long double>::value, bool > = true>
+template<typename Smaller, enable_if_t<is_floating_point<Smaller>::value && ! is_same<Smaller, long double>::value, bool >/* = true */>
 Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
 #ifdef __clang__
    return operator+<long double, Smaller>(a, b);
@@ -422,6 +422,7 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
    return operator+<long double, Smaller, true>(a, b);
 #endif
 }
+
 /*
 template <typename Type>
 Constructor_Args constructor_args(const Type& AMOUNT) {

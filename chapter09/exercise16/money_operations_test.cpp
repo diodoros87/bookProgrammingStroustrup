@@ -118,7 +118,6 @@ void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DO
    const Type B(B_DOLLARS);
    Type RESULT = (A.*func)(B);
    print_assert(RESULT, expected);
-   print_assert(A, expected);
 }
 
 template <typename Type> 
@@ -128,7 +127,6 @@ void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DO
    const Type B(B_DOLLARS, B_CENTS);
    Type RESULT = (A.*func)(B);
    print_assert(RESULT, expected);
-   print_assert(A, expected);
 }
 
 template <typename Type, typename Function> 
@@ -210,6 +208,7 @@ void unary_operation(Type (Type::*func)(const Type&) const, const string & A_DOL
 template <typename Type, template<typename> class Template = Money>
 inline void test_adding(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const long double B_CENTS, const string & expected = "") { 
+   cerr << "\n\n#########################" << __func__ << '\n';
    binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
    binary_operation<Template<Type>> (&Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
    
@@ -218,7 +217,9 @@ inline void test_adding(const string & A_DOLLARS, const long double A_CENTS, con
 template <typename Type, template<typename> class Template = Money>
 inline void test_subtracting(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const long double B_CENTS, const string & expected = "") { 
+   cerr << "\n\n#########################" << __func__ << '\n';
    binary_operation<Template<Type>> (&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+   binary_operation<Template<Type>> (&Template<Type>::operator-, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
    //binary_operation<Template<Type>> (&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
 }
 
@@ -248,9 +249,10 @@ inline void failed_test_adding(const string & A_DOLLARS, const long double A_CEN
       operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
    */
    //using Alias = <Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)>;
-   binary_operation_failed<Template<Type>, Template<Type>& (Template<Type>::*)(const Template<Type>&)>(&Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
+   cerr << "\n\n#########################" << __func__ << '\n';
+   binary_operation_failed<Template<Type>, Template<Type>& (Template<Type>::*)(const Template<Type>&)>(&Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS);
    using Alias = Template<Type>;
-   binary_operation_failed< Alias, Alias(const Alias&, const Alias&)>(operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
+   binary_operation_failed< Alias, Alias(const Alias&, const Alias&)>(operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS);
    
    //binary_operation_failed<Template<Type>& (Template<Type>::*)(const Template<Type>&)>(&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
 }
@@ -258,13 +260,16 @@ inline void failed_test_adding(const string & A_DOLLARS, const long double A_CEN
 template <typename Type, template<typename> class Template = Money>
 inline void failed_test_subtracting(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const long double B_CENTS) { 
-   binary_operation_failed<Template<Type>, Template<Type>& (Template<Type>::*)(const Template<Type>&)>(&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
+   cerr << "\n\n#########################" << __func__ << '\n';
+   binary_operation_failed<Template<Type>, Template<Type>& (Template<Type>::*)(const Template<Type>&)>(&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS);
+   binary_operation_failed<Template<Type>, Template<Type> (Template<Type>::*)(const Template<Type>&) const>(&Template<Type>::operator-, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS);
    //operation_failed(binary_operation<Template<Type>>, &Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
    //binary_operation<Template<Type>> (&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
 }
 
 template <typename T, template<typename> class Template = Money>
 void correct_adding() {
+   cerr << "\n\n#########################" << __func__ << '\n';
    if (numeric_limits<T>::is_signed) {
       if (! is_same<T, char>::value &&  ! is_same<T, int_fast8_t>::value) {
          test_adding<T>("-1", 28, "0", 2, "-1,26");
@@ -281,6 +286,7 @@ void correct_adding() {
 
 template <typename T, template<typename> class Template = Money>
 void correct_subtracting() {
+   cerr << "\n\n#########################" << __func__ << '\n';
    if (numeric_limits<T>::is_signed) {
       if (! is_same<T, char>::value &&  ! is_same<T, int_fast8_t>::value) {
          test_subtracting<T>("-1", 28, "0", 2, "-1,30");
@@ -296,6 +302,7 @@ void correct_subtracting() {
 
 template <typename T, template<typename> class Template = Money>
 void failed_adding() {
+   cerr << "\n\n#########################" << __func__ << '\n';
    if (numeric_limits<T>::is_signed) {
       if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) {
          failed_test_adding<T>("-1", 28, "-0", 2);
@@ -307,6 +314,7 @@ void failed_adding() {
 
 template <typename T, template<typename> class Template = Money>
 void failed_subtracting() {
+   cerr << "\n\n#########################" << __func__ << '\n';
    if (numeric_limits<T>::is_signed) {
       if (is_same<T, char>::value || is_same<T, int_fast8_t>::value) {
          failed_test_subtracting<T>("-1", 28, "0", 2);
@@ -337,9 +345,9 @@ void perform() {
 void perform() {
    //binary_operation<char, Money<char> Money<char>::(const Money<char>& other)>(Money<char>::operator+, "23", 0, "34", 0, "57,00");
    //binary_operation<Money<char>>(&Money<char>::operator+, "0", 23, "0", 34, "0,57");
-   perform<char>();
-   perform<Integer, Money>();
    
+   perform<Integer, Money>();
+   perform<char, Money>();
    perform<int_fast8_t>();
    perform<short>();
    perform<unsigned short>();

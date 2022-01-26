@@ -122,6 +122,7 @@ Constructor_Args constructor_args(const Integer& AMOUNT) {
    Constructor_Args RESULT {dollars_string, static_cast<long double>(cents)};
    return RESULT;
 }
+
 /*
 Constructor_Args constructor_args(const long double AMOUNT) {
    const long double dollars = AMOUNT / CENTS_PER_DOLLAR;
