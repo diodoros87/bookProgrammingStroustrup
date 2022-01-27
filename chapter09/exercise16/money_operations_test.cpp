@@ -205,13 +205,25 @@ void unary_operation(Type (Type::*func)(const Type&) const, const string & A_DOL
 }
 */
 
+inline string dollars_string(const string & DOLLARS, const long double CENTS) {
+   string cents = std::to_string(static_cast<int>(CENTS));
+   if (CENTS < 10)
+      cents.insert(0, "0");
+   const string RESULT = DOLLARS + "." + cents;
+   cerr << '\n' << __func__ << " RESULT = " << RESULT << '\n';
+   return RESULT;
+}
+
 template <typename Type, template<typename> class Template = Money>
 inline void test_adding(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const long double B_CENTS, const string & expected = "") { 
    cerr << "\n\n#########################" << __func__ << '\n';
    binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
    binary_operation<Template<Type>> (&Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
-   
+   const string a_dollars = dollars_string(A_DOLLARS, A_CENTS);
+   const string b_dollars = dollars_string(B_DOLLARS, B_CENTS);
+   binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, a_dollars, b_dollars, expected);
+   binary_operation<Template<Type>> (&Template<Type>::operator+=, a_dollars, b_dollars, expected);
 }
 
 template <typename Type, template<typename> class Template = Money>
@@ -220,41 +232,23 @@ inline void test_subtracting(const string & A_DOLLARS, const long double A_CENTS
    cerr << "\n\n#########################" << __func__ << '\n';
    binary_operation<Template<Type>> (&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
    binary_operation<Template<Type>> (&Template<Type>::operator-, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
-   //binary_operation<Template<Type>> (&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+   const string a_dollars = dollars_string(A_DOLLARS, A_CENTS);
+   const string b_dollars = dollars_string(B_DOLLARS, B_CENTS);
+   binary_operation<Template<Type>> (&Template<Type>::operator-=, a_dollars, b_dollars, expected);
+   binary_operation<Template<Type>> (&Template<Type>::operator-, a_dollars, b_dollars, expected);
 }
 
 template <typename Type, template<typename> class Template = Money>
 inline void failed_test_adding(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
-                      const long double B_CENTS) { /*
-   operation_failed<void<>(Template<Type>(const Template<Type>&, const Template<Type>&), const string &, const long double, const string &, const long double, const string &), const string &, const long double, const string &, const long double, const string &>
-   (binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)>,
-      operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, ""); */
-   //operation_failed(binary_operation<Template<Type>>, &Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
-   //operation_failed<decltype(binary_operation<Template<Type>>)>(binary_operation<Template<Type>>, &Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
-      //(binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)>, 
-       //(binary_operation
-      //operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
-      
-   //operation_failed(binary_operation<Template<Type>>, &Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
-   /*
-   operation_failed
-   (binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)>,
-      operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");*/
-   //operation_failed<Template<Type>(const Template<Type>&, const Template<Type>&)>(operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
-   /*
-   operation_failed<decltype
-      (binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)>
-      (Template<Type>(*)(const Template<Type>&, const Template<Type>&), const string &, const long double, const string &, const long double, const string &)), const string &, const long double, const string &, const long double, const string &>
-   (binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)>,
-      operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
-   */
-   //using Alias = <Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)>;
+                      const long double B_CENTS) { 
    cerr << "\n\n#########################" << __func__ << '\n';
    binary_operation_failed<Template<Type>, Template<Type>& (Template<Type>::*)(const Template<Type>&)>(&Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS);
    using Alias = Template<Type>;
    binary_operation_failed< Alias, Alias(const Alias&, const Alias&)>(operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS);
-   
-   //binary_operation_failed<Template<Type>& (Template<Type>::*)(const Template<Type>&)>(&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
+   const string a_dollars = dollars_string(A_DOLLARS, A_CENTS);
+   const string b_dollars = dollars_string(B_DOLLARS, B_CENTS);
+   binary_operation_failed< Alias, Alias(const Alias&, const Alias&)>(operator+, a_dollars, b_dollars);
+   binary_operation_failed<Template<Type>, Template<Type>& (Template<Type>::*)(const Template<Type>&)>(&Template<Type>::operator+=, a_dollars, b_dollars);
 }
 
 template <typename Type, template<typename> class Template = Money>
@@ -263,6 +257,10 @@ inline void failed_test_subtracting(const string & A_DOLLARS, const long double 
    cerr << "\n\n#########################" << __func__ << '\n';
    binary_operation_failed<Template<Type>, Template<Type>& (Template<Type>::*)(const Template<Type>&)>(&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS);
    binary_operation_failed<Template<Type>, Template<Type> (Template<Type>::*)(const Template<Type>&) const>(&Template<Type>::operator-, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS);
+   const string a_dollars = dollars_string(A_DOLLARS, A_CENTS);
+   const string b_dollars = dollars_string(B_DOLLARS, B_CENTS);
+   binary_operation_failed<Template<Type>, Template<Type>& (Template<Type>::*)(const Template<Type>&)>(&Template<Type>::operator-=, a_dollars, b_dollars);
+   binary_operation_failed<Template<Type>, Template<Type> (Template<Type>::*)(const Template<Type>&) const>(&Template<Type>::operator-, a_dollars, b_dollars);
    //operation_failed(binary_operation<Template<Type>>, &Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, "");
    //binary_operation<Template<Type>> (&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
 }
@@ -297,7 +295,6 @@ void correct_subtracting() {
       test_subtracting<T>("-1", 28, "-0", 2, "-1,26");
    }
    test_subtracting<T>("0", 99, "0", 99, "0,00");
-   test_subtracting<T>("1", 14, "0", 67, "0,47");
 }
 
 template <typename T, template<typename> class Template = Money>
@@ -343,8 +340,6 @@ void perform() {
 }
 
 void perform() {
-   //binary_operation<char, Money<char> Money<char>::(const Money<char>& other)>(Money<char>::operator+, "23", 0, "34", 0, "57,00");
-   //binary_operation<Money<char>>(&Money<char>::operator+, "0", 23, "0", 34, "0,57");
    
    perform<Integer, Money>();
    perform<char, Money>();
