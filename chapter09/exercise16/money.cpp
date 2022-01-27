@@ -302,9 +302,6 @@ Money<T>::operator string() const {
    return out;
 }
 
-//template <typename T>
-
-
 template <typename T>
 template<typename Greater>
 Money<T> Money<T>::operator*(const T & FACTOR) const {
@@ -350,7 +347,7 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
    cerr << __func__ << " sum = " << sum << '\n';
    if (Integer::is_overflow<Smaller>(sum))
       throw out_of_range(string(__func__) + " amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
-   const Constructor_Args args = constructor_args(sum);
+   const Constructor_Args args {sum};
    Money<Smaller> result = Money<Smaller>::create(args.DOLLARS, args.CENTS);
    cerr << __func__ << " result = " << result << '\n';
    return result;
@@ -383,7 +380,7 @@ Money<Smaller> operator-(const Money<Smaller>& a) {
    cerr << __func__ << " minus = " << minus << '\n';
    if (Integer::is_overflow<Smaller>(minus))
       throw out_of_range(string(__func__) + " amount = " + std::to_string(minus) + " is overflow for type " + TYPE_NAME);
-   const Constructor_Args args = constructor_args(minus);
+   const Constructor_Args args {minus};
    Money<Smaller> result = Money<Smaller>(args.DOLLARS, args.CENTS);
    cerr << __func__ << " result = " << result << '\n';
    return result;
@@ -423,36 +420,123 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
 #endif
 }
 
-/*
-template <typename Type>
-Constructor_Args constructor_args(const Type& AMOUNT) {
-   const Type dollars = AMOUNT / static_cast<Type>(CENTS_PER_DOLLAR);
-   Type cents = AMOUNT % static_cast<Type>(CENTS_PER_DOLLAR);
-   cents = std::abs(cents);
-   string dollars_string = std::to_string(dollars);
-   if (dollars == 0 && AMOUNT < 0)
-      dollars_string.insert(0, 1, Integer::MINUS);
-   Constructor_Args RESULT {dollars_string, static_cast<long double>(cents)};
-   return RESULT;
+#ifdef DEBUG_OSTREAM
+   template <class Number, enable_if_t<numeric_limits<Number>::is_integer || is_floating_point<Number>::value, bool> = true>
+   inline ostringstream& start_settings(ostringstream * os, const Money<Number>& money) {
+      validate_pointer(os);
+      if (signbit(money.get_amount_in_cents()))
+         *os << '-';
+      os->fill('0');
+      return *os;
+   }
+
+   template <class Number, template<typename> class Money_Template, enable_if_t<
+                     is_same<Number, char>::value || is_same<Number, int_fast8_t>::value, bool> = true>
+   ostringstream& operator<<(ostringstream * os, const Money_Template<Number>& money) {
+      validate_pointer(os);
+      int dollars = static_cast<int>(money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
+      int cents = static_cast<int>(money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
+      start_settings(os, money);
+      *os << abs(dollars) << ",";
+      *os << setw(2) << abs(cents);
+      return *os;
+   }
+
+   template <class Number, template<typename> class Money_Template, enable_if_t<is_integral<Number>::value &&
+                        ! is_same<Number, char>::value && ! is_same<Number, int_fast8_t>::value, bool> = true>
+   ostringstream& operator<<(ostringstream * os, const Money_Template<Number>& money) {
+      validate_pointer(os);
+      Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+      Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+      start_settings(os, money);
+      *os << (dollars < 0 ? -dollars : dollars) << ",";
+      *os << setw(2) << (cents < 0 ? -cents : cents);
+      return *os;
+   }
+   
+   template <class Number, template<typename> class Money_Template, enable_if_t<is_same<Number, Integer>::value, bool> = true>
+   ostringstream& operator<<(ostringstream * os, const Money_Template<Number>& money) {
+      validate_pointer(os);
+      Integer dollars = money.get_dollars(Money<Integer>::TYPE_DEFAULT_OBJECT);
+      Integer cents = money.get_cents(Money<Integer>::TYPE_DEFAULT_OBJECT);
+      start_settings(os, money);
+      *os << dollars.string_without_signum() << ",";
+      *os << setw(2) << cents.string_without_signum();
+      return *os;
+   }
+
+   template <class Number, template<typename> class Money_Template, enable_if_t<is_floating_point<Number>::value, bool> = true>
+   ostringstream& operator<<(ostringstream * os, const Money_Template<Number>& money) {
+      validate_pointer(os);
+      std::streamsize os_precision = os->precision();
+      Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+      Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+      start_settings(os, money);
+      *os << fixed << setprecision(0) << setw(0) << (signbit(dollars) ? -dollars : dollars) << ",";
+      *os << setw(2) << (signbit(cents) ? -cents : cents);
+      os->precision(os_precision);
+      return *os;
+   }
+
+
+   template <class Number, enable_if_t<is_floating_point<Number>::value || numeric_limits<Number>::is_integer, bool> = true>
+   ostream& operator<<(ostream& os, const Money<Number>& money) {
+      ostringstream ostrs;
+      string output = operator<<(&ostrs, money).str();
+      return os << output;
+   }
+#else
+
+template <class Number, enable_if_t<numeric_limits<Number>::is_integer || is_floating_point<Number>::value, bool> = true>
+inline ostream& start_settings(ostream& os, const Money<Number>& money) {
+   if (signbit(money.get_amount_in_cents()))
+      os << '-';
+   os.fill('0');
+   return os;
 }
-*/
 
-
-/*
-Money Money::operator+(const Money& other) const { 
-   long n = numerator * other.denominator + denominator * other.numerator;
-   long d = denominator * other.denominator; 
-   return Money(n, d);
-} 
-
-bool Money::operator>(const Money& other) const {
-   Money difference = operator-(other);
-   return difference.numerator > 0;
+template <class Number, template<typename> class Money_Template, enable_if_t<
+                  is_same<Number, char>::value || is_same<Number, int_fast8_t>::value, bool> = true>
+ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
+   int dollars = static_cast<int>(money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
+   int cents = static_cast<int>(money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT));
+   start_settings(os, money);
+   os << abs(dollars) << ",";
+   os << setw(2) << abs(cents);
+   return os;
 }
 
-bool Money::operator<(const Money& other) const {
-   Money difference = other.operator-(*this);
-   return difference.numerator > 0;
+template <class Number, template<typename> class Money_Template, enable_if_t<is_integral<Number>::value &&
+                       ! is_same<Number, char>::value && ! is_same<Number, int_fast8_t>::value, bool> = true>
+ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
+   Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+   Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+   start_settings(os, money);
+   os << (dollars < 0 ? -dollars : dollars) << ",";
+   os << setw(2) << (cents < 0 ? -cents : cents);
+   return os;
 }
-*/
+
+ostream& operator<<(ostream& os, const Money<Integer>& money) {
+   Integer dollars = money.get_dollars(Money<Integer>::TYPE_DEFAULT_OBJECT);
+   Integer cents = money.get_cents(Money<Integer>::TYPE_DEFAULT_OBJECT);
+   start_settings(os, money);
+   os << dollars.string_without_signum() << ",";
+   os << setw(2) << cents.string_without_signum();
+   return os;
+}
+
+template <class Number, template<typename> class Money_Template, enable_if_t<is_floating_point<Number>::value, bool> = true>
+ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
+   std::streamsize os_precision = os.precision();
+   Number dollars = money.get_dollars(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+   Number cents = money.get_cents(Money_Template<Number>::TYPE_DEFAULT_OBJECT);
+   start_settings(os, money);
+   os << fixed << setprecision(0) << setw(0) << (signbit(dollars) ? -dollars : dollars) << ",";
+   os << setw(2) << (signbit(cents) ? -cents : cents);
+   os.precision(os_precision);
+   return os;
+}
+#endif
+
 }
