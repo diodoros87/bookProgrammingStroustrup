@@ -1,6 +1,6 @@
 CXX = g++
 CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -Wconversion
-CXX = clang
+CXX = clang++
 #CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -L/usr/lib -lstdc++ -lm -v
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'
@@ -9,7 +9,7 @@ CLANG_CPPFLAGS = -Wfatal-errors -L/usr/lib -lstdc++ -lm -DMESSAGE='"Compiled wit
 ifeq ($(CXX), g++)
 	CPPFLAGS += $(GCC_CPPFLAGS)
 	CURL_TEST = curlcpp_test
-else ifeq ($(CXX), clang)
+else ifeq ($(CXX), clang++)
 	CPPFLAGS += $(CLANG_CPPFLAGS)
 	CURL_TEST = curl_test
 endif
@@ -38,7 +38,7 @@ ifeq ($(CXX), g++)
 	IPATH+=-I/home/mat/curlcpp/include
 	LPATH+=-L/home/mat/curlcpp/build/src
 	LIBS +=-lcurlcpp
-else ifeq ($(CXX), clang)
+else ifeq ($(CXX), clang++)
 
 endif
 

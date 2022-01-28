@@ -2,6 +2,8 @@
 #define MONEY_HPP
 
 #include "money_utility.hpp"
+
+namespace money {
    
 template <typename T>
 class Money {
@@ -48,14 +50,14 @@ public:
    Money & operator=(const Money &) = default;
    Money & operator=(Money &&) = default;
    
-   Money& operator+() const { return *this; }
+   Money operator+() const { return *this; }
    
-   template<typename U = T, enable_if_t<! numeric_limits<U>::is_signed, bool>  = true>
+   template<typename U = T, enable_if_t<! numeric_limits<U>::is_signed, bool>   = true>
    Money operator-() const = delete;
-   template<typename U = T, enable_if_t<false == numeric_limits<U>::is_signed, bool>  = true>
+   template<typename U = T, enable_if_t<false == numeric_limits<U>::is_signed, bool>   = true >
    Money operator-() = delete;
-   template<typename U = T, enable_if_t<! numeric_limits<U>::is_signed, bool>  = true>
-   Money& operator-() = delete;
+   template<typename U = T, enable_if_t<! numeric_limits<U>::is_signed, bool>  = true >
+   Money operator-() = delete;
    
    template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool>  = true>
    Money<Integer> operator-() const {

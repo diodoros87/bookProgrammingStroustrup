@@ -34,6 +34,7 @@ using std::floor;
 using integer_space::Integer;
 
 namespace money {
+   
 constexpr int_fast8_t CENTS_PER_DOLLAR = 100;
 constexpr int_fast8_t INCORRECT_CENTS = -112;
 
@@ -160,14 +161,23 @@ private:
 template <typename T>
 class Money;
 
-template<typename T>
-Money<T> operator!(const Money<T>& a) = delete;
-template<typename T>
-Money<T> operator!(const Money<T> a) = delete;
-template<typename T>
-Money<T> operator!(Money<T>& a) = delete;
-template<typename T>
-Money<T> operator!(Money<T>&& a) = delete;
+template<typename T, typename Result = Money<T>>
+Result operator!(const Money<T>& a) = delete;
+template<typename T, typename Result = Money<T>>
+Result operator!(const Money<T> a) = delete;
+template<typename T, typename Result = Money<T>>
+Result operator!(Money<T>& a) = delete;
+template<typename T, typename Result = Money<T>>
+Result operator!(Money<T>&& a) = delete;
+
+template<typename U, enable_if_t<! numeric_limits<U>::is_signed, bool>   = true, typename Result = Money<U>>
+Result operator-(const Money<U>& a) = delete;
+template<typename U, enable_if_t<false == numeric_limits<U>::is_signed, bool> = true, typename Result = Money<U>>
+Result operator-(Money<U> a) = delete;
+template<typename U, enable_if_t<! numeric_limits<U>::is_signed, bool> = true, typename Result = Money<U>>
+Result operator-(Money<U>& a) = delete;
+template<typename U, enable_if_t<! numeric_limits<U>::is_signed, bool> = true, typename Result>
+Result operator-(Money<U>&& a) = delete;
 
 Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b);
 Money<long double> operator+(const Money<long double>& a, const Money<long double>& b);
@@ -179,18 +189,12 @@ template<typename Smaller, enable_if_t<is_floating_point<Smaller>::value && ! is
 Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);
 
 template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
-            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool>
-#ifdef __clang__
-   = true
-#endif
->
+            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> = true>
 Money<Smaller> operator-(const Money<Smaller>& A);
 
-template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool>
-#ifdef __clang__
-   = true
-#endif
->
+template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> = true>
 Money<Smaller> operator-(const Money<Smaller>& a);
+
+}
 
 #endif
