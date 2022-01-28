@@ -128,23 +128,58 @@ void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DO
    Type RESULT = (A.*func)(B);
    print_assert(RESULT, expected);
 }
+using std::declval;
+template <typename Type>
+string get_operator_name(bool (Type::*func)(const Type&) const) {
+   if (func == &Type::operator==)
+      return "operator==";
+   if (func == &Type::operator!=)
+      return "operator!=";
+   if (func == &Type::operator>=)
+      return "operator>=";
+   if (func == &Type::operator<=)
+      return "operator<=";
+   if (func == &Type::operator>)
+      return "operator>";
+   if (func == &Type::operator<)
+      return "operator<";
+   
+   throw std::invalid_argument(string(__func__) + ": not matched operator  ");
+}
+/*
+template <typename Type> 
+inline void print_assert_bool(const bool RESULT, const bool expected, bool (Type::*func)(const Type&) const, const Type& A, const Type& B) {
+   cerr << std::boolalpha << " RESULT IS " << (RESULT) << '\n'; 
+   if((RESULT) != (expected)) { 
+      cerr << " " << A << " " << get_operator_name<Type>(func) << " " << B << " returns unexpected result "  << '\n';
+      assert(false); 
+   }
+}
+*/
+#define print_assert_bool(RESULT, expected, func, A, B) \
+   cerr << std::boolalpha << " RESULT IS " << (RESULT) << '\n'; \
+   if((RESULT) != (expected)) { \
+      cerr << " " << A << " " << get_operator_name<Type>(func) << " " << B << " returns unexpected result "  << '\n'; \
+      assert(false); \
+   }
 
 template <typename Type> 
-void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const string & B_DOLLARS, 
+void binary_operation(bool (Type::*func)(const Type&) const, const string & A_DOLLARS, const string & B_DOLLARS, 
                       const bool expected) { 
    const Type       A(A_DOLLARS);
    const Type B(B_DOLLARS);
-   Type RESULT = (A.*func)(B);
-   print_assert(RESULT, expected);
+   bool RESULT = (A.*func)(B);
+   print_assert_bool(RESULT, expected, func, A, B);
 }
 
 template <typename Type> 
-void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
+void binary_operation(bool (Type::*func)(const Type&) const, const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const long double B_CENTS, const bool expected) { 
    const Type       A(A_DOLLARS, A_CENTS);
    const Type B(B_DOLLARS, B_CENTS);
-   Type RESULT = (A.*func)(B);
-   print_assert(RESULT, expected);
+   bool RESULT = (A.*func)(B);
+   
+   print_assert_bool(RESULT, expected, func, A, B);
 }
 
 template <typename Type, typename Function> 
@@ -165,7 +200,7 @@ void binary_operation(Function && func, const string & A_DOLLARS, const long dou
 }
 
 template <typename Type> 
-void unary_operation(Type& (Type::*func)(const Type&) , const string & A_DOLLARS, const string & expected = "") { 
+void unary_operation(Type& (Type::*func)(const Type&), const string & A_DOLLARS, const string & expected = "") { 
    Type       A(A_DOLLARS);
    Type RESULT = (A.*func)();
    print_assert(RESULT, expected);
@@ -272,6 +307,71 @@ public:
 };
 
 template <typename Type, template<typename> class Template = Money>
+class Test_relations : public Dollars_string { 
+public:
+   Test_relations(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
+                      const long double B_CENTS, const bool equality, const bool smaller) :
+                      Dollars_string(A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS) { 
+      cerr << "\n\n#########################" << __func__ << '\n';
+      binary_operation<Template<Type>> (&Template<Type>::operator==, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, equality);
+      binary_operation<Template<Type>> (&Template<Type>::operator!=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, ! equality);
+      binary_operation<Template<Type>> (&Template<Type>::operator==, a_dollars, b_dollars, equality);
+      binary_operation<Template<Type>> (&Template<Type>::operator!=, a_dollars, b_dollars, ! equality);
+      binary_operation<Template<Type>> (&Template<Type>::operator<=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, equality || smaller);
+      binary_operation<Template<Type>> (&Template<Type>::operator>=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, equality || ! smaller);
+      binary_operation<Template<Type>> (&Template<Type>::operator<=, a_dollars, b_dollars, equality || smaller);
+      binary_operation<Template<Type>> (&Template<Type>::operator>=, a_dollars, b_dollars, equality || ! smaller);
+      binary_operation<Template<Type>> (&Template<Type>::operator<, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, smaller);
+      binary_operation<Template<Type>> (&Template<Type>::operator>, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, ! smaller && ! equality);
+      binary_operation<Template<Type>> (&Template<Type>::operator<, a_dollars, b_dollars, smaller);
+      binary_operation<Template<Type>> (&Template<Type>::operator>, a_dollars, b_dollars, ! smaller && ! equality);
+   }
+};
+/*
+template <typename Type, template<typename> class Template = Money>
+class Test_relations : public Dollars_string { 
+public:
+   Test_greater(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
+                      const long double B_CENTS, const bool expected) :
+                      Dollars_string(A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS) { 
+      cerr << "\n\n#########################" << __func__ << '\n';
+      binary_operation<Template<Type>> (&Template<Type>::operator==, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, ! expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator!=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator==, a_dollars, b_dollars, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator!=, a_dollars, b_dollars, ! expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator<=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator>=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator<=, a_dollars, b_dollars, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator>=, a_dollars, b_dollars, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator<, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, ! expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator>, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, ! expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator<, a_dollars, b_dollars, ! expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator>, a_dollars, b_dollars, ! expected);
+   }
+};
+template <typename Type, template<typename> class Template = Money>
+class Test_relations : public Dollars_string { 
+public:
+   Test_lesser(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
+                      const long double B_CENTS, const bool expected) :
+                      Dollars_string(A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS) { 
+      cerr << "\n\n#########################" << __func__ << '\n';
+      binary_operation<Template<Type>> (&Template<Type>::operator==, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator!=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, ! expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator==, a_dollars, b_dollars, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator!=, a_dollars, b_dollars, ! expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator<=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator>=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator<=, a_dollars, b_dollars, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator>=, a_dollars, b_dollars, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator<, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, ! expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator>, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, ! expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator<, a_dollars, b_dollars, ! expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator>, a_dollars, b_dollars, ! expected);
+   }
+};
+*/
+template <typename Type, template<typename> class Template = Money>
 class Failed_test_adding : public Dollars_string { 
 public:
    Failed_test_adding(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, const long double B_CENTS) :
@@ -318,6 +418,24 @@ void correct_adding() {
 }
 
 template <typename T, template<typename> class Template = Money>
+void correct_relations() {
+   cerr << "\n\n#########################" << __func__ << '\n';
+   if (numeric_limits<T>::is_signed) {
+      if (! is_same<T, char>::value &&  ! is_same<T, int_fast8_t>::value) {
+         Test_relations<T>("-1", 28, "0", 2, false, true);
+         if (! is_same<T, short>::value)
+            Test_relations<T>("100", 23, "-450", 34, false, false);
+      }
+      Test_relations<T, Template>("-0", 23, "-0", 34, false, false);
+      Test_relations<T, Template>("-0", 23, "0", 34, false, true);
+      Test_relations<T, Template>("0", 23, "-0", 34, false, false);
+      
+   }
+   Test_relations<T>("0", 23, "0", 34, false, true);
+   Test_relations<T>("0", 99, "0", 99, true, false);
+}
+
+template <typename T, template<typename> class Template = Money>
 void correct_subtracting() {
    cerr << "\n\n#########################" << __func__ << '\n';
    if (numeric_limits<T>::is_signed) {
@@ -360,6 +478,7 @@ template <typename T, template<typename> class Template = Money>
 void correct() {
    correct_adding<T>();
    correct_subtracting<T>();
+   correct_relations<T>();
 }
 
 template <typename T, template<typename> class Template = Money>
