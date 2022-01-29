@@ -90,8 +90,10 @@ void construct() {
    construct_cents<T>("1", 1, true, "1,01");
    construct_cents<T>("1", 0, true, "1,00");
    construct_cents<T>("0", 99.9, false, "1,00");
+   construct_cents<T>("-0", 0, true, "0,00");
    construct_cents<T>("0", 0, true, "0,00");
    construct<T>("0.99999", false, "1,00");
+   construct<T>("-0", true, "0,00");
    construct<T>("0.5", true, "0,50");
    construct<T>("0.50", true, "0,50");
    construct<T>("0.500", true, "0,50");

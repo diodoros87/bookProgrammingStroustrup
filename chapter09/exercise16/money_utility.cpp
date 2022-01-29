@@ -98,4 +98,14 @@ string formatted_string(const Integer & dollars, const Integer & cents) {
    string out = dollars_string + "," + cents_string;
    return out;
 }
+
+ostream& operator<<(ostream& os, const Money<Integer>& money) {
+   Integer dollars = money.get_dollars(Money<Integer>::TYPE_DEFAULT_OBJECT);
+   Integer cents = money.get_cents(Money<Integer>::TYPE_DEFAULT_OBJECT);
+   start_settings(os, money);
+   os << dollars.string_without_signum() << ",";
+   os << setw(2) << cents.string_without_signum();
+   return os;
+}
+
 }

@@ -273,7 +273,7 @@ void unary_operation(Type (Type::*func)(const Type&) const, const string & A_DOL
    print_assert(RESULT, expected);
 }
 */
-
+template <typename Type, template<typename> class Template = Money>
 struct Dollars_string {
 public:
    const string a_dollars;
@@ -285,7 +285,7 @@ public:
    { }
 private:
    string dollars_string(const string & DOLLARS, const long double CENTS) {
-      string cents = std::to_string(static_cast<int>(CENTS));
+      string cents = std::to_string(Template<Type>::round(CENTS));
       if (CENTS < 10)
          cents.insert(0, "0");
       const string RESULT = DOLLARS + "." + cents;
@@ -303,19 +303,21 @@ string replace_char(const string & S, const string remove, const string insert) 
 }
 
 template <typename Type, template<typename> class Template = Money>
-class Test_unary : public Dollars_string { 
+class Test_unary : public Dollars_string<Template<Type>> { 
    static_assert(numeric_limits<Type>::is_signed && "Type signed required");
 public:
    Test_unary(const string & A_DOLLARS, const long double A_CENTS, const string & expected = "") : 
-                      Dollars_string(A_DOLLARS, A_CENTS, "", 0.0L) {
+                      Dollars_string<Template<Type>>(A_DOLLARS, A_CENTS, "", 0.0L) {
       cerr << "\n\n#########################" << __func__ << '\n';
       unary_operation<Template<Type>> (&Template<Type>::operator+, A_DOLLARS, A_CENTS, replace_dot_by_comma());
       unary_operation<Template<Type>> (&Template<Type>::operator-, A_DOLLARS, A_CENTS, expected);
+      unary_operation<Template<Type>> (&Template<Type>::operator+, Dollars_string<Template<Type>>::a_dollars, replace_dot_by_comma());
+      unary_operation<Template<Type>> (&Template<Type>::operator-, Dollars_string<Template<Type>>::a_dollars, expected);
    }
 private:
    string replace_dot_by_comma() {
-      string expected_plus = replace_char(Dollars_string::a_dollars, ".", ",");
-      if (numeric_limits<Type>::is_integer && expected_plus == "-0,00")
+      string expected_plus = replace_char(Dollars_string<Template<Type>>::a_dollars, ".", ",");
+      if (expected_plus == "-0,00")
          expected_plus.erase(0, 1);
       cerr << "\n\n#" << __func__ << " expected_plus = " << expected_plus << '\n';
       return expected_plus;
@@ -323,7 +325,8 @@ private:
 };
 
 template <typename Type, template<typename> class Template = Money>
-class Test_adding : public Dollars_string { 
+class Test_adding : public Dollars_string<Template<Type>> { 
+   using Dollars_string = Dollars_string<Template<Type>>;
 public:
    Test_adding(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const long double B_CENTS, const string & expected = "") : 
@@ -331,8 +334,8 @@ public:
       cerr << "\n\n#########################" << __func__ << '\n';
       binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
       binary_operation<Template<Type>> (&Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
-      binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, a_dollars, b_dollars, expected);
-      binary_operation<Template<Type>> (&Template<Type>::operator+=, a_dollars, b_dollars, expected);
+      binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, Dollars_string::a_dollars, Dollars_string::b_dollars, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator+=, Dollars_string::a_dollars, Dollars_string::b_dollars, expected);
    }
 };
 
@@ -413,9 +416,14 @@ void correct_adding() {
       Test_adding<T, Template>("-0", 23, "-0", 34, "-0,57");
       Test_adding<T, Template>("-0", 23, "0", 34, "0,11");
       Test_adding<T, Template>("0", 23, "-0", 34, "-0,11");
-      
+      Test_adding<T, Template>("-0", 99.9, "0", 99.4, "-0,01");
+      Test_adding<T, Template>("-0", 99.4, "0", 99.9, "0,01");
+      Test_adding<T, Template>("0", 99.9, "-0", 99.5, "0,00");
+      Test_adding<T, Template>("-0", 99.9, "0", 99.5, "0,00");
    }
    Test_adding<T>("0", 23, "0", 34, "0,57");
+   Test_adding<T, Template>("0", 9.4, "0", 9.9, "0,19");
+   Test_adding<T, Template>("0", 9.5, "0", 9.9, "0,20");
 }
 
 template <typename T, template<typename> class Template = Money>
@@ -465,7 +473,7 @@ void correct_unary() {
    }
    Test_unary<T, Template>("-0", 23, "0,23");
    Test_unary<T, Template>("0", 23, "-0,23");
-   //Test_unary<T>("0", 0, "0,00");
+   Test_unary<T>("0", 0, "0,00");
    Test_unary<T>("-0", 0, "0,00");
 }
 

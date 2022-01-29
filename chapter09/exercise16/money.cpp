@@ -424,7 +424,7 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
    template <class Number, enable_if_t<numeric_limits<Number>::is_integer || is_floating_point<Number>::value, bool> = true>
    inline ostringstream& start_settings(ostringstream * os, const Money<Number>& money) {
       validate_pointer(os);
-      if (signbit(money.get_amount_in_cents()))
+      if (money.get_amount_in_cents() < static_cast<Number>(0))
          *os << '-';
       os->fill('0');
       return *os;
@@ -478,7 +478,6 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
       return *os;
    }
 
-
    template <class Number, enable_if_t<is_floating_point<Number>::value || numeric_limits<Number>::is_integer, bool> = true>
    ostream& operator<<(ostream& os, const Money<Number>& money) {
       ostringstream ostrs;
@@ -487,9 +486,9 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
    }
 #else
 
-template <class Number, enable_if_t<numeric_limits<Number>::is_integer || is_floating_point<Number>::value, bool> = true>
+template <class Number, enable_if_t<is_floating_point<Number>::value || numeric_limits<Number>::is_integer, bool> = true>
 inline ostream& start_settings(ostream& os, const Money<Number>& money) {
-   if (signbit(money.get_amount_in_cents()))
+   if (money.get_amount_in_cents() < static_cast<Number>(0))
       os << '-';
    os.fill('0');
    return os;
@@ -517,14 +516,7 @@ ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
    return os;
 }
 
-ostream& operator<<(ostream& os, const Money<Integer>& money) {
-   Integer dollars = money.get_dollars(Money<Integer>::TYPE_DEFAULT_OBJECT);
-   Integer cents = money.get_cents(Money<Integer>::TYPE_DEFAULT_OBJECT);
-   start_settings(os, money);
-   os << dollars.string_without_signum() << ",";
-   os << setw(2) << cents.string_without_signum();
-   return os;
-}
+ostream& operator<<(ostream& os, const Money<Integer>& money);
 
 template <class Number, template<typename> class Money_Template, enable_if_t<is_floating_point<Number>::value, bool> = true>
 ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
