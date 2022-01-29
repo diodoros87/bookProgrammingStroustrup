@@ -1,7 +1,6 @@
 CXX = g++
-CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -Wconversion
+CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 #-Wconversion
 CXX = clang++
-#CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -L/usr/lib -lstdc++ -lm -v
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'
 CLANG_CPPFLAGS = -Wfatal-errors -L/usr/lib -lstdc++ -lm -DMESSAGE='"Compiled with Clang"'
