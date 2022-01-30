@@ -277,7 +277,6 @@ void unary_operation(Type (Type::*func)(const Type&) const, const string & A_DOL
 
 const Integer HUNDRED = Integer::create_Integer(100);
 const Integer TEN = Integer::create_Integer(10);
-const Integer ONE = Integer::create_Integer(1);
       
 template <typename Type, template<typename> class Template = Money>
 struct Dollars_string {
@@ -296,17 +295,20 @@ private:
       string dollars;
       string cents;
       Type cents_rounded = Template<Type>::round(CENTS);  
-      if (cents_rounded >= 100) {
-         Type dollars_number =  Template<Type>::get_amount(DOLLARS);
-         dollars_number = dollars_number + 1;
-         dollars = std::to_string(dollars_number);
-         cents = std::to_string(CENTS - 100);
-      } else {
+      if (cents_rounded < 100) 
          dollars = DOLLARS;
-         cents = std::to_string(static_cast<int>(cents_rounded));
-         if (cents_rounded < 10)
-            cents.insert(0, "0");
-      }
+      else {
+         Type dollars_number =  Template<Type>::get_amount(DOLLARS);
+         if (dollars_number <= 0 && DOLLARS.find(Integer::MINUS) != string::npos)
+            dollars_number -= 1;
+         else
+            dollars_number += 1;
+         dollars = std::to_string(static_cast<int>(dollars_number));
+         cents_rounded -= 100;
+      } 
+      cents = std::to_string(static_cast<int>(cents_rounded));
+      if (cents_rounded < 10)
+         cents.insert(0, "0");
       const string RESULT = dollars + "." + cents;
       cerr << '\n' << __func__ << " RESULT = " << RESULT << '\n';
       return RESULT;
@@ -317,19 +319,28 @@ private:
       string dollars;
       string cents;
       Integer cents_rounded = Template<Integer>::round(CENTS);  
-      //string cents = cents_rounded.string_without_signum();
-      if (cents_rounded >= HUNDRED) {
-         Integer dollars_number =  Template<Integer>::get_amount(DOLLARS);
-         dollars_number = dollars_number + ONE;
-         dollars = std::to_string(dollars_number);
-         cents = std::to_string(CENTS - 100);
-      } else {
+      if (cents_rounded < HUNDRED)
          dollars = DOLLARS;
-         cents = cents_rounded.string_without_signum();
-         if (cents_rounded < TEN)
-            cents.insert(0, "0");
+      else {
+         Integer dollars_number; 
+         try {
+            dollars_number = Integer::parse_create(DOLLARS);
+            ++dollars_number;
+         } catch (const invalid_argument & e) {
+            if (dollars_number <= Integer::ZERO && DOLLARS.find(Integer::MINUS) != string::npos) {
+               dollars_number = Integer::parse_create_signed_zero(DOLLARS);
+               --dollars_number;
+            }
+            else
+               throw e;
+         } 
+         dollars = dollars_number.operator string();
+         cents_rounded -= HUNDRED;
       }
-      const string RESULT = DOLLARS + "." + cents;
+      cents = cents_rounded.string_without_signum();
+      if (cents_rounded < TEN)
+         cents.insert(0, "0");
+      const string RESULT = dollars + "." + cents;
       cerr << '\n' << __func__ << " RESULT = " << RESULT << '\n';
       return RESULT;
    }
@@ -392,32 +403,32 @@ private:
 
 template <typename Type, template<typename> class Template = Money>
 class Test_adding : public Dollars_string<Type, Template> { 
-   using Dollars_string = Dollars_string<Type, Template>;
+   using S = Dollars_string<Type, Template>;
 public:
    Test_adding(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const long double B_CENTS, const string & expected = "") : 
-                      Dollars_string(A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS) {
+                      S(A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS) {
       cerr << "\n\n#########################" << __func__ << '\n';
       binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
       binary_operation<Template<Type>> (&Template<Type>::operator+=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
-      binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, Dollars_string::a_dollars, Dollars_string::b_dollars, expected);
-      binary_operation<Template<Type>> (&Template<Type>::operator+=, Dollars_string::a_dollars, Dollars_string::b_dollars, expected);
+      binary_operation<Template<Type>, Template<Type>(const Template<Type>&, const Template<Type>&)> (operator+, S::a_dollars, S::b_dollars, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator+=, S::a_dollars, S::b_dollars, expected);
    }
 };
 
 template <typename Type, template<typename> class Template = Money>
 class Test_subtracting : public Dollars_string <Type, Template> { 
 public:
-   using Dollars_string = Dollars_string<Type, Template>;
+   using S = Dollars_string<Type, Template>;
    
    Test_subtracting(const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const long double B_CENTS, const string & expected = "") :
-                      Dollars_string(A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS) { 
+                      S(A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS) { 
       cerr << "\n\n#########################" << __func__ << '\n';
       binary_operation<Template<Type>> (&Template<Type>::operator-=, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
       binary_operation<Template<Type>> (&Template<Type>::operator-, A_DOLLARS, A_CENTS, B_DOLLARS, B_CENTS, expected);
-      binary_operation<Template<Type>> (&Template<Type>::operator-=, Dollars_string::a_dollars, Dollars_string::b_dollars, expected);
-      binary_operation<Template<Type>> (&Template<Type>::operator-, Dollars_string::a_dollars, Dollars_string::b_dollars, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator-=, S::a_dollars, S::b_dollars, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator-, S::a_dollars, S::b_dollars, expected);
    }
 };
 
@@ -599,8 +610,8 @@ void perform() {
 }
 
 void perform() {
-   perform<Integer, Money>();
    perform<char, Money>();
+   perform<Integer, Money>();
    perform<int_fast8_t>();
    perform<short>();
    perform<unsigned short>();

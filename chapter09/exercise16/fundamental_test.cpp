@@ -290,6 +290,27 @@ void assignment_test() {
    assert(static_cast<string>(i3) == ("+111"));
 }
 
+void increment_decrement_test() {
+   Integer i = default_constructor_test();
+   assert(static_cast<string>(i) == ("0"));
+   assert(static_cast<string>(i++) == ("0"));
+   assert(static_cast<string>(i) == ("+1"));
+   assert(static_cast<string>(++i) == ("+2"));
+   assert(static_cast<string>(i) == ("+2"));
+   assert(static_cast<string>(--i) == ("+1"));
+   assert(static_cast<string>(i) == ("+1"));
+   assert(static_cast<string>(i--) == ("+1"));
+   assert(static_cast<string>(i) == ("0"));
+   assert(static_cast<string>(--i) == ("-1"));
+   assert(static_cast<string>(i) == ("-1"));
+   assert(static_cast<string>(i--) == ("-1"));
+   assert(static_cast<string>(i) == ("-2"));
+   assert(static_cast<string>(i++) == ("-2"));
+   assert(static_cast<string>(i) == ("-1"));
+   assert(static_cast<string>(++i) == ("0"));
+   assert(static_cast<string>(i) == ("0"));
+}
+
 }
 
 using namespace main_integer_test;
@@ -298,6 +319,7 @@ int main() {
    try {
       constructor_test();
       assignment_test();
+      increment_decrement_test();
       cerr << " numeric_limits<Integer>::max() = " << numeric_limits<Integer>::max() << '\n';
       cerr << " numeric_limits<Integer>::min() = " << numeric_limits<Integer>::min() << '\n';
       printf("trunc(NAN) = %+f    isfinite(NAN) = %d\n",   trunc(NAN), isfinite(NAN));

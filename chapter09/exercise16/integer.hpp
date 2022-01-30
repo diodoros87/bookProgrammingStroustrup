@@ -56,6 +56,12 @@ Integer operator+(const Integer& first, const Integer& second);
 bool operator<(const Integer& first, const Integer& second);
 bool operator>(const Integer& first, const Integer& second);
 bool operator==(const Integer& first, const Integer& second);
+
+inline Integer operator+(const Integer& integer);
+
+inline Integer& operator+=(Integer& first, const Integer& second);
+
+inline Integer& operator-=(Integer& first, const Integer& second);
    
 class Integer {
 public:
@@ -71,6 +77,7 @@ public:
    static const long double FLOAT_MAX;
    static constexpr int_fast8_t BASE = 10;
    static const Integer ZERO;
+   static const Integer ONE;
 private:
    array<digit_type, MAX_ARRAY_LENGTH> integer_array { 0 };
    char signum { NEUTRAL };   // less than 0 for integers < 0, more than 0 for integers > 0, 0 for 0   
@@ -311,7 +318,47 @@ public:
    friend Integer operator*(const Integer& first, const Integer& second);
    friend Integer operator%(const Integer& DIVIDEND, const Integer& DIVISOR);
    friend Integer operator/(const Integer& dividend, const Integer& divisor);
+   
+      // prefix increment
+   Integer& operator++() {
+      operator+=(*this, ONE);
+      return *this; // return new value by reference
+   }
+
+   // postfix increment
+   Integer operator++(int) {
+      Integer old = *this; // copy old value
+      operator++();  // prefix increment
+      return old;    // return old value
+   }
+
+   // prefix decrement
+   Integer& operator--() {
+      operator-=(*this, ONE);
+      return *this; // return new value by reference
+   }
+
+   // postfix decrement
+   Integer operator--(int) {
+      Integer old = *this; // copy old value
+      operator--();  // prefix decrement
+      return old;    // return old value
+   }
 };
+
+inline Integer operator+(const Integer& integer) {
+   return integer;
+}
+
+inline Integer& operator+=(Integer& first, const Integer& second) {
+   first = first + second;
+   return first;
+}
+
+inline Integer& operator-=(Integer& first, const Integer& second) {
+   first = first - second;
+   return first;
+}
 
 inline bool operator<=(const Integer& first, const Integer& second) {
    return ! (first > second);
@@ -337,20 +384,6 @@ inline istream& operator>>(istream& is, Integer & integer) {
    
    integer.parse(integer_string);
    return is;
-}
-
-inline Integer operator+(const Integer& integer) {
-   return integer;
-}
-
-inline Integer& operator+=(Integer& first, const Integer& second) {
-   first = first + second;
-   return first;
-}
-
-inline Integer& operator-=(Integer& first, const Integer& second) {
-   first = first - second;
-   return first;
 }
 
 template <typename Container>   // private
