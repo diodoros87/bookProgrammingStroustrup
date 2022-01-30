@@ -194,7 +194,14 @@ Money<Smaller> operator-(const Money<Smaller>& A);
 
 template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> = true>
 Money<Smaller> operator-(const Money<Smaller>& a);
+/*
+template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
+            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> = true>
+Money<Smaller> operator*(const Money<Smaller>& money, const Smaller number);
 
+template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> = true>
+Money<Smaller> operator*(const Money<Smaller>& money, const Smaller number);
+*/
 }
 
 #endif

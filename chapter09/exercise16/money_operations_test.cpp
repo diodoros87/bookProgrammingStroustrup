@@ -289,7 +289,6 @@ public:
                                                    b_dollars(dollars_string(B_DOLLARS, B_CENTS)) 
    { }
 private:
-   //string cents_string(const long double CENTS);
    template <typename U = Type, enable_if_t<false == is_same<U, Integer>::value, bool>  = true>
    string dollars_string(const string & DOLLARS, const long double CENTS) {
       string dollars;
@@ -502,6 +501,8 @@ void correct_adding() {
       Test_adding<T, Template>("-0", 99.4, "0", 99.9, "0,01");
       Test_adding<T, Template>("0", 99.9, "-0", 99.5, "0,00");
       Test_adding<T, Template>("-0", 99.9, "0", 99.5, "0,00");
+      Test_adding<T, Template>("-0", 99.9, "0", 19.4, "-0,81");
+      Test_adding<T, Template>("-0", 99.9, "0", 19.5, "-0,80");
    }
    Test_adding<T>("0", 23, "0", 34, "0,57");
    Test_adding<T, Template>("0", 9.4, "0", 9.9, "0,19");
@@ -519,6 +520,11 @@ void correct_subtracting() {
       }
       Test_subtracting<T>("-0", 2, "-1", 28, "1,26");
       Test_subtracting<T>("-1", 28, "-0", 2, "-1,26");
+      Test_subtracting<T, Template>("-0", 99.9, "0", 19.4, "-1,19");
+      Test_subtracting<T, Template>("-0", 99.9, "0", 19.5, "-1,20");
+      Test_subtracting<T, Template>("-0", 99.4, "-0", 99.9, "0,01");
+      Test_subtracting<T, Template>("0", 99.9, "0", 99.5, "0,00");
+      Test_subtracting<T, Template>("-0", 99.9, "-0", 99.4, "-0,01");
    }
    Test_subtracting<T>("0", 99, "0", 99, "0,00");
 }
@@ -535,7 +541,6 @@ void correct_relations() {
       Test_relations<T, Template>("-0", 23, "-0", 34, false, false);
       Test_relations<T, Template>("-0", 23, "0", 34, false, true);
       Test_relations<T, Template>("0", 23, "-0", 34, false, false);
-      
    }
    Test_relations<T>("0", 23, "0", 34, false, true);
    Test_relations<T>("0", 99, "0", 99, true, false);
@@ -559,6 +564,7 @@ void correct_unary() {
    Test_unary<T>("-0", 0, "0,00");
 }
 
+const string Integer_MAX = static_cast<string>(Integer::MAX);
 template <typename T, template<typename> class Template = Money>
 void failed_adding() {
    cerr << "\n\n#########################" << __func__ << '\n';
@@ -569,8 +575,11 @@ void failed_adding() {
       if (is_same<T, short>::value)
          Failed_test_adding<T>("100", 23, "310", 34);
    }
+   if (! is_same<T, double>::value && ! is_same<T, long double>::value)
+      Failed_test_adding<T>(Integer_MAX, 28, "0", 2);
 }
 
+const string Integer_MIN = static_cast<string>(Integer::MIN);
 template <typename T, template<typename> class Template = Money>
 void failed_subtracting() {
    cerr << "\n\n#########################" << __func__ << '\n';
@@ -580,6 +589,8 @@ void failed_subtracting() {
       }
       if (is_same<T, short>::value)
          Failed_test_subtracting<T>("100", 23, "-310", 34);
+      if (! is_same<T, double>::value && ! is_same<T, long double>::value)
+         Failed_test_subtracting<T>(Integer_MIN, 28, "0", 2);
    }
 }
 

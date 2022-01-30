@@ -93,6 +93,18 @@ public:
    }
    
    //Money operator+(const Money& other) const;
+   /*
+   template<typename U = T, enable_if_t<numeric_limits<U>::is_signed && ! is_floating_point<U>::value, bool>  = true>
+   Money operator-(const Money& other) const { 
+      try {
+         return money::operator+(*this, -other); 
+      } catch (const out_of_range &) {
+         Money result = other + (-*this);
+         result = -result; 
+         return result;
+      }
+   }
+   */
    template<typename U = T, enable_if_t<numeric_limits<U>::is_signed, bool>  = true>
    Money operator-(const Money& other) const { 
       try {
@@ -103,6 +115,17 @@ public:
          return result;
       }
    }
+   /*
+   template<typename U = T, enable_if_t<is_floating_point<U>::value, bool>  = true>
+   Money operator-(const Money& other) const { 
+      try {
+         return money::operator+(*this, -other); 
+      } catch (const out_of_range &) {
+         Money result = other + (-*this);
+         result = Money<U>::round(- result);
+         return result;
+      }
+   }*/
    
    template<typename U = T, enable_if_t< ! numeric_limits<U>::is_signed, bool>  = true>
    Money operator-(const Money& other) const { 
@@ -129,6 +152,30 @@ public:
       }
    }
    
+   /*
+   template<typename U = T, enable_if_t<numeric_limits<U>::is_signed && ! is_floating_point<U>::value, bool>  = true>
+   Money& operator-=(const Money& other) {
+      try {
+         return operator+=(-other); 
+      } catch (const out_of_range &) {
+         Money result = other + (-*this);
+         *this = - result; 
+         return *this;
+      }
+   }
+   
+   template<typename U = T, enable_if_t<is_floating_point<U>::value, bool>  = true>
+   Money& operator-=(const Money& other) {
+      try {
+         return operator+=(-other); 
+      } catch (const out_of_range &) {
+         Money result = other + (-*this);
+         result = Money<U>::round(static_cast<long double>(- result.amount_in_cents));
+         *this = result; 
+         return *this;
+      }
+   }
+   */
    template<typename U = T, enable_if_t< ! numeric_limits<U>::is_signed, bool>  = true>
    Money& operator-=(const Money& other) {
       if (other > *this)
@@ -139,9 +186,17 @@ public:
       return *this;
    }
    
-   template<typename U = T, enable_if_t<is_same<U, long double>::value || is_same<U, Integer>::value, bool>  = true>
+   template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool>  = true>
    Money& operator+=(const Money& other) {
       this->amount_in_cents += other.amount_in_cents;
+      cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
+      return *this;
+   }
+   
+   template<typename U = T, enable_if_t<is_same<U, long double>::value, bool>  = true>
+   Money& operator+=(const Money& other) {
+      this->amount_in_cents += other.amount_in_cents;
+      this->amount_in_cents = Money<long double>::round(amount_in_cents);
       cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
       return *this;
    }
@@ -156,11 +211,41 @@ public:
       return operator+=<long double, U>(other);
    }
    
+   template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool>  = true>
+   Money operator*(const U& factor) {
+      const U product = this->amount_in_cents * factor;
+      cerr << __func__ << " product = " << product << '\n';
+      const Constructor_Args args {product};
+      Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS);//::create
+      cerr << __func__ << " result = " << result << '\n';
+      return result;
+   }
+   
+   template<typename U = T, enable_if_t<is_same<U, long double>::value, bool>  = true>
+   Money operator*(const U factor) {
+      const U product = this->amount_in_cents * factor;
+      product = Money<long double>::round(product);
+      cerr << __func__ << " product = " << product << '\n';
+      const string dollars_string = dollars_from_amount(product);
+      Money<long double> result = Money<long double>(dollars_string);//::create
+      return result;
+   }
+   
+   template<typename U = T, enable_if_t<is_integral<U>::value, bool>  = true>
+   Money operator*(const U factor) {
+      return operator*<Integer, U>(*this, factor);
+   }
+   
+   template<typename U = T, enable_if_t<is_floating_point<U>::value && ! is_same<U, long double>::value, bool>  = true>
+   Money operator*(const U factor) {
+      return operator*<long double, U>(*this, factor);
+   }
+   /*
    template<typename Greater>
    Money operator*(const T & n) const;
    Money operator*(const T & n) const;
    Money operator/(const T & n) const;
-   
+   */
    bool operator==(const Money& other) const { return amount_in_cents == other.amount_in_cents; }
    bool operator!=(const Money& other) const { return !(*this == other); } ;
    
@@ -231,6 +316,8 @@ public:
    
    friend Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b);
    friend Money<long double> operator+(const Money<long double>& a, const Money<long double>& b);
+   friend Money<Integer> operator*(const Money<Integer>& MONEY, const Integer& FACTOR);
+   friend Money<long double> operator*(const Money<long double>& MONEY, const long double FACTOR);
    
    template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
             (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
@@ -250,7 +337,7 @@ private:
    Money& operator+=(const Money<U>& other) {
       static_assert(is_NOT_smaller<Greater, U>() && "is_NOT_smaller<Greater, U> required");
       Greater sum = Greater(this->amount_in_cents) + Greater(other.amount_in_cents);
-      //sum = Money<Greater>::round(sum);
+      sum = Money<Greater>::round(sum);
       cerr << __func__ << " sum = " << sum << '\n';
       if (is_overflow<T, Greater>(sum))
          throw out_of_range(string(__func__) + " amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
