@@ -41,54 +41,7 @@ void operation_failed(Function && f, Args&&... args ) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    }
 }
-/*  
-template <typename Function, typename... Args>  
-void operation_failed(Function && f, Args&&... args ) { 
-   try {
-      f(std::forward<Args>(args)...);
-      assert(0 && "---------------------- operation should be failed !!!");
-   } catch (const invalid_argument& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   } catch (const out_of_range& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   } catch (const bad_cast& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   }
-}
-*/
 
-/*
-template <typename Type, typename... Args>  
-void operation_failed(Type& (Type::*func)(const Type&), Args&&... args ) { 
-   try {
-      f(std::forward<Args>(args)...);
-      assert(0 && "---------------------- operation should be failed !!!");
-   } catch (const invalid_argument& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   } catch (const out_of_range& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   } catch (const bad_cast& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   }
-}
-*/
-/*
-template <typename T, typename Function, typename... Args>  
-void operation_failed(Type& (Type::*func)(const Type&), Args&&... args ) { 
-   try {
-      f(std::forward<Args>(args)...);
-      T obj = f(std::forward<Args>(args)...);
-      cerr << __func__ << " !!!!!!!!!!!!!!!!!!" << obj << endl;
-      assert(0);
-   } catch (const invalid_argument& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   } catch (const out_of_range& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   } catch (const bad_cast& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   }
-}
-  */
 //typedef  int (Fred::*FredMemFn)(char x, float y);
 //template <typename T, typename T (T::*oper)(const& T)> 
 template <typename Type> 
@@ -198,7 +151,57 @@ void binary_operation(Function && func, const string & A_DOLLARS, const long dou
    const Type RESULT = func(A, B);
    print_assert(RESULT, expected);
 }
+
+template <typename Type> 
+void binary_operation(Type& (Type::*func)(const Type&), const string & A_DOLLARS, const Type & FACTOR, 
+                      const string & expected = "") { 
+   Type       A(A_DOLLARS);
+   Type RESULT = (A.*func)(FACTOR);
+   print_assert(RESULT, expected);
+   print_assert(A, expected);
+}
+
+template <typename Type> 
+void binary_operation(Type& (Type::*func)(const Type&), const string & A_DOLLARS, const long double A_CENTS, const Type & FACTOR, 
+                      const string & expected = "") { 
+   Type       A(A_DOLLARS, A_CENTS);
+   Type RESULT = (A.*func)(FACTOR);
+   print_assert(RESULT, expected);
+   print_assert(A, expected);
+}
+
+template <typename Type, template<typename> class Template > 
+void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const Type & FACTOR,
+                      const string & expected = "") { 
+   const Type       A(A_DOLLARS);
+   Type RESULT = (A.*func)(FACTOR);
+   print_assert(RESULT, expected);
+}
+
+template <typename Type, template<typename> class Template> 
+void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const long double A_CENTS, 
+                      const Type & FACTOR, const string & expected = "") {
+   const Type       A(A_DOLLARS, A_CENTS);
+   Type RESULT = (A.*func)(FACTOR);
+   print_assert(RESULT, expected);
+}
 /*
+template <typename Type> 
+void binary_operation(Function && func, const string & A_DOLLARS, const Type & FACTOR, 
+                      const string & expected = "") { 
+   const Type A(A_DOLLARS);
+   const Type RESULT = func(A, FACTOR);
+   print_assert(RESULT, expected);
+}
+
+template <typename Type> 
+void binary_operation(Function && func, const string & A_DOLLARS, const long double A_CENTS, const Type & FACTOR, 
+                      const string & expected = "") { 
+   const Type A(A_DOLLARS, A_CENTS);
+   const Type RESULT = func(A, FACTOR);
+   print_assert(RESULT, expected);
+}
+
 template <typename Type> 
 void unary_operation(Type& (Type::*func)(const Type&), const string & A_DOLLARS, const string & expected = "") { 
    Type       A(A_DOLLARS);
@@ -286,8 +289,12 @@ public:
    
    Dollars_string (const string & A_DOLLARS, const long double A_CENTS, const string & B_DOLLARS, 
                       const long double B_CENTS) : a_dollars(dollars_string(A_DOLLARS, A_CENTS)),
-                                                   b_dollars(dollars_string(B_DOLLARS, B_CENTS)) 
-   { }
+                                                   b_dollars(dollars_string(B_DOLLARS, B_CENTS))
+                                                   { }
+                                                   
+   Dollars_string (const string & A_DOLLARS, const long double A_CENTS) // FOR operator*
+                  : a_dollars(dollars_string(A_DOLLARS, A_CENTS)) 
+                           { }
 private:
    template <typename U = Type, enable_if_t<false == is_same<U, Integer>::value, bool>  = true>
    string dollars_string(const string & DOLLARS, const long double CENTS) {
@@ -432,6 +439,21 @@ public:
 };
 
 template <typename Type, template<typename> class Template = Money>
+class Test_multiplying : public Dollars_string <Type, Template> { 
+public:
+   using S = Dollars_string<Type, Template>;
+   
+   Test_multiplying(const string & A_DOLLARS, const long double A_CENTS, const Type & FACTOR, const string & expected = "") :
+                      S(A_DOLLARS, A_CENTS) { 
+      cerr << "\n\n#########################" << __func__ << '\n';
+      binary_operation<Template<Type>> (&Template<Type>::operator*=, A_DOLLARS, A_CENTS, FACTOR, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator*, A_DOLLARS, A_CENTS, FACTOR, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator*=, S::a_dollars, FACTOR, expected);
+      binary_operation<Template<Type>> (&Template<Type>::operator*, S::a_dollars, FACTOR, expected);
+   }
+};
+
+template <typename Type, template<typename> class Template = Money>
 class Test_relations : public Dollars_string <Type, Template> { 
 public:
    using S = Dollars_string<Type, Template>;
@@ -490,7 +512,7 @@ void correct_adding() {
    cerr << "\n\n#########################" << __func__ << '\n';
    if (numeric_limits<T>::is_signed) {
       if (! is_same<T, char>::value &&  ! is_same<T, int_fast8_t>::value) {
-         Test_adding<T>("-1", 28, "0", 2, "-1,26");
+         Test_adding<T>("-1", 28, "-0", 2, "-1,30");
          if (! is_same<T, short>::value)
             Test_adding<T>("100", 23, "-450", 34, "-350,11");
       }
@@ -503,6 +525,7 @@ void correct_adding() {
       Test_adding<T, Template>("-0", 99.9, "0", 99.5, "0,00");
       Test_adding<T, Template>("-0", 99.9, "0", 19.4, "-0,81");
       Test_adding<T, Template>("-0", 99.9, "0", 19.5, "-0,80");
+      Test_adding<T>("-1", 28, "0", 2, "-1,26");
    }
    Test_adding<T>("0", 23, "0", 34, "0,57");
    Test_adding<T, Template>("0", 9.4, "0", 9.9, "0,19");
@@ -527,6 +550,36 @@ void correct_subtracting() {
       Test_subtracting<T, Template>("-0", 99.9, "-0", 99.4, "-0,01");
    }
    Test_subtracting<T>("0", 99, "0", 99, "0,00");
+}
+
+template <typename T, template<typename> class Template = Money>
+void correct_multiplying() {
+   cerr << "\n\n#########################" << __func__ << '\n';
+   if (numeric_limits<T>::is_signed) {
+      if (! is_same<T, char>::value &&  ! is_same<T, int_fast8_t>::value) {
+         Test_multiplying<T>("-1", 28, 2, "-2,56");
+         if (! is_same<T, short>::value) {
+            Test_multiplying<T>("-100", 23, -34, "3407,82");
+            Test_multiplying<T>("-100", 23, 34, "-3407,82");
+            Test_multiplying<T>("100", 23, -34, "-3407,82");
+         }
+      }/*
+      Test_multiplying<T, Template>("-0", 23, "-0", 34, "-0,57");
+      Test_multiplying<T, Template>("-0", 23, "0", 34, "0,11");
+      Test_multiplying<T, Template>("0", 23, "-0", 34, "-0,11");
+      Test_multiplying<T, Template>("-0", 99.9, "0", 99.4, "-0,01");
+      Test_multiplying<T, Template>("-0", 99.4, "0", 99.9, "0,01");
+      Test_multiplying<T, Template>("0", 99.9, "-0", 99.5, "0,00");
+      Test_multiplying<T, Template>("-0", 99.9, "0", 99.5, "0,00");
+      Test_multiplying<T, Template>("-0", 99.9, "0", 19.4, "-0,81");
+      Test_multiplying<T, Template>("-0", 99.9, "0", 19.5, "-0,80");*/
+   }
+    if (! is_same<T, char>::value &&  ! is_same<T, int_fast8_t>::value)
+      Test_multiplying<T>("100", 23, 34, "3407,82");
+   /*
+   Test_multiplying<T>("0", 23, "0", 34, "0,57");
+   Test_multiplying<T, Template>("0", 9.4, "0", 9.9, "0,19");
+   Test_multiplying<T, Template>("0", 9.5, "0", 9.9, "0,20");*/
 }
 
 template <typename T, template<typename> class Template = Money>
@@ -599,6 +652,7 @@ void correct() {
    correct_adding<T>();
    correct_subtracting<T>();
    correct_relations<T>();
+   correct_multiplying<T>();
 }
 
 template <typename T, template<typename> class Template = Money>

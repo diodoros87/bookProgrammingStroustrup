@@ -1,5 +1,5 @@
 CXX = g++
-CPPFLAGS = -O0 -g -Wfatal-errors -Wall -Wextra  -std=c++14 #-Wconversion
+CPPFLAGS = -O0 -Wfatal-errors -Wall -Wextra  -std=c++14 #-Wconversion
 CXX = clang++
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'

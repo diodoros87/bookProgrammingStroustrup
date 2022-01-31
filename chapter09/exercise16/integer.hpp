@@ -360,6 +360,21 @@ inline Integer& operator-=(Integer& first, const Integer& second) {
    return first;
 }
 
+inline Integer& operator*=(Integer& first, const Integer& second) {
+   first = first * second;
+   return first;
+}
+
+inline Integer& operator/=(Integer& first, const Integer& second) {
+   first = first / second;
+   return first;
+}
+
+inline Integer& operator%=(Integer& first, const Integer& second) {
+   first = first % second;
+   return first;
+}
+
 inline bool operator<=(const Integer& first, const Integer& second) {
    return ! (first > second);
 }

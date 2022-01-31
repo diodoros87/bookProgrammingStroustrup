@@ -83,26 +83,7 @@ Money<long double> operator+(const Money<long double>& a, const Money<long doubl
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
-
-Money<Integer> operator*(const Money<Integer>& MONEY, const Integer& FACTOR) {
-   const Integer product = MONEY.amount_in_cents * FACTOR;
-   cerr << __func__ << " product = " << product << '\n';
-   const Constructor_Args args {product};
-   Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS);//::create
-   cerr << __func__ << " result = " << result << '\n';
-   return result;
-}
-
-Money<long double> operator*(const Money<long double>& MONEY, const long double FACTOR) {
-   long double product = MONEY.amount_in_cents * FACTOR;
-   product = Money<long double>::round(product);
-   cerr << __func__ << " product = " << product << '\n';
-   const string dollars_string = dollars_from_amount(product);
-   Money<long double> result = Money<long double>(dollars_string);//::create
-   cerr << __func__ << " result = " << result << '\n';
-   return result;
-}
-
+   
 string formatted_string(const Integer & dollars, const Integer & cents) {
    ostringstream stream;
    stream << dollars;

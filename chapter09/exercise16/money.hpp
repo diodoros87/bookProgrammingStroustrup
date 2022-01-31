@@ -212,8 +212,33 @@ public:
    }
    
    template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool>  = true>
-   Money operator*(const U& factor) {
-      const U product = this->amount_in_cents * factor;
+   Money& operator*=(const Integer& factor) {
+      this->amount_in_cents *= factor;
+      cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
+      return *this;
+   }
+   
+   template<typename U = T, enable_if_t<is_same<U, long double>::value, bool>  = true>
+   Money& operator*=(const long double& factor) {
+      this->amount_in_cents *= factor;
+      this->amount_in_cents = Money<long double>::round(amount_in_cents);
+      cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
+      return *this;
+   }
+   
+   template<typename U = T, enable_if_t<is_integral<U>::value, bool>  = true>
+   Money<T>& operator*=(const T& factor) {
+      return operator*=<Integer, T>(factor);
+   }
+   
+   template<typename U = T, enable_if_t<is_floating_point<U>::value && ! is_same<U, long double>::value, bool>  = true>
+   Money<T>& operator*=(const U& factor) {
+      return operator*=<long double, T>(factor);
+   }
+   
+   template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool>  = true>
+   Money operator*(const Integer& factor) const {
+      const Integer product = this->amount_in_cents * factor;
       cerr << __func__ << " product = " << product << '\n';
       const Constructor_Args args {product};
       Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS);//::create
@@ -222,8 +247,8 @@ public:
    }
    
    template<typename U = T, enable_if_t<is_same<U, long double>::value, bool>  = true>
-   Money operator*(const U factor) {
-      const U product = this->amount_in_cents * factor;
+   Money operator*(const long double& factor) const {
+      long double product = this->amount_in_cents * factor;
       product = Money<long double>::round(product);
       cerr << __func__ << " product = " << product << '\n';
       const string dollars_string = dollars_from_amount(product);
@@ -232,20 +257,15 @@ public:
    }
    
    template<typename U = T, enable_if_t<is_integral<U>::value, bool>  = true>
-   Money operator*(const U factor) {
+   Money operator*(const U& factor) const {
       return operator*<Integer, U>(*this, factor);
    }
    
    template<typename U = T, enable_if_t<is_floating_point<U>::value && ! is_same<U, long double>::value, bool>  = true>
-   Money operator*(const U factor) {
+   Money operator*(const U& factor) const {
       return operator*<long double, U>(*this, factor);
    }
-   /*
-   template<typename Greater>
-   Money operator*(const T & n) const;
-   Money operator*(const T & n) const;
-   Money operator/(const T & n) const;
-   */
+   
    bool operator==(const Money& other) const { return amount_in_cents == other.amount_in_cents; }
    bool operator!=(const Money& other) const { return !(*this == other); } ;
    
@@ -316,8 +336,8 @@ public:
    
    friend Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b);
    friend Money<long double> operator+(const Money<long double>& a, const Money<long double>& b);
-   friend Money<Integer> operator*(const Money<Integer>& MONEY, const Integer& FACTOR);
-   friend Money<long double> operator*(const Money<long double>& MONEY, const long double FACTOR);
+   //friend Money<Integer> operator*(const Money<Integer>& MONEY, const Integer& FACTOR);
+   //friend Money<long double> operator*(const Money<long double>& MONEY, const long double FACTOR);
    
    template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
             (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
@@ -325,7 +345,20 @@ public:
    
    template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> >
    friend Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);
-
+   
+   template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> >
+   friend Money<Smaller> operator*(const Money<Smaller>&, const Smaller );
+   
+   template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
+            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
+   friend Money<Smaller> operator*(const Money<Smaller>&, const Smaller);
+   
+   template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
+            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
+   friend Money<Smaller>& operator*=(const Money<Smaller>& MONEY, const Smaller FACTOR);
+   
+   template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> >
+   friend Money<Smaller>& operator*=(const Money<Smaller>& MONEY, const Smaller FACTOR);
 private:
    template <typename Greater>
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS   ) const;

@@ -301,37 +301,7 @@ Money<T>::operator string() const {
    out += formatted_string(dollars, cents);
    return out;
 }
-/*
-template <typename T>
-template<typename Greater>
-Money<T> Money<T>::operator*(const T & FACTOR) const {
-   static_assert((numeric_limits<Greater>::is_integer || is_floating_point<Greater>::value) &&
-                        ! is_same<Greater, Integer>::value );
-   Greater product = Greater(this->amount_in_cents) * Greater(FACTOR);
-   product = Money<Greater>::round(product);
-   cerr << __func__ << " product = " << product << '\n';
-   if (is_overflow<T, Greater>(product))
-      throw out_of_range(__func__ + "amount = " + std::to_string(product) + " is overflow for type " + TYPE_NAME);
-   const string dollars = std::to_string(product);
-   Money<T> result = Money<T>(dollars);
-   cerr << __func__ << " result = " << result << '\n';
-   return result;
-}
 
-template <typename T>
-Money<T> Money<T>::operator*(const T & FACTOR) const {
-   cerr << __func__ << '\n';
-   Integer product = Integer::create_Integer(this->amount_in_cents) * Integer::create_Integer(FACTOR);
-   cerr << __func__ << " product = " << product << '\n';
-   if (! is_same<T, Integer>::value)
-      if (is_overflow<T, Integer>(amount_in_cents))
-         throw out_of_range("amount_in_cents = " + std::to_string(amount_in_cents) + " is overflow for type " + TYPE_NAME);
-   const string dollars = std::to_string(product);
-   Money<T> result = Money<T>(dollars);
-   cerr << __func__ << " result = " << result << '\n';
-   return result;
-}
-*/
 template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool>
 #ifdef __clang__
    = true
@@ -398,27 +368,26 @@ Money<Smaller> operator-(const Money<Smaller>& A) {
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
-/*
-template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool>>
-Money<Smaller> operator*(const Smaller a) {
+
+template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> >
+Money<Smaller> operator*(const Money<Smaller>& MONEY, const Smaller FACTOR) {
    static const string TYPE_NAME = typeid(Smaller).name();
-   Integer product = Integer::create_Integer(a.amount_in_cents) * Integer::create_Integer(b.amount_in_cents);
-   Integer minus = Integer::create_Integer(a.amount_in_cents);
-   cerr << __func__ << " minus = " << minus << '\n';
-   if (Integer::is_overflow<Smaller>(minus))
-      throw out_of_range(string(__func__) + " amount = " + std::to_string(minus) + " is overflow for type " + TYPE_NAME);
-   const Constructor_Args args {minus};
+   const Integer product = Integer::create_Integer(MONEY.amount_in_cents) * Integer::create_Integer(FACTOR);
+   cerr << __func__ << " product = " << product << '\n';
+   if (Integer::is_overflow<Smaller>(product))
+      throw out_of_range(string(__func__) + " amount = " + std::to_string(product) + " is overflow for type " + TYPE_NAME);
+   const Constructor_Args args {product};
    Money<Smaller> result = Money<Smaller>(args.DOLLARS, args.CENTS);
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
 
 template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
-            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool>>
-Money<Smaller> operator*(const Smaller A) {
+            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
+Money<Smaller> operator*(const Money<Smaller>& MONEY, const Smaller FACTOR) {
    static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
    static const string TYPE_NAME = typeid(Smaller).name();
-   Greater product = Greater(A.amount_in_cents);
+   Greater product = Greater(MONEY.amount_in_cents) * Greater(FACTOR);
    product = Money<Greater>::round(product);
    cerr << __func__ << " product = " << product << '\n';
    if (is_overflow<Smaller, Greater>(product))
@@ -428,7 +397,34 @@ Money<Smaller> operator*(const Smaller A) {
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
-*/
+
+template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
+            (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
+Money<Smaller>& operator*=(Money<Smaller>& MONEY, const Smaller FACTOR) {
+   static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, U> required");
+   static const string TYPE_NAME = typeid(Smaller).name();
+   Greater product = Greater(MONEY.amount_in_cents) * Greater(FACTOR);
+   product = Money<Greater>::round(product);
+   cerr << __func__ << " product = " << product << '\n';
+   if (is_overflow<Smaller, Greater>(product))
+      throw out_of_range(string(__func__) + " amount = " + std::to_string(product) + " is overflow for type " + TYPE_NAME);
+   MONEY.amount_in_cents = static_cast<Smaller>(product);
+   cerr << __func__ << " MONEY.amount_in_cents = " << MONEY.amount_in_cents << '\n';
+   return MONEY;
+}
+
+template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> >
+Money<Smaller>& operator*=(Money<Smaller>& MONEY, const Smaller FACTOR) {
+   static const string TYPE_NAME = typeid(Smaller).name();
+   Integer product = Integer::create_Integer(MONEY.amount_in_cents) * Integer::create_Integer(FACTOR);
+   cerr << __func__ << " product = " << product << '\n';
+   if (Integer::is_overflow<Smaller>(product))
+      throw out_of_range(string(__func__) + " amount = " + std::to_string(product) + " is overflow for type " + TYPE_NAME);
+   MONEY.amount_in_cents = product.operator Smaller();
+   cerr << __func__ << " MONEY.amount_in_cents = " << MONEY.amount_in_cents << '\n';
+   return MONEY;
+}
+
 template<typename Smaller, enable_if_t<is_integral<Smaller>::value, bool>/* = true */>
 Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
 #ifdef __clang__

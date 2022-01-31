@@ -197,6 +197,9 @@ public:
    static inline void assert_adding_subtracting(const Integer & first, const Integer & second, const string & expectedResult,
                                          const bool adding) {
       Integer result = (adding == true) ?
+                     add_assignment_print(first, second) : subtract_assignment_print(first, second);
+      assert(static_cast<string> (result) == (expectedResult));
+      result = (adding == true) ?
                      add_print(first, second) : subtract_print(first, second);
       assert(static_cast<string> (result) == (expectedResult));
    }
@@ -206,11 +209,27 @@ public:
       cout << first << " + " << second << " = " << sum << " \n";
       return sum;
    }
+   
+   static inline Integer add_assignment_print(const Integer &  first, const Integer &  second) {
+      Integer third = first;
+      cout << third << " += " << second << " is:\n ";
+      third += second;
+      cout <<  "third = " << third << " \n";
+      return third;
+   }
 
    static inline Integer subtract_print(const Integer & first, const Integer & second) {
       Integer difference = first - second;
       cout << first << " - " << second << " = " << difference << " \n";
       return difference;
+   }
+   
+   static inline Integer subtract_assignment_print(const Integer &  first, const Integer &  second) {
+      Integer third = first;
+      cout << third << " -= " << second << " is:\n ";
+      third -= second;
+      cout <<  "third = " << third << " \n";
+      return third;
    }
 
    static void test_arithmetic_overflow() {
@@ -397,7 +416,9 @@ public:
    }
 
    inline static void assert_multiplying(const Integer & first, const Integer & second, const string & expectedResult) {
-      Integer result = multiply_print(first, second);
+      Integer result = multiply_assignment_print(first, second);
+      assert(static_cast<string> (result) == (expectedResult));
+      result = multiply_print(first, second);
       assert(static_cast<string> (result) == (expectedResult));
    }
 
@@ -405,6 +426,14 @@ public:
       Integer product = first * second;
       cout << first << " * " << second << " = " << product << " \n";
       return product;
+   }
+   
+   static inline Integer multiply_assignment_print(const Integer &  first, const Integer &  second) {
+      Integer third = first;
+      cout << third << " *= " << second << " is:\n ";
+      third *= second;
+      cout <<  "third = " << third << " \n";
+      return third;
    }
 
    static void test_arithmetic_overflow() {
@@ -667,12 +696,16 @@ public:
    }
 
    inline static void assert_dividing(const Integer & first, const Integer & second, const string & expectedResult)  {
-      Integer result = divide_print(first, second);
+      Integer result = divide_assignment_print(first, second);
+      assert(static_cast<string> (result) == (expectedResult));
+      result = divide_print(first, second);
       assert(static_cast<string> (result) == (expectedResult));
    }
    
    inline static void assert_remainder(const Integer &  first, const Integer &  second, const string & expectedResult)  {
-      Integer result = remainder_print(first, second);
+      Integer result = remainder_assignment_print(first, second);
+      assert(static_cast<string> (result) == (expectedResult));
+      result = remainder_print(first, second);
       assert(static_cast<string> (result) == (expectedResult));
    }
 
@@ -682,10 +715,26 @@ public:
       return quotient;
    }
    
+   static inline Integer divide_assignment_print(const Integer &  first, const Integer &  second) {
+      Integer third = first;
+      cout << third << " /= " << second << " is:\n ";
+      third /= second;
+      cout <<  "third = " << third << " \n";
+      return third;
+   }
+   
    inline  static Integer remainder_print(const Integer &  first, const Integer &  second)  {
       Integer remainder = first % second;
       cout << first << " % " << second << " = " << remainder << " \n";
       return remainder;
+   }
+   
+   static inline Integer remainder_assignment_print(const Integer &  first, const Integer &  second) {
+      Integer third = first;
+      cout << third << " %= " << second << " is:\n ";
+      third %= second;
+      cout <<  "third = " << third << " \n";
+      return third;
    }
    
 private:
@@ -696,11 +745,23 @@ private:
       } catch (const Arithmetic_Error & e) {
          cerr << __func__ <<  " : Exception while dividing: " << e.what() << "\n";
       }
+      try {
+         divide_assignment_print(first, second);
+         assert(false);
+      } catch (const Arithmetic_Error & e) {
+         cerr << __func__ <<  " : Exception while dividing: " << e.what() << "\n";
+      }
    }
    
    static void remainder_test_dividing_zero(const Integer &  first, const Integer &  second)  {
       try {
          remainder_print(first, second);
+         assert(false);
+      } catch (const Arithmetic_Error & e) {
+         cerr << __func__ <<  " : Exception while remainder: " << e.what() << "\n";
+      }
+      try {
+         remainder_assignment_print(first, second);
          assert(false);
       } catch (const Arithmetic_Error & e) {
          cerr << __func__ <<  " : Exception while remainder: " << e.what() << "\n";
