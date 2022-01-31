@@ -152,37 +152,37 @@ void binary_operation(Function && func, const string & A_DOLLARS, const long dou
    print_assert(RESULT, expected);
 }
 
-template <typename Type> 
-void binary_operation(Type& (Type::*func)(const Type&), const string & A_DOLLARS, const Type & FACTOR, 
+template <typename Type, template<typename> class Template> 
+void binary_operation(Template<Type>& (Template<Type>::*func)(const Type&), const string & A_DOLLARS, const Type & FACTOR, 
                       const string & expected = "") { 
-   Type       A(A_DOLLARS);
-   Type RESULT = (A.*func)(FACTOR);
+   Template<Type>       A(A_DOLLARS);
+   Template<Type> RESULT = (A.*func)(FACTOR);
    print_assert(RESULT, expected);
    print_assert(A, expected);
 }
 
-template <typename Type> 
-void binary_operation(Type& (Type::*func)(const Type&), const string & A_DOLLARS, const long double A_CENTS, const Type & FACTOR, 
-                      const string & expected = "") { 
-   Type       A(A_DOLLARS, A_CENTS);
-   Type RESULT = (A.*func)(FACTOR);
+template <typename Type, template<typename> class Template> 
+void binary_operation(Template<Type>& (Template<Type>::*func)(const Type&), const string & A_DOLLARS, const long double A_CENTS, 
+                      const Type & FACTOR,  const string & expected = "") { 
+   Template<Type>       A(A_DOLLARS, A_CENTS);
+   Template<Type> RESULT = (A.*func)(FACTOR);
    print_assert(RESULT, expected);
    print_assert(A, expected);
 }
 
 template <typename Type, template<typename> class Template > 
-void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const Type & FACTOR,
+void binary_operation(Template<Type> (Template<Type>::*func)(const Type&) const, const string & A_DOLLARS, const Type & FACTOR,
                       const string & expected = "") { 
-   const Type       A(A_DOLLARS);
-   Type RESULT = (A.*func)(FACTOR);
+   const Template<Type>       A(A_DOLLARS);
+   Template<Type> RESULT = (A.*func)(FACTOR);
    print_assert(RESULT, expected);
 }
 
 template <typename Type, template<typename> class Template> 
-void binary_operation(Type (Type::*func)(const Type&) const, const string & A_DOLLARS, const long double A_CENTS, 
+void binary_operation(Template<Type> (Template<Type>::*func)(const Type&) const, const string & A_DOLLARS, const long double A_CENTS, 
                       const Type & FACTOR, const string & expected = "") {
-   const Type       A(A_DOLLARS, A_CENTS);
-   Type RESULT = (A.*func)(FACTOR);
+   const Template<Type>       A(A_DOLLARS, A_CENTS);
+   Template<Type> RESULT = (A.*func)(FACTOR);
    print_assert(RESULT, expected);
 }
 /*
@@ -446,10 +446,10 @@ public:
    Test_multiplying(const string & A_DOLLARS, const long double A_CENTS, const Type & FACTOR, const string & expected = "") :
                       S(A_DOLLARS, A_CENTS) { 
       cerr << "\n\n#########################" << __func__ << '\n';
-      binary_operation<Template<Type>> (&Template<Type>::operator*=, A_DOLLARS, A_CENTS, FACTOR, expected);
-      binary_operation<Template<Type>> (&Template<Type>::operator*, A_DOLLARS, A_CENTS, FACTOR, expected);
-      binary_operation<Template<Type>> (&Template<Type>::operator*=, S::a_dollars, FACTOR, expected);
-      binary_operation<Template<Type>> (&Template<Type>::operator*, S::a_dollars, FACTOR, expected);
+      binary_operation<Type, Template> (&Template<Type>::operator*=, A_DOLLARS, A_CENTS, FACTOR, expected);
+      binary_operation<Type, Template> (&Template<Type>::operator*, A_DOLLARS, A_CENTS, FACTOR, expected);
+      binary_operation<Type, Template> (&Template<Type>::operator*=, S::a_dollars, FACTOR, expected);
+      binary_operation<Type, Template> (&Template<Type>::operator*, S::a_dollars, FACTOR, expected);
    }
 };
 

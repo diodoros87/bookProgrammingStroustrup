@@ -228,12 +228,12 @@ public:
    
    template<typename U = T, enable_if_t<is_integral<U>::value, bool>  = true>
    Money<T>& operator*=(const T& factor) {
-      return operator*=<Integer, T>(factor);
+      return money::operator*=<Integer, T>(*this, factor);
    }
    
    template<typename U = T, enable_if_t<is_floating_point<U>::value && ! is_same<U, long double>::value, bool>  = true>
    Money<T>& operator*=(const U& factor) {
-      return operator*=<long double, T>(factor);
+      return money::operator*=<long double, T>(*this, factor);
    }
    
    template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool>  = true>
@@ -258,12 +258,12 @@ public:
    
    template<typename U = T, enable_if_t<is_integral<U>::value, bool>  = true>
    Money operator*(const U& factor) const {
-      return operator*<Integer, U>(*this, factor);
+      return money::operator*<Integer, U>(*this, factor);
    }
    
    template<typename U = T, enable_if_t<is_floating_point<U>::value && ! is_same<U, long double>::value, bool>  = true>
    Money operator*(const U& factor) const {
-      return operator*<long double, U>(*this, factor);
+      return money::operator*<long double, U>(*this, factor);
    }
    
    bool operator==(const Money& other) const { return amount_in_cents == other.amount_in_cents; }
@@ -355,10 +355,10 @@ public:
    
    template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
             (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> >
-   friend Money<Smaller>& operator*=(const Money<Smaller>& MONEY, const Smaller FACTOR);
+   friend Money<Smaller>& operator*=( Money<Smaller>& MONEY, const Smaller FACTOR);
    
    template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> >
-   friend Money<Smaller>& operator*=(const Money<Smaller>& MONEY, const Smaller FACTOR);
+   friend Money<Smaller>& operator*=( Money<Smaller>& MONEY, const Smaller FACTOR);
 private:
    template <typename Greater>
    T calculate(const T & dollars, const long double cents = INCORRECT_CENTS   ) const;
