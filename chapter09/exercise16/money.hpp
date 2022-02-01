@@ -239,7 +239,7 @@ public:
    template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool>  = true>
    Money operator*(const Integer& factor) const {
       const Integer product = this->amount_in_cents * factor;
-      cerr << __func__ << " product = " << product << '\n';
+      cerr << __func__ << " FACTOR = " << factor << " product = " << product << '\n';
       const Constructor_Args args {product};
       Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS);//::create
       cerr << __func__ << " result = " << result << '\n';
@@ -250,7 +250,7 @@ public:
    Money operator*(const long double& factor) const {
       long double product = this->amount_in_cents * factor;
       product = Money<long double>::round(product);
-      cerr << __func__ << " product = " << product << '\n';
+      cerr << __func__ << " factor = " << factor << " product = " << product << '\n';
       const string dollars_string = dollars_from_amount(product);
       Money<long double> result = Money<long double>(dollars_string);//::create
       return result;

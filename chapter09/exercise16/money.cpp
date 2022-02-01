@@ -373,7 +373,7 @@ template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::v
 Money<Smaller> operator*(const Money<Smaller>& MONEY, const Smaller FACTOR) {
    static const string TYPE_NAME = typeid(Smaller).name();
    const Integer product = Integer::create_Integer(MONEY.amount_in_cents) * Integer::create_Integer(FACTOR);
-   cerr << __func__ << " product = " << product << '\n';
+   cerr << __func__ << " FACTOR = " << Integer::create_Integer(FACTOR) << " product = " << product << '\n';
    if (Integer::is_overflow<Smaller>(product))
       throw out_of_range(string(__func__) + " amount = " + std::to_string(product) + " is overflow for type " + TYPE_NAME);
    const Constructor_Args args {product};
@@ -389,7 +389,7 @@ Money<Smaller> operator*(const Money<Smaller>& MONEY, const Smaller FACTOR) {
    static const string TYPE_NAME = typeid(Smaller).name();
    Greater product = Greater(MONEY.amount_in_cents) * Greater(FACTOR);
    product = Money<Greater>::round(product);
-   cerr << __func__ << " product = " << product << '\n';
+   cerr << __func__ << " FACTOR = " << FACTOR << " product = " << product << '\n';
    if (is_overflow<Smaller, Greater>(product))
       throw out_of_range(string(__func__) + "amount = " + std::to_string(product) + " is overflow for type " + TYPE_NAME);
    const string dollars = std::to_string(product / static_cast<long double>(CENTS_PER_DOLLAR));
@@ -405,7 +405,7 @@ Money<Smaller>& operator*=(Money<Smaller>& MONEY, const Smaller FACTOR) {
    static const string TYPE_NAME = typeid(Smaller).name();
    Greater product = Greater(MONEY.amount_in_cents) * Greater(FACTOR);
    product = Money<Greater>::round(product);
-   cerr << __func__ << " product = " << product << '\n';
+   cerr << __func__ << " FACTOR = " << FACTOR << " product = " << product << '\n';
    if (is_overflow<Smaller, Greater>(product))
       throw out_of_range(string(__func__) + " amount = " + std::to_string(product) + " is overflow for type " + TYPE_NAME);
    MONEY.amount_in_cents = static_cast<Smaller>(product);
@@ -417,7 +417,7 @@ template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::v
 Money<Smaller>& operator*=(Money<Smaller>& MONEY, const Smaller FACTOR) {
    static const string TYPE_NAME = typeid(Smaller).name();
    Integer product = Integer::create_Integer(MONEY.amount_in_cents) * Integer::create_Integer(FACTOR);
-   cerr << __func__ << " product = " << product << '\n';
+   cerr << __func__ << " FACTOR = " << FACTOR << " product = " << product << '\n';
    if (Integer::is_overflow<Smaller>(product))
       throw out_of_range(string(__func__) + " amount = " + std::to_string(product) + " is overflow for type " + TYPE_NAME);
    MONEY.amount_in_cents = product.operator Smaller();

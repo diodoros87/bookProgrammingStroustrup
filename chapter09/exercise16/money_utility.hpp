@@ -96,7 +96,7 @@ Type from_string(const string & STR, bool eof_checking) {
       throw bad_from_string {};
    if (eof_checking && ! stream.eof()) {
       cerr << " Type = " << typeid(Type).name() << '\n';
-      throw invalid_argument(__func__ + string(" entered string '" + STR + "'is not accepted format "));
+      throw invalid_argument(__func__ + string(" entered string '" + STR + "' is not accepted format "));
    }
    return result;
 }
