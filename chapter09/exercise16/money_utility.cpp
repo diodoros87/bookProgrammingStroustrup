@@ -36,7 +36,6 @@ Money<Integer>::Money(const string & dollars, const long double cents) {
    if (regex_match(dollars, MINUS_ZERO_REGEX))
       dollars_string = dollars.substr(1);
    Integer amount = Money<Integer>::get_amount(dollars_string);
-   //this->amount_in_cents = calculate<long double>(amount, cents);
    this->amount_in_cents = calculate_by_Integer(amount, cents);
    cerr << __func__ << " amount = '" << amount << "' std::signbit = '" << std::boolalpha << std::signbit(amount) << "' \n";  
    if (dollars[0] == '-' && Integer::ZERO == amount)
