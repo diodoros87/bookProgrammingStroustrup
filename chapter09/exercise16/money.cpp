@@ -435,12 +435,12 @@ inline Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b
 }
 
 template<typename Smaller, enable_if_t<is_integral<Smaller>::value, bool> = true >
-inline Money<Smaller> operator*(const Smaller factor, const Money<Smaller>& money) {
+inline Money<Smaller> operator*(const Smaller & factor, const Money<Smaller>& money) {
    return operator*<Integer, Smaller>(money, factor);
 }
 
 template<typename Smaller, enable_if_t<is_floating_point<Smaller>::value && ! is_same<Smaller, long double>::value, bool > = true >
-inline Money<Smaller> operator*(const Smaller factor, const Money<Smaller>& money) {
+inline Money<Smaller> operator*(const Smaller & factor, const Money<Smaller>& money) {
    return operator*<long double, Smaller>(money, factor);
 }
 
@@ -448,7 +448,7 @@ inline Money<Integer> operator*(const Integer& FACTOR, const Money<Integer>& MON
    return MONEY * FACTOR;
 }
 
-inline Money<long double> operator*(const long double FACTOR, const Money<long double>& MONEY) {
+inline Money<long double> operator*(const long double & FACTOR, const Money<long double>& MONEY) {
    return MONEY.operator*(FACTOR);
 }
 

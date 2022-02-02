@@ -197,24 +197,27 @@ void binary_operation(Template<Type> (Template<Type>::*func)(const Type&) const,
 
 #undef MULTIPLY_TEST
 
-template <typename Type, typename Func_1, typename Func_2> 
+template <typename Type, template<typename> class Template, typename Func_1, typename Func_2> 
 void binary_operation(Func_1 && func_1, Func_2 && func_2, const string & A_DOLLARS, const Type & FACTOR, 
                       const string & expected = "") { 
-   const Type A(A_DOLLARS);
-   Type RESULT = func_1(A, FACTOR);
+   const Template<Type> A(A_DOLLARS);
+   auto member_func = std::mem_fn(func_1);
+   Template<Type> RESULT = member_func(A, FACTOR);
    print_assert(RESULT, expected);
    RESULT = func_2(FACTOR, A);
    print_assert(RESULT, expected);
 }
 
-template <typename Type, typename Func_1, typename Func_2> 
+template <typename Type, template<typename> class Template, typename Func_1, typename Func_2> 
 void binary_operation(Func_1 && func_1, Func_2 && func_2, const string & A_DOLLARS, const long double A_CENTS, 
                       const Type & FACTOR, const string & expected = "") { 
-   const Type A(A_DOLLARS, A_CENTS);
-   Type RESULT = func_1(A, FACTOR);
-   print_assert(RESULT, expected);
-   RESULT = func_2(FACTOR, A);
-   print_assert(RESULT, expected);
+   const Template<Type> A(A_DOLLARS, A_CENTS);
+   auto member_func = std::mem_fn(func_1);
+   Template<Type> RESULT_1 = member_func(A, FACTOR);
+   print_assert(RESULT_1, expected);
+   Template<Type> RESULT_2 = func_2(FACTOR, A);
+   assert(RESULT_1 == RESULT_2 && " RESULT_1 != RESULT_2 ");
+   print_assert(RESULT_2, expected);
 }
 /*
 template <typename Type> 
@@ -454,7 +457,7 @@ public:
 };
 
 template <typename Type, template<typename> class Template = Money>
-class Test_multiplying : public Dollars_string <Type, Template> { 
+struct Test_multiplying : public Dollars_string <Type, Template> { 
 public:
    using S = Dollars_string<Type, Template>;
    
@@ -465,6 +468,9 @@ public:
    Test_multiplying(const string & A_DOLLARS, const long double A_CENTS, const Type & FACTOR, const string & expected = "")
                       : S(A_DOLLARS, A_CENTS) { 
       cerr << "\n\n#########################" << __func__ << '\n';
+      binary_operation<Type, Template, Template<Type> (Template<Type>::*)(const Type&) const, Template<Type> (const Type&, const Template<Type>&)> (&Template<Type>::operator*, operator*, A_DOLLARS, A_CENTS, FACTOR, expected);
+      binary_operation<Type, Template, Template<Type> (Template<Type>::*)(const Type&) const, Template<Type> (const Type&, const Template<Type>&)> (&Template<Type>::operator*, operator*, S::a_dollars, FACTOR, expected);
+      
       binary_operation<Type, Template> (&Template<Type>::operator*=, A_DOLLARS, A_CENTS, FACTOR, expected);
       binary_operation<Type, Template> (&Template<Type>::operator*, A_DOLLARS, A_CENTS, FACTOR, expected);
       binary_operation<Type, Template> (&Template<Type>::operator*=, S::a_dollars, FACTOR, expected);

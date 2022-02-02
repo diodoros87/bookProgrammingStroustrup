@@ -183,7 +183,7 @@ Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b);
 Money<long double> operator+(const Money<long double>& a, const Money<long double>& b);
 
 Money<Integer> operator*(const Integer& FACTOR, const Money<Integer>& MONEY);
-Money<long double> operator*(const long double FACTOR, const Money<long double>& MONEY);
+Money<long double> operator*(const long double& FACTOR, const Money<long double>& MONEY);
 
 template<typename Smaller, enable_if_t<is_integral<Smaller>::value, bool> = true>
 Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b);
