@@ -179,10 +179,10 @@ template <>
 Integer Money<Integer>::calculate_by_Integer(const Integer & dollars, const long double cents /*  = INCORRECT_CENTS */) const;
 
 template<>
-Money<Integer>::Money(const string & dollars, const long double cents);
+Money<Integer>::Money(const string & dollars, const long double cents, const string & currency);
 
 template <typename T>
-Money<T>::Money(const string & dollars, const long double cents) {
+Money<T>::Money(const string & dollars, const long double cents, const string & currency) {
    cerr << __func__ << " TYPE_NAME = '" << TYPE_NAME << "' " << dollars << '\n';
    validate_cents(cents);
    if (! regex_match(dollars, INTEGER_REGEX)) 
@@ -214,7 +214,7 @@ Type get_amount_by_Integer(const string & STR) {
 }
 
 template <typename T>
-Money<T>::Money(const string & dollars) {   // accept floating-point arguments
+Money<T>::Money(const string & dollars, const string & currency) {   // accept floating-point arguments
    cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
    if (is_floating_point<T>::value) {
       if (! regex_match(dollars, E_FLOAT_POINT_REGEX)) 
@@ -448,7 +448,7 @@ inline Money<Integer> operator*(const Integer& FACTOR, const Money<Integer>& MON
    return MONEY * FACTOR;
 }
 
-inline Money<long double> operator*(const long double & FACTOR, const Money<long double>& MONEY) {
+inline Money<long double> operator*(const long double& FACTOR, const Money<long double>& MONEY) {
    return MONEY.operator*(FACTOR);
 }
 

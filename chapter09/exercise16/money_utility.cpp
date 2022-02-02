@@ -27,7 +27,7 @@ Integer Money<Integer>::calculate_by_Integer(const Integer & dollars, const long
 }
 
 template<>
-Money<Integer>::Money(const string & dollars, const long double cents) {
+Money<Integer>::Money(const string & dollars, const long double cents, const string & currency) {
    cerr << __func__ << " TYPE_NAME = '" << TYPE_NAME << "' " << dollars << '\n';
    validate_cents(cents);
    if (! regex_match(dollars, INTEGER_REGEX)) 
@@ -45,7 +45,7 @@ Money<Integer>::Money(const string & dollars, const long double cents) {
 }
 
 template<>
-Money<Integer>::Money(const string & dollars) {   // accept floating-point arguments
+Money<Integer>::Money(const string & dollars, const string & currency) {   // accept floating-point arguments
    cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
    if (! regex_match(dollars, FLOAT_POINT_REGEX))
       throw invalid_argument(string(__func__) +  " Regex: entered string '"

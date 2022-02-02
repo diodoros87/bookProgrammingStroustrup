@@ -16,8 +16,8 @@ public:
       return static_cast<T>(floor(x + 0.5));
    }
    
-   Money(const string & dollars, const long double cents);   
-   Money(const string & dollars);            // constructors allow rounding of cents 
+   Money(const string & dollars, const long double cents, const string & currency = "PLN");   
+   Money(const string & dollars, const string & currency = "PLN");            // constructors allow rounding of cents 
    // create methods disallow rounding of cents and accept only cents without fraction
    static Money create(const string & dollars, const long double cents);
    
@@ -414,6 +414,7 @@ private:
    }
 
    T amount_in_cents { };
+   string currency = "PLN";
 };
 
 }

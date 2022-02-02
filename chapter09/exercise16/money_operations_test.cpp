@@ -18,6 +18,9 @@ using namespace integer_space;
 using namespace money;
 using namespace money_init_test;
 
+using std::is_member_function_pointer;
+using std::mem_fn;
+
 template <typename T> 
 extern
 Money<T> construct_cents(const string & DOLLARS, const long double CENTS, bool creating, const string & expected = "");
@@ -197,27 +200,32 @@ void binary_operation(Template<Type> (Template<Type>::*func)(const Type&) const,
 
 #undef MULTIPLY_TEST
 
-template <typename Type, template<typename> class Template, typename Func_1, typename Func_2> 
-void binary_operation(Func_1 && func_1, Func_2 && func_2, const string & A_DOLLARS, const Type & FACTOR, 
+template <typename Type, template<typename> class Template, typename Func_1, typename Func_2 >
+void binary_operation(Func_1 && func_1, Func_2 && func_2, const Template<Type> & OBJECT, const Type & FACTOR, 
                       const string & expected = "") { 
-   const Template<Type> A(A_DOLLARS);
-   auto member_func = std::mem_fn(func_1);
-   Template<Type> RESULT = member_func(A, FACTOR);
-   print_assert(RESULT, expected);
-   RESULT = func_2(FACTOR, A);
-   print_assert(RESULT, expected);
-}
-
-template <typename Type, template<typename> class Template, typename Func_1, typename Func_2> 
-void binary_operation(Func_1 && func_1, Func_2 && func_2, const string & A_DOLLARS, const long double A_CENTS, 
-                      const Type & FACTOR, const string & expected = "") { 
-   const Template<Type> A(A_DOLLARS, A_CENTS);
-   auto member_func = std::mem_fn(func_1);
-   Template<Type> RESULT_1 = member_func(A, FACTOR);
+   Template<Type> RESULT_1 = func_1(OBJECT, FACTOR);
    print_assert(RESULT_1, expected);
-   Template<Type> RESULT_2 = func_2(FACTOR, A);
+   Template<Type> RESULT_2 = func_2(FACTOR, OBJECT);
    assert(RESULT_1 == RESULT_2 && " RESULT_1 != RESULT_2 ");
    print_assert(RESULT_2, expected);
+}
+
+template <typename Type, template<typename> class Template, typename Func_1, typename Func_2
+   , enable_if_t<is_member_function_pointer<Func_1>::value, bool> = true >
+inline void binary_operation(Func_1 && func_1, Func_2 && func_2, const string & A_DOLLARS, const Type & FACTOR, 
+                      const string & expected = "") { 
+   const Template<Type> OBJECT(A_DOLLARS);
+   auto member_func = std::mem_fn(func_1);
+   binary_operation(member_func, func_2, OBJECT, FACTOR, expected);
+}
+
+template <typename Type, template<typename> class Template, typename Func_1, typename Func_2,
+   enable_if_t<is_member_function_pointer<Func_1>::value, bool> = true > 
+inline void binary_operation(Func_1 && func_1, Func_2 && func_2, const string & A_DOLLARS, const long double A_CENTS, 
+                      const Type & FACTOR, const string & expected = "") { 
+   const Template<Type> OBJECT(A_DOLLARS, A_CENTS);
+   auto member_func = std::mem_fn(func_1);
+   binary_operation(member_func, func_2, OBJECT, FACTOR, expected);
 }
 /*
 template <typename Type> 
