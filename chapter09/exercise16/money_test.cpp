@@ -49,9 +49,8 @@ static inline  bool call_function(Function && func, Args&&... args) {
 }
 
 bool perform_tests() {
-   initializer_list < function <void()> > vec = { //bind(money_init_test::perform), 
+   initializer_list < function <void()> > vec = { bind(money_init_test::perform), 
       bind(money_operations_test::perform) 
-      
       
    };
    bool result = false;

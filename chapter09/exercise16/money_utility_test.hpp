@@ -14,10 +14,13 @@
 using std::cout;
   
 template <class Number, template<typename> class Template>
-static void print_assert(const Template<Number> & object, const string & expected = "") {
+static void print_assert(const Template<Number> & object, const string & expected = "", const string & CURRENCY = "") {
    static const string TYPE_NAME = typeid(Template<Number>).name();
    cout << "                                       object of type " << TYPE_NAME << " = '" << object << "'\n";
-   auto t = std::make_tuple(static_cast<string>(object), " != ", expected);
+   string object_string = static_cast<string>(object);
+   if (CURRENCY == "")
+      object_string = object_string.substr(0, object_string.size() - 4);
+   auto t = std::make_tuple(object_string, " != ", expected);
 #ifdef DEBUG_OSTREAM
    cout << "\n------------------               DEBUG_OSTREAM\n";
    cout << "                                       object of type " << TYPE_NAME << " = '" << object << "'\n";
@@ -26,9 +29,11 @@ static void print_assert(const Template<Number> & object, const string & expecte
    cout << "'\n";
    ostringstream ostrs;
    string output = operator<<(&ostrs, object).str();
+   if (CURRENCY == "")
+      output = output.substr(0, output.size() - 4);
    assert_many(output == expected, t);
 #endif
-   assert_many(string(object) == expected, t);
+   assert_many(object_string == expected, t);
 }
 
 template <class Type, template<typename> class Template>

@@ -16,23 +16,32 @@ public:
       return static_cast<T>(floor(x + 0.5));
    }
    
+   static inline void validate_currency(const string & CURRENCY) {
+      if (rates_per_PLN.end() == rates_per_PLN.find(CURRENCY)) 
+         throw invalid_argument("Currency " + CURRENCY + " is not available");
+   }
+   
+#ifdef __clang__
+   static map <string, long double> & set_rates_per_PLN(const Network_library & library, const File_format & format);
+#endif
+   
    Money(const string & dollars, const long double cents, const string & currency = "PLN");   
    Money(const string & dollars, const string & currency = "PLN");            // constructors allow rounding of cents 
    // create methods disallow rounding of cents and accept only cents without fraction
-   static Money create(const string & dollars, const long double cents);
+   static Money create(const string & dollars, const long double cents, const string & currency = "PLN");
    
    template<typename U = T, enable_if_t<is_floating_point<U>::value, bool>  = true>
-   static Money<U> create(const string & dollars) {
+   static Money<U> create(const string & dollars, const string & currency = "PLN") {
       const long double amount = from_string<long double>(dollars, true) * CENTS_PER_DOLLAR;
       if (! equal_integer<long double>(amount))
          throw invalid_argument("Not exact value dollars = " + to_string(amount));
       
-      Money<U> money = Money<U>(dollars);
+      Money<U> money = Money<U>(dollars, currency);
       return money;
    }
    
    template<typename U = T, enable_if_t<numeric_limits<U>::is_integer, bool>  = true>
-   static Money<U> create(const string & dollars) {
+   static Money<U> create(const string & dollars, const string & currency = "PLN") {
       const size_t dot_position = dollars.find('.');
       if (dot_position != string::npos) {
          static const regex EXACT = regex { R"(^[+-]?(\d+).\d[\d]?[0]*$)" } ;
@@ -40,7 +49,7 @@ public:
             throw invalid_argument(string(__func__) +  " Regex: entered string '"
                   + dollars + "' is not exact format ");
       }
-      Money<U> money = Money<U>(dollars);
+      Money<U> money = Money<U>(dollars, currency);
       return money;
    }
    
@@ -65,7 +74,7 @@ public:
       Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS);
       cerr << __func__ << " result = " << result << '\n';
       return result;
-   };
+   }
    
    template<typename U = T, enable_if_t<is_same<U, long double>::value, bool>  = true>
    Money<long double> operator-() const {
@@ -73,7 +82,7 @@ public:
       Money<long double> result = Money<long double>(dollars_string);
       cerr << __func__ << " result = " << result << '\n';
       return result;
-   };
+   }
    
    template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool>>
    friend Money<Smaller> operator-(const Money<Smaller>& a);
@@ -260,6 +269,13 @@ public:
    operator string() const;
    
    T get_amount_in_cents() const { return amount_in_cents; }
+   
+   string get_currency() const { return currency; }
+   
+   void set_currency(const string & CURRENCY) {
+      validate_currency(CURRENCY);
+      currency = CURRENCY;
+   }
 
    static T get_amount(const string & STR);
    
@@ -415,7 +431,20 @@ private:
 
    T amount_in_cents { };
    string currency = "PLN";
+   static map <string, long double> rates_per_PLN;
 };
+
+
+template <typename T>
+map <string, long double> Money<T>::rates_per_PLN = 
+#ifdef __clang__
+   Money<T>::
+#endif
+            set_rates_per_PLN(Network_library::ASIO, File_format::JSON);
+
+//map <string, long double> Money<T>::rates_per_PLN = set_rates_per_PLN(Network_library::ASIO);
+//map <string, long double> Money<T>::rates_per_PLN = get_by_asio(File_format::JSON);
+//map <string, long double> Money<T>::rates_per_PLN = { { "PLN", 1.0L } };
 
 }
 

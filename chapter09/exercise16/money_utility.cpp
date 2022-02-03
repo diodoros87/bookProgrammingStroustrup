@@ -27,9 +27,10 @@ Integer Money<Integer>::calculate_by_Integer(const Integer & dollars, const long
 }
 
 template<>
-Money<Integer>::Money(const string & dollars, const long double cents, const string & currency) {
+Money<Integer>::Money(const string & dollars, const long double cents, const string & currency /* = "PLN" */) {
    cerr << __func__ << " TYPE_NAME = '" << TYPE_NAME << "' " << dollars << '\n';
    validate_cents(cents);
+   validate_currency(currency);
    if (! regex_match(dollars, INTEGER_REGEX)) 
       throw invalid_argument("Regex: dollars must be integer number ");
    string dollars_string = dollars;
@@ -45,8 +46,9 @@ Money<Integer>::Money(const string & dollars, const long double cents, const str
 }
 
 template<>
-Money<Integer>::Money(const string & dollars, const string & currency) {   // accept floating-point arguments
+Money<Integer>::Money(const string & dollars, const string & currency /* = "PLN" */) {   // accept floating-point arguments
    cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
+   validate_currency(currency);
    if (! regex_match(dollars, FLOAT_POINT_REGEX))
       throw invalid_argument(string(__func__) +  " Regex: entered string '"
                + dollars + "' is not non-exponent floating-point format "); 
@@ -61,6 +63,7 @@ Money<Integer>::operator string() const {
       cents = -cents;
    string out = (dollars == Integer::ZERO && signbit(get_amount_in_cents())) ? "-" : "";
    out += formatted_string(dollars, cents);
+   out +=  " " + get_currency();
    return out;
 }
 
@@ -99,13 +102,100 @@ string formatted_string(const Integer & dollars, const Integer & cents) {
    return out;
 }
 
-ostream& operator<<(ostream& os, const Money<Integer>& money) {
-   Integer dollars = money.get_dollars(Money<Integer>::TYPE_DEFAULT_OBJECT);
-   Integer cents = money.get_cents(Money<Integer>::TYPE_DEFAULT_OBJECT);
-   start_settings(os, money);
-   os << dollars.string_without_signum() << ",";
-   os << setw(2) << cents.string_without_signum();
-   return os;
+map <string, long double> get_by_asio(const File_format & format) {
+   cerr << __func__ << '\n';
+   const string CURRENCY = "PLN";
+   const string HOST = "www.floatrates.com";
+   const Method METHOD = Method::get;
+   const string DIRECTORY = "/daily/" + CURRENCY + ".json";
+   //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
+   const Cache_control CACHE_CONTROL = Cache_control::no_store;
+   const Connection CONNECTION = Connection::close;
+   const string DOC;// = get_document(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
+   
+   Float_rates floatrates { DOC };
+   
+   floatrates.set_rates_from_json();
+   map <string, long double> rates = floatrates.inverse_rates();
+   return rates;
 }
+
+map <string, long double> get_by_curl(const File_format & format) {
+   const string CURRENCY = "PLN";
+   const string HOST = "www.floatrates.com";
+   const Method METHOD = Method::get;
+   const string DIRECTORY = "/daily/" + CURRENCY + ".json";
+   //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
+   const Cache_control CACHE_CONTROL = Cache_control::no_store;
+   const Connection CONNECTION = Connection::close;
+   const string DOC;// = get_document(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
+   Float_rates floatrates { DOC };
+   cerr << __func__ << '\n';
+   floatrates.set_rates_from_json();
+   map <string, long double> rates = floatrates.inverse_rates();
+   return rates;
+}
+
+#if defined(__clang__)
+#elif defined(__GNUG__)
+map <string, long double> & set_rates_per_PLN(const Network_library & library, const File_format & format) {
+   /*static map<string, long double> m = { { "PLN", 1 } };
+   if (true)
+      return m;*/
+   //cerr << " Network_library::ASIO = " << static_cast<int>(library) << '\n';
+   //cerr << " Network_library::CURL = " << static_cast<int>(format) << '\n';
+/*   if (format == File_format::JSON)
+            return get_by_asio(format);
+      case Network_library::CURL :
+         if (format == File_format::XML)
+            return get_by_curl(format);
+   throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library)));      
+   cerr << __func__ << '\n';
+   if (library == Network_library::ASIO && format == File_format::JSON)
+      return get_by_asio(format);
+   else if (library == Network_library::CURL && format == File_format::XML)
+      return get_by_curl(format);
+   else 
+      throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library))
+         + " Invalid file format " + std::to_string(static_cast<int>(format)));
+      
+   cerr << __func__ << '\n';*/
+   //map <string, long double> result;
+   
+   cerr << "fff" << '\n';/*
+   static map <string, long double> result = { {"PLN", 1} };
+   cerr << __func__ << '\n';
+   return result;
+   */
+   static map <string, long double> result;
+   switch (library) {
+      case Network_library::ASIO :
+         if (format == File_format::JSON) {
+            result = get_by_asio(format);
+            return result;
+         }
+      case Network_library::CURL :
+         if (format == File_format::XML) {
+            result = get_by_curl(format);
+            return result;
+         }
+      default:
+         throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library)));
+   }
+   throw invalid_argument(__func__ + string(" Invalid file format "));
+}
+#endif
+
+#ifndef DEBUG_OSTREAM
+   ostream& operator<<(ostream& os, const Money<Integer>& money) {
+      Integer dollars = money.get_dollars(Money<Integer>::TYPE_DEFAULT_OBJECT);
+      Integer cents = money.get_cents(Money<Integer>::TYPE_DEFAULT_OBJECT);
+      start_settings(os, money);
+      os << dollars.string_without_signum() << ",";
+      os << setw(2) << cents.string_without_signum();
+      os << ' ' << money.get_currency();
+      return os;
+   }
+#endif
 
 }

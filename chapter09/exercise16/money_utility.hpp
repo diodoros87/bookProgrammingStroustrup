@@ -6,10 +6,13 @@
 #include <type_traits>
 #include <iomanip>
 #include <regex>
+#include <map> 
 
 #include <cmath>
 
 #include "integer.hpp"
+#include "network.hpp"
+#include "floatrates.hpp"
 
 using std::ostream;
 using std::istream;
@@ -30,6 +33,7 @@ using std::signbit;
 using std::regex;
 using std::trunc;
 using std::floor;
+using std::map;
 
 using integer_space::Integer;
 
@@ -157,6 +161,13 @@ private:
       return static_cast<long double>(cents);
    }
 };
+
+using namespace network;
+
+#if defined(__clang__)
+#elif defined(__GNUG__)
+map <string, long double> & set_rates_per_PLN(const Network_library & library, const File_format & format);
+#endif
 
 template <typename T>
 class Money;

@@ -1,5 +1,5 @@
 CXX = g++
-CPPFLAGS = -O0 -Wfatal-errors -Wall -Wextra  -std=c++14 #-Wconversion
+CPPFLAGS = -O0 -Wfatal-errors -Wall -Wextra  -std=c++14 -I/home/mat/asio-1.18.2/include  -I/home/mat/json/include #-Wconversion
 CXX = clang++
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'
@@ -59,8 +59,8 @@ ${LIBXMLNAME}/${LIBXMLNAME}.o: ${LIBXML_HEADER_DIR}/${LIBXMLNAME}.cpp
 
 
 
-money_test: money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o
-	$(CXX) $(CPPFLAGS) -o money_test money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o
+money_test: money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o
+	$(CXX) $(CPPFLAGS) -o money_test money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o
 
 fundamental_test: fundamental_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o fundamental_test fundamental_test.o integer.o integer_parsing.o parsing_test.o
@@ -84,8 +84,14 @@ money_operations_test.o: money_operations_test.cpp money_operations_test.hpp mon
 money_init_test.o: money_init_test.cpp money_init_test.hpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_utility_test.hpp
 	$(CXX) $(CPPFLAGS) -c money_init_test.cpp
 	
-money.o: money.cpp money.hpp money_utility.cpp
+money.o: money.cpp money.hpp money_utility.cpp floatrates.hpp network.hpp
 	$(CXX) $(CPPFLAGS) -c money_utility.cpp -o money.o
+	
+floatrates.o: floatrates.hpp floatrates.cpp
+	$(CXX) $(CPPFLAGS) -c floatrates.cpp
+	
+network.o: network.hpp network.cpp
+	$(CXX) $(CPPFLAGS) -c network.cpp
 	
 fundamental_test.o: fundamental_test.cpp integer.hpp integer_parsing.hpp assertions.hpp parsing_test.hpp
 	$(CXX) $(CPPFLAGS) -c fundamental_test.cpp

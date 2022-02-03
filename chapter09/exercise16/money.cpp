@@ -179,11 +179,12 @@ template <>
 Integer Money<Integer>::calculate_by_Integer(const Integer & dollars, const long double cents /*  = INCORRECT_CENTS */) const;
 
 template<>
-Money<Integer>::Money(const string & dollars, const long double cents, const string & currency);
+Money<Integer>::Money(const string & dollars, const long double cents, const string & currency/* = "PLN" */);
 
 template <typename T>
-Money<T>::Money(const string & dollars, const long double cents, const string & currency) {
+Money<T>::Money(const string & dollars, const long double cents, const string & currency /* = "PLN" */) {
    cerr << __func__ << " TYPE_NAME = '" << TYPE_NAME << "' " << dollars << '\n';
+   validate_currency(currency);
    validate_cents(cents);
    if (! regex_match(dollars, INTEGER_REGEX)) 
       throw invalid_argument("Regex: dollars must be integer number ");
@@ -214,8 +215,9 @@ Type get_amount_by_Integer(const string & STR) {
 }
 
 template <typename T>
-Money<T>::Money(const string & dollars, const string & currency) {   // accept floating-point arguments
+Money<T>::Money(const string & dollars, const string & currency /* = "PLN" */) {   // accept floating-point arguments
    cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
+   validate_currency(currency);
    if (is_floating_point<T>::value) {
       if (! regex_match(dollars, E_FLOAT_POINT_REGEX)) 
          throw invalid_argument(string(__func__) +  " Regex: entered string '"
@@ -230,10 +232,10 @@ Money<T>::Money(const string & dollars, const string & currency) {   // accept f
 }
 
 template <typename T>
-Money<T> Money<T>::create(const string & dollars, const long double cents) {   
+Money<T> Money<T>::create(const string & dollars, const long double cents, const string & currency /* = "PLN" */) {  
    if (! equal_integer<long double>(cents))
       throw invalid_argument("Not exact value cents = " + to_string(cents));
-   Money<T> money = Money<T>(dollars, cents);
+   Money<T> money = Money<T>(dollars, cents, currency);
    return money;
 }
 
@@ -299,6 +301,7 @@ Money<T>::operator string() const {
    cerr << __func__ << " get_amount_in_cents() " << get_amount_in_cents() << '\n';
    string out = (dollars == 0 && get_amount_in_cents() < static_cast<T>(0)) ? "-" : "";
    out += formatted_string(dollars, cents);
+   out +=  " " + get_currency();
    return out;
 }
 
@@ -452,6 +455,60 @@ inline Money<long double> operator*(const long double& FACTOR, const Money<long 
    return MONEY.operator*(FACTOR);
 }
 
+#if defined(__clang__)
+
+extern map <string, long double> get_by_asio(const File_format & format);
+extern map <string, long double> get_by_curl(const File_format & format);
+
+template <typename T>
+map <string, long double> & Money<T>::set_rates_per_PLN(const Network_library & library, const File_format & format) {
+   /*static map<string, long double> m = { { "PLN", 1 } };
+   if (true)
+      return m;*/
+   //cerr << " Network_library::ASIO = " << static_cast<int>(library) << '\n';
+   //cerr << " Network_library::CURL = " << static_cast<int>(format) << '\n';
+/*   if (format == File_format::JSON)
+            return get_by_asio(format);
+      case Network_library::CURL :
+         if (format == File_format::XML)
+            return get_by_curl(format);
+   throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library)));      
+   cerr << __func__ << '\n';
+   if (library == Network_library::ASIO && format == File_format::JSON)
+      return get_by_asio(format);
+   else if (library == Network_library::CURL && format == File_format::XML)
+      return get_by_curl(format);
+   else 
+      throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library))
+         + " Invalid file format " + std::to_string(static_cast<int>(format)));
+      
+   cerr << __func__ << '\n';*/
+   //map <string, long double> result;
+   
+   cerr << "fff" << '\n';
+   static map <string, long double> result = { {"PLN", 1} };
+   cerr << __func__ << '\n';
+   return result;
+   
+   //static map <string, long double> result;
+   switch (library) {
+      case Network_library::ASIO :
+         if (format == File_format::JSON) {
+            result = get_by_asio(format);
+            return result;
+         }
+      case Network_library::CURL :
+         if (format == File_format::XML) {
+            result = get_by_curl(format);
+            return result;
+         }
+      default:
+         throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library)));
+   }
+   throw invalid_argument(__func__ + string(" Invalid file format "));
+}
+#endif
+
 #ifdef DEBUG_OSTREAM
    template <class Number, enable_if_t<numeric_limits<Number>::is_integer || is_floating_point<Number>::value, bool> = true>
    inline ostringstream& start_settings(ostringstream * os, const Money<Number>& money) {
@@ -471,6 +528,7 @@ inline Money<long double> operator*(const long double& FACTOR, const Money<long 
       start_settings(os, money);
       *os << abs(dollars) << ",";
       *os << setw(2) << abs(cents);
+      *os << ' ' << money.get_currency();
       return *os;
    }
 
@@ -483,6 +541,7 @@ inline Money<long double> operator*(const long double& FACTOR, const Money<long 
       start_settings(os, money);
       *os << (dollars < 0 ? -dollars : dollars) << ",";
       *os << setw(2) << (cents < 0 ? -cents : cents);
+      *os << ' ' << money.get_currency();
       return *os;
    }
    
@@ -494,6 +553,7 @@ inline Money<long double> operator*(const long double& FACTOR, const Money<long 
       start_settings(os, money);
       *os << dollars.string_without_signum() << ",";
       *os << setw(2) << cents.string_without_signum();
+      *os << ' ' << money.get_currency();
       return *os;
    }
 
@@ -506,6 +566,7 @@ inline Money<long double> operator*(const long double& FACTOR, const Money<long 
       start_settings(os, money);
       *os << fixed << setprecision(0) << setw(0) << (signbit(dollars) ? -dollars : dollars) << ",";
       *os << setw(2) << (signbit(cents) ? -cents : cents);
+      *os << ' ' << money.get_currency();
       os->precision(os_precision);
       return *os;
    }
@@ -534,6 +595,7 @@ ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
    start_settings(os, money);
    os << abs(dollars) << ",";
    os << setw(2) << abs(cents);
+   os << ' ' << money.get_currency();
    return os;
 }
 
@@ -545,6 +607,7 @@ ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
    start_settings(os, money);
    os << (dollars < 0 ? -dollars : dollars) << ",";
    os << setw(2) << (cents < 0 ? -cents : cents);
+   os << ' ' << money.get_currency();
    return os;
 }
 
@@ -558,6 +621,7 @@ ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
    start_settings(os, money);
    os << fixed << setprecision(0) << setw(0) << (signbit(dollars) ? -dollars : dollars) << ",";
    os << setw(2) << (signbit(cents) ? -cents : cents);
+   os << ' ' << money.get_currency();
    os.precision(os_precision);
    return os;
 }
