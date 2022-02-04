@@ -2,8 +2,7 @@
 
 using namespace std;
 
-string get_document(const string & HOST, const Method & METHOD, const string & DIRECTORY,
-                         const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
+string Asio_downloader::get_document() const {
    asio::basic_socket_iostream<asio::ip::tcp> socket_iostream;
    const string HTTP_VERSION("HTTP/1.1");
    socket_iostream.connect(HOST, "http");
@@ -23,11 +22,29 @@ string get_document(const string & HOST, const Method & METHOD, const string & D
    if (! socket_iostream)
       throw Asio_IO_Stream_Exception(socket_iostream.error().message());
    string result = strstream.str();
-   modify_document(result);
    return result;
 }
 
-void process_response_headers(asio::ip::tcp::iostream & socket_iostream, const string& HTTP_VERSION) {
+string Asio_downloader::download() const {
+   try {
+      return get_document();
+   } 
+   catch (const Asio_IO_Stream_Exception & e) {
+      cerr << e.what() << endl;
+      throw e;
+   }
+   catch (const asio::system_error &e) {
+      cerr << "!!! System Error ! Error code = " << e.code()
+           << "\n Message: " << e.what();
+      throw e;
+   }
+   catch (const exception & e) {
+      cerr << "Exception: " << e.what() << endl;
+      throw e;
+   }
+}
+
+void Asio_downloader::process_response_headers(asio::ip::tcp::iostream & socket_iostream, const string& HTTP_VERSION) {
    string http_version;
    socket_iostream >> http_version;
    cout << " http_version = " << http_version;
@@ -46,25 +63,4 @@ void process_response_headers(asio::ip::tcp::iostream & socket_iostream, const s
    cout << "\n";
 }
 
-void erase(string & result, const char C, const char A) {
-   for (unsigned i = 0; i < result.size(); i++) {
-      if (C == result[i] || A == result[i]) {
-         result.erase(result.begin() + i);
-         if (A == result[i]) {
-            result.erase(result.begin() + i);
-            while (i < result.size() && result[i] != A) 
-               result.erase(result.begin() + i);
-            if (i < result.size() && A == result[i]) 
-               result.erase(result.begin() + i);
-         }
-      }
-   }
-}
 
-void modify_document(string & doc) {
-   size_t first = doc.find("{");
-   doc = doc.substr(first);
-   size_t last = doc.rfind("}");
-   doc = doc.substr(0, last + 1);
-   erase(doc, '\r', '\n');
-}

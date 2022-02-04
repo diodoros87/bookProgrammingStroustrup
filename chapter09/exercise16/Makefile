@@ -84,7 +84,7 @@ money_operations_test.o: money_operations_test.cpp money_operations_test.hpp mon
 money_init_test.o: money_init_test.cpp money_init_test.hpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_utility_test.hpp
 	$(CXX) $(CPPFLAGS) -c money_init_test.cpp
 	
-money.o: money.cpp money.hpp money_utility.cpp floatrates.hpp network.hpp
+money.o: money.cpp money.hpp money_utility.cpp floatrates.hpp network.hpp floatrates.cpp
 	$(CXX) $(CPPFLAGS) -c money_utility.cpp -o money.o
 	
 floatrates.o: floatrates.hpp floatrates.cpp

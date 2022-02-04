@@ -11,10 +11,6 @@
 #include <tuple>
 #include <chrono>
 
-void process_document(const string & CURRENCY, const string & DOC);
-string get_document(const string & HOST, const Method & METHOD, const string & DIRECTORY, 
-                         const Cache_control & CACHE_CONTROL, const Connection & CONNECTION);
-
 class Asio_IO_Stream_Exception : public exception { 
    string msg {"!!! error on the socket stream: "};
 public:
@@ -26,31 +22,23 @@ public:
 };
 
 class Asio_downloader {
-   try {
-      const string CURRENCY = "PLN";
-      const string HOST = "www.floatrates.com";
-      const Method METHOD = Method::get;
-      const string DIRECTORY = "/daily/" + CURRENCY + ".json";
-      //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
-      const Cache_control CACHE_CONTROL = Cache_control::no_store;
-      const Connection CONNECTION = Connection::close;
+   string host;
+   Method method;
+   string directory;
+   //string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
+   Cache_control cache_control = Cache_control::no_store;
+   Connection connection = Connection::close;
+public:
+   Asio_downloader(const string & HOST, const Method & METHOD, const string & DIRECTORY,
+                         const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
+      host = HOST;
+      method = METHOD;
+      directory = DIRECTORY;
+      cache_control = CACHE_CONTROL;
+      connection = CONNECTION;
    }
-   catch (const nlohmann::json::exception & e) {
-      cerr << "!!! Error json exception: " << e.what() << '\n';
-   }
-   catch (const Asio_IO_Stream_Exception & e) {
-      cerr << e.what() << endl;
-   }
-   catch (const asio::system_error &e) {
-      cerr << "!!! System Error ! Error code = " << e.code()
-           << "\n Message: " << e.what();
-      return e.code().value();
-   }
-   catch (const exception & e) {
-      cerr << "Exception: " << e.what() << endl;
-   }
-   catch (...) {
-      cerr << "Unrecognized Exception: " <<  endl;
-   }
-   return 1;
+   string download() const;
+private:
+   string get_document() const;
+   void process_response_headers(asio::ip::tcp::iostream & socket_iostream, const string& HTTP_VERSION) const;
 }

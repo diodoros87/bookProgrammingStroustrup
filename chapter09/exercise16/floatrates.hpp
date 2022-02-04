@@ -24,19 +24,27 @@ public:
       }
    }
    
-   map<string, long double> rates() const { return cache_valid ? rates_map : rates(RATE); }
-   map<string, long double> inverse_rates() const { return cache_valid ? rates_map : rates(INVERSE_RATE); }
+   map<string, long double> rates() const { 
+      return cache_valid ? rates_map : rates_map = rates(RATE); }
+      
+   map<string, long double> inverse_rates() const { 
+      return cache_valid ? inverse_rates_map : inverse_rates_map = rates(INVERSE_RATE); }
+      
    map<string, float_rates_info> float_rates() const { return float_rates_map; }
 private:
    map<string, float_rates_info> float_rates_map;
    string json_document;
    mutable map<string, long double> rates_map;
    mutable map<string, long double> inverse_rates_map;
-   mutable bool cache_valid = true;
+   mutable bool cache_valid = false;
    
    enum Rate_kind{ RATE, INVERSE_RATE };
    
+//#if defined(__clang__)
+//#elif defined(__GNUG__)   
    map<string, float_rates_info> get_json_data() const;
+//#endif
+   
    map<string, long double> rates(Rate_kind) const;
    
 public:

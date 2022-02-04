@@ -20,11 +20,11 @@ public:
       if (rates_per_PLN.end() == rates_per_PLN.find(CURRENCY)) 
          throw invalid_argument("Currency " + CURRENCY + " is not available");
    }
-   
+ /*  
 #ifdef __clang__
    static map <string, long double> & set_rates_per_PLN(const Network_library & library, const File_format & format);
 #endif
-   
+   */
    Money(const string & dollars, const long double cents, const string & currency = "PLN");   
    Money(const string & dollars, const string & currency = "PLN");            // constructors allow rounding of cents 
    // create methods disallow rounding of cents and accept only cents without fraction
@@ -437,10 +437,10 @@ private:
 
 template <typename T>
 map <string, long double> Money<T>::rates_per_PLN = 
-#ifdef __clang__
-   Money<T>::
-#endif
-            set_rates_per_PLN(Network_library::ASIO, File_format::JSON);
+// #ifdef __clang__
+//    Money<T>::
+// #endif
+            set_rates_per_PLN(Network_library::CURL, File_format::XML);
 
 //map <string, long double> Money<T>::rates_per_PLN = set_rates_per_PLN(Network_library::ASIO);
 //map <string, long double> Money<T>::rates_per_PLN = get_by_asio(File_format::JSON);
