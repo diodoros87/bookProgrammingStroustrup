@@ -1,6 +1,17 @@
 #include "asio_downloader.hpp"
+/*
+#if defined(__clang__)
+using std::chrono::seconds;
+using std::cerr;
+using std::cout;
+using std::exception;
+using std::stringstream;
+using std::endl;
 
+using namespace network;
+#elif defined(__GNUG__) */
 using namespace std;
+//#endif
 
 string Asio_downloader::get_document() const {
    asio::basic_socket_iostream<asio::ip::tcp> socket_iostream;
@@ -11,9 +22,10 @@ string Asio_downloader::get_document() const {
    socket_iostream    << "Cache-Control: " << cache_control << "\r\n";
    socket_iostream    << "Connection: " << connection  << "\r\n\r\n";
    socket_iostream.flush();
-   
+//#if defined(__clang__)
+//#elif defined(__GNUG__)   
    process_response_headers(socket_iostream);
-   
+//#endif
    stringstream strstream;
    strstream << socket_iostream.rdbuf();
    
@@ -21,16 +33,16 @@ string Asio_downloader::get_document() const {
    if (! socket_iostream)
       throw Asio_IO_Stream_Exception(socket_iostream.error().message());
    string result = strstream.str();
-   cerr << __func__ << " result:\n";
-   cerr << result << "'\n";
+   //cerr << __func__ << " result:\n";
+   //cerr << result << "'\n";
    return result;
 }
 
 string Asio_downloader::download() const {
    try {
       string result = get_document();
-      cerr << __func__ << " result:\n";
-      cerr << result << "'\n";
+      //cerr << __func__ << " result:\n";
+      //cerr << result << "'\n";
       return result;
    } 
    catch (const Asio_IO_Stream_Exception & e) {
@@ -51,7 +63,7 @@ string Asio_downloader::download() const {
 void Asio_downloader::process_response_headers(asio::ip::tcp::iostream & socket_iostream) const {
    string http_version;
    socket_iostream >> http_version;
-   cout << " http_version = " << http_version;
+   std::cout << " http_version = " << http_version;
    unsigned int status_code;
    socket_iostream >> status_code;
    cout << "\n status code of response = " << status_code;

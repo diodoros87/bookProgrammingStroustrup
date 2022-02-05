@@ -41,6 +41,25 @@ bool execute_function(Function && func, Args&&... args ) {
    return false;
 }
 
+#ifdef __clang__
+   inline void initialize_static_map() {
+      Money<char>::initialize_rates();
+      Money<Integer>::initialize_rates();
+      Money<int_fast8_t>::initialize_rates();
+      Money<short>::initialize_rates();
+      Money<unsigned short>::initialize_rates();
+      Money<int>::initialize_rates();
+      Money<unsigned>::initialize_rates();
+      Money<long>::initialize_rates();
+      Money<unsigned long>::initialize_rates();
+      Money<long long>::initialize_rates();
+      Money<unsigned long long>::initialize_rates();
+      Money<float>::initialize_rates();
+      Money<double>::initialize_rates();
+      Money<long double>::initialize_rates();
+   }
+#endif
+
 template <typename Function, typename... Args>  
 static inline  bool call_function(Function && func, Args&&... args) {
    bool result = execute_function(func, forward<Args>(args)...);
@@ -49,6 +68,9 @@ static inline  bool call_function(Function && func, Args&&... args) {
 }
 
 bool perform_tests() {
+#ifdef __clang__
+   initialize_static_map();
+#endif
    initializer_list < function <void()> > vec = { bind(money_init_test::perform), 
       bind(money_operations_test::perform) 
       

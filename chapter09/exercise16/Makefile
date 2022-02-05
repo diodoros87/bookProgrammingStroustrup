@@ -1,9 +1,9 @@
 CXX = g++
-CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -I/home/mat/asio-1.18.2/include  -I/home/mat/json/include #-Wconversion
-#CXX = clang++
+CPPFLAGS = -g -O0 -Wfatal-errors -Wall -Wextra  -std=c++14 -I/home/mat/asio-1.18.2/include  -I/home/mat/json/include #-Wconversion
+CXX = clang++
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'
-CLANG_CPPFLAGS = -Wfatal-errors -L/usr/lib -lstdc++ -lm -DMESSAGE='"Compiled with Clang"'
+CLANG_CPPFLAGS = -DMESSAGE='"Compiled with Clang"' -lpthread
 
 ifeq ($(CXX), g++)
 	CPPFLAGS += $(GCC_CPPFLAGS)

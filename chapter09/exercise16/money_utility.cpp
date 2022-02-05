@@ -119,9 +119,9 @@ map <string, long double> get_by_asio(const File_format & format) {
    const Float_rates floatrates = { JSON_DOC };
    //floatrates.set_rates_from_json();
    map <string, long double> rates = floatrates.inverse_rates();
-   std::cerr << "   " << __func__ << " | " << "\n";
-   for (const auto [code, rate] : rates)
-        std::cerr << "   " << code << " | " << rate << "\n";
+   //std::cerr << "   " << __func__ << " | " << "\n";
+   //for (const auto [code, rate] : rates)
+   //     std::cerr << "   " << code << " | " << rate << "\n";
    //rates.insert({{"PLN", 1}});
    return rates;
 }

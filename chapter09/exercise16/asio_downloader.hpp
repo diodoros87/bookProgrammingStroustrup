@@ -1,9 +1,10 @@
 #ifndef ASIO_DOWNLOADER_HPP
 #define ASIO_DOWNLOADER_HPP
 
-//#define ASIO_STANDALONE 
+#define ASIO_STANDALONE 
+#include <iostream>
 #include "asio.hpp"
-//#include <iostream>
+
 //#include <sstream>
 //#include <utility>
 #include <string>
@@ -18,6 +19,7 @@
 
 using std::string;
 using std::exception;
+
 
 using network::Method;
 using network::Cache_control;

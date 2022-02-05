@@ -36,10 +36,10 @@ public:
       return get_rates(RATE, rates_map, rates_valid); }
       
    map<string, long double> inverse_rates() const { 
-      map<string, long double> res = get_rates(RATE, rates_map, rates_valid);
-      std::cout << "\n" << __func__ << '\n';
-      for (const auto& [code, rate] : res)
-        std::cerr << "   " << code << " | " << rate << "\n";
+      map<string, long double> res = get_rates(INVERSE_RATE, inverse_rates_map, inverse_valid);
+      //std::cout << "\n" << __func__ << '\n';
+      //for (const auto& [code, rate] : res)
+      //  std::cerr << "   " << code << " | " << rate << "\n";
       return res; }
       //return get_rates(INVERSE_RATE, inverse_rates_map, inverse_valid); }
       
