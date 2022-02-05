@@ -4,16 +4,15 @@ using namespace std;
 
 string Asio_downloader::get_document() const {
    asio::basic_socket_iostream<asio::ip::tcp> socket_iostream;
-   const string HTTP_VERSION("HTTP/1.1");
-   socket_iostream.connect(HOST, "http");
-   socket_iostream.expires_from_now(chrono::seconds(10));
-   socket_iostream    << METHOD << " " << DIRECTORY << " " << HTTP_VERSION << "\r\n";
-   socket_iostream    << "Host: " + HOST + "\r\n";
-   socket_iostream    << "Cache-Control: " << CACHE_CONTROL << "\r\n";
-   socket_iostream    << "Connection: " << CONNECTION  << "\r\n\r\n";
+   socket_iostream.connect(host, "http");
+   socket_iostream.expires_from_now(chrono::seconds(1));
+   socket_iostream    << method << " " << directory << " " << HTTP_VERSION << "\r\n";
+   socket_iostream    << "Host: " + host + "\r\n";
+   socket_iostream    << "Cache-Control: " << cache_control << "\r\n";
+   socket_iostream    << "Connection: " << connection  << "\r\n\r\n";
    socket_iostream.flush();
    
-   process_response_headers(socket_iostream, HTTP_VERSION);
+   process_response_headers(socket_iostream);
    
    stringstream strstream;
    strstream << socket_iostream.rdbuf();
@@ -22,12 +21,17 @@ string Asio_downloader::get_document() const {
    if (! socket_iostream)
       throw Asio_IO_Stream_Exception(socket_iostream.error().message());
    string result = strstream.str();
+   cerr << __func__ << " result:\n";
+   cerr << result << "'\n";
    return result;
 }
 
 string Asio_downloader::download() const {
    try {
-      return get_document();
+      string result = get_document();
+      cerr << __func__ << " result:\n";
+      cerr << result << "'\n";
+      return result;
    } 
    catch (const Asio_IO_Stream_Exception & e) {
       cerr << e.what() << endl;
@@ -44,7 +48,7 @@ string Asio_downloader::download() const {
    }
 }
 
-void Asio_downloader::process_response_headers(asio::ip::tcp::iostream & socket_iostream, const string& HTTP_VERSION) {
+void Asio_downloader::process_response_headers(asio::ip::tcp::iostream & socket_iostream) const {
    string http_version;
    socket_iostream >> http_version;
    cout << " http_version = " << http_version;

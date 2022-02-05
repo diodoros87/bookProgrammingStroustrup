@@ -1,5 +1,9 @@
+#ifndef FLOAT_RATES_HPP
+#define FLOAT_RATES_HPP
+
 #include <string>
 #include <map>
+#include <iostream>
 
 using std::string;
 using std::map;
@@ -14,21 +18,30 @@ struct float_rates_info {
 
 class Float_rates {
 public:   
-   Float_rates(const string & JSON_DOCUMENT) { json_document = JSON_DOCUMENT; }
+   Float_rates(const string & JSON_DOCUMENT) { 
+      json_document = JSON_DOCUMENT;
+      set_rates_from_json();
+   }
    
    void set_rates_from_json();
    void set_json_document(const string & JSON_DOCUMENT) {
       if (JSON_DOCUMENT != json_document) {
          json_document = JSON_DOCUMENT;
-         cache_valid = false;
+         rates_valid = false;
+         inverse_valid = false;
       }
    }
    
-   map<string, long double> rates() const { 
-      return cache_valid ? rates_map : rates_map = rates(RATE); }
+   map<string, long double> rates() const {  
+      return get_rates(RATE, rates_map, rates_valid); }
       
    map<string, long double> inverse_rates() const { 
-      return cache_valid ? inverse_rates_map : inverse_rates_map = rates(INVERSE_RATE); }
+      map<string, long double> res = get_rates(RATE, rates_map, rates_valid);
+      std::cout << "\n" << __func__ << '\n';
+      for (const auto& [code, rate] : res)
+        std::cerr << "   " << code << " | " << rate << "\n";
+      return res; }
+      //return get_rates(INVERSE_RATE, inverse_rates_map, inverse_valid); }
       
    map<string, float_rates_info> float_rates() const { return float_rates_map; }
 private:
@@ -36,16 +49,21 @@ private:
    string json_document;
    mutable map<string, long double> rates_map;
    mutable map<string, long double> inverse_rates_map;
-   mutable bool cache_valid = false;
+   mutable bool rates_valid = false;
+   mutable bool inverse_valid = false;
    
    enum Rate_kind{ RATE, INVERSE_RATE };
+   
+   map<string, long double> get_rates(Rate_kind kind, map<string, long double>& a_rates, bool & valid ) const { 
+      return valid ? a_rates : a_rates = rates(kind, valid); 
+   }
    
 //#if defined(__clang__)
 //#elif defined(__GNUG__)   
    map<string, float_rates_info> get_json_data() const;
 //#endif
    
-   map<string, long double> rates(Rate_kind) const;
+   map<string, long double> rates(Rate_kind, bool & valid) const;
    
 public:
    ~ Float_rates() = default;
@@ -54,3 +72,5 @@ public:
    Float_rates & operator=(const Float_rates &) = default;
    Float_rates & operator=(Float_rates &&) = default;
 };
+
+#endif

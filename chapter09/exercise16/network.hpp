@@ -1,3 +1,6 @@
+#ifndef NETWORK_HPP
+#define NETWORK_HPP
+
 #include <iostream>
 #include <utility>
 //#define NDEBUG
@@ -32,3 +35,5 @@ enum class Method { get, options, post };
 ostream& operator<<(ostream& os, const Method& x);
 
 }
+
+#endif

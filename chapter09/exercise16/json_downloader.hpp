@@ -1,27 +1,32 @@
+#ifndef JSON_DOWNLOADER_HPP
+#define JSON_DOWNLOADER_HPP
+
 #include "asio_downloader.hpp"
+#include "network.hpp"
 
 class Json_downloader {
-   Asio_downloader downloader;
+   Asio_downloader * downloader = nullptr;
    string doc;
 public:
    Json_downloader(const string & HOST, const Method & METHOD, const string & DIRECTORY,
                          const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
-      downloader(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION); }
+      downloader = new Asio_downloader(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION); }
       
-   void download();
-      
-   string get() const { return doc; };   
-   
-   Asio_downloader(const string & HOST, const Method & METHOD, const string & DIRECTORY,
-                         const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
-      host = HOST;
-      method = METHOD;
-      directory = DIRECTORY;
-      cache_control = CACHE_CONTROL;
-      connection = CONNECTION;
+   void download() {
+      doc = downloader->download();
+      std::cerr << __func__ << " doc:\n";
+      std::cerr << doc << "'\n";
+      modify_document();
+      std::cerr << __func__ << " doc:\n";
+      std::cerr << doc << "'\n";
    }
-   string download() const;
+   
+   ~Json_downloader() { delete downloader; }
+   
+   string get() const { return doc; };   
 private:
-   string get_document() const;
-   void process_response_headers(asio::ip::tcp::iostream & socket_iostream, const string& HTTP_VERSION) const;
-}
+   void erase(const char, const char);
+   void modify_document();
+};
+
+#endif

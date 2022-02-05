@@ -440,7 +440,7 @@ map <string, long double> Money<T>::rates_per_PLN =
 // #ifdef __clang__
 //    Money<T>::
 // #endif
-            set_rates_per_PLN(Network_library::CURL, File_format::XML);
+            set_rates_per_PLN(Network_library::ASIO, File_format::JSON);
 
 //map <string, long double> Money<T>::rates_per_PLN = set_rates_per_PLN(Network_library::ASIO);
 //map <string, long double> Money<T>::rates_per_PLN = get_by_asio(File_format::JSON);

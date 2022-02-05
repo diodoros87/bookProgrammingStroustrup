@@ -63,7 +63,7 @@ map<string, float_rates_info> Float_rates::get_json_data() const {
 
 void Float_rates::set_rates_from_json() {
    try {
-      const string & CURRENCY = "PLN";
+      //const string & CURRENCY = "PLN";
       float_rates_map = get_json_data();
       //assert(float_rates_map.size() == 1);
       //assert(float_rates_map["PLN"] == 1);
@@ -82,7 +82,7 @@ void Float_rates::set_rates_from_json() {
 }
 //#endif
 
-map<string, long double> Float_rates::rates(Rate_kind kind) const { 
+map<string, long double> Float_rates::rates(Rate_kind kind, bool & valid) const { 
    std::cout << "\n" << __func__ << '\n';
    map<string, long double> result;
    for (const pair<string, float_rates_info> &p : float_rates_map) {
@@ -94,8 +94,8 @@ map<string, long double> Float_rates::rates(Rate_kind kind) const {
             result.insert({ p.second.code, p.second.inverse_rate});
       }
    }
-   cache_valid = true;
-   //for (const auto& [code, rate] : result)
-   //     std::cerr << "   " << code << " | " << rate << "\n";
-   return rates_map; 
+   valid = true;
+   for (const auto& [code, rate] : result)
+        std::cerr << "   " << code << " | " << rate << "\n";
+   return result; 
 }

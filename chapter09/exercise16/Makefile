@@ -1,6 +1,6 @@
 CXX = g++
-CPPFLAGS = -O0 -Wfatal-errors -Wall -Wextra  -std=c++14 -I/home/mat/asio-1.18.2/include  -I/home/mat/json/include #-Wconversion
-CXX = clang++
+CPPFLAGS = -Wfatal-errors -Wall -Wextra  -std=c++14 -I/home/mat/asio-1.18.2/include  -I/home/mat/json/include #-Wconversion
+#CXX = clang++
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'
 CLANG_CPPFLAGS = -Wfatal-errors -L/usr/lib -lstdc++ -lm -DMESSAGE='"Compiled with Clang"'
@@ -59,8 +59,8 @@ ${LIBXMLNAME}/${LIBXMLNAME}.o: ${LIBXML_HEADER_DIR}/${LIBXMLNAME}.cpp
 
 
 
-money_test: money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o
-	$(CXX) $(CPPFLAGS) -o money_test money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o
+money_test: money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o
+	$(CXX) $(CPPFLAGS) -lpthread -o money_test money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o
 
 fundamental_test: fundamental_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o fundamental_test fundamental_test.o integer.o integer_parsing.o parsing_test.o
@@ -86,6 +86,12 @@ money_init_test.o: money_init_test.cpp money_init_test.hpp money.cpp money.hpp i
 	
 money.o: money.cpp money.hpp money_utility.cpp floatrates.hpp network.hpp floatrates.cpp
 	$(CXX) $(CPPFLAGS) -c money_utility.cpp -o money.o
+	
+asio_downloader.o: asio_downloader.hpp asio_downloader.cpp network.hpp network.cpp
+	$(CXX) $(CPPFLAGS) -c asio_downloader.cpp
+	
+json_downloader.o: json_downloader.hpp json_downloader.cpp network.hpp network.cpp asio_downloader.cpp asio_downloader.hpp
+	$(CXX) $(CPPFLAGS) -c json_downloader.cpp
 	
 floatrates.o: floatrates.hpp floatrates.cpp
 	$(CXX) $(CPPFLAGS) -c floatrates.cpp

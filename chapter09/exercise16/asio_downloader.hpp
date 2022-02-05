@@ -1,17 +1,29 @@
+#ifndef ASIO_DOWNLOADER_HPP
+#define ASIO_DOWNLOADER_HPP
+
 //#define ASIO_STANDALONE 
 #include "asio.hpp"
-#include <iostream>
-#include <sstream>
-#include <utility>
+//#include <iostream>
+//#include <sstream>
+//#include <utility>
 #include <string>
-#include <map>    
-#include <array> 
+//#include <map>    
+//#include <array> 
 //#define NDEBUG
-#include <cassert>
-#include <tuple>
-#include <chrono>
+//#include <cassert>
+//#include <tuple>
+//#include <chrono>
 
-class Asio_IO_Stream_Exception : public exception { 
+#include "network.hpp"
+
+using std::string;
+using std::exception;
+
+using network::Method;
+using network::Cache_control;
+using network::Connection;
+
+class Asio_IO_Stream_Exception : public std::exception { 
    string msg {"!!! error on the socket stream: "};
 public:
    Asio_IO_Stream_Exception() {}
@@ -22,6 +34,7 @@ public:
 };
 
 class Asio_downloader {
+   const string HTTP_VERSION = {"HTTP/1.1"};
    string host;
    Method method;
    string directory;
@@ -40,5 +53,7 @@ public:
    string download() const;
 private:
    string get_document() const;
-   void process_response_headers(asio::ip::tcp::iostream & socket_iostream, const string& HTTP_VERSION) const;
-}
+   void process_response_headers(asio::ip::tcp::iostream & socket_iostream) const;
+};
+
+#endif
