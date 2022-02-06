@@ -12,6 +12,8 @@ using namespace std;
 using namespace integer_space;
 using namespace money;
 
+//static std::ios_base::Init toEnsureInitialization;
+
 template <typename Function, typename... Args>  
 bool execute_function(Function && func, Args&&... args ) {
    try {
@@ -40,7 +42,7 @@ bool execute_function(Function && func, Args&&... args ) {
    
    return false;
 }
-
+/*
 #ifdef __clang__
    inline void initialize_static_map() {
       Money<char>::initialize_rates();
@@ -59,7 +61,7 @@ bool execute_function(Function && func, Args&&... args ) {
       Money<long double>::initialize_rates();
    }
 #endif
-
+*/
 template <typename Function, typename... Args>  
 static inline  bool call_function(Function && func, Args&&... args) {
    bool result = execute_function(func, forward<Args>(args)...);
@@ -69,7 +71,7 @@ static inline  bool call_function(Function && func, Args&&... args) {
 
 bool perform_tests() {
 #ifdef __clang__
-   initialize_static_map();
+   //initialize_static_map();
 #endif
    initializer_list < function <void()> > vec = { bind(money_init_test::perform), 
       bind(money_operations_test::perform) 

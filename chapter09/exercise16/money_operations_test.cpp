@@ -485,16 +485,7 @@ public:
       binary_operation<Type, Template> (&Template<Type>::operator*, S::a_dollars, FACTOR, expected);
    }
 };
-/*
-template <template<typename> class Template = Money>
-struct Test_multiplying_Integer : public Test_multiplying <Integer, Template> { 
-public:
-   Test_multiplying_Integer(const string & A_DOLLARS, const long double A_CENTS, const string & FACTOR, const string & expected = "")
-                      : Test_multiplying<Integer, Template>(A_DOLLARS, A_CENTS, Integer::parse_create(FACTOR), expected) { 
-      cerr << "\n\n#########################" << __func__ << '\n';
-   }
-};
-*/
+
 template <typename Type, template<typename> class Template = Money>
 class Test_relations : public Dollars_string <Type, Template> { 
 public:

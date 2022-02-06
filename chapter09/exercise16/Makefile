@@ -3,7 +3,7 @@ CPPFLAGS = -g -O0 -Wfatal-errors -Wall -Wextra  -std=c++14 -I/home/mat/asio-1.18
 CXX = clang++
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'
-CLANG_CPPFLAGS = -DMESSAGE='"Compiled with Clang"' -lpthread
+CLANG_CPPFLAGS = -DMESSAGE='"Compiled with Clang"'
 
 ifeq ($(CXX), g++)
 	CPPFLAGS += $(GCC_CPPFLAGS)

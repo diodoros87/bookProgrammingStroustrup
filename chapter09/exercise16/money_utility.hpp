@@ -164,10 +164,7 @@ private:
 
 using namespace network;
 
-//#if defined(__clang__)
-//#elif defined(__GNUG__)
-map <string, long double> & set_rates_per_PLN(const Network_library & library, const File_format & format);
-//#endif
+map <string, long double> & set_rates_per_USD(const Network_library & library, const File_format & format);
 
 template <typename T>
 class Money;

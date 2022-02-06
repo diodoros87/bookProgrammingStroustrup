@@ -4,6 +4,7 @@
 #include "money_utility.hpp"
 
 namespace money {
+
    
 template <typename T>
 class Money {
@@ -17,14 +18,10 @@ public:
    }
    
    static inline void validate_currency(const string & CURRENCY) {
-      if (rates_per_PLN.end() == rates_per_PLN.find(CURRENCY)) 
+      if (rates_per_USD.end() == rates_per_USD.find(CURRENCY)) 
          throw invalid_argument("Currency " + CURRENCY + " is not available");
    }
- /*  
-#ifdef __clang__
-   static map <string, long double> & set_rates_per_PLN(const Network_library & library, const File_format & format);
-#endif
-   */
+
    Money(const string & dollars, const long double cents, const string & currency = "PLN");   
    Money(const string & dollars, const string & currency = "PLN");            // constructors allow rounding of cents 
    // create methods disallow rounding of cents and accept only cents without fraction
@@ -431,30 +428,17 @@ private:
 
    T amount_in_cents { };
    string currency = "PLN";
-   static map <string, long double> rates_per_PLN;
-#ifdef __clang__
+   static map <string, long double> rates_per_USD;
+/*#ifdef __clang__
 public:
    static void initialize_rates() {
-      rates_per_PLN = set_rates_per_PLN(Network_library::ASIO, File_format::JSON);
+      rates_per_USD = set_rates_per_USD(Network_library::ASIO, File_format::JSON);
    }
-#endif   
+#endif  */ 
 };
 
-#ifdef __clang__
 template <typename T>
-map <string, long double> Money<T>::rates_per_PLN;
-#elif defined(__GNUG__)
-template <typename T>
-map <string, long double> Money<T>::rates_per_PLN = 
-// #ifdef __clang__
-//    Money<T>::
-// #endif
-            set_rates_per_PLN(Network_library::ASIO, File_format::JSON);
-#endif
-
-//map <string, long double> Money<T>::rates_per_PLN = set_rates_per_PLN(Network_library::ASIO);
-//map <string, long double> Money<T>::rates_per_PLN = get_by_asio(File_format::JSON);
-//map <string, long double> Money<T>::rates_per_PLN = { { "PLN", 1.0L } };
+map <string, long double> Money<T>::rates_per_USD = set_rates_per_USD(Network_library::CURL, File_format::XML);
 
 }
 

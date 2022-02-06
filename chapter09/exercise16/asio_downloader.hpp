@@ -2,8 +2,9 @@
 #define ASIO_DOWNLOADER_HPP
 
 #define ASIO_STANDALONE 
-#include <iostream>
 #include "asio.hpp"
+#include <iostream>
+
 
 //#include <sstream>
 //#include <utility>

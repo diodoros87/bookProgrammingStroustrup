@@ -57,11 +57,8 @@ private:
    map<string, long double> get_rates(Rate_kind kind, map<string, long double>& a_rates, bool & valid ) const { 
       return valid ? a_rates : a_rates = rates(kind, valid); 
    }
-   
-//#if defined(__clang__)
-//#elif defined(__GNUG__)   
+     
    map<string, float_rates_info> get_json_data() const;
-//#endif
    
    map<string, long double> rates(Rate_kind, bool & valid) const;
    

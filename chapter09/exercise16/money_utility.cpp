@@ -1,7 +1,13 @@
+#include <iostream>
 #include "integer.hpp"
 #include "money.hpp"
 #include "asio_downloader.hpp"
 #include "json_downloader.hpp"
+
+
+//using std::ios_base;
+
+//static std::ios_base::Init toEnsureInitialization;
 
 namespace money {
    
@@ -103,11 +109,24 @@ string formatted_string(const Integer & dollars, const Integer & cents) {
    return out;
 }
 
-map <string, long double> get_by_asio(const File_format & format) {
-   const string CURRENCY = "usd";
+static string format_currency(const string & CURRENCY) {
+   if (CURRENCY.size() != 3)
+      throw invalid_argument (" currency must be exactly 3 characters: " + CURRENCY);
+   string result = CURRENCY;
+   std::transform(result.begin(), result.end(), result.begin(),
+      [](unsigned char c){ return std::tolower(c); });
+   return result;
+}
+
+map <string, long double> get_by_asio(const File_format & format, const string & CURRENCY = "USD") {
+   string currency = format_currency(CURRENCY);
+#ifdef __clang__
+   static std::ios_base::Init toEnsureInitialization;
+#endif
+   cerr << __func__ << " currency = " << currency << '\n';
    const string HOST = "www.floatrates.com";
    const Method METHOD = Method::get;
-   const string DIRECTORY = "/daily/" + CURRENCY + ".json";
+   const string DIRECTORY = "/daily/" + currency + ".json";
    //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
    const Cache_control CACHE_CONTROL = Cache_control::no_store;
    const Connection CONNECTION = Connection::close;
@@ -115,7 +134,6 @@ map <string, long double> get_by_asio(const File_format & format) {
    downloader.download();
    const string JSON_DOC = downloader.get();// = get_document(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
    
-   //Float_rates floatrates { DOC };
    const Float_rates floatrates = { JSON_DOC };
    //floatrates.set_rates_from_json();
    map <string, long double> rates = floatrates.inverse_rates();
@@ -126,69 +144,45 @@ map <string, long double> get_by_asio(const File_format & format) {
    return rates;
 }
 
-map <string, long double> get_by_curl(const File_format & format) {
-   const string CURRENCY = "PLN";
+map <string, long double> get_by_curl(const File_format & format, const string & CURRENCY = "USD") {
+   string currency = format_currency(CURRENCY);
+#ifdef __clang__
+   static std::ios_base::Init toEnsureInitialization;
+#endif
+   cerr << __func__ << " currency = " << currency << '\n';
    const string HOST = "www.floatrates.com";
    const Method METHOD = Method::get;
-   const string DIRECTORY = "/daily/" + CURRENCY + ".json";
+   const string DIRECTORY = "/daily/" + currency + ".json";
    //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
    const Cache_control CACHE_CONTROL = Cache_control::no_store;
    const Connection CONNECTION = Connection::close;
-   // = get_document(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
-   const string DOC ;
-   //Float_rates floatrates { DOC };
-   Float_rates floatrates = { DOC };
-   floatrates.set_rates_from_json();
-   map <string, long double> RES;
+   Json_downloader downloader(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
+   downloader.download();
+   const string JSON_DOC = downloader.get();// = get_document(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
    
+   Float_rates floatrates = { JSON_DOC };
    map <string, long double> rates = floatrates.inverse_rates();
-   //rates["PLN"] = 1;
-   rates.insert({{"PLN", 1}});
+   floatrates.set_rates_from_json();
+   assert(rates == floatrates.inverse_rates());
+   //std::cerr << "   " << __func__ << " | " << "\n";
+   //for (const auto [code, rate] : rates)
+   //     std::cerr << "   " << code << " | " << rate << "\n";
+   //rates.insert({{"PLN", 1}});
    return rates;
 }
 
-//#if defined(__clang__)
-//#elif defined(__GNUG__)
-map <string, long double> & set_rates_per_PLN(const Network_library & library, const File_format & format) {
-   /*static map<string, long double> m = { { "PLN", 1 } };
-   if (true)
-      return m;*/
-   //cerr << " Network_library::ASIO = " << static_cast<int>(library) << '\n';
-   //cerr << " Network_library::CURL = " << static_cast<int>(format) << '\n';
-/*   if (format == File_format::JSON)
-            return get_by_asio(format);
-      case Network_library::CURL :
-         if (format == File_format::XML)
-            return get_by_curl(format);
-   throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library)));      
-   cerr << __func__ << '\n';
-   if (library == Network_library::ASIO && format == File_format::JSON)
-      return get_by_asio(format);
-   else if (library == Network_library::CURL && format == File_format::XML)
-      return get_by_curl(format);
-   else 
-      throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library))
-         + " Invalid file format " + std::to_string(static_cast<int>(format)));
-      
-   cerr << __func__ << '\n';*/
-   //map <string, long double> result;
-   
-   //cerr << "fff" << '\n';
-   /*
-   static map <string, long double> result = { {"PLN", 1} };
-   cerr << __func__ << '\n';
-   return result;
-   */
+map <string, long double> & set_rates_per_USD(const Network_library & library, const File_format & format) {
    static map <string, long double> result;
+   const string USD = "USD";
    switch (library) {
       case Network_library::ASIO :
          if (format == File_format::JSON) {
-            result = get_by_asio(format);
+            result = get_by_asio(format, USD);
             return result;
          }
       case Network_library::CURL :
          if (format == File_format::XML) {
-            result = get_by_curl(format);
+            result = get_by_curl(format, USD);
             return result;
          }
       default:
@@ -196,7 +190,6 @@ map <string, long double> & set_rates_per_PLN(const Network_library & library, c
    }
    throw invalid_argument(__func__ + string(" Invalid file format "));
 }
-//#endif
 
 #ifndef DEBUG_OSTREAM
    ostream& operator<<(ostream& os, const Money<Integer>& money) {

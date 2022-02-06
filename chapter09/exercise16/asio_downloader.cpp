@@ -1,17 +1,5 @@
 #include "asio_downloader.hpp"
-/*
-#if defined(__clang__)
-using std::chrono::seconds;
-using std::cerr;
-using std::cout;
-using std::exception;
-using std::stringstream;
-using std::endl;
-
-using namespace network;
-#elif defined(__GNUG__) */
 using namespace std;
-//#endif
 
 string Asio_downloader::get_document() const {
    asio::basic_socket_iostream<asio::ip::tcp> socket_iostream;
@@ -33,16 +21,12 @@ string Asio_downloader::get_document() const {
    if (! socket_iostream)
       throw Asio_IO_Stream_Exception(socket_iostream.error().message());
    string result = strstream.str();
-   //cerr << __func__ << " result:\n";
-   //cerr << result << "'\n";
    return result;
 }
 
 string Asio_downloader::download() const {
    try {
       string result = get_document();
-      //cerr << __func__ << " result:\n";
-      //cerr << result << "'\n";
       return result;
    } 
    catch (const Asio_IO_Stream_Exception & e) {

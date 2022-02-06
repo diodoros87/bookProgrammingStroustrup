@@ -454,64 +454,7 @@ inline Money<Integer> operator*(const Integer& FACTOR, const Money<Integer>& MON
 inline Money<long double> operator*(const long double& FACTOR, const Money<long double>& MONEY) {
    return MONEY.operator*(FACTOR);
 }
-/*
-#if defined(__clang__)
 
-extern map <string, long double> get_by_asio(const File_format & format);
-extern map <string, long double> get_by_curl(const File_format & format);
-
-template <typename T>
-map <string, long double> & Money<T>::set_rates_per_PLN(const Network_library & library, const File_format & format) {
-   /*static map<string, long double> m = { { "PLN", 1 } };
-   if (true)
-      return m;*/
-   //cerr << " Network_library::ASIO = " << static_cast<int>(library) << '\n';
-   //cerr << " Network_library::CURL = " << static_cast<int>(format) << '\n';
-/*   if (format == File_format::JSON)
-            return get_by_asio(format);
-      case Network_library::CURL :
-         if (format == File_format::XML)
-            return get_by_curl(format);
-   throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library)));      
-   cerr << __func__ << '\n';
-   if (library == Network_library::ASIO && format == File_format::JSON)
-      return get_by_asio(format);
-   else if (library == Network_library::CURL && format == File_format::XML)
-      return get_by_curl(format);
-   else 
-      throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library))
-         + " Invalid file format " + std::to_string(static_cast<int>(format)));
-      
-   cerr << __func__ << '\n';*/
-   //map <string, long double> result;
-   
-   //cerr << "fff" << '\n';
-   //static map <string, long double> result = { {"PLN", 1} };
-   //return result;
-   
-   
-   
-   
-   /*
-   static map <string, long double> result;
-   switch (library) {
-      case Network_library::ASIO :
-         if (format == File_format::JSON) {
-            result = get_by_asio(format);
-            return result;
-         }
-      case Network_library::CURL :
-         if (format == File_format::XML) {
-            result = get_by_curl(format);
-            return result;
-         }
-      default:
-         throw invalid_argument(" Invalid network library " + std::to_string(static_cast<int>(library)));
-   }
-   throw invalid_argument(string(" Invalid file format "));
-}
-#endif
-*/
 #ifdef DEBUG_OSTREAM
    template <class Number, enable_if_t<numeric_limits<Number>::is_integer || is_floating_point<Number>::value, bool> = true>
    inline ostringstream& start_settings(ostringstream * os, const Money<Number>& money) {
