@@ -20,7 +20,7 @@ using integer_space::Integer;
 namespace money_init_test {
    template <typename T>
    extern
-   Money<T> construct(const string & DOLLARS, bool creating, const string & expected = "");
+   Money<T> construct(const string & DOLLARS, bool creating, const string & expected = "", const string & currency = "PLN", const bool NOT_assert_currency = true);
 
    template <typename T>
    class Integers_extremums_test {

@@ -17,9 +17,45 @@ public:
       modify_document();
    }
    
+   Json_downloader(const Json_downloader& other) {
+      if (nullptr != other.downloader)
+         downloader = new Asio_downloader(*(other.downloader));
+      doc = other.doc;
+	}
+
+	Json_downloader& operator=(const Json_downloader& other) {
+		if (&other != this) {
+         delete downloader;
+         if (nullptr == other.downloader)
+            downloader = nullptr;
+         else
+            downloader = new Asio_downloader(*(other.downloader));
+         doc = other.doc;
+      }
+		return *this;
+	}
+	
+	Json_downloader(Json_downloader&& other) noexcept
+		: downloader(other.downloader), doc(other.doc) {
+		other.downloader = nullptr;
+      other.doc = "";
+	}
+	
+	Json_downloader& operator=(Json_downloader&& other) noexcept {
+		if (&other != this) {
+         delete downloader;
+         downloader = other.downloader;
+         other.downloader = nullptr;
+         doc = other.doc;
+         other.doc = "";
+      }
+		return *this;
+	}
+
    ~Json_downloader() { delete downloader; }
    
    string get() const { return doc; };   
+   Asio_downloader * get_asio_downloader() const { return downloader; }; 
 private:
    void erase(const char, const char);
    void modify_document();

@@ -144,6 +144,42 @@ static string format_currency(const string & CURRENCY) {
    return result;
 }
 
+inline static void assert_json(const Json_downloader & j1, const Json_downloader & j2) {
+   const Asio_downloader const * a1 = j1.get_asio_downloader();
+   const Asio_downloader const * a2 = j2.get_asio_downloader();
+   assert(a1 != a2);
+   assert(a1->get_host() == a2->get_host());
+   assert(a1->get_method() == a2->get_method());
+   assert(a1->get_directory() == a2->get_directory());
+   assert(a1->get_cache_control() == a2->get_cache_control());
+   assert(a1->get_connection() == a2->get_connection());
+   assert(a1->get_HTTP_VERSION() == a2->get_HTTP_VERSION());
+}
+
+inline static void assert_asio(const Asio_downloader & a1, const Asio_downloader & a2) {
+   assert(a1.get_host() == a2.get_host());
+   assert(a1.get_method() == a2.get_method());
+   assert(a1.get_directory() == a2.get_directory());
+   assert(a1.get_cache_control() == a2.get_cache_control());
+   assert(a1.get_connection() == a2.get_connection());
+   assert(a1.get_HTTP_VERSION() == a2.get_HTTP_VERSION());
+}
+
+static void test() {
+   const string & currency = "pln";
+   Asio_downloader a1("www.floatrates.com", Method::get, "/daily/" + currency + ".json", Cache_control::no_store, Connection::close);
+   Asio_downloader a2 { a1 };
+   assert_asio(a1, a2);
+   Asio_downloader a3 { std::move(a2) };
+   a3 = a1;
+   assert_asio(a1, a3);
+   a3 = std::move(a1);
+   
+   Json_downloader j1("www.floatrates.com", Method::get, "/daily/" + currency + ".json", Cache_control::no_store, Connection::close);
+   Json_downloader j2(j1);
+   assert_json(j1, j2);
+}
+
 map <string, long double> get_by_asio(const File_format & format, const string & CURRENCY = "USD") {
    string currency = format_currency(CURRENCY);
 #ifdef __clang__
@@ -167,6 +203,8 @@ map <string, long double> get_by_asio(const File_format & format, const string &
    //for (const auto [code, rate] : rates)
    //     std::cerr << "   " << code << " | " << rate << "\n";
    //rates.insert({{"PLN", 1}});
+   
+   
    return rates;
 }
 
@@ -194,6 +232,7 @@ map <string, long double> get_by_curl(const File_format & format, const string &
 }
 
 map <string, long double> & set_rates_per_USD(const Network_library & library, const File_format & format) {
+   test();
    static map <string, long double> result;
    const string USD = "USD";
    switch (library) {

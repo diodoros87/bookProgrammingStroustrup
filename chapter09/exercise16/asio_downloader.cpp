@@ -1,6 +1,8 @@
 #include "asio_downloader.hpp"
 using namespace std;
 
+//const string Asio_downloader::HTTP_VERSION = "HTTP/1.1";
+
 string Asio_downloader::get_document() const {
    asio::basic_socket_iostream<asio::ip::tcp> socket_iostream;
    socket_iostream.connect(host, "http");
@@ -63,4 +65,4 @@ void Asio_downloader::process_response_headers(asio::ip::tcp::iostream & socket_
    cout << "\n";
 }
 
-
+//

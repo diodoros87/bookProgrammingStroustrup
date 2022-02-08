@@ -73,7 +73,7 @@ bool perform_tests() {
 #ifdef __clang__
    //initialize_static_map();
 #endif
-   initializer_list < function <void()> > vec = { bind(money_init_test::perform), 
+   initializer_list < function <void()> > vec = { //bind(money_init_test::perform), 
       bind(money_operations_test::perform) 
       
    };

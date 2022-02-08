@@ -23,12 +23,12 @@ using std::mem_fn;
 
 template <typename T> 
 extern
-Money<T> construct_cents(const string & DOLLARS, const long double CENTS, bool creating, const string & expected = "");
-
+Money<T> construct_cents(const string & DOLLARS, const long double CENTS, bool creating, const string & expected = "", const string & currency = "PLN");
+/*
 template <typename T> 
 extern
-Money<T> construct(const string & DOLLARS, bool creating, const string & expected/* = ""*/);
-
+Money<T> construct(const string & DOLLARS, bool creating, const string & expected);
+*/
 namespace money_operations_test {
    
 template <typename Function, typename... Args>  

@@ -14,11 +14,11 @@
 using std::cout;
   
 template <class Number, template<typename> class Template>
-static void print_assert(const Template<Number> & object, const string & expected = "", const string & CURRENCY = "") {
+static void print_assert(const Template<Number> & object, const string & expected = "", const bool NOT_assert_currency = true) {
    static const string TYPE_NAME = typeid(Template<Number>).name();
    cout << "                                       object of type " << TYPE_NAME << " = '" << object << "'\n";
    string object_string = static_cast<string>(object);
-   if (CURRENCY == "")
+   if (NOT_assert_currency)
       object_string = object_string.substr(0, object_string.size() - 4);
    auto t = std::make_tuple(object_string, " != ", expected);
 #ifdef DEBUG_OSTREAM
@@ -29,7 +29,7 @@ static void print_assert(const Template<Number> & object, const string & expecte
    cout << "'\n";
    ostringstream ostrs;
    string output = operator<<(&ostrs, object).str();
-   if (CURRENCY == "")
+   if (NOT_assert_currency)
       output = output.substr(0, output.size() - 4);
    assert_many(output == expected, t);
 #endif

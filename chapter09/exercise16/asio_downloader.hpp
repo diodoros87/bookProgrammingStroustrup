@@ -37,6 +37,7 @@ public:
 };
 
 class Asio_downloader {
+   //static const string HTTP_VERSION;
    const string HTTP_VERSION = {"HTTP/1.1"};
    string host;
    Method method;
@@ -47,16 +48,39 @@ class Asio_downloader {
 public:
    Asio_downloader(const string & HOST, const Method & METHOD, const string & DIRECTORY,
                          const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
-      host = HOST;
-      method = METHOD;
-      directory = DIRECTORY;
-      cache_control = CACHE_CONTROL;
-      connection = CONNECTION;
+      assign_non_constans(*this, HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
    }
    string download() const;
+   
+   string get_host() const { return host; };
+   Method get_method() const { return method; };
+   string get_directory() const { return directory; };
+   Cache_control get_cache_control() const { return cache_control; };
+   Connection get_connection() const { return connection; };
+   string get_HTTP_VERSION() const { return HTTP_VERSION; };
+   
+   ~ Asio_downloader() = default;
+   Asio_downloader(const Asio_downloader &) = default;
+   Asio_downloader(Asio_downloader &&) = default;
+   
+   // copy assignment operator of 'Asio_downloader' is implicitly deleted because field 'HTTP_VERSION' has no copy assignment operator
+   Asio_downloader & operator=(const Asio_downloader & other) {
+      assign_non_constans(*this, other.host, other.method, other.directory, other.cache_control, other.connection);
+      return *this;
+   }
+   Asio_downloader & operator=(Asio_downloader &&) = default;
 private:
    string get_document() const;
    void process_response_headers(asio::ip::tcp::iostream & socket_iostream) const;
+   
+   static void assign_non_constans(Asio_downloader & object, const string & HOST, const Method & METHOD, const string & DIRECTORY,
+                         const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
+      object.host = HOST;
+      object.method = METHOD;
+      object.directory = DIRECTORY;
+      object.cache_control = CACHE_CONTROL;
+      object.connection = CONNECTION;
+   }
 };
 
 #endif
