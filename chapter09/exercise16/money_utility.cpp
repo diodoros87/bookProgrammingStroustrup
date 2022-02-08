@@ -13,6 +13,32 @@ namespace money {
    
 const Integer CENTS_PER_DOLLAR_INTEGER = Integer::create_Integer(CENTS_PER_DOLLAR);
 
+const long double CONVERT_FACTOR = 100;
+
+template<>
+Integer Money<Integer>::convert  (const Money<Integer> & MONEY) const {
+   if (MONEY.get_currency() == get_currency())
+      return MONEY.amount_in_cents; 
+   
+   const long double ratio = rates_per_USD[MONEY.get_currency()] / rates_per_USD[get_currency()];
+   long double amount = ratio * static_cast<long double>(MONEY.amount_in_cents);
+   amount = Money<long double>::round(amount);
+   const Integer result = Integer::create_Integer(amount) ;
+   return result; 
+}
+/*
+template<>
+Integer Money<Integer>::convert(const Money & MONEY, const string & CURRENCY) {
+   validate_currency(CURRENCY);
+   if (MONEY.get_currency() == CURRENCY)
+      return MONEY.amount_in_cents;
+   
+   const long double ratio = rates_per_USD[MONEY.get_currency()] / rates_per_USD[CURRENCY];
+   const long double amount = ratio * static_cast<long double>(MONEY.amount_in_cents);
+   const Integer result = Integer::create_Integer(amount) ;
+   return result; 
+}
+*/
 template<>
 Integer Money<Integer>::get_amount(const string & STR) {
    return Integer::parse_create(STR);
@@ -164,10 +190,6 @@ map <string, long double> get_by_curl(const File_format & format, const string &
    map <string, long double> rates = floatrates.inverse_rates();
    floatrates.set_rates_from_json();
    assert(rates == floatrates.inverse_rates());
-   //std::cerr << "   " << __func__ << " | " << "\n";
-   //for (const auto [code, rate] : rates)
-   //     std::cerr << "   " << code << " | " << rate << "\n";
-   //rates.insert({{"PLN", 1}});
    return rates;
 }
 
@@ -176,19 +198,22 @@ map <string, long double> & set_rates_per_USD(const Network_library & library, c
    const string USD = "USD";
    switch (library) {
       case Network_library::ASIO :
-         if (format == File_format::JSON) {
+         if (format == File_format::JSON) 
             result = get_by_asio(format, USD);
-            return result;
-         }
+         else
+            throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)) + " for ASIO ");
+         break;
       case Network_library::CURL :
-         if (format == File_format::XML) {
+         if (format == File_format::XML)
             result = get_by_curl(format, USD);
-            return result;
-         }
+         else
+            throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)) + " for CURL ");
+         break;
       default:
          throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library)));
    }
-   throw invalid_argument(__func__ + string(" Invalid file format "));
+   result.insert({{USD, 1}});
+   return result;
 }
 
 #ifndef DEBUG_OSTREAM

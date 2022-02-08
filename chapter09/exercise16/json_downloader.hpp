@@ -14,11 +14,7 @@ public:
       
    void download() {
       doc = downloader->download();
-      //std::cerr << __func__ << " doc:\n";
-      //std::cerr << doc << "'\n";
       modify_document();
-      //std::cerr << __func__ << " doc:\n";
-      //std::cerr << doc << "'\n";
    }
    
    ~Json_downloader() { delete downloader; }

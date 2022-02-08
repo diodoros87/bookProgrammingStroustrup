@@ -131,6 +131,25 @@ T Money<T>::get_amount(const string & STR) {
 }
 #endif
 
+template <>
+Integer Money<Integer>::convert(const Money & MONEY) const;
+
+template<typename T>
+T Money<T>::convert(const Money & MONEY) const {
+   //validate_currency(CURRENCY);
+   if (MONEY.get_currency() == get_currency())
+      return MONEY.amount_in_cents;
+   
+   const long double ratio = rates_per_USD[MONEY.get_currency()] / rates_per_USD[get_currency()];
+   long double amount = ratio * static_cast<long double>(MONEY.amount_in_cents);
+   amount = Money<long double>::round(amount);
+   cerr << __func__ << " amount = " << amount << '\n';
+   if (is_overflow<T, long double>(amount))
+      throw out_of_range(string(__func__) + " amount = " + std::to_string(amount) + " is overflow for type " + TYPE_NAME);
+   const T result = static_cast<T>(amount) ;
+   return result; 
+}
+
 template <typename T>
 template<typename Greater>
 T Money<T>::calculate(const T & dollars, const long double cents /*  = INCORRECT_CENTS */) const {
@@ -338,7 +357,8 @@ template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::v
 >
 Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
    //static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
-   Integer sum = Integer::create_Integer(a.amount_in_cents) + Integer::create_Integer(b.amount_in_cents);
+   Smaller conversion = /*Money<Smaller>::*/a.convert(b);
+   Integer sum = Integer::create_Integer(a.amount_in_cents) + Integer::create_Integer(conversion);
    return calculate_money<Greater, Smaller>(sum);
 }
 
@@ -350,7 +370,7 @@ template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Small
 >
 Money<Smaller> operator+(const Money<Smaller>& A, const Money<Smaller>& B) {
    static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
-   Greater sum = Greater(A.amount_in_cents) + Greater(B.amount_in_cents);
+   Greater sum = Greater(A.amount_in_cents) + /*Money<Greater>::*/A.convert(B);
    sum = Money<Greater>::round(sum);
    return calculate_money<Greater, Smaller>(sum);
 }

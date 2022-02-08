@@ -45,8 +45,6 @@ void operation_failed(Function && f, Args&&... args ) {
    }
 }
 
-//typedef  int (Fred::*FredMemFn)(char x, float y);
-//template <typename T, typename T (T::*oper)(const& T)> 
 template <typename Type> 
 void binary_operation(Type& (Type::*func)(const Type&), const string & A_DOLLARS, const string & B_DOLLARS, 
                       const string & expected = "") { 
@@ -282,10 +280,10 @@ void binary_operation_failed(Function && f, Args&&... args ) {
    }
 }
 
-template <typename Function, typename... Args>  
+template <typename Unary_Oper_Type, typename Function, typename... Args>  
 void unary_operation_failed(Function && f, Args&&... args ) { 
    try {
-      unary_operation(f, std::forward<Args>(args)...);
+      unary_operation<Unary_Oper_Type>(f, std::forward<Args>(args)...);
       assert(0 && "---------------------- operation should be failed !!!");
    } catch (const invalid_argument& e) {
       cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
@@ -430,6 +428,17 @@ private:
          expected_plus.erase(0, 1);
       cerr << "\n\n#" << __func__ << " expected_plus = " << expected_plus << '\n';
       return expected_plus;
+   }
+};
+
+template <typename Type, template<typename> class Template = Money>
+class Failed_test_unary : public Dollars_string<Type, Template> { 
+public:
+static_assert(numeric_limits<Type>::is_signed && "Type signed required");
+   Failed_test_unary(const string & A_DOLLARS, const long double A_CENTS, const string & expected = "") : 
+                      Dollars_string<Type, Template>(A_DOLLARS, A_CENTS, "", 0.0L) {
+      cerr << "\n\n#########################" << __func__ << '\n';
+      unary_operation_failed<Template<Type>, Template<Type> (Template<Type>::*)() const> (&Template<Type>::operator-, A_DOLLARS, A_CENTS, expected);
    }
 };
 
@@ -596,16 +605,7 @@ void correct_multiplying() {
             Test_multiplying<T, Template>("-100", 23, std::to_string(34), "-3407,82");
             Test_multiplying<T, Template>("100", 23, "-34", "-3407,82");
          }
-      }/*
-      Test_multiplying<T, Template>("-0", 23, "-0", 34, "-0,57");
-      Test_multiplying<T, Template>("-0", 23, "0", 34, "0,11");
-      Test_multiplying<T, Template>("0", 23, "-0", 34, "-0,11");
-      Test_multiplying<T, Template>("-0", 99.9, "0", 99.4, "-0,01");
-      Test_multiplying<T, Template>("-0", 99.4, "0", 99.9, "0,01");
-      Test_multiplying<T, Template>("0", 99.9, "-0", 99.5, "0,00");
-      Test_multiplying<T, Template>("-0", 99.9, "0", 99.5, "0,00");
-      Test_multiplying<T, Template>("-0", 99.9, "0", 19.4, "-0,81");
-      Test_multiplying<T, Template>("-0", 99.9, "0", 19.5, "-0,80");*/
+      }
       Test_multiplying<T, Template>("-0", 28, "-2", "0,56");
    }
    if (! is_same<T, char>::value && ! is_same<T, int_fast8_t>::value) {
@@ -613,10 +613,6 @@ void correct_multiplying() {
          Test_multiplying<T, Template>("100", 23, "34", "3407,82");
    }
    Test_multiplying<T, Template>("0", 28, "2", "0,56");
-   /*
-   Test_multiplying<T>("0", 23, "0", 34, "0,57");
-   Test_multiplying<T, Template>("0", 9.4, "0", 9.9, "0,19");
-   Test_multiplying<T, Template>("0", 9.5, "0", 9.9, "0,20");*/
 }
 
 template <typename T, template<typename> class Template = Money>
@@ -652,6 +648,20 @@ void correct_unary() {
    Test_unary<T, Template>("0", 23, "-0,23");
    Test_unary<T>("0", 0, "0,00");
    Test_unary<T>("-0", 0, "0,00");
+}
+
+template <typename T, template<typename> class Template = Money, enable_if_t<! is_same<T, Integer>::value && ! is_same<T, long double>::value && ! is_same<T, double>::value && numeric_limits<T>::is_signed, bool>  = true>
+void failed_unary() {
+   cerr << "\n\n#########################" << __func__ << '\n';
+   const T dollars = numeric_limits<T>::lowest() / CENTS_PER_DOLLAR;
+   T cents = fmod(numeric_limits<T>::lowest(), CENTS_PER_DOLLAR);
+   string dollars_string = std::to_string(dollars);
+   if (is_same<T, float>::value) {
+      const size_t dot_pos = dollars_string.find(".");
+      if (dot_pos != string::npos)
+         dollars_string = dollars_string.substr(0, dot_pos);
+   }
+   Failed_test_unary<T>(dollars_string, std::abs(cents));
 }
 
 const string Integer_MAX = static_cast<string>(Integer::MAX);
@@ -698,7 +708,15 @@ void failed() {
    failed_subtracting<T>();
 }
 
-template <typename T, template<typename> class Template = Money, enable_if_t<numeric_limits<T>::is_signed, bool>  = true>
+template <typename T, template<typename> class Template = Money, enable_if_t<! is_same<T, Integer>::value && ! is_same<T, long double>::value && ! is_same<T, double>::value && numeric_limits<T>::is_signed, bool>  = true>
+void perform() {
+   correct<T>();
+   correct_unary<T>();
+   failed<T>();
+   failed_unary<T>();
+}
+template <typename T, template<typename> class Template = Money, enable_if_t<is_same<T, Integer>::value 
+      || is_same<T, long double>::value || is_same<T, double>::value, bool>  = true>
 void perform() {
    correct<T>();
    correct_unary<T>();

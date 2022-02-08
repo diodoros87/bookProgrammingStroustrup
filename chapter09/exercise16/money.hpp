@@ -56,6 +56,8 @@ public:
    Money & operator=(const Money &) = default;
    Money & operator=(Money &&) = default;
    
+   T convert(const Money &) const;
+   
    Money operator+() const { return *this; }
    
    template<typename U = T, enable_if_t<! numeric_limits<U>::is_signed, bool>   = true>
@@ -148,14 +150,14 @@ public:
    
    template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool>  = true>
    Money& operator+=(const Money& other) {
-      this->amount_in_cents += other.amount_in_cents;
+      this->amount_in_cents += convert(other);
       cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
       return *this;
    }
    
    template<typename U = T, enable_if_t<is_same<U, long double>::value, bool>  = true>
    Money& operator+=(const Money& other) {
-      this->amount_in_cents += other.amount_in_cents;
+      this->amount_in_cents += /*Money::*/convert(other);
       this->amount_in_cents = Money<long double>::round(amount_in_cents);
       cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
       return *this;
@@ -336,7 +338,8 @@ private:
             (is_integral<U>::value && ! is_same<Greater, Integer>::value), bool>  = true>
    Money& operator+=(const Money<U>& other) {
       static_assert(is_NOT_smaller<Greater, U>() && "is_NOT_smaller<Greater, U> required");
-      Greater sum = Greater(this->amount_in_cents) + Greater(other.amount_in_cents);
+      U conversion = convert(other);
+      Greater sum = Greater(this->amount_in_cents) + Greater(conversion);
       sum = Money<Greater>::round(sum);
       cerr << __func__ << " sum = " << sum << '\n';
       if (is_overflow<T, Greater>(sum))
@@ -348,7 +351,8 @@ private:
    
    template<typename Greater, typename U = T, enable_if_t<is_integral<U>::value && is_same<Greater, Integer>::value, bool>  = true>
    Money& operator+=(const Money<U>& other) {
-      Integer sum = Integer::create_Integer(this->amount_in_cents) + Integer::create_Integer(other.amount_in_cents);
+      T conversion = convert(other);
+      Integer sum = Integer::create_Integer(this->amount_in_cents) + Integer::create_Integer(conversion);
       cerr << __func__ << " sum = " << sum << '\n';
       if (Integer::is_overflow<T>(sum))
          throw out_of_range(string(__func__) + " amount = " + std::to_string(sum) + " is overflow for type " + TYPE_NAME);
