@@ -63,7 +63,7 @@ template<>
 Money<Integer>::Money(const string & dollars, const long double cents, const string & currency /* = "PLN" */) {
    cerr << __func__ << " TYPE_NAME = '" << TYPE_NAME << "' " << dollars << '\n';
    validate_cents(cents);
-   validate_currency(currency);
+   set_currency(currency);
    if (! regex_match(dollars, INTEGER_REGEX)) 
       throw invalid_argument("Regex: dollars must be integer number ");
    string dollars_string = dollars;
@@ -81,7 +81,7 @@ Money<Integer>::Money(const string & dollars, const long double cents, const str
 template<>
 Money<Integer>::Money(const string & dollars, const string & currency /* = "PLN" */) {   // accept floating-point arguments
    cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
-   validate_currency(currency);
+   set_currency(currency);
    if (! regex_match(dollars, FLOAT_POINT_REGEX))
       throw invalid_argument(string(__func__) +  " Regex: entered string '"
                + dollars + "' is not non-exponent floating-point format "); 

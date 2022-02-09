@@ -33,7 +33,7 @@ void construct_incorrect(Function && f, Args&&... args ) {
 }
 
 template <typename T> 
-Money<T> construct_cents(const string & DOLLARS, const double CENTS, bool creating, const string & expected = "", const string & currency = "PLN", const bool NOT_assert_currency = true) { 
+Money<T> construct_cents(const string & DOLLARS, const long double CENTS, bool creating, const string & expected = "", const string & currency = "PLN", const bool NOT_assert_currency = true) { 
    Money<T> money(DOLLARS, CENTS, currency);
    print_assert(money, expected, NOT_assert_currency);
    if (creating) {
@@ -49,7 +49,7 @@ Money<T> construct_cents(const string & DOLLARS, const double CENTS, bool creati
 
 template <typename T> 
 Money<T> construct(const string & DOLLARS, bool creating, const string & expected/* = ""*/, const string & currency/* = "PLN"*/, const bool NOT_assert_currency/* = true*/) { 
-   Money<T> money(DOLLARS);
+   Money<T> money(DOLLARS, currency);
    print_assert(money, expected, NOT_assert_currency);
    if (creating) {
       Money<T> money_creating = Money<T>::create(DOLLARS, currency);

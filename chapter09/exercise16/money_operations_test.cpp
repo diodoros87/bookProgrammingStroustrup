@@ -20,11 +20,11 @@ using namespace money_init_test;
 
 using std::is_member_function_pointer;
 using std::mem_fn;
-
+/*
 template <typename T> 
 extern
 Money<T> construct_cents(const string & DOLLARS, const long double CENTS, bool creating, const string & expected = "", const string & currency = "PLN");
-/*
+
 template <typename T> 
 extern
 Money<T> construct(const string & DOLLARS, bool creating, const string & expected);
@@ -695,7 +695,7 @@ void failed_subtracting() {
 }
 
 template <typename T, template<typename> class Template = Money>
-void correct() {
+inline void correct() {
    correct_adding<T>();
    correct_subtracting<T>();
    correct_relations<T>();
@@ -703,13 +703,13 @@ void correct() {
 }
 
 template <typename T, template<typename> class Template = Money>
-void failed() {
+inline void failed() {
    failed_adding<T>();
    failed_subtracting<T>();
 }
 
 template <typename T, template<typename> class Template = Money, enable_if_t<! is_same<T, Integer>::value && ! is_same<T, long double>::value && ! is_same<T, double>::value && numeric_limits<T>::is_signed, bool>  = true>
-void perform() {
+inline void perform() {
    correct<T>();
    correct_unary<T>();
    failed<T>();
@@ -717,14 +717,14 @@ void perform() {
 }
 template <typename T, template<typename> class Template = Money, enable_if_t<is_same<T, Integer>::value 
       || is_same<T, long double>::value || is_same<T, double>::value, bool>  = true>
-void perform() {
+inline void perform() {
    correct<T>();
    correct_unary<T>();
    failed<T>();
 }
 
 template <typename T, template<typename> class Template = Money, enable_if_t<false == numeric_limits<T>::is_signed, bool>  = true>
-void perform() {
+inline void perform() {
    correct<T>();
    failed<T>();
 }

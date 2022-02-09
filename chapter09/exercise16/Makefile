@@ -75,7 +75,7 @@ integer_test: integer_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o integer_test integer_test.o integer.o integer_parsing.o parsing_test.o
 	
 
-money_test.o: money_test.cpp money.cpp money_init_test.hpp money_init_test.cpp integers_extremums_tests.hpp money_utility_test.hpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_operations_test.hpp money_operations_test.cpp
+money_test.o: money_test.cpp money.cpp money_init_test.hpp money_init_test.cpp integers_extremums_tests.hpp money_utility_test.hpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_operations_test.hpp money_operations_test.cpp money_currency_test.hpp money_currency_test.cpp
 	$(CXX) $(CPPFLAGS) -c money_test.cpp
 	
 money_currency_test.o: money_currency_test.cpp money_currency_test.hpp money_init_test.cpp money_init_test.hpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_utility_test.hpp money_utility.cpp

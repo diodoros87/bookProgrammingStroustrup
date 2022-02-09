@@ -203,7 +203,7 @@ Money<Integer>::Money(const string & dollars, const long double cents, const str
 template <typename T>
 Money<T>::Money(const string & dollars, const long double cents, const string & currency /* = "PLN" */) {
    cerr << __func__ << " TYPE_NAME = '" << TYPE_NAME << "' " << dollars << '\n';
-   validate_currency(currency);
+   set_currency(currency);
    validate_cents(cents);
    if (! regex_match(dollars, INTEGER_REGEX)) 
       throw invalid_argument("Regex: dollars must be integer number ");
@@ -236,7 +236,7 @@ Type get_amount_by_Integer(const string & STR) {
 template <typename T>
 Money<T>::Money(const string & dollars, const string & currency /* = "PLN" */) {   // accept floating-point arguments
    cerr << __func__ << " TYPE_NAME = " << TYPE_NAME << ' ' << dollars << '\n';
-   validate_currency(currency);
+   set_currency(currency);
    if (is_floating_point<T>::value) {
       if (! regex_match(dollars, E_FLOAT_POINT_REGEX)) 
          throw invalid_argument(string(__func__) +  " Regex: entered string '"

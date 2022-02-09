@@ -5,6 +5,7 @@
 #include "money.hpp"
 #include "money_init_test.hpp"
 #include "money_operations_test.hpp"
+#include "money_currency_test.hpp"
 
 #include <functional>
 
@@ -74,7 +75,8 @@ bool perform_tests() {
    //initialize_static_map();
 #endif
    initializer_list < function <void()> > vec = { //bind(money_init_test::perform), 
-      bind(money_operations_test::perform) 
+      //bind(money_operations_test::perform),
+      bind(money_currency_test::perform)
       
    };
    bool result = false;
