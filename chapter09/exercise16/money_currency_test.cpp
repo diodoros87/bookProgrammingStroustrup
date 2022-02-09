@@ -1,10 +1,12 @@
 //#include "integers_extremums_tests.hpp"
 #include "money_currency_test.hpp"
-//#include "money_init_test.hpp"
 #include "money_utility_test.hpp"
+#include "integers_extremums_tests.hpp"
+//#include "money_init_test.hpp"
+
 
 #include "money_init_test.hpp"
-#include "integers_extremums_tests.hpp"
+
 
 //#include <functional>
 
@@ -27,11 +29,11 @@ extern
 Money<T> construct_cents(const string & DOLLARS, const long double CENTS, bool creating, const string & expected/* = ""*/, const string & currency/* = "PLN"*/, const bool NOT_assert_currency/* = true*/);
 
 template <typename T> 
-extern
+//extern
 Money<T> construct(const string & DOLLARS, bool creating, const string & expected/* = ""*/, const string & currency/* = "PLN"*/, const bool NOT_assert_currency/* = true*/);
 
 template <typename T, typename Function, typename... Args>  
-extern
+//extern
 void construct_incorrect(Function && f, Args&&... args );
 
 }
@@ -64,6 +66,61 @@ public:
 
 namespace money_currency_test {
    
+#define EQUALITY(money_A, money_B) \
+   assert(static_cast<string>(money_A) == static_cast<string>(money_B)); \
+   assert(money_A.get_amount_in_cents() == money_B.get_amount_in_cents());
+   
+template <typename T>
+void add() {
+   cerr << "\nstart of money_currency_test::" << __func__ << '\n';
+   Money<T> A("0", 20, "USD");
+   Money<T> B("0.5", "EUR");
+   Money<T> result = A + B;
+   cerr << A << " + " << B << " = " << result << '\n';
+   A += B;
+   cerr << A << " += " << B << " = " << result << '\n';
+   assert(static_cast<string>(A) == static_cast<string>(result));
+   assert(A.get_amount_in_cents() == result.get_amount_in_cents());
+   cerr << "\nEND of money_currency_test::" << __func__ << '\n';
+}
+
+template <typename T>
+void subtract() {
+   cerr << "\nstart of money_currency_test::" << __func__ << '\n';
+   Money<T> A("1.2", "GBP");
+   Money<T> B("0", 66, "CHF");
+   Money<T> result = A - B;
+   cerr << A << " - " << B << " = " << result << '\n';
+   A -= B;
+   cerr << A << " -= " << B << " = " << result << '\n';
+   assert(static_cast<string>(A) == static_cast<string>(result));
+   assert(A.get_amount_in_cents() == result.get_amount_in_cents());
+   cerr << "\nEND of money_currency_test::" << __func__ << '\n';
+}
+/*
+template <typename T>
+void multiply() {
+   cerr << "\nstart of money_currency_test::" << __func__ << '\n';
+   Money<T> A("0", 2, "JPY");
+   const T FACTOR = 
+   Money<T> result = A + B;
+   cerr << A << " + " << B << " = " << result << '\n';
+   A += B;
+   cerr << A << " += " << B << " = " << result << '\n';
+   assert(static_cast<string>(A) == static_cast<string>(result));
+   assert(A.get_amount_in_cents() == result.get_amount_in_cents());
+   cerr << "\nEND of money_currency_test::" << __func__ << '\n';
+}
+*/
+#undef EQUALITY
+
+template <typename T>
+void operate() {
+   add<T>();
+   subtract<T>();
+   //multiply<T>();
+}
+   
 template <typename T>
 void construct() {
    cerr << "\nstart of money_currency_test::" << __func__ << '\n';
@@ -86,20 +143,17 @@ void construct() {
 template <typename T>
 void incorrect_construct() {
    cerr << "\nstart of money_currency_test::" << __func__ << '\n';
-   //money_init_test::construct_incorrect<Money<T>>(Constructor<T, Money>(), "20.8", 5.0L);
-   //money_init_test::construct_incorrect<Money<T>>(Constructor<T, Money>(), "20.8", "VVV");
    money_init_test::construct_incorrect<Money<T>>(Constructor<T, Money>(), "20.8", "VVV");
-   //////money_init_test::construct_incorrect<Money<T>>(Constructor<T, Money>(), "inf");
-   //money_init_test::construct_incorrect<Money<T>, Money<T> (Constructor<T, Money>::*) (const string &, const long double, const string &) > (Constructor<T, Money>(), string("0"), 99.0L, string("WWW"));
-   //money_init_test::construct_incorrect<Money<T>>(Constructor<T, Money>(), "20.8", "VVV");
+   money_init_test::construct_incorrect<Money<T>>(Constructor<T, Money>(), "20", 5.0L, "WWW");
    cerr << "\nEND of money_currency_test::" << __func__ << '\n';
 }
    
 template <typename T>
 inline void perform() {
-   //Currency_test<T>::construct();
+   //////Currency_test<T>::construct();
    construct<T>();
    incorrect_construct<T>();
+   operate<T>();
 }
 
 void perform() {

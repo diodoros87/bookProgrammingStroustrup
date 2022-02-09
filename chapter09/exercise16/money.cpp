@@ -325,27 +325,27 @@ Money<T>::operator string() const {
 }
 
 template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> = true>
-Money<Smaller> calculate_money(const Integer& AMOUNT) {
+Money<Smaller> calculate_money(const Integer& AMOUNT, const string & CURRENCY) {
    static const string TYPE_NAME = typeid(Smaller).name();
    cerr << __func__ << " AMOUNT = " << AMOUNT << '\n';
    if (Integer::is_overflow<Smaller>(AMOUNT))
       throw out_of_range(string(__func__) + " amount = " + std::to_string(AMOUNT) + " is overflow for type " + TYPE_NAME);
    const Constructor_Args args {AMOUNT};
-   Money<Smaller> result = Money<Smaller>(args.DOLLARS, args.CENTS);
+   Money<Smaller> result = Money<Smaller>(args.DOLLARS, args.CENTS, CURRENCY);
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
 
 template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
             (is_integral<Smaller>::value && ! is_same<Greater, Integer>::value), bool> = true>
-Money<Smaller> calculate_money(const Greater& AMOUNT) {
+Money<Smaller> calculate_money(const Greater& AMOUNT, const string & CURRENCY) {
    static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
    static const string TYPE_NAME = typeid(Smaller).name();
    cerr << __func__ << " AMOUNT = " << AMOUNT << '\n';
    if (is_overflow<Smaller, Greater>(AMOUNT))
       throw out_of_range(string(__func__) + " amount = " + std::to_string(AMOUNT) + " is overflow for type " + TYPE_NAME);
    const string dollars = std::to_string(AMOUNT / static_cast<long double>(CENTS_PER_DOLLAR));
-   Money<Smaller> result = Money<Smaller>(dollars);
+   Money<Smaller> result = Money<Smaller>(dollars, CURRENCY);
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
@@ -359,7 +359,7 @@ Money<Smaller> operator+(const Money<Smaller>& a, const Money<Smaller>& b) {
    //static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
    Smaller conversion = /*Money<Smaller>::*/a.convert(b);
    Integer sum = Integer::create_Integer(a.amount_in_cents) + Integer::create_Integer(conversion);
-   return calculate_money<Greater, Smaller>(sum);
+   return calculate_money<Greater, Smaller>(sum, a.get_currency());
 }
 
 template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
@@ -370,15 +370,16 @@ template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Small
 >
 Money<Smaller> operator+(const Money<Smaller>& A, const Money<Smaller>& B) {
    static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
-   Greater sum = Greater(A.amount_in_cents) + /*Money<Greater>::*/A.convert(B);
+   Smaller conversion = /*Money<Smaller>::*/A.convert(B);
+   Greater sum = Greater(A.amount_in_cents) + /*Money<Greater>::*/Greater(conversion);
    sum = Money<Greater>::round(sum);
-   return calculate_money<Greater, Smaller>(sum);
+   return calculate_money<Greater, Smaller>(sum, A.get_currency());
 }
 
 template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool>>
 Money<Smaller> operator-(const Money<Smaller>& a) {
    Integer minus = -Integer::create_Integer(a.amount_in_cents);
-   return calculate_money<Greater, Smaller>(minus);
+   return calculate_money<Greater, Smaller>(minus, a.get_currency());
 }
 
 template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
@@ -386,13 +387,13 @@ template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Small
 Money<Smaller> operator-(const Money<Smaller>& A) {
    static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
    Greater minus = - Greater(A.amount_in_cents);
-   return calculate_money<Greater, Smaller>(minus);
+   return calculate_money<Greater, Smaller>(minus, A.get_currency());
 }
 
 template<typename Greater, typename Smaller, enable_if_t<is_integral<Smaller>::value && is_same<Greater, Integer>::value, bool> >
 Money<Smaller> operator*(const Money<Smaller>& MONEY, const Smaller FACTOR) {
    const Integer product = Integer::create_Integer(MONEY.amount_in_cents) * Integer::create_Integer(FACTOR);
-   return calculate_money<Greater, Smaller>(product);
+   return calculate_money<Greater, Smaller>(product, MONEY.get_currency());
 }
 
 template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||
@@ -401,7 +402,7 @@ Money<Smaller> operator*(const Money<Smaller>& MONEY, const Smaller FACTOR) {
    static_assert(is_NOT_smaller<Greater, Smaller>() && "is_NOT_smaller<Greater, Smaller> required");
    Greater product = Greater(MONEY.amount_in_cents) * Greater(FACTOR);
    product = Money<Greater>::round(product);
-   return calculate_money<Greater, Smaller>(product);
+   return calculate_money<Greater, Smaller>(product, MONEY.get_currency());
 }
 
 template<typename Greater, typename Smaller, enable_if_t<is_floating_point<Smaller>::value ||

@@ -101,20 +101,20 @@ Money<Integer>::operator string() const {
 }
 
 Money<Integer> operator+(const Money<Integer>& a, const Money<Integer>& b) {
-   const Integer sum = a.amount_in_cents + b.amount_in_cents;
+   const Integer sum = a.amount_in_cents + a.convert(b);
    cerr << __func__ << " sum = " << sum << '\n';
    const Constructor_Args args {sum};
-   Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS);//::create
+   Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS, a.get_currency());//::create
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }
 
 Money<long double> operator+(const Money<long double>& a, const Money<long double>& b) {
-   long double sum = a.amount_in_cents + b.amount_in_cents;
+   long double sum = a.amount_in_cents + a.convert(b);
    sum = Money<long double>::round(sum);
    cerr << __func__ << " sum = " << sum << '\n';
    const string dollars_string = dollars_from_amount(sum);
-   Money<long double> result = Money<long double>(dollars_string);//::create
+   Money<long double> result = Money<long double>(dollars_string, a.get_currency());//::create
    cerr << __func__ << " result = " << result << '\n';
    return result;
 }

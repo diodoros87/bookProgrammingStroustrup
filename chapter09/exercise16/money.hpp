@@ -70,7 +70,7 @@ public:
    template<typename U = T, enable_if_t<is_same<U, Integer>::value, bool>  = true>
    Money<Integer> operator-() const {
       const Constructor_Args args { -this->amount_in_cents };
-      Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS);
+      Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS, get_currency());
       cerr << __func__ << " result = " << result << '\n';
       return result;
    }
@@ -78,7 +78,7 @@ public:
    template<typename U = T, enable_if_t<is_same<U, long double>::value, bool>  = true>
    Money<long double> operator-() const {
       const string dollars_string = dollars_from_amount(-this->amount_in_cents);
-      Money<long double> result = Money<long double>(dollars_string);
+      Money<long double> result = Money<long double>(dollars_string, get_currency());
       cerr << __func__ << " result = " << result << '\n';
       return result;
    }
@@ -119,10 +119,10 @@ public:
          throw out_of_range(string(__func__) + " other amount is " + std::to_string(other.amount_in_cents) + " > this->amount is "
             + std::to_string(this->amount_in_cents) + " This is overflow for type " + TYPE_NAME);
       
-      T difference = this->amount_in_cents - other.amount_in_cents;
+      T difference = this->amount_in_cents - convert(other);
       cerr << __func__ << " difference = " << difference << '\n';
       const Constructor_Args args { difference };
-      Money result = Money(args.DOLLARS, args.CENTS);
+      Money result = Money(args.DOLLARS, args.CENTS, get_currency());
       cerr << __func__ << " result = " << result << '\n';
       return result;
    }
@@ -143,7 +143,7 @@ public:
       if (other > *this)
          throw out_of_range(string(__func__) + " other amount is " + std::to_string(other.amount_in_cents) + " > this->amount is "
             + std::to_string(this->amount_in_cents) + " This is overflow for type " + TYPE_NAME);
-      this->amount_in_cents -= other.amount_in_cents;
+      this->amount_in_cents -= convert(other);
       cerr << __func__ << " this->amount_in_cents = " << this->amount_in_cents << '\n';
       return *this;
    }
@@ -205,7 +205,7 @@ public:
       const Integer product = this->amount_in_cents * factor;
       cerr << __func__ << " FACTOR = " << factor << " product = " << product << '\n';
       const Constructor_Args args {product};
-      Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS);//::create
+      Money<Integer> result = Money<Integer>(args.DOLLARS, args.CENTS, get_currency());//::create
       cerr << __func__ << " result = " << result << '\n';
       return result;
    }
@@ -216,7 +216,7 @@ public:
       product = Money<long double>::round(product);
       cerr << __func__ << " factor = " << factor << " product = " << product << '\n';
       const string dollars_string = dollars_from_amount(product);
-      Money<long double> result = Money<long double>(dollars_string);//::create
+      Money<long double> result = Money<long double>(dollars_string, get_currency());//::create
       return result;
    }
    
@@ -230,12 +230,12 @@ public:
       return money::operator*<long double, U>(*this, factor);
    }
    
-   bool operator==(const Money& other) const { return amount_in_cents == other.amount_in_cents; }
+   bool operator==(const Money& other) const { return amount_in_cents == convert(other); }
    bool operator!=(const Money& other) const { return !(*this == other); } ;
    
-   bool operator>(const Money& other) const { return amount_in_cents > other.amount_in_cents; }
+   bool operator>(const Money& other) const { return amount_in_cents > convert(other); }
    bool operator<=(const Money& other) const { return !operator>(other); };
-   bool operator<(const Money& other) const { return amount_in_cents < other.amount_in_cents; }
+   bool operator<(const Money& other) const { return amount_in_cents < convert(other); }
    bool operator>=(const Money& other) const { return !operator<(other); };
    
    template <typename Type, enable_if_t<is_integral<Type>::value, bool> = true>

@@ -16,22 +16,6 @@ using namespace money;
 
 namespace money_init_test {
 
-template <typename T, typename Function, typename... Args>  
-void construct_incorrect(Function && f, Args&&... args ) { 
-   try {
-      f(std::forward<Args>(args)...);
-      T obj = f(std::forward<Args>(args)...);
-      cerr << __func__ << " !!!!!!!!!!!!!!!!!!" << obj << endl;
-      assert(0);
-   } catch (const invalid_argument& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   } catch (const out_of_range& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   } catch (const bad_cast& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   }
-}
-
 template <typename T> 
 Money<T> construct_cents(const string & DOLLARS, const long double CENTS, bool creating, const string & expected = "", const string & currency = "PLN", const bool NOT_assert_currency = true) { 
    Money<T> money(DOLLARS, CENTS, currency);
@@ -261,6 +245,9 @@ void incorrect_construct() {
    construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<float>::infinity())));
    construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<double>::infinity())));
    construct_incorrect<Money<T>>(Constructor<T, Money>(), (std::to_string(numeric_limits<long double>::infinity())));
+   
+   //construct_incorrect<Money<T>>(Constructor<T, Money>(), "20.8", "VVV");
+   //construct_incorrect<Money<T>>(Constructor<T, Money>(), "20", 5.0L, "WWW");
    //construct_incorrect<Money<T>><T>("57.7");
    cerr << "END OF " << __func__ << '\n';
 }
