@@ -311,6 +311,13 @@ void increment_decrement_test() {
    assert(static_cast<string>(i) == ("0"));
 }
 
+void input_test() {
+   Integer i;
+   cout << "\nEnter Integer object: ";
+   cin >> i;
+   cout << "Entered Integer object is " << i << '\n';
+}
+
 }
 
 using namespace main_integer_test;
@@ -323,7 +330,9 @@ int main() {
       cerr << " numeric_limits<Integer>::max() = " << numeric_limits<Integer>::max() << '\n';
       cerr << " numeric_limits<Integer>::min() = " << numeric_limits<Integer>::min() << '\n';
       printf("trunc(NAN) = %+f    isfinite(NAN) = %d\n",   trunc(NAN), isfinite(NAN));
+      input_test();
       cerr << " 5 / 0 = " << Integer::create_Integer(5) / Integer::ZERO << '\n';
+      
       return 0;
    }
    catch (const Arithmetic_Error & e) {

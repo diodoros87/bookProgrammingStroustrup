@@ -401,7 +401,7 @@ string Dollars_string<Type, Template>::cents_string(const long double CENTS) {
    return cents;
 }
 */
-string replace_char(const string & S, const string remove, const string insert) {
+string replace_string(const string & S, const string remove, const string insert) {
    const size_t pos = S.find(remove);
    string result = S;
    if (pos != string::npos)
@@ -423,7 +423,7 @@ public:
    }
 private:
    string replace_dot_by_comma() {
-      string expected_plus = replace_char(Dollars_string<Type, Template>::a_dollars, ".", ",");
+      string expected_plus = replace_string(Dollars_string<Type, Template>::a_dollars, ".", ",");
       if (expected_plus == "-0,00")
          expected_plus.erase(0, 1);
       cerr << "\n\n#" << __func__ << " expected_plus = " << expected_plus << '\n';

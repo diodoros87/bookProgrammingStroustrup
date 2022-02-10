@@ -1,5 +1,5 @@
 CXX = g++
-CPPFLAGS = -O0 -Wfatal-errors -Wall -Wextra  -std=c++14 -I/home/mat/asio-1.18.2/include  -I/home/mat/json/include #-Wconversion
+CPPFLAGS = -g -O0 -Wfatal-errors -Wall -Wextra  -std=c++14 -I/home/mat/asio-1.18.2/include  -I/home/mat/json/include -Wconversion #-Wconversion
 CXX = clang++
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'
@@ -29,9 +29,6 @@ LIBXML_HEADER_DIR = /home/mat/pugixml-1.11/src
 IPATH= -I${LIBXML_HEADER_DIR}
 LPATH= -L${LIBXMLNAME}
 LIBS=  -l${LIBXMLNAME} -lcurl
-
-#LDFLAGS=
-#CLANG_LDFLAGS = -flto -Wl,-flto
 
 ifeq ($(CXX), g++)
 	IPATH+=-I/home/mat/curlcpp/include

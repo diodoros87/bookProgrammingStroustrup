@@ -594,4 +594,24 @@ ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
 }
 #endif
 
+template <class Number, template<typename> class Money_Template>
+istream& operator>>(istream& is, Money_Template<Number>& money) {
+   cerr << __func__ << '\n';
+   string money_string;
+   is >> money_string;
+   cerr << money_string << '\n';
+   if (!is) {
+      cerr << "Error has occurred on the associated stream\n";
+      return is;
+   }
+   if (money_string.size() < 4) {
+      cerr << "Error: money string must be minimum 4 chars\n";
+      return is;
+   }
+   const string currency = money_string.substr(0, 3);
+   const string value = money_string.substr(3);
+   money = Money_Template<Number>(value, currency);
+   return is;
+}
+
 }
