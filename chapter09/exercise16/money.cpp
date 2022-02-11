@@ -596,7 +596,6 @@ ostream& operator<<(ostream& os, const Money_Template<Number>& money) {
 
 template <class Number, template<typename> class Money_Template>
 istream& operator>>(istream& is, Money_Template<Number>& money) {
-   cerr << __func__ << '\n';
    string money_string;
    is >> money_string;
    cerr << money_string << '\n';

@@ -1,4 +1,4 @@
-//#include "integers_extremums_tests.hpp"
+
 #include "money_currency_test.hpp"
 #include "money_utility_test.hpp"
 #include "integers_extremums_tests.hpp"
@@ -6,7 +6,6 @@
 #include "money_init_test.hpp"
 
 #include <thread>
-//#include <functional>
 
 using namespace std;
 using namespace integer_space;
@@ -162,11 +161,9 @@ class Currency_test {
    }
    
    inline static void remove_char(string & S, const char remove) {
-      cerr << __func__ << S << '\n';
       const size_t pos = S.find(remove);
       if (pos != string::npos)
          S.erase(pos, 1);
-      cerr << __func__ << S << '\n';
    }
    
    template<typename U = T, enable_if_t<is_same<U, char>::value || is_same<U, int_fast8_t>::value, bool>  = true>
@@ -221,7 +218,7 @@ public:
       incorrect_construct();
       operate();
       test_istringstream();
-      test_input();
+      //test_input();
    }
 };
 

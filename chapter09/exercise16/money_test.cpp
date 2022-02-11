@@ -70,13 +70,18 @@ static inline  bool call_function(Function && func, Args&&... args) {
    return result;
 }
 
+namespace test_json_downloader {
+   extern void test_json_downloader();
+}
+
 bool perform_tests() {
 #ifdef __clang__
    //initialize_static_map();
 #endif
-   initializer_list < function <void()> > vec = { //bind(money_init_test::perform), 
-      //bind(money_operations_test::perform),
-      bind(money_currency_test::perform)
+   initializer_list < function <void()> > vec = { bind(money_init_test::perform), 
+      bind(money_operations_test::perform),
+      bind(money_currency_test::perform),
+      bind(test_json_downloader::test_json_downloader)
       
    };
    bool result = false;
