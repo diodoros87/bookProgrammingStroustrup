@@ -3,6 +3,7 @@
 #include "assertions.hpp"
 #include "parsing_test.hpp"
 #include "random_numbers.hpp"
+#include "command_line.hpp"
 
 #include<iostream>
 #include<limits>
@@ -272,29 +273,7 @@ void run_different_types(const unsigned long long REPETITIONS) {
 
 } // end of namespace random_tests
 
-vector<string> to_vector_string(const int argc, const char * argv[]) {
-   vector<string> vec;
-   for (int i = 0; i < argc; i++)
-      vec.push_back(argv[i]);
-   if (argc != vec.size())
-      throw runtime_error("argc must be equal to vec.size()");
-   return vec;
-}
-
-unsigned long long examine_command_line(const int argc, const char * argv[]) {
-   long long repetitions = 100;
-   switch (argc) {
-      case 1:
-         return repetitions;
-      case 2: {
-         string repetitions_string = to_vector_string(argc, argv)[1];
-         repetitions = stoull(repetitions_string);
-         return repetitions;
-      }
-      default :
-         throw invalid_argument ("Number of command line arguments can be 1 or 2");
-   }
-}
+using namespace command_line;
 
 int main(const int argc, const char * argv[]) {
    try {
