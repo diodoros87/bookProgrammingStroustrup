@@ -5,6 +5,8 @@
 #include "random_numbers.hpp"
 #include "command_line.hpp"
 
+#include "operations.hpp"
+
 #include<iostream>
 #include<limits>
 #include<climits>
@@ -16,10 +18,8 @@ using namespace std;
 using namespace integer_space;
 
 namespace random_tests {
-typedef void (* Operation_Ptr)(const long long & , const long long & , const Integer & , const Integer & );
 
-enum class Arithmetic { ADD, SUBTRACT, MULTIPLY, DIVIDE };
-
+using operations::Arithmetic;
 bool is_overflow(const long long & N_1, const long long & N_2, const Arithmetic & arithmetic) {
    switch (arithmetic) {
       case Arithmetic::ADD:
@@ -41,76 +41,77 @@ bool is_overflow(const long long & N_1, const long long & N_2, const Arithmetic 
    }
 }
 
-struct Operations {
+using Base = operations::Operations<false>;
+struct Operation_test : 
+#ifdef __clang__
+   private
+#elif defined(__GNUG__)
+   public
+#endif
+                        Base {
    static void add(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
+      cerr << " Operation_test::add " << '\n';
       if (is_overflow(N_1, N_2, Arithmetic::ADD))
          return;
-      long long number_result = N_1 + N_2;
-      cerr << showpos << "\n number: " << N_1 << " + " << N_2 << " = " << number_result;
-      Integer object_result   = O_1 + O_2;
-      cerr << "\n object: " << O_1 << " + " << O_2 << " = " << object_result << '\n';
-      assert_number_Integer(number_result, object_result);
+      Base::add(N_1, N_2, O_1, O_2);
    }
    
    static void subtract(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
+      cerr << " Operation_test::subtract " << '\n';
       if (is_overflow(N_1, N_2, Arithmetic::SUBTRACT))
          return;
-      long long number_result = N_1 - N_2;
-      cerr << showpos << "\n number: " << N_1 << " - " << N_2 << " = " << number_result;
-      Integer object_result   = O_1 - O_2;
-      cerr << "\n object: " << O_1 << " - " << O_2 << " = " << object_result << '\n';
-      assert_number_Integer(number_result, object_result);
+      Base::subtract(N_1, N_2, O_1, O_2);
    }
    
    static void multiply(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
+      cerr << " Operation_test::multiply " << '\n';
       if (is_overflow(N_1, N_2, Arithmetic::MULTIPLY))
          return;
-      long long number_result = N_1 * N_2;
-      cerr << showpos << "\n number: " << N_1 << " * " << N_2 << " = " << number_result;
-      Integer object_result   = O_1 * O_2;
-      cerr << "\n object: " << O_1 << " * " << O_2 << " = " << object_result << '\n';
-      assert_number_Integer(number_result, object_result);
+      Base::multiply(N_1, N_2, O_1, O_2);
    }
    
    static void divide(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
-      if (N_2 == 0)
-         return;
+      cerr << " Operation_test::divide " << '\n';
       if (is_overflow(N_1, N_2, Arithmetic::DIVIDE))
          return;
-      long long number_result = N_1 / N_2;
-      cerr << showpos << "\n number: " << N_1 << " / " << N_2 << " = " << number_result;
-      Integer object_result   = O_1 / O_2;
-      cerr << "\n object: " << O_1 << " / " << O_2 << " = " << object_result << '\n';
-      assert_number_Integer(number_result, object_result);
+      Base::divide(N_1, N_2, O_1, O_2);
    }
    
-   static void modulo(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
-      if (N_2 == 0)
-         return;
-      long long number_result = N_1 % N_2;
-      cerr << showpos << "\n number: " << N_1 << " % " << N_2 << " = " << number_result;
-      Integer object_result   = O_1 % O_2;
-      cerr << "\n object: " << O_1 << " % " << O_2 << " = " << object_result << '\n';
-      assert_number_Integer(number_result, object_result);
+   static inline void check_unary(const long long & number, const Integer & object) {
+      cerr << " Operation_test::check_unary " << '\n';
+      assert_number_Integer(number, object);
+      assert_number_Integer(+number, +object);
+      if (number != numeric_limits<long long>::min()) // llabs(numeric_limits<long long>::min()) - 1 == llabs(numeric_limits<long long>::max())
+         assert_number_Integer(-number, -object);
    }
    
-   static void compare(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
-      assert(O_1.is_zero() == (N_1 == 0));
-      
-      assert((O_1 == O_2) == (N_1 == N_2));
-      assert((O_1 != O_2) == (N_1 != N_2));
-
-      assert((O_1 > O_2) == (N_1 > N_2));
-      assert((O_1 <= O_2) == (N_1 <= N_2));
-
-      assert((O_1 <  O_2) == (N_1 < N_2));
-      assert((O_1 >=  O_2) == (N_1 >= N_2));
+   static void test_by_position(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
+      cerr << " Operation_test::test_by_position " << '\n';
+      for (auto operation : OPERATIONS) {
+         operation(N_1, N_2, O_1, O_2);
+         if (N_1 != numeric_limits<long long>::min() && N_2 != numeric_limits<long long>::min())
+            operation(-N_1, -N_2, -O_1, -O_2);
+         if (N_2 != numeric_limits<long long>::min())
+            operation(N_1, -N_2, O_1, -O_2);
+         if (N_1 != numeric_limits<long long>::min())
+            operation(-N_1, N_2, -O_1, O_2);
+      }
    }
+   
+#ifdef __clang__
+   template <typename Number, template<typename> class Generator_Type>
+   class Random_Operations;
+   template <typename Number, template<typename> class Generator_Type>
+   friend void Random_Operations<Number, Generator_Type>::run_one_random (const unsigned long long REPETITIONS);
+#elif defined(__GNUG__)
+   
+#endif
    
    static constexpr array<Operation_Ptr, 6> OPERATIONS = { add, subtract, multiply, divide, modulo, compare };
 };
 
-constexpr array<Operation_Ptr, 6> Operations::OPERATIONS;
+using Operation_Ptr = Base::Operation_Ptr;
+constexpr array<Operation_Ptr, 6> Operation_test::OPERATIONS;
 
 template <typename T>
 Integer construct_Integer (const T& NUMBER) { 
@@ -121,25 +122,6 @@ Integer construct_Integer (const T& NUMBER) {
    return i;
 }
 
-void test_by_position(const long long & N_1, const long long & N_2, const Integer & O_1, const Integer & O_2) {
-   for (auto operation : Operations::OPERATIONS) {
-      operation(N_1, N_2, O_1, O_2);
-      if (N_1 != numeric_limits<long long>::min() && N_2 != numeric_limits<long long>::min())
-         operation(-N_1, -N_2, -O_1, -O_2);
-      if (N_2 != numeric_limits<long long>::min())
-         operation(N_1, -N_2, O_1, -O_2);
-      if (N_1 != numeric_limits<long long>::min())
-         operation(-N_1, N_2, -O_1, O_2);
-   }
-}
-
-inline void check_unary(const long long & number, const Integer & object) {
-   assert_number_Integer(number, object);
-   assert_number_Integer(+number, +object);
-   if (number != numeric_limits<long long>::min()) // llabs(numeric_limits<long long>::min()) - 1 == llabs(numeric_limits<long long>::max())
-      assert_number_Integer(-number, -object);
-}
-   
 template <typename Number, template<typename> class Generator_Type>
 class Random_Operations {
    static_assert(is_integral<Number>::value && "Integral required.");
@@ -168,14 +150,14 @@ public:
       assert_number_Integer(0, ZERO);
       assert_number_Integer(-0, construct_Integer(-0));
       assert_number_Integer(+0, construct_Integer(+0));
-      Operations::compare(0, 0, ZERO, ZERO);
+      Operation_test::compare(0, 0, ZERO, ZERO);
       for (unsigned long long i = 0; i < REPETITIONS; i++) {
          cerr << "--- REPETITION " << i << '\n';
          number = generator();
          object = construct_Integer(number);
-         check_unary(number, object);
-         test_by_position(number, number, object, object);
-         test_by_position(number, 0, object, ZERO);
+         Operation_test::check_unary(number, object);
+         Operation_test::test_by_position(number, number, object, object);
+         Operation_test::test_by_position(number, 0, object, ZERO);
       }
    }
 };
@@ -194,9 +176,9 @@ void run_two_random (const Generator_Interface * const gen_1, const Generator_In
       number_U = gen_2->operator()('A');
       object_T = construct_Integer(number_T);
       object_U = construct_Integer(number_U);
-      check_unary(number_T, object_T);
-      check_unary(number_U, object_U);
-      test_by_position(number_T, number_U, object_T, object_U);
+      Operation_test::check_unary(number_T, object_T);
+      Operation_test::check_unary(number_U, object_U);
+      Operation_test::test_by_position(number_T, number_U, object_T, object_U);
    }
 }
 

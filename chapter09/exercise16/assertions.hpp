@@ -66,7 +66,7 @@ inline void validate_pointer(std::nullptr_t) {
    
 #ifndef NDEBUG
 #  define assert_number_Integer(LongLong, Integer) \
-   ASSERT_NUMBER_INTEGER(LongLong, Integer, __FILE__, __LINE__, __DATE__, __TIME__)
+   ASSERT_NUMBER_INTEGER<long long>(LongLong, Integer, __FILE__, __LINE__, __DATE__, __TIME__)
 #else
 #   define assert_number_Integer(LongLong, Integer) ;
 #endif
@@ -108,7 +108,8 @@ inline void ASSERT_INTEGER(const Integer& x, const string& expected_number,
    }
 }
 
-inline void ASSERT_NUMBER_INTEGER(const long long & NUMBER, const Integer & OBJECT,
+template <typename T>
+inline void ASSERT_NUMBER_INTEGER(const T & NUMBER, const Integer & OBJECT,
                      const char* file, const int line,
                      const char* date, const char* time) {
    ostringstream stream;

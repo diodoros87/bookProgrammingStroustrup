@@ -13,102 +13,17 @@
 using namespace std;
 using namespace integer_space;
 
-#ifndef NDEBUG
-#  define assert_mpz_Integer(Mpz, Integer) \
-   ASSERT_MPZ_INTEGER(Mpz, Integer, __FILE__, __LINE__, __DATE__, __TIME__)
-#else
-#   define assert_mpz_Integer(Mpz, Integer) ;
-#endif
-   
-void ASSERT_MPZ_INTEGER(const mpz_class & NUMBER, const Integer & OBJECT,
-                     const char* file, const int line,
-                     const char* date, const char* time) {
-   ostringstream stream;
-   if (0 != NUMBER)
-      stream.setf(ios_base::showpos);
-   stream << NUMBER;
-   const string number_string = stream.str();
-   const string object_string = string(OBJECT);
-   if (number_string != object_string) {
-      const string message = "\n number = " + number_string + "\n object = " + object_string;
-      GENERAL_ASSERT(object_string.c_str(), number_string == object_string, file, line, date, time, message);
-   }
-} 
-
 inline void print(const string & func_name, const exception& e) {
    cerr << func_name << " " << typeid(e).name() << " : " << e.what() << endl;
 }
 
-enum class Arithmetic { ADD, SUBTRACT, MULTIPLY, DIVIDE };
-
-typedef void (* Operation_Ptr)(const mpz_class & , const mpz_class & , const Integer & , const Integer & );
-
-struct Operations {
-   static void add(const mpz_class & N_1, const mpz_class & N_2, const Integer & O_1, const Integer & O_2) {
-      mpz_class number_result = N_1 + N_2;
-      cerr << showpos << "\n number: " << N_1 << " + " << N_2 << " = " << number_result;
-      Integer object_result   = O_1 + O_2;
-      cerr << "\n object: " << O_1 << " + " << O_2 << " = " << object_result << '\n';
-      //assert_mpz_Integer(number_result, object_result);
-      ASSERT_CONDITIONAL(number_result, object_result, true);
-   }
+namespace gmp_random_tests {
    
-   static void subtract(const mpz_class & N_1, const mpz_class & N_2, const Integer & O_1, const Integer & O_2) {
-      mpz_class number_result = N_1 - N_2;
-      cerr << showpos << "\n number: " << N_1 << " - " << N_2 << " = " << number_result;
-      Integer object_result   = O_1 - O_2;
-      cerr << "\n object: " << O_1 << " - " << O_2 << " = " << object_result << '\n';
-      //assert_mpz_Integer(number_result, object_result);
-      ASSERT_CONDITIONAL(number_result, object_result, true);
-   }
-   
-   static void multiply(const mpz_class & N_1, const mpz_class & N_2, const Integer & O_1, const Integer & O_2) {
-      mpz_class number_result = N_1 * N_2;
-      cerr << showpos << "\n number: " << N_1 << " * " << N_2 << " = " << number_result;
-      Integer object_result   = O_1 * O_2;
-      cerr << "\n object: " << O_1 << " * " << O_2 << " = " << object_result << '\n';
-      //assert_mpz_Integer(number_result, object_result);
-      ASSERT_CONDITIONAL(number_result, object_result, true);
-   }
-   
-   static void divide(const mpz_class & N_1, const mpz_class & N_2, const Integer & O_1, const Integer & O_2) {
-      if (N_2 == 0)
-         return;
-      mpz_class number_result = N_1 / N_2;
-      cerr << showpos << "\n number: " << N_1 << " / " << N_2 << " = " << number_result;
-      Integer object_result   = O_1 / O_2;
-      cerr << "\n object: " << O_1 << " / " << O_2 << " = " << object_result << '\n';
-      //assert_mpz_Integer(number_result, object_result);
-      ASSERT_CONDITIONAL(number_result, object_result, true);
-   }
-   
-   static void modulo(const mpz_class & N_1, const mpz_class & N_2, const Integer & O_1, const Integer & O_2) {
-      if (N_2 == 0)
-         return;
-      mpz_class number_result = N_1 % N_2;
-      cerr << showpos << "\n number: " << N_1 << " % " << N_2 << " = " << number_result;
-      Integer object_result   = O_1 % O_2;
-      cerr << "\n object: " << O_1 << " % " << O_2 << " = " << object_result << '\n';
-      //assert_mpz_Integer(number_result, object_result);
-      ASSERT_CONDITIONAL(number_result, object_result, true);
-   }
-   
-   static void compare(const mpz_class & N_1, const mpz_class & N_2, const Integer & O_1, const Integer & O_2) {
-      assert(O_1.is_zero() == (N_1 == 0));
-      
-      assert((O_1 == O_2) == (N_1 == N_2));
-      assert((O_1 != O_2) == (N_1 != N_2));
-
-      assert((O_1 > O_2) == (N_1 > N_2));
-      assert((O_1 <= O_2) == (N_1 <= N_2));
-
-      assert((O_1 <  O_2) == (N_1 < N_2));
-      assert((O_1 >=  O_2) == (N_1 >= N_2));
-   }
-};
-
-struct Operation_test : protected Operations {
+using operations::Arithmetic;
+using Base = operations::Operations<true>;
+struct Operation_test : private Base {
    static void test_by_position(const Arithmetic & arithmetic, const mpz_class & N_1, const mpz_class & N_2, const Integer & O_1, const Integer & O_2) {
+      cerr << " Operation_test::test_by_position " << '\n';
       vector<Operation_Ptr> vec = OPERATIONS.at(arithmetic);
       vec.push_back(compare);
       for (auto operation : vec) {
@@ -118,22 +33,27 @@ struct Operation_test : protected Operations {
          operation(-N_1, N_2, -O_1, O_2);
       }
    }
+   
+   static inline void check_unary(const Number & number, const Integer & object) {
+      cerr << " Operation_test::check_unary " << '\n';
+      Base::check_unary(number, object);
+   }
+   
 private:
    static const map<Arithmetic, vector<Operation_Ptr>> OPERATIONS;
+   //using Operation_Ptr = Operations<true>::Operation_Ptr;
 };
 
+using Operation_Ptr = Base::Operation_Ptr; 
 const map<Arithmetic, vector<Operation_Ptr>> Operation_test::OPERATIONS = { { Arithmetic::ADD, { add } },
                                                                         { Arithmetic::SUBTRACT, { subtract } },
                                                                         { Arithmetic::MULTIPLY, { multiply } },
                                                                         { Arithmetic::DIVIDE, { divide, modulo } } };
-
-inline void check_unary(const mpz_class & number, const Integer & object) {
-   assert_mpz_Integer(number, object);
-   assert_mpz_Integer(+number, +object);
-   assert_mpz_Integer(-number, -object);
-}
-
-namespace gmp_random_tests {
+                                 /*                                       
+const map<Arithmetic, vector<Operation_Ptr>> Operation_test::OPERATIONS = { { Arithmetic::ADD, { Operation_test::add } },
+                                                                        { Arithmetic::SUBTRACT, { Operation_test::subtract } },
+                                                                        { Arithmetic::MULTIPLY, { Operation_test::multiply } },
+                                                                        { Arithmetic::DIVIDE, { Operation_test::divide, Operation_test::modulo } } };*/
    
 class Gmp_test {
    const unsigned long long REPETITIONS;
@@ -146,7 +66,6 @@ class Gmp_test {
    Integer get_integer(const mpz_class & mpz) {
       string s = mpz.get_str();
       Integer result = Integer::parse_create(s);
-      //cout << __func__ << " " << result << '\n';
       return result;
    }
    
@@ -214,15 +133,15 @@ void Gmp_test::test (const Arithmetic & arithmetic) {
       number_U = rand_mpzs[i + 1];
       object_T = rand_integers[i];
       object_U = rand_integers[i + 1];
-      check_unary(number_T, object_T);
-      check_unary(number_U, object_U);
+      Operation_test::check_unary(number_T, object_T);
+      Operation_test::check_unary(number_U, object_U);
       Operation_test::test_by_position(arithmetic, number_T, number_U, object_T, object_U);
    }
 }
    
 void Gmp_test::generate(const Arithmetic & arithmetic, const int ELEMENTS)  { 
    if (ELEMENTS % 2 == 1)
-      throw invalid_argument("ELEMENTS must be even number - is: " + ELEMENTS);
+      throw invalid_argument("ELEMENTS must be even number - is: " + to_string(ELEMENTS));
    vector<mpz_class> vec_mpzs(ELEMENTS);
    vector<Integer> vec_integers(ELEMENTS);
    mpz_class random;

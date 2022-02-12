@@ -1,6 +1,6 @@
 CXX = g++
 CPPFLAGS = -O0 -Wfatal-errors -Wall -Wextra  -std=c++14 -I/home/mat/asio-1.18.2/include  -I/home/mat/json/include #-Wconversion
-#CXX = clang++
+CXX = clang++
 #  -fcompare-debug-second -Wconversion
 GCC_CPPFLAGS = -DMESSAGE='"Compiled with GCC"'
 CLANG_CPPFLAGS = -DMESSAGE='"Compiled with Clang"'
@@ -111,10 +111,10 @@ fundamental_test.o: fundamental_test.cpp integer.hpp integer_parsing.hpp asserti
 arithmetic_test.o: arithmetic_test.cpp integer.hpp integer_parsing.hpp parsing_test.hpp
 	$(CXX) $(CPPFLAGS) -c arithmetic_test.cpp
 	
-gmp_test_integer.o: command_line.hpp command_line.cpp integer.hpp integer.cpp gmp_test_integer.cpp
+gmp_test_integer.o: command_line.hpp command_line.cpp integer.hpp integer.cpp gmp_test_integer.cpp operations.hpp
 	$(CXX) $(CPPFLAGS) -c gmp_test_integer.cpp
 	
-random_tests.o: random_tests.cpp integer.hpp random_numbers.hpp integer_parsing.hpp assertions.hpp command_line.hpp
+random_tests.o: random_tests.cpp integer.hpp random_numbers.hpp integer_parsing.hpp assertions.hpp command_line.hpp operations.hpp
 	$(CXX) $(CPPFLAGS) -c random_tests.cpp
 	
 command_line.o: command_line.hpp
