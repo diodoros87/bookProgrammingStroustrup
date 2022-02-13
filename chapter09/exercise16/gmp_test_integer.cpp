@@ -56,7 +56,7 @@ const map<Arithmetic, vector<Operation_Ptr>> Operation_test::OPERATIONS = { { Ar
                                                                         { Arithmetic::DIVIDE, { Operation_test::divide, Operation_test::modulo } } };*/
    
 class Gmp_test {
-   const unsigned long long REPETITIONS;
+   const unsigned long long M_SIZE;
    vector<mpz_class> rand_mpzs;
    vector<Integer> rand_integers;
    
@@ -69,18 +69,18 @@ class Gmp_test {
       return result;
    }
    
-   void generate(const Arithmetic & arithmetic, const int ELEMENTS);
+   void generate(const Arithmetic & arithmetic);
    void operate(const Arithmetic & arithmetic) {
-      generate(arithmetic, REPETITIONS);
+      generate(arithmetic);
       test(arithmetic);
       rand_mpzs.clear();
       rand_integers.clear();
    }
    void test (const Arithmetic & arithmetic);
 public:
-   Gmp_test(const unsigned long long repetitions) : REPETITIONS(repetitions) {  
-      if (repetitions % 2 == 1)
-         throw invalid_argument("repetitions must be even number - is: " + to_string(repetitions));
+   Gmp_test(const unsigned long long s) : M_SIZE(s) {  
+      if (s % 2 == 1)
+         throw invalid_argument("size must be even number - is: " + to_string(s));
    }
    void run();
 };
@@ -118,17 +118,12 @@ mpz_class Gmp_test::random_mpz(const Arithmetic & arithmetic, gmp_randstate_t & 
 }
 
 void Gmp_test::test (const Arithmetic & arithmetic) {
-   const size_t SIZE = rand_mpzs.size();
-   if (SIZE != rand_integers.size())
-      throw runtime_error("rand_mpzs.size() != rand_integers.size() ");
-   if (SIZE % 2 == 1)
-      throw runtime_error(" size of rand_mpzs must be even number - is: " + to_string(SIZE));
    mpz_class number_T;
    mpz_class number_U;
    Integer object_T;
    Integer object_U;
-   for (unsigned long long i = 0; i < SIZE ; i += 2) {
-      cerr << "--- REPETITION " << i << '\n';
+   for (unsigned long long i = 0; i < M_SIZE ; i += 2) {
+      cerr << "--- REPETITION " << i / 2 << '\n';
       number_T = rand_mpzs[i];
       number_U = rand_mpzs[i + 1];
       object_T = rand_integers[i];
@@ -139,16 +134,14 @@ void Gmp_test::test (const Arithmetic & arithmetic) {
    }
 }
    
-void Gmp_test::generate(const Arithmetic & arithmetic, const int ELEMENTS)  { 
-   if (ELEMENTS % 2 == 1)
-      throw invalid_argument("ELEMENTS must be even number - is: " + to_string(ELEMENTS));
-   vector<mpz_class> vec_mpzs(ELEMENTS);
-   vector<Integer> vec_integers(ELEMENTS);
+void Gmp_test::generate(const Arithmetic & arithmetic)  { 
+   vector<mpz_class> vec_mpzs(M_SIZE);
+   vector<Integer> vec_integers(M_SIZE);
    mpz_class random;
    cout << __func__ << '\n';
    gmp_randstate_t state;
    gmp_randinit_mt(state);
-   for(int i = 0 ; i < ELEMENTS;){
+   for(int i = 0 ; i < M_SIZE;){
       random = random_mpz(arithmetic, state, 1);
       vec_mpzs[i] = random;
       vec_integers[i++] = get_integer(random);
@@ -173,8 +166,8 @@ void Gmp_test::run () {
 
 int main(const int argc, const char * argv[]) {
    try {
-      const unsigned long long REPETITIONS = command_line::examine_command_line(argc, argv);
-      gmp_random_tests::Gmp_test test(REPETITIONS);
+      const unsigned long long M_SIZE = command_line::examine_command_line(argc, argv);
+      gmp_random_tests::Gmp_test test(M_SIZE);
       test.run();
       
       cerr << "\n END of ALL TESTS\n";

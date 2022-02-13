@@ -15,14 +15,14 @@ vector<string> to_vector_string(const int argc, const char * argv[]) {
 }
 
 unsigned long long examine_command_line(const int argc, const char * argv[]) {
-   long long repetitions = 100;
+   long long number = 100;
    switch (argc) {
       case 1:
-         return repetitions;
+         return number;
       case 2: {
-         string repetitions_string = to_vector_string(argc, argv)[1];
-         repetitions = stoull(repetitions_string);
-         return repetitions;
+         string number_string = to_vector_string(argc, argv)[1];
+         number = stoull(number_string);
+         return number;
       }
       default :
          throw invalid_argument ("Number of command line arguments can be 1 or 2");

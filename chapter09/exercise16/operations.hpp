@@ -7,7 +7,7 @@
 #include "assertions.hpp"
 #include <gmpxx.h>
 
-using std::ios_base;
+//using std::ios_base;
 
 namespace operations {
 
@@ -36,7 +36,7 @@ struct Operations {
    static void add(const Number & N_1, const Number & N_2, const Integer & O_1, const Integer & O_2) {
       cerr << " Base::add " << '\n';
       Number number_result = N_1 + N_2;
-      cerr << ios_base::showpos << "\n number: " << N_1 << " + " << N_2 << " = " << number_result;
+      cerr << std::showpos << "\n number: " << N_1 << " + " << N_2 << " = " << number_result;
       Integer object_result   = O_1 + O_2;
       cerr << "\n object: " << O_1 << " + " << O_2 << " = " << object_result << '\n';
       ASSERT_CONDITIONAL(number_result, object_result, FLAG);
@@ -45,7 +45,7 @@ struct Operations {
    static void subtract(const Number & N_1, const Number & N_2, const Integer & O_1, const Integer & O_2) {
       cerr << " Base::subtract " << '\n';
       Number number_result = N_1 - N_2;
-      cerr << ios_base::showpos << "\n number: " << N_1 << " - " << N_2 << " = " << number_result;
+      cerr << std::showpos << "\n number: " << N_1 << " - " << N_2 << " = " << number_result;
       Integer object_result   = O_1 - O_2;
       cerr << "\n object: " << O_1 << " - " << O_2 << " = " << object_result << '\n';
       ASSERT_CONDITIONAL(number_result, object_result, FLAG);
@@ -54,7 +54,7 @@ struct Operations {
    static void multiply(const Number & N_1, const Number & N_2, const Integer & O_1, const Integer & O_2) {
       cerr << " Base::multiply " << '\n';
       Number number_result = N_1 * N_2;
-      cerr << ios_base::showpos << "\n number: " << N_1 << " * " << N_2 << " = " << number_result;
+      cerr << std::showpos << "\n number: " << N_1 << " * " << N_2 << " = " << number_result;
       Integer object_result   = O_1 * O_2;
       cerr << "\n object: " << O_1 << " * " << O_2 << " = " << object_result << '\n';
       ASSERT_CONDITIONAL(number_result, object_result, FLAG);
@@ -65,7 +65,7 @@ struct Operations {
       if (N_2 == 0)
          return;
       Number number_result = N_1 / N_2;
-      cerr << ios_base::showpos << "\n number: " << N_1 << " / " << N_2 << " = " << number_result;
+      cerr << std::showpos << "\n number: " << N_1 << " / " << N_2 << " = " << number_result;
       Integer object_result   = O_1 / O_2;
       cerr << "\n object: " << O_1 << " / " << O_2 << " = " << object_result << '\n';
       ASSERT_CONDITIONAL(number_result, object_result, FLAG);
@@ -76,7 +76,7 @@ struct Operations {
       if (N_2 == 0)
          return;
       Number number_result = N_1 % N_2;
-      cerr << ios_base::showpos << "\n number: " << N_1 << " % " << N_2 << " = " << number_result;
+      cerr << std::showpos << "\n number: " << N_1 << " % " << N_2 << " = " << number_result;
       Integer object_result   = O_1 % O_2;
       cerr << "\n object: " << O_1 << " % " << O_2 << " = " << object_result << '\n';
       ASSERT_CONDITIONAL(number_result, object_result, FLAG);

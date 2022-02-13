@@ -2,13 +2,16 @@
 #include <string>
 #include <array>
 
+#include <curl/curl.h>
+/*
 #include "curl_header.h"
 #include "curl_easy.h"
 #include "curl_exception.h"
 #include "curl_ios.h"
+*/
 #include "pugixml.hpp"
 
-using namespace curl;
+//using namespace curl;
 using namespace pugi;
 using namespace std; 
 
@@ -39,8 +42,10 @@ int main() {
    }
    return 1;
 }
-
+/*
 template<class T> size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+   if(userp == nullptr)
+      throw invalid_argument("nullptr");
    const size_t realsize = size*nmemb;
    T *const stream = static_cast<T*>(userp);
    stream->write(static_cast<const char *>(contents),realsize);
@@ -56,45 +61,90 @@ template<class T> curl_easy::curl_easy(curl_ios<T> &writer) : curl_interface() {
    this->add(curl_pair<CURLoption,void *>(CURLOPT_WRITEDATA, static_cast<void*>(writer.get_stream())));
 }
 
-stringstream get_document(const char* URL, const curl_header & HEADER) {
-   stringstream stream;
-   try {
-      //curl_ios<stringstream> writer(stream);
-      using curlcpp_callback_type = size_t(*)(void *,size_t,size_t,void *);
-      curlcpp_callback_type _callback_ptr = write_callback<std::ostringstream>;
-      //size_t(*)(void *,size_t,size_t,void *) _callback_ptr
-      //_callback_ptr(write_callback<std::ostringstream>), 
-      std::stringstream *_o_stream = &stream;
-      //_o_stream(&stream) {}
-      CURL *curl curl_easy_init();
-      if (curl == nullptr) {
-         throw curl_easy_exception("Null pointer intercepted",__FUNCTION__);
-      }
-      
-      init(CURL_GLOBAL_ALL);
-      curl_easy easy(writer);
-      
-      easy.add<CURLOPT_HTTPHEADER>(HEADER.get());
-      easy.add<CURLOPT_URL>(URL);
-      easy.add<CURLOPT_TIMEOUT>(10);
-      easy.add<CURLOPT_DNS_CACHE_TIMEOUT>(0);
-      easy.add<CURLOPT_FOLLOWLOCATION>(1);
+*/
 
-      //easy.perform();
-      curl_easy_perform(easyhandle);
+struct Curl_Error : public exception {
+private:
+   static string msg;
+public:
+   Curl_Error() { }
+   Curl_Error(const string& message) {  msg += message; }
+   const char* what() const noexcept {
+      return msg.c_str();
    }
-   catch (const curl_easy_exception & e) {
-      curlcpp_traceback errors = e.get_traceback();
-      e.print_traceback();
+};
+string Curl_Error::msg = {"!!! error with curl library: "};
+
+class Curl_Manager {
+   char buffer[9 * CURL_ERROR_SIZE];
+public:
+   Curl_Manager(CURL *& connection) {
+      CURLcode code = curl_easy_setopt(connection, CURLOPT_ERRORBUFFER, buffer);
+      if(code != CURLE_OK)
+         throw Curl_Error("Failed to set error buffer code is " + to_string(code));
    }
-   return stream;
+   
+   static void st_check_error(CURLcode & code, const string& message) {
+      if(code != CURLE_OK)
+         throw Curl_Error(message + " " + curl_easy_strerror(code));
+   }
+
+   void check_error(CURLcode & code, const string& message) {
+      if(code != CURLE_OK)
+         throw Curl_Error(message + " " + string(buffer));
+   }
+};
+
+int writer(char *data, const size_t size, const size_t nmemb, string *writer_data) {
+  if(writer_data == nullptr)
+    throw invalid_argument("nullptr");
+ 
+  writer_data->append(data, size * nmemb);
+ 
+  return size * nmemb;
+} 
+
+string get_document(const char* URL, const curl_slist * const HEADER) {
+   //stringstream stream;
+   string buffer;
+   {
+      CURLcode code = curl_global_init(CURL_GLOBAL_DEFAULT);
+      Curl_Manager::st_check_error(code, "Failed to curl_global_init");
+      CURL *connection = curl_easy_init();
+      if (connection == nullptr) 
+         throw runtime_error("Failed to create CURL connection");
+      
+      //init(CURL_GLOBAL_ALL);
+      Curl_Manager manager { connection };
+      code = curl_easy_setopt(connection, CURLOPT_URL, URL);
+      manager.check_error(code, "Failed to set URL");
+      code = curl_easy_setopt(connection, CURLOPT_FOLLOWLOCATION, 1L);
+      manager.check_error(code, "Failed to set redirect option");
+      code = curl_easy_setopt(connection, CURLOPT_WRITEFUNCTION, writer);
+      manager.check_error(code, "Failed to set write callback function");
+      code = curl_easy_setopt(connection, CURLOPT_WRITEDATA, &buffer);
+      manager.check_error(code, "Failed to set write data");
+      code = curl_easy_setopt(connection, CURLOPT_HTTPHEADER, HEADER);
+      manager.check_error(code, "Failed to http header");
+      code = curl_easy_setopt(connection, CURLOPT_TIMEOUT, 10L);
+      manager.check_error(code, "Failed to set timeout");
+      code = curl_easy_setopt(connection, CURLOPT_DNS_CACHE_TIMEOUT, 0L);
+      manager.check_error(code, "Failed to set DNS_CACHE timeout");
+
+      code = curl_easy_perform(connection);
+      curl_easy_cleanup(connection);
+      manager.check_error(code, "Failed to curl_easy_perform");
+   }
+   return buffer;
 }
 
 string get_xml_document(const char* URL) {
-   curl_header header;
-   header.add("Accept: application/xml");
-   stringstream stream = get_document(URL, header);
-   return stream.str();
+   struct curl_slist * header = nullptr;
+   header = curl_slist_append(header, "Accept: application/xml");
+   //header.add("Accept: application/xml");
+   return get_document(URL, header);
+   //stringstream stream = get_document(URL, header);
+   //return stream.str();
 }
 
 inline bool load_validate_xml(xml_document& xml_doc, const char * STR) {
