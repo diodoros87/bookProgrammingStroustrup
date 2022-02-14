@@ -32,10 +32,10 @@ void Float_rates::set_rates_from_json() {
    }
    catch (const nlohmann::json::exception & e) {
       cerr << "!!! Error json exception: " << e.what() << '\n';
-      throw e;
+      throw;
    } catch (const exception & e) {
       cerr << "Exception: " << e.what() << std::endl;
-      throw e;
+      throw;
    }
 }
 

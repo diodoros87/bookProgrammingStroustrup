@@ -41,7 +41,7 @@ endif
 $(CURL_TEST): directories ${CURL_TEST}.o ${LIBXML}
 	${CXX} $(CPPFLAGS) ${CURL_TEST}.o ${LPATH} ${LIBS}  -o ${CURL_TEST}
 
-${CURL_TEST}.o: ${CURL_TEST}.cpp 
+${CURL_TEST}.o: ${CURL_TEST}.cpp curl_manager.hpp xml_processing.hpp
 	${CXX} -c $(CPPFLAGS) ${IPATH}  $< -o $@
 
 directories:

@@ -67,14 +67,15 @@ public:
    inline void perform() {
       code = curl_easy_perform(connection);
       if(code != CURLE_OK) {
-         curl_easy_cleanup(connection);
+         //curl_easy_cleanup(connection);
          throw Curl_Error(string("Failed to curl_easy_perform ") + curl_easy_strerror(code));
       }
    }
    
    ~Curl_Manager() { 
+      cerr << __func__ << '\n';
       curl_easy_cleanup(connection); 
-      check_error("Failed to curl_easy_perform"); 
+      //check_error("Failed to curl_easy_perform"); 
    }
 };
 

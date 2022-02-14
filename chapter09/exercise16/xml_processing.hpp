@@ -14,6 +14,24 @@ using pugi::xpath_node_set;
 using std::cerr;
 using std::cout;
 
+namespace xml_NBP {
+   
+class Download_Interface {
+   std::string document;
+public:
+   virtual void download (const char *) = 0;
+   virtual ~ Download_Interface() { cerr << __func__ << '\n'; };
+   
+   Download_Interface(Download_Interface const &) = delete;
+   Download_Interface& operator=(Download_Interface const &) = delete;
+   
+   std::string get_doc() const { return document; }
+protected:
+   Download_Interface() { cerr << __func__ << '\n'; }
+   
+   void set_doc(const std::string & s) { document = s; }
+};
+
 class Xml_NBP_processing final {
    static constexpr char* CURRENCY_NODE = "/ArrayOfExchangeRatesTable/ExchangeRatesTable/Rates/Rate/Currency";
    static constexpr char* CODE_NODE = "/ArrayOfExchangeRatesTable/ExchangeRatesTable/Rates/Rate/Code";
@@ -72,12 +90,13 @@ public:
       }
    }
    
-   static bool download(std::string (* function)(const char *)) {
-      if (function == nullptr)
-         throw std::invalid_argument("function can not be nullptr");
+   static bool download(Download_Interface * downloader) {
+      if (downloader == nullptr)
+         throw std::invalid_argument("downloader can not be nullptr");
       std::string xml_doc;
       for (const char* URL :  URL_ARRAY) {
-         xml_doc = function(URL);
+         downloader->download(URL);
+         xml_doc = downloader->get_doc();
          if (xml_doc.empty()) {
             cerr << "Error: Xml document can not be empty\n";
             return false;
@@ -91,8 +110,10 @@ public:
 };
 
 const std::array<const char*, 2> Xml_NBP_processing::URL_ARRAY = { "http://api.nbp.pl/api/exchangerates/tables/a/",
-                                                                   "http://api.nbp.pl/api/exchangerates/tables/b/" };
+                                                                  "http://api.nbp.pl/api/exchangerates/tables/b/" };
 
 xml_document Xml_NBP_processing::doc;
+   
+}
 
 #endif

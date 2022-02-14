@@ -362,7 +362,7 @@ private:
                --dollars_number;
             }
             else
-               throw e;
+               throw;
          } 
          dollars = dollars_number.operator string();
          cents_rounded -= HUNDRED;
