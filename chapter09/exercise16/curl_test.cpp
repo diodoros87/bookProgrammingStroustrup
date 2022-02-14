@@ -13,7 +13,7 @@ class Curl_dowloader  : public Download_Interface {
       return size * nmemb;
    } 
    
-   string get_document(const char* URL, const curl_slist * const HEADER) {
+   string get_document(const char* const URL, const curl_slist * const HEADER) {
       Curl_Manager manager;
       manager.set_option(CURLOPT_URL, URL);
       manager.set_option(CURLOPT_FOLLOWLOCATION, 1L);
@@ -28,7 +28,7 @@ class Curl_dowloader  : public Download_Interface {
    }
    
 public:
-   void download(const char* URL) override {
+   void download(const char* const URL) override {
       if (URL == nullptr)
          throw invalid_argument("URL is nullptr");
       struct curl_slist * header = nullptr;

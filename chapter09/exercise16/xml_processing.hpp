@@ -19,7 +19,7 @@ namespace xml_NBP {
 class Download_Interface {
    std::string document;
 public:
-   virtual void download (const char *) = 0;
+   virtual void download (const char * const) = 0;
    virtual ~ Download_Interface() { cerr << __func__ << '\n'; };
    
    Download_Interface(Download_Interface const &) = delete;

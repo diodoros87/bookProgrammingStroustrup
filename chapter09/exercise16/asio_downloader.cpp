@@ -33,16 +33,16 @@ string Asio_downloader::download() const {
    } 
    catch (const Asio_IO_Stream_Exception & e) {
       cerr << e.what() << endl;
-      throw e;
+      throw;
    }
    catch (const asio::system_error &e) {
       cerr << "!!! System Error ! Error code = " << e.code()
            << "\n Message: " << e.what();
-      throw e;
+      throw;
    }
    catch (const exception & e) {
       cerr << "Exception: " << e.what() << endl;
-      throw e;
+      throw;
    }
 }
 

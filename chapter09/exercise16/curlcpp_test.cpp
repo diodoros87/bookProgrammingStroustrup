@@ -15,7 +15,7 @@ using namespace std;
 using namespace xml_NBP;
 
 class Curl_dowloader  : public Download_Interface {
-   stringstream get_document(const char* URL, const curl_header & HEADER) {
+   stringstream get_document(const char* const URL, const curl_header & HEADER) {
       stringstream stream;
       try {
          curl_ios<stringstream> writer(stream);
@@ -32,11 +32,12 @@ class Curl_dowloader  : public Download_Interface {
       catch (const curl_easy_exception & e) {
          curlcpp_traceback errors = e.get_traceback();
          e.print_traceback();
+         throw;
       }
       return stream;
    }
 public:
-   void download(const char* URL) override {
+   void download(const char* const URL) override {
       if (URL == nullptr)
          throw invalid_argument("URL is nullptr");
       curl_header header;
