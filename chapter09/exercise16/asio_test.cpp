@@ -1,82 +1,73 @@
-//#define ASIO_STANDALONE 
-#include "asio.hpp"
 #include <iostream>
-#include <sstream>
-#include <utility>
-#include <string>
-#include <map>    
-#include <array> 
-//#define NDEBUG
-#include <cassert>
-#include <tuple>
-#include <chrono>
-
-#include "nlohmann/json.hpp"
+#include "network.hpp"
+#include "floatrates.hpp"
+#include "asio_downloader.hpp"
+#include "json_downloader.hpp"
 
 using namespace std;
+using namespace network;
 
-template<class Type>
-inline bool is_valid(const int INDEX, const Type& object) {
-   static constexpr size_t SIZE = tuple_size<Type>{};
-   if (INDEX < 0 || INDEX >= SIZE) {
-      assert(0 && "Unavailable index ");
-      return false;
+class Currency_rates {
+   string currency;
+
+   template <const bool FLAG>
+   string get_by_asio() {
+      using Downloader = std::conditional_t<FLAG, Json_downloader, Json_downloader>;
+      cerr << __func__ << " currency = " << currency << '\n';
+      const string HOST = "www.floatrates.com";
+      const Method METHOD = Method::get;
+      const string DIRECTORY = "/daily/" + currency + (FLAG ? ".json" : "xml");
+      //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
+      const Cache_control CACHE_CONTROL = Cache_control::no_store;
+      const Connection CONNECTION = Connection::close;
+      Downloader downloader(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
+      downloader.download();
+      const string JSON_DOC = downloader.get();
+      return JSON_DOC;
    }
-   return true;
-}
-
-enum class Cache_control { no_store, no_cache };
-ostream& operator<<(ostream& os, const Cache_control& x) {
-   static const array<string, 2> AVAILABLE_CACHE_CONTROLS = { "no-store", "no-cache" };
-   const int INDEX = static_cast<int>(x);
-   if (is_valid(INDEX, AVAILABLE_CACHE_CONTROLS))
-      return os << AVAILABLE_CACHE_CONTROLS[INDEX];
-   return os << AVAILABLE_CACHE_CONTROLS[0];
-}
-
-enum class Connection { keep_alive, close };
-ostream& operator<<(ostream& os, const Connection& x) {
-   static const array<string, 2> AVAILABLE_CONNECTIONS = { "keep-alive", "close" };
-   const int INDEX = static_cast<int>(x);
-   if (is_valid(INDEX, AVAILABLE_CONNECTIONS))
-      return os << AVAILABLE_CONNECTIONS[INDEX];
-   return os << AVAILABLE_CONNECTIONS[1];
-}
-
-enum class Method { get, options, post };
-ostream& operator<<(ostream& os, const Method& x) {
-   static const array<string, 3> AVAILABLE_METHODS = { "GET", "OPTIONS", "POST" };
-   const int INDEX = static_cast<int>(x);
-   if (is_valid(INDEX, AVAILABLE_METHODS))
-      return os << AVAILABLE_METHODS[INDEX];
-   return os << AVAILABLE_METHODS[0];
-}
-
-void process_document(const string & CURRENCY, const string & DOC);
-string get_document(const string & HOST, const Method & METHOD, const string & DIRECTORY, 
-                         const Cache_control & CACHE_CONTROL, const Connection & CONNECTION);
-
-class Asio_IO_Stream_Exception : public exception { 
-   string msg {"!!! error on the socket stream: "};
 public:
-   Asio_IO_Stream_Exception() {}
-   Asio_IO_Stream_Exception(const string& message) { msg += message; }
-   const char* what() const noexcept {
-      return msg.c_str();
+   Currency_rates(const string & CURRENCY = "usd") : currency(format_currency(CURRENCY)) { }
+
+   static string format_currency(const string & CURRENCY) {
+      if (CURRENCY.size() != 3)
+         throw invalid_argument (" currency must be exactly 3 characters: " + CURRENCY);
+      string result = CURRENCY;
+      std::transform(result.begin(), result.end(), result.begin(),
+         [](unsigned char c){ return std::tolower(c); });
+      return result;
    }
+   
+   string get_by_asio(const File_format & format) {
+      switch (format) {
+         case File_format::JSON :
+            return get_by_asio<true>(); 
+         case File_format::XML :
+            return get_by_asio<false>(); 
+         default:
+            throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)));
+      }
+   }
+   
+   string get_currency() const { return currency; }
+   void set_currency(const string & CURRENCY) { currency = format_currency(CURRENCY); }
 };
+
+void view_document(const string & CURRENCY, const string & JSON_DOC) {
+   Float_rates floatrates = { JSON_DOC };
+   //floatrates.set_json_document(JSON_DOC);
+   //floatrates.set_rates_from_json();
+   map <string, float_rates_info> rates = floatrates.float_rates();
+   for (const pair<string, float_rates_info> &p : rates) 
+      cout << " 1 " << CURRENCY << " = " << p.second.rate << " " << p.second.code << " and "
+         << " 1 " << p.second.code << " = " << p.second.inverse_rate << " " << CURRENCY << endl;
+}
 
 int main() {
    try {
       const string CURRENCY = "PLN";
-      const string HOST = "www.floatrates.com";
-      const Method METHOD = Method::get;
-      const string DIRECTORY = "/daily/" + CURRENCY + ".json";
-      //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
-      const Cache_control CACHE_CONTROL = Cache_control::no_store;
-      const Connection CONNECTION = Connection::close;
-      const string DOC = get_document(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
-      process_document(CURRENCY, DOC);
+      Currency_rates rates(CURRENCY);
+      const string DOC = rates.get_by_asio(File_format::JSON);
+      view_document(CURRENCY, DOC);
       return 0;
    }
    catch (const nlohmann::json::exception & e) {
@@ -97,99 +88,4 @@ int main() {
       cerr << "Unrecognized Exception: " <<  endl;
    }
    return 1;
-}
-
-struct float_rates_info {
-   string code;
-   double rate;
-   double inverse_rate;
-};
-
-inline void from_json(const nlohmann::json& json_data, float_rates_info& info) {
-   info.code = json_data.at("code").get<string>();
-   info.rate = json_data.at("rate").get<double>();
-   info.inverse_rate = json_data.at("inverseRate").get<double>();
-}
-
-void modify_document(string & doc);
-void process_response_headers(asio::ip::tcp::iostream & socket_iostream, const string& HTTP_VERSION);
-
-string get_document(const string & HOST, const Method & METHOD, const string & DIRECTORY,
-                         const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
-   asio::basic_socket_iostream<asio::ip::tcp> socket_iostream;
-   const string HTTP_VERSION("HTTP/1.1");
-   socket_iostream.connect(HOST, "http");
-   socket_iostream.expires_from_now(chrono::seconds(10));
-   socket_iostream    << METHOD << " " << DIRECTORY << " " << HTTP_VERSION << "\r\n";
-   socket_iostream    << "Host: " + HOST + "\r\n";
-   socket_iostream    << "Cache-Control: " << CACHE_CONTROL << "\r\n";
-   socket_iostream    << "Connection: " << CONNECTION  << "\r\n\r\n";
-   socket_iostream.flush();
-   
-   process_response_headers(socket_iostream, HTTP_VERSION);
-   
-   stringstream strstream;
-   strstream << socket_iostream.rdbuf();
-   
-   socket_iostream.close();
-   if (! socket_iostream)
-      throw Asio_IO_Stream_Exception(socket_iostream.error().message());
-   string result = strstream.str();
-   modify_document(result);
-   return result;
-}
-
-void process_response_headers(asio::ip::tcp::iostream & socket_iostream, const string& HTTP_VERSION) {
-   string http_version;
-   socket_iostream >> http_version;
-   cout << " http_version = " << http_version;
-   unsigned int status_code;
-   socket_iostream >> status_code;
-   cout << "\n status code of response = " << status_code;
-   string status_message;
-   getline(socket_iostream, status_message);
-   cout << "\n status message = " << status_message;
-   if (socket_iostream.fail() || http_version != HTTP_VERSION) 
-      throw Asio_IO_Stream_Exception("Invalid response ");
-   // Process the response headers, which are terminated by a blank line.
-   string header;
-   while (getline(socket_iostream, header) && header != "\r")
-      cout << header << "\n";
-   cout << "\n";
-}
-
-void process_document(const string & CURRENCY, const string & DOC) {
-   stringstream strstream;
-   strstream.str(DOC);
-   
-   nlohmann::json json_data;
-   strstream >> json_data;
-
-   map<string, float_rates_info> rates = json_data;
-   for (const pair<string, float_rates_info> &p : rates) 
-      cout << " 1 " << CURRENCY << " = " << p.second.rate << " " << p.second.code << " and "
-           << " 1 " << p.second.code << " = " << p.second.inverse_rate << " " << CURRENCY << endl;
-}
-
-void erase(string & result, const char C, const char A) {
-   for (unsigned i = 0; i < result.size(); i++) {
-      if (C == result[i] || A == result[i]) {
-         result.erase(result.begin() + i);
-         if (A == result[i]) {
-            result.erase(result.begin() + i);
-            while (i < result.size() && result[i] != A) 
-               result.erase(result.begin() + i);
-            if (i < result.size() && A == result[i]) 
-               result.erase(result.begin() + i);
-         }
-      }
-   }
-}
-
-void modify_document(string & doc) {
-   size_t first = doc.find("{");
-   doc = doc.substr(first);
-   size_t last = doc.rfind("}");
-   doc = doc.substr(0, last + 1);
-   erase(doc, '\r', '\n');
 }

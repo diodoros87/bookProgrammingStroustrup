@@ -3,10 +3,11 @@
 
 #include "asio_downloader.hpp"
 #include "network.hpp"
+#include "doc_downloader.hpp"
 
 using std::cerr;
 
-class Json_downloader {
+class Json_downloader : Doc_downloader {
    Asio_downloader * downloader = nullptr;
    string doc;
 public:
@@ -15,7 +16,7 @@ public:
       cerr << " Constructor " << __func__ << '\n';
       downloader = new Asio_downloader(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION); }
       
-   void download() {
+   void download() override {
       doc = downloader->download();
       modify_document();
    }

@@ -144,7 +144,7 @@ static string format_currency(const string & CURRENCY) {
    return result;
 }
 
-map <string, long double> get_by_asio(const File_format & format, const string & CURRENCY = "USD") {
+map <string, long double> get_by_asio(const string & CURRENCY = "USD") {
    string currency = format_currency(CURRENCY);
 #ifdef __clang__
    static std::ios_base::Init toEnsureInitialization;
@@ -158,7 +158,7 @@ map <string, long double> get_by_asio(const File_format & format, const string &
    const Connection CONNECTION = Connection::close;
    Json_downloader downloader(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
    downloader.download();
-   const string JSON_DOC = downloader.get();// = get_document(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
+   const string JSON_DOC = downloader.get();
    
    const Float_rates floatrates = { JSON_DOC };
    //floatrates.set_rates_from_json();
@@ -171,7 +171,7 @@ map <string, long double> get_by_asio(const File_format & format, const string &
    
    return rates;
 }
-
+/*
 map <string, long double> get_by_curl(const File_format & format, const string & CURRENCY = "USD") {
    string currency = format_currency(CURRENCY);
 #ifdef __clang__
@@ -194,7 +194,7 @@ map <string, long double> get_by_curl(const File_format & format, const string &
    assert(rates == floatrates.inverse_rates());
    return rates;
 }
-
+*/
 map <string, long double> & set_rates_per_USD(const Network_library & library, const File_format & format) {
    //test();
    static map <string, long double> result;
@@ -202,16 +202,16 @@ map <string, long double> & set_rates_per_USD(const Network_library & library, c
    switch (library) {
       case Network_library::ASIO :
          if (format == File_format::JSON) 
-            result = get_by_asio(format, USD);
+            result = get_by_asio(USD);
          else
             throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)) + " for ASIO ");
-         break;
+         break; /*
       case Network_library::CURL :
          if (format == File_format::XML)
             result = get_by_curl(format, USD);
          else
             throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)) + " for CURL ");
-         break;
+         break; */
       default:
          throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library)));
    }
