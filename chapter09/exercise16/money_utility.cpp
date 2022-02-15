@@ -1,9 +1,9 @@
 #include <iostream>
 #include "integer.hpp"
 #include "money.hpp"
-#include "asio_downloader.hpp"
-#include "json_downloader.hpp"
-
+//#include "asio_downloader.hpp"
+//#include "json_downloader.hpp"
+#include "floatrates_downloader.hpp"
 
 //using std::ios_base;
 
@@ -135,32 +135,14 @@ string formatted_string(const Integer & dollars, const Integer & cents) {
    return out;
 }
 
-static string format_currency(const string & CURRENCY) {
-   if (CURRENCY.size() != 3)
-      throw invalid_argument (" currency must be exactly 3 characters: " + CURRENCY);
-   string result = CURRENCY;
-   std::transform(result.begin(), result.end(), result.begin(),
-      [](unsigned char c){ return std::tolower(c); });
-   return result;
-}
-
-map <string, long double> get_by_asio(const string & CURRENCY = "USD") {
-   string currency = format_currency(CURRENCY);
+map <string, long double> get_by_asio(const File_format & format, const string & CURRENCY = "USD") {
 #ifdef __clang__
    static std::ios_base::Init toEnsureInitialization;
 #endif
-   cerr << __func__ << " currency = " << currency << '\n';
-   const string HOST = "www.floatrates.com";
-   const Method METHOD = Method::get;
-   const string DIRECTORY = "/daily/" + currency + ".json";
-   //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
-   const Cache_control CACHE_CONTROL = Cache_control::no_store;
-   const Connection CONNECTION = Connection::close;
-   Json_downloader downloader(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
-   downloader.download();
-   const string JSON_DOC = downloader.get();
-   
-   const Float_rates floatrates = { JSON_DOC };
+   cerr << __func__ << '\n';
+   Floatrates_downloader downloder(format, CURRENCY);
+   const string DOC = downloder.get_by_asio();
+   const Float_rates floatrates = { DOC };
    //floatrates.set_rates_from_json();
    map <string, long double> rates = floatrates.inverse_rates();
    //std::cerr << "   " << __func__ << " | " << "\n";
@@ -202,7 +184,7 @@ map <string, long double> & set_rates_per_USD(const Network_library & library, c
    switch (library) {
       case Network_library::ASIO :
          if (format == File_format::JSON) 
-            result = get_by_asio(USD);
+            result = get_by_asio(File_format::JSON, USD);
          else
             throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)) + " for ASIO ");
          break; /*

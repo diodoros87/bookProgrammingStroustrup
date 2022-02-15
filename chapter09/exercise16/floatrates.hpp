@@ -18,9 +18,10 @@ struct float_rates_info {
 
 class Float_rates {
 public:   
-   Float_rates(const string & JSON_DOCUMENT) { 
+   Float_rates(const string & JSON_DOCUMENT, bool set_rates = true) { 
       json_document = JSON_DOCUMENT;
-      set_rates_from_json();
+      if (set_rates)
+         set_rates_from_json();
    }
    
    void set_rates_from_json();
