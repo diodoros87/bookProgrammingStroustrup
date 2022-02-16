@@ -140,11 +140,11 @@ map <string, long double> get_by_asio(const File_format & format, const string &
    static std::ios_base::Init toEnsureInitialization;
 #endif
    cerr << __func__ << '\n';
-   Floatrates_downloader downloder(format, CURRENCY);
-   const string DOC = downloder.get_by_asio();
-   const Float_rates floatrates = { DOC };
+   Floatrates_downloader downloader(format, CURRENCY);
+   downloader.download();
+   //////const Float_rates floatrates = downloader.get_float_rates();
    //floatrates.set_rates_from_json();
-   map <string, long double> rates = floatrates.inverse_rates();
+   map <string, long double> rates = downloader.inverse_rates();
    //std::cerr << "   " << __func__ << " | " << "\n";
    //for (const auto [code, rate] : rates)
    //     std::cerr << "   " << code << " | " << rate << "\n";

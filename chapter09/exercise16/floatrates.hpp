@@ -8,8 +8,6 @@
 using std::string;
 using std::map;
 
-#include "nlohmann/json.hpp"
-
 struct float_rates_info {
    string code;
    long double rate;
@@ -18,16 +16,16 @@ struct float_rates_info {
 
 class Float_rates {
 public:   
-   Float_rates(const string & JSON_DOCUMENT, bool set_rates = true) { 
-      json_document = JSON_DOCUMENT;
-      if (set_rates)
-         set_rates_from_json();
+   Float_rates(const string & DOCUMENT, bool setting_rates = true) { 
+      document = DOCUMENT;
+      if (setting_rates)
+         set_rates_from_doc();
    }
    
-   void set_rates_from_json();
-   void set_json_document(const string & JSON_DOCUMENT) {
-      if (JSON_DOCUMENT != json_document) {
-         json_document = JSON_DOCUMENT;
+   virtual void set_rates_from_doc() = 0;
+   void set_document(const string & DOCUMENT) {
+      if (DOCUMENT != document) {
+         document = DOCUMENT;
          rates_valid = false;
          inverse_valid = false;
       }
@@ -45,9 +43,10 @@ public:
       //return get_rates(INVERSE_RATE, inverse_rates_map, inverse_valid); }
       
    map<string, float_rates_info> float_rates() const { return float_rates_map; }
-private:
+protected:
+   string document;
    map<string, float_rates_info> float_rates_map;
-   string json_document;
+private:
    mutable map<string, long double> rates_map;
    mutable map<string, long double> inverse_rates_map;
    mutable bool rates_valid = false;
@@ -59,12 +58,13 @@ private:
       return valid ? a_rates : a_rates = rates(kind, valid); 
    }
      
-   map<string, float_rates_info> get_json_data() const;
+   virtual map<string, float_rates_info> get_data() const = 0;
    
    map<string, long double> rates(Rate_kind, bool & valid) const;
    
 public:
-   ~ Float_rates() = default;
+   virtual ~Float_rates() { };
+protected:
    Float_rates(const Float_rates &) = default;
    Float_rates(Float_rates &&) = default;
    Float_rates & operator=(const Float_rates &) = default;

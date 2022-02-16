@@ -19,7 +19,7 @@ template <const bool FLAG>
 string Floatrates_downloader::get_by_asio() {
    using Downloader = std::conditional_t<FLAG, Json_downloader, Json_downloader>;
    cerr << __func__ << " currency = " << currency << '\n';
-   const string DIRECTORY = "/daily/" + currency + (FLAG ? ".json" : "xml");
+   const string DIRECTORY = "/daily/" + currency + (FLAG ? ".json" : ".xml");
    //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
    static const string & HOST = static_host();
    Downloader downloader(HOST, ST_METHOD, DIRECTORY, ST_CACHE_CONTROL, ST_CONNECTION);
@@ -29,11 +29,19 @@ string Floatrates_downloader::get_by_asio() {
 }
 
 void Floatrates_downloader::set_format(const File_format & FORMAT) { 
+   if (FORMAT == format)
+      return;
    switch (FORMAT) {
       case File_format::JSON :
          getter = &Floatrates_downloader::get_by_asio<true>; 
+         delete float_rates;
+         float_rates = new Float_rates_json("", false);
+         break;
       case File_format::XML :
-         getter = &Floatrates_downloader::get_by_asio<false>; 
+         getter = &Floatrates_downloader::get_by_asio<false>;
+         delete float_rates;
+         float_rates = new Float_rates_json("", false);
+         break;
       default:
          throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)));
    }
@@ -47,4 +55,14 @@ string Floatrates_downloader::format_currency(const string & CURRENCY) {
    std::transform(result.begin(), result.end(), result.begin(),
       [](unsigned char c){ return std::tolower(c); });
    return result;
+}
+
+void Floatrates_downloader::download() {
+   const string DOC = get_by_asio();
+   float_rates->set_document(DOC);
+   float_rates->set_rates_from_doc();
+   map <string, float_rates_info> rates = float_rates->float_rates();
+   for (const pair<string, float_rates_info> &p : rates) 
+      cout << " 1 " << currency << " = " << p.second.rate << " " << p.second.code << " and "
+         << " 1 " << p.second.code << " = " << p.second.inverse_rate << " " << currency << endl;
 }

@@ -15,11 +15,6 @@ public:
                          const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
       cerr << " Constructor " << __func__ << '\n';
       downloader = new Asio_downloader(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION); }
-      
-   void download() override {
-      doc = downloader->download();
-      modify_document();
-   }
    
    Json_downloader(const Json_downloader& other) {
       cerr << " COPY Constructor " << __func__ << '\n';
@@ -61,6 +56,11 @@ public:
 	}
 
    ~Json_downloader() { cerr << __func__ << '\n'; delete downloader; }
+   
+   void download() override {
+      doc = downloader->download();
+      modify_document();
+   }
    
    string get() const { return doc; };   
    Asio_downloader * get_asio_downloader() const { return downloader; }; 
