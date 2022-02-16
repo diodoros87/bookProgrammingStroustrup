@@ -17,7 +17,7 @@ const Connection Floatrates_downloader::ST_CONNECTION = Connection::close;
 
 template <const bool FLAG>
 string Floatrates_downloader::get_by_asio() {
-   using Downloader = std::conditional_t<FLAG, Json_downloader, Json_downloader>;
+   using Downloader = std::conditional_t<FLAG, Json_downloader, Xml_downloader>;
    cerr << __func__ << " currency = " << currency << '\n';
    const string DIRECTORY = "/daily/" + currency + (FLAG ? ".json" : ".xml");
    //const string DIRECTORY = "/";            // "/" is root (main page of host) and "" has result 400 Bad Request
@@ -42,6 +42,8 @@ void Floatrates_downloader::set_format(const File_format & FORMAT) {
          delete float_rates;
          float_rates = new Float_rates_json("", false);
          break;
+      case File_format::NONE :
+         throw invalid_argument(__func__ + string(" file format NONE is not allowed"));
       default:
          throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)));
    }

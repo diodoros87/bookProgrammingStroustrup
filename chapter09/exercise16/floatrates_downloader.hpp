@@ -6,6 +6,7 @@
 #include "floatrates_json.hpp"
 #include "asio_downloader.hpp"
 #include "json_downloader.hpp"
+#include "xml_downloader.hpp"
 
 #include <functional>
 
@@ -19,7 +20,7 @@ class Floatrates_downloader {
    static const Connection ST_CONNECTION;
    
    string currency;
-   File_format format = File_format::JSON;
+   File_format format = File_format::NONE;
    Float_rates * float_rates = nullptr;
    
    typedef  string (Floatrates_downloader::*Getter)();

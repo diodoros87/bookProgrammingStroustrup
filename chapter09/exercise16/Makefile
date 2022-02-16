@@ -59,8 +59,8 @@ ${LIBXMLNAME}/${LIBXMLNAME}.o: ${LIBXML_HEADER_DIR}/${LIBXMLNAME}.cpp
 
 
 
-money_test: money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o money_currency_test.o json_downloader_test.o floatrates_downloader.o floatrates_json.o
-	$(CXX) $(CPPFLAGS) -lpthread -o money_test money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o money_currency_test.o json_downloader_test.o floatrates_downloader.o floatrates_json.o
+money_test: money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o money_currency_test.o json_downloader_test.o floatrates_downloader.o floatrates_json.o xml_downloader.o 
+	$(CXX) $(CPPFLAGS) -lpthread -o money_test money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o money_currency_test.o json_downloader_test.o floatrates_downloader.o floatrates_json.o xml_downloader.o
 
 fundamental_test: fundamental_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o fundamental_test fundamental_test.o integer.o integer_parsing.o parsing_test.o
@@ -77,11 +77,11 @@ random_tests: random_tests.o integer.o integer_parsing.o command_line.o
 integer_test: integer_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o integer_test integer_test.o integer.o integer_parsing.o parsing_test.o
 	
-json_downloader_test.o: json_downloader_test.cpp json_downloader.hpp json_downloader.cpp network.hpp network.cpp asio_downloader.cpp asio_downloader.hpp
+json_downloader_test.o: json_downloader_test.cpp json_downloader.hpp json_downloader.cpp network.hpp network.cpp asio_downloader.cpp asio_downloader.hpp xml_downloader.cpp xml_downloader.hpp 
 	$(CXX) $(CPPFLAGS) -c json_downloader_test.cpp
 	
 
-money_test.o: money_test.cpp money.cpp money_init_test.hpp money_init_test.cpp integers_extremums_tests.hpp money_utility_test.hpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_operations_test.hpp money_operations_test.cpp money_currency_test.hpp money_currency_test.cpp floatrates_json.hpp floatrates_json.cpp
+money_test.o: money_test.cpp money.cpp money_init_test.hpp money_init_test.cpp integers_extremums_tests.hpp money_utility_test.hpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_operations_test.hpp money_operations_test.cpp money_currency_test.hpp money_currency_test.cpp floatrates_json.hpp floatrates_json.cpp floatrates_downloader.hpp floatrates_downloader.cpp xml_downloader.cpp xml_downloader.hpp 
 	$(CXX) $(CPPFLAGS) -c money_test.cpp
 	
 money_currency_test.o: money_currency_test.cpp money_currency_test.hpp money_init_test.cpp money_init_test.hpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_utility_test.hpp money_utility.cpp

@@ -16,8 +16,8 @@ void Xml_downloader::erase(const char C, const char A) {
 }
 
 void Xml_downloader::modify_document() {
-   cerr << __func__ << '\n';
-   cerr << doc << '\n';
+   //cerr << __func__ << '\n';
+   //cerr << doc << '\n';
    size_t first = doc.find("{");
    doc = doc.substr(first);
    size_t last = doc.rfind("}");

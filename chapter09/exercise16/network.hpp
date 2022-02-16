@@ -12,8 +12,8 @@ using std::tuple_size;
 
 namespace network {
    
-enum class Network_library { ASIO, CURL };
-enum class File_format { JSON, XML };
+enum class Network_library { NONE, ASIO, CURL };
+enum class File_format { NONE, JSON, XML };
 
 template<class Type>
 inline bool is_valid(const int INDEX, const Type& object) {

@@ -194,6 +194,8 @@ map <string, long double> & set_rates_per_USD(const Network_library & library, c
          else
             throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)) + " for CURL ");
          break; */
+      case Network_library::NONE :
+         throw invalid_argument(__func__ + string(" network library NONE is not allowed"));
       default:
          throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library)));
    }
