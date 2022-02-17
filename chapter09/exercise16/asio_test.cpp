@@ -1,13 +1,18 @@
+
 #include "floatrates_downloader.hpp"
 
 using namespace std;
 using namespace network;
 
 void view_document(const string & CURRENCY, const string & JSON_DOC) {
-   Float_rates_json floatrates = { "", false };
-   floatrates.set_document(JSON_DOC);
-   floatrates.set_rates_from_doc();
-   map <string, float_rates_info> rates = floatrates.float_rates();
+   #ifdef __clang__
+   Float_rates_json  float_rates = {"", false };
+#elif defined(__GNUG__)
+   Float_rates_json  float_rates = {""};
+#endif
+   float_rates.set_document(JSON_DOC);
+   float_rates.set_rates_from_doc();
+   map <string, float_rates_info> rates = float_rates.float_rates();
    for (const pair<string, float_rates_info> &p : rates) 
       cout << " 1 " << CURRENCY << " = " << p.second.rate << " " << p.second.code << " and "
          << " 1 " << p.second.code << " = " << p.second.inverse_rate << " " << CURRENCY << endl;

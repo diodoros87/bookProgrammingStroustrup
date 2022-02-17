@@ -16,11 +16,15 @@ struct float_rates_info {
 
 class Float_rates {
 public:   
+#ifdef __clang__
    Float_rates(const string & DOCUMENT, bool setting_rates = true) { 
       document = DOCUMENT;
       if (setting_rates)
-         set_rates_from_doc();
+         set_rates_from_doc();   // in g++ undefined reference to `Float_rates::set_rates_from_doc()'
    }
+#elif defined(__GNUG__)
+   Float_rates(const string & DOCUMENT) { document = DOCUMENT; }
+#endif
    
    virtual void set_rates_from_doc() = 0;
    void set_document(const string & DOCUMENT) {

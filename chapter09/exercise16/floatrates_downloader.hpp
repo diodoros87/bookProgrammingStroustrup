@@ -23,6 +23,15 @@ class Floatrates_downloader {
    File_format format = File_format::NONE;
    Float_rates * float_rates = nullptr;
    
+   inline void set_float_rates() {
+      delete float_rates;
+#ifdef __clang__
+      float_rates = new Float_rates_json { "", false };
+#elif defined(__GNUG__)
+      float_rates = new Float_rates_json {""};
+#endif
+   }
+   
    typedef  string (Floatrates_downloader::*Getter)();
    //string (Floatrates_downloader::*)<const bool>() getter = &Floatrates_downloader::get_by_asio<true>();
    Getter getter = &Floatrates_downloader::get_by_asio<true>;

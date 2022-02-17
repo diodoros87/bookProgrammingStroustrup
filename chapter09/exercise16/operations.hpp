@@ -39,7 +39,9 @@ struct Operations {
       cerr << std::showpos << "\n number: " << N_1 << " + " << N_2 << " = " << number_result;
       Integer object_result   = O_1 + O_2;
       cerr << "\n object: " << O_1 << " + " << O_2 << " = " << object_result << '\n';
+#ifndef NDEBUG
       ASSERT_CONDITIONAL(number_result, object_result, FLAG);
+#endif
    }
    
    static void subtract(const Number & N_1, const Number & N_2, const Integer & O_1, const Integer & O_2) {
@@ -48,7 +50,9 @@ struct Operations {
       cerr << std::showpos << "\n number: " << N_1 << " - " << N_2 << " = " << number_result;
       Integer object_result   = O_1 - O_2;
       cerr << "\n object: " << O_1 << " - " << O_2 << " = " << object_result << '\n';
+#ifndef NDEBUG
       ASSERT_CONDITIONAL(number_result, object_result, FLAG);
+#endif
    }
    
    static void multiply(const Number & N_1, const Number & N_2, const Integer & O_1, const Integer & O_2) {
@@ -57,7 +61,9 @@ struct Operations {
       cerr << std::showpos << "\n number: " << N_1 << " * " << N_2 << " = " << number_result;
       Integer object_result   = O_1 * O_2;
       cerr << "\n object: " << O_1 << " * " << O_2 << " = " << object_result << '\n';
+#ifndef NDEBUG
       ASSERT_CONDITIONAL(number_result, object_result, FLAG);
+#endif
    }
    
    static void divide(const Number & N_1, const Number & N_2, const Integer & O_1, const Integer & O_2) {
@@ -68,7 +74,9 @@ struct Operations {
       cerr << std::showpos << "\n number: " << N_1 << " / " << N_2 << " = " << number_result;
       Integer object_result   = O_1 / O_2;
       cerr << "\n object: " << O_1 << " / " << O_2 << " = " << object_result << '\n';
+#ifndef NDEBUG
       ASSERT_CONDITIONAL(number_result, object_result, FLAG);
+#endif
    }
    
    static void modulo(const Number & N_1, const Number & N_2, const Integer & O_1, const Integer & O_2) {
@@ -79,7 +87,9 @@ struct Operations {
       cerr << std::showpos << "\n number: " << N_1 << " % " << N_2 << " = " << number_result;
       Integer object_result   = O_1 % O_2;
       cerr << "\n object: " << O_1 << " % " << O_2 << " = " << object_result << '\n';
+#ifndef NDEBUG
       ASSERT_CONDITIONAL(number_result, object_result, FLAG);
+#endif
    }
    
    static void compare(const Number & N_1, const Number & N_2, const Integer & O_1, const Integer & O_2) {
@@ -98,13 +108,19 @@ struct Operations {
    
    static inline void check_unary(const Number & number, const Integer & object) {
       cerr << " Base::check_unary " << '\n';
+#ifndef NDEBUG
       ASSERT_CONDITIONAL(number, object, FLAG);
+#endif
       Number lvalue_number = +number;
       Integer lvalue_object = +object;
+#ifndef NDEBUG
       ASSERT_CONDITIONAL(lvalue_number, lvalue_object, FLAG);
+#endif
       lvalue_number = -number;
       lvalue_object = -object;
+#ifndef NDEBUG
       ASSERT_CONDITIONAL(lvalue_number, lvalue_object, FLAG);
+#endif
    }
 };
 

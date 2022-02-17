@@ -34,13 +34,11 @@ void Floatrates_downloader::set_format(const File_format & FORMAT) {
    switch (FORMAT) {
       case File_format::JSON :
          getter = &Floatrates_downloader::get_by_asio<true>; 
-         delete float_rates;
-         float_rates = new Float_rates_json("", false);
+         set_float_rates();
          break;
       case File_format::XML :
          getter = &Floatrates_downloader::get_by_asio<false>;
-         delete float_rates;
-         float_rates = new Float_rates_json("", false);
+         set_float_rates();
          break;
       case File_format::NONE :
          throw invalid_argument(__func__ + string(" file format NONE is not allowed"));
