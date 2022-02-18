@@ -7,6 +7,7 @@
 
 using std::string;
 using std::map;
+using std::pair;
 
 struct float_rates_info {
    string code;
@@ -68,6 +69,7 @@ private:
    
 public:
    virtual ~Float_rates() { };
+   virtual Float_rates * clone() const = 0;
 protected:
    Float_rates(const Float_rates &) = default;
    Float_rates(Float_rates &&) = default;

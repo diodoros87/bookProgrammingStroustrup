@@ -10,8 +10,8 @@
 using std::cerr;
 using std::unique_ptr;
 
-template<class T> 
-inline T& unmove(T&& t) { return t; }
+//template<class T> 
+//inline T& unmove(T&& t) { return t; }
 
 class Xml_downloader : Doc_downloader {
    unique_ptr<Asio_downloader> downloader;
@@ -81,8 +81,9 @@ public:
    
    void download() override {
       doc = downloader->download();
-      modify_document();
       cerr << __func__ << doc << '\n';
+      modify_document();
+      
    }
    
    string get() const { return doc; };   

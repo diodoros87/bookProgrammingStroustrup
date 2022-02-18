@@ -70,8 +70,8 @@ static inline  bool call_function(Function && func, Args&&... args) {
    return result;
 }
 
-namespace test_json_downloader {
-   extern void test_json_downloader();
+namespace downloaders_test {
+   extern void downloaders_test();
 }
 
 bool perform_tests() {
@@ -81,7 +81,7 @@ bool perform_tests() {
    initializer_list < function <void()> > vec = { //bind(money_init_test::perform), 
       //bind(money_operations_test::perform),
       //bind(money_currency_test::perform),
-      bind(test_json_downloader::test_json_downloader)
+      bind(downloaders_test::downloaders_test)
       
    };
    bool result = false;

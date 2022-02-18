@@ -40,8 +40,6 @@ void Floatrates_downloader::set_format(const File_format & FORMAT) {
          getter = &Floatrates_downloader::get_by_asio<false>;
          set_float_rates();
          break;
-      case File_format::NONE :
-         throw invalid_argument(__func__ + string(" file format NONE is not allowed"));
       default:
          throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)));
    }
@@ -65,4 +63,55 @@ void Floatrates_downloader::download() {
    for (const pair<string, float_rates_info> &p : rates) 
       cout << " 1 " << currency << " = " << p.second.rate << " " << p.second.code << " and "
          << " 1 " << p.second.code << " = " << p.second.inverse_rate << " " << currency << endl;
+}
+
+Floatrates_downloader::Floatrates_downloader(const Floatrates_downloader& other) 
+   : currency(other.currency), format(other.format) {
+   cerr << " COPY Constructor " << __func__ << '\n';
+   if (nullptr != other.float_rates) {
+      if (typeid(*(other.float_rates)) == typeid(Float_rates_json) || typeid(*(other.float_rates)) == typeid(Float_rates_xml))
+         float_rates = other.float_rates->clone();
+      //else if (typeid(*(other.float_rates)) == typeid(Float_rates_xml))
+      //   float_rates = new Float_rates_xml(*(other.float_rates));
+      else
+         throw invalid_argument(string(__func__) + " unsupported type " + typeid(*(other.float_rates)).name());
+   }
+}
+
+Floatrates_downloader& Floatrates_downloader::operator=(const Floatrates_downloader& other) {
+   cerr << " COPY " << __func__ << '\n';
+   if (&other != this) {
+      delete float_rates;
+      if (nullptr == other.float_rates)
+         float_rates = nullptr;
+      else if (const Float_rates_json * const ptr = dynamic_cast< Float_rates_json *> (other.float_rates))
+         float_rates = new Float_rates_json(*ptr);
+      else if (const Float_rates_xml * const ptr = dynamic_cast< Float_rates_xml *> (other.float_rates))
+         float_rates = new Float_rates_xml(*ptr);
+      else
+         throw invalid_argument(string(__func__) + " unsupported type " + typeid(*(other.float_rates)).name());
+      currency = other.currency;
+      format = other.format;
+   }
+   return *this;
+}
+
+Floatrates_downloader::Floatrates_downloader(Floatrates_downloader&& other) noexcept
+   : currency(other.currency), format(other.format), float_rates(other.float_rates) {
+   cerr << " MOVE Constructor " << __func__ << '\n';
+   other.float_rates = nullptr;
+   other.currency = "";
+}
+
+Floatrates_downloader& Floatrates_downloader::operator=(Floatrates_downloader&& other) noexcept {
+   cerr << " MOVE " << __func__ << '\n';
+   if (&other != this) {
+      delete float_rates;
+      float_rates = other.float_rates;
+      other.float_rates = nullptr;
+      currency = other.currency;
+      other.currency = "";
+      format = other.format;
+   }
+   return *this;
 }

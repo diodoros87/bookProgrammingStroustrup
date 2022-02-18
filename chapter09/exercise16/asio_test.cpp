@@ -1,14 +1,17 @@
 
-#include "floatrates_downloader.hpp"
+
+#include "floatrates_test.hpp"
 
 using namespace std;
-using namespace network;
+using namespace float_rates_test;
 
-void view_document(const string & CURRENCY, const string & JSON_DOC) {
-   #ifdef __clang__
-   Float_rates_json  float_rates = {"", false };
+/*
+void view_document(const File_format & format, const string & CURRENCY, const string & JSON_DOC) {
+   using Downloader = std::conditional_t<FLAG, Float_rates_json, Float_rates_xml>;
+#ifdef __clang__
+   Downloader  float_rates = {"", false };
 #elif defined(__GNUG__)
-   Float_rates_json  float_rates = {""};
+   Downloader  float_rates = {""};
 #endif
    float_rates.set_document(JSON_DOC);
    float_rates.set_rates_from_doc();
@@ -17,31 +20,38 @@ void view_document(const string & CURRENCY, const string & JSON_DOC) {
       cout << " 1 " << CURRENCY << " = " << p.second.rate << " " << p.second.code << " and "
          << " 1 " << p.second.code << " = " << p.second.inverse_rate << " " << CURRENCY << endl;
 }
+*/
 
 int main() {
    try {
-      const string CURRENCY = "PLN";
-      Floatrates_downloader downloder(File_format::XML, CURRENCY);
-      const string DOC = downloder.get_by_asio();
-      view_document(CURRENCY, DOC);
+      float_rates_test::test();
       return 0;
    }
    catch (const nlohmann::json::exception & e) {
-      cerr << "!!! Error json exception: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << "  Error json exception: " << e.what() << '\n';
    }
    catch (const Asio_IO_Stream_Exception & e) {
-      cerr << e.what() << endl;
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
    }
    catch (const asio::system_error &e) {
       cerr << "!!! System Error ! Error code = " << e.code()
            << "\n Message: " << e.what();
       return e.code().value();
+   } 
+   catch (const std::invalid_argument& e) {
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
+   }
+   catch (const std::bad_cast& e) {
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
+   } 
+   catch (const std::bad_alloc & e) {
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
    }
    catch (const exception & e) {
-      cerr << "Exception: " << e.what() << endl;
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
    }
    catch (...) {
-      cerr << "Unrecognized Exception: " <<  endl;
+      cerr << __func__ << " " << "Unrecognized Exception: " <<  endl;
    }
    return 1;
 }

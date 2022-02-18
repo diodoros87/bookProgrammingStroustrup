@@ -4,6 +4,8 @@
 #include "network.hpp"
 #include "floatrates.hpp"
 #include "floatrates_json.hpp"
+#include "floatrates_xml.hpp"
+#include "factory.hpp"
 #include "asio_downloader.hpp"
 #include "json_downloader.hpp"
 #include "xml_downloader.hpp"
@@ -23,6 +25,10 @@ class Floatrates_downloader {
    File_format format = File_format::NONE;
    Float_rates * float_rates = nullptr;
    
+   typedef  string (Floatrates_downloader::*Getter)();
+   //string (Floatrates_downloader::*)<const bool>() getter = &Floatrates_downloader::get_by_asio<true>();
+   Getter getter = &Floatrates_downloader::get_by_asio<true>;
+   
    inline void set_float_rates() {
       delete float_rates;
 #ifdef __clang__
@@ -32,16 +38,15 @@ class Floatrates_downloader {
 #endif
    }
    
-   typedef  string (Floatrates_downloader::*Getter)();
-   //string (Floatrates_downloader::*)<const bool>() getter = &Floatrates_downloader::get_by_asio<true>();
-   Getter getter = &Floatrates_downloader::get_by_asio<true>;
-   
    template <const bool FLAG>
    string get_by_asio(); 
 public:
    Floatrates_downloader(const File_format & FORMAT, const string & CURRENCY = "usd") 
-      : currency(format_currency(CURRENCY)) 
-          { set_format(FORMAT); }
+            : currency(format_currency(CURRENCY)) { 
+      if (FORMAT == File_format::NONE)
+         throw std::invalid_argument(__func__ + string(" file format NONE is not allowed"));
+      set_format(FORMAT); 
+   }
 
    static string format_currency(const string & CURRENCY);
    
@@ -65,7 +70,11 @@ public:
    
    void download();
    
+   Floatrates_downloader(const Floatrates_downloader &);
+   Floatrates_downloader(Floatrates_downloader &&) noexcept;
+   Floatrates_downloader & operator=(const Floatrates_downloader &);
+   Floatrates_downloader & operator=(Floatrates_downloader &&) noexcept;
    ~Floatrates_downloader() { delete float_rates; }
-;};
+};
 
 #endif

@@ -18,9 +18,9 @@ void Xml_downloader::erase(const char C, const char A) {
 void Xml_downloader::modify_document() {
    //cerr << __func__ << '\n';
    //cerr << doc << '\n';
-   size_t first = doc.find("{");
+   size_t first = doc.find("<?xml version=");
    doc = doc.substr(first);
-   size_t last = doc.rfind("}");
+   size_t last = doc.rfind("</channel>");
    doc = doc.substr(0, last + 1);
    erase('\r', '\n');
 }
