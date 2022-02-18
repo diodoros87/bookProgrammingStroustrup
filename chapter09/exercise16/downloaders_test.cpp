@@ -27,7 +27,7 @@ inline static bool assert_downloader(const D & j1, const D & j2) {
    const Asio_downloader * const a2 = j2.get_asio_downloader();
    if (a1 == nullptr || a2 == nullptr)
       return false;
-   return (a1 != a2) && assert_asio(*a1, *a2);
+   return (a1 != a2) && assert_asio(*a1, *a2) && j1.get() == j2.get();
    /*
    assert(a1->get_host() == a2->get_host());
    assert(a1->get_method() == a2->get_method());

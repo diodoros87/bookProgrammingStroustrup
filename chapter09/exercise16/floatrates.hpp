@@ -13,12 +13,18 @@ struct float_rates_info {
    string code;
    long double rate;
    long double inverse_rate;
+   
+   bool operator==(const float_rates_info & other) const {
+      return code == other.code && rate == other.rate && inverse_rate == other.inverse_rate; }
+   
+   bool operator!=(const float_rates_info & other) const {
+      return ! operator==(other); }
 };
 
 class Float_rates {
 public:   
 #ifdef __clang__
-   Float_rates(const string & DOCUMENT, bool setting_rates = true) { 
+   Float_rates(const string & DOCUMENT, bool setting_rates = false) { 
       document = DOCUMENT;
       if (setting_rates)
          set_rates_from_doc();   // in g++ undefined reference to `Float_rates::set_rates_from_doc()'
@@ -35,6 +41,8 @@ public:
          inverse_valid = false;
       }
    }
+   
+   string get_document() const { return document; }
    
    map<string, long double> rates() const {  
       return get_rates(RATE, rates_map, rates_valid); }

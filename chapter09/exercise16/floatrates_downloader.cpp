@@ -84,9 +84,9 @@ Floatrates_downloader& Floatrates_downloader::operator=(const Floatrates_downloa
       delete float_rates;
       if (nullptr == other.float_rates)
          float_rates = nullptr;
-      else if (const Float_rates_json * const ptr = dynamic_cast< Float_rates_json *> (other.float_rates))
+      else if (Float_rates_json * ptr = dynamic_cast< Float_rates_json *> (other.float_rates))
          float_rates = new Float_rates_json(*ptr);
-      else if (const Float_rates_xml * const ptr = dynamic_cast< Float_rates_xml *> (other.float_rates))
+      else if (Float_rates_xml * ptr = dynamic_cast< Float_rates_xml *> (other.float_rates))
          float_rates = new Float_rates_xml(*ptr);
       else
          throw invalid_argument(string(__func__) + " unsupported type " + typeid(*(other.float_rates)).name());

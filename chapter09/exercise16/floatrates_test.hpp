@@ -13,8 +13,8 @@ void test();
 using network::File_format;
 
 class Float_rates_test {
-   File_format format = File_format::NONE;
    string currency;
+   File_format format = File_format::NONE;
    Float_rates * rates_ptr = nullptr;
 public:   
    Float_rates_test(const File_format & f, const string & c) : currency(c) {
@@ -73,6 +73,10 @@ public:
       }
 		return *this;
 	}
+	
+	Float_rates * const& get_float_rates() const { return rates_ptr; }
+	string get_currency() const { return currency; }
+	File_format get_format() const { return format; }
    
    Float_rates_test(Float_rates_test const &) = delete;
    Float_rates_test& operator=(Float_rates_test const &) = delete;
