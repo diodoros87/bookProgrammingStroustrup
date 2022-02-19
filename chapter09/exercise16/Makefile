@@ -44,7 +44,7 @@ endif
 $(CURL_TEST): directories ${CURL_TEST}.o ${LIBXML}
 	${CXX} $(CPPFLAGS) ${CURL_TEST}.o ${LPATH} ${LIBS}  -o ${CURL_TEST}
 
-${CURL_TEST}.o: ${CURL_TEST}.cpp curl_manager.hpp xml_processing.hpp
+${CURL_TEST}.o: ${CURL_TEST}.cpp curl_manager.hpp xml_processing.hpp xml_nbp.hpp
 	${CXX} -c $(CPPFLAGS) ${IPATH}  $< -o $@
 
 directories:
@@ -80,7 +80,6 @@ integer_test: integer_test.o integer.o integer_parsing.o parsing_test.o
 downloaders_test.o: downloaders_test.cpp json_downloader.hpp json_downloader.cpp network.hpp network.cpp asio_downloader.cpp asio_downloader.hpp xml_downloader.cpp xml_downloader.hpp 
 	$(CXX) $(CPPFLAGS) -c downloaders_test.cpp
 	
-
 money_test.o: money_test.cpp money.cpp money_init_test.hpp money_init_test.cpp integers_extremums_tests.hpp money_utility_test.hpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_operations_test.hpp money_operations_test.cpp money_currency_test.hpp money_currency_test.cpp floatrates_json.hpp floatrates_json.cpp floatrates_downloader.hpp floatrates_downloader.cpp xml_downloader.cpp xml_downloader.hpp 
 	$(CXX) $(CPPFLAGS) -c money_test.cpp
 	

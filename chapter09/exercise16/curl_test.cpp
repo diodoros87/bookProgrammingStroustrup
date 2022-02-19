@@ -1,4 +1,4 @@
-#include "xml_processing.hpp"
+#include "xml_nbp.hpp"
 #include "curl_manager.hpp"
 
 using namespace std;

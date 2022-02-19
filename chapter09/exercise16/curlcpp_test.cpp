@@ -1,4 +1,4 @@
-#include "xml_processing.hpp"
+#include "xml_nbp.hpp"
 
 #include <iostream>
 #include <string>
@@ -9,7 +9,6 @@
 #include "curl_ios.h"
 
 using namespace curl;
-using namespace xml_NBP;
 using namespace std; 
 
 using namespace xml_NBP;

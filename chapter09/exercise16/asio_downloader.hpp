@@ -69,6 +69,14 @@ public:
       return *this;
    }
    Asio_downloader & operator=(Asio_downloader &&) = default;
+   
+   bool operator==(const Asio_downloader & other) const {
+      return get_host() == other.get_host() && get_method() == other.get_method()
+         && get_directory() == other.get_directory() && get_cache_control() == other.get_cache_control() 
+         && get_connection() == other.get_connection() && get_HTTP_VERSION() == other.get_HTTP_VERSION(); }
+   
+   bool operator!=(const Asio_downloader & other) const {
+      return ! operator==(other); }
 private:
    string get_document() const;
    void process_response_headers(asio::ip::tcp::iostream & socket_iostream) const;

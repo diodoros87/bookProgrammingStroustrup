@@ -6,11 +6,9 @@
 using namespace std;
 
 namespace downloaders_test {
-   
+   /*
 inline static bool assert_asio(const Asio_downloader & a1, const Asio_downloader & a2) {
-   return (a1.get_host() == a2.get_host()) && (a1.get_method() == a2.get_method()) &&
-   (a1.get_directory() == a2.get_directory()) && (a1.get_cache_control() == a2.get_cache_control()) && 
-   (a1.get_connection() == a2.get_connection()) && (a1.get_HTTP_VERSION() == a2.get_HTTP_VERSION());
+   return a1 == a2;
    /*
    assert(a1.get_host() == a2.get_host());
    assert(a1.get_method() == a2.get_method());
@@ -18,16 +16,16 @@ inline static bool assert_asio(const Asio_downloader & a1, const Asio_downloader
    assert(a1.get_cache_control() == a2.get_cache_control());
    assert(a1.get_connection() == a2.get_connection());
    assert(a1.get_HTTP_VERSION() == a2.get_HTTP_VERSION());
-   */
-}
    
+}
+   */
 template <class D>
 inline static bool assert_downloader(const D & j1, const D & j2) {
    const Asio_downloader * const a1 = j1.get_asio_downloader();
    const Asio_downloader * const a2 = j2.get_asio_downloader();
    if (a1 == nullptr || a2 == nullptr)
       return false;
-   return (a1 != a2) && assert_asio(*a1, *a2) && j1.get() == j2.get();
+   return a1 != a2 && *a1 == *a2 && j1.get() == j2.get();
    /*
    assert(a1->get_host() == a2->get_host());
    assert(a1->get_method() == a2->get_method());
@@ -145,14 +143,14 @@ static void test() {
    const string & currency = "pln";
    Asio_downloader a1("www.floatrates.com", Method::get, "/daily/" + currency + ".json", Cache_control::no_store, Connection::close);
    Asio_downloader a2 { a1 };
-   assert(assert_asio(a1, a2));
+   assert(a1 == a2);
    Asio_downloader a3 { std::move(a2) };
-   assert(assert_asio(a1, a3));
-   //assert_asio(a1, a2);
+   assert(a1 == a3);
+   assert(a1 != a2);
    a3 = a1;
-   assert(assert_asio(a1, a3));
+   assert(a1 == a3);
    a3 = std::move(a1);
-   assert(assert_asio(a1, a3));
+   assert(a1 == a3);
    
    using Downloader = std::conditional_t<FLAG, Json_downloader, Xml_downloader>;
    

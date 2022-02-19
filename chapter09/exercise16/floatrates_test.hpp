@@ -12,6 +12,11 @@ void test();
    
 using network::File_format;
 
+inline static bool assert_floatrates(const Float_rates & a1, const Float_rates & a2) {
+   return (a1.get_document() == a2.get_document()) && (a1.float_rates() == a2.float_rates()) &&
+   (a1.inverse_rates() == a2.inverse_rates()) && (a1.rates() == a2.rates());
+}
+
 class Float_rates_test {
    string currency;
    File_format format = File_format::NONE;
@@ -81,6 +86,20 @@ public:
    Float_rates_test(Float_rates_test const &) = delete;
    Float_rates_test& operator=(Float_rates_test const &) = delete;
    ~Float_rates_test() { delete rates_ptr; }
+   
+   bool operator==(const Float_rates_test & other) const {
+      bool result = currency == other.currency && format == other.format;
+      if (! result)
+         return result;
+      if (rates_ptr == nullptr && other.rates_ptr == nullptr)
+         return true;
+      if (rates_ptr != nullptr && other.rates_ptr != nullptr && assert_floatrates(*rates_ptr, *other.rates_ptr))
+         return true;
+      return false;
+   }
+   
+   bool operator!=(const Float_rates_test & other) const {
+      return ! operator==(other); }
 };
 
 }
