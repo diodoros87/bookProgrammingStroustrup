@@ -183,8 +183,8 @@ map <string, long double> & set_rates_per_USD(const Network_library & library, c
    const string USD = "USD";
    switch (library) {
       case Network_library::ASIO :
-         if (format == File_format::JSON) 
-            result = get_by_asio(File_format::JSON, USD);
+         if (format == File_format::JSON || format == File_format::XML) 
+            result = get_by_asio(format, USD);
          else
             throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)) + " for ASIO ");
          break; /*

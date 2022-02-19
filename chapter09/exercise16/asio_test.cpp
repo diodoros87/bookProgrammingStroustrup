@@ -1,9 +1,9 @@
 
-
 #include "floatrates_test.hpp"
 
 using namespace std;
 using namespace float_rates_test;
+using namespace xml_processing;
 
 /*
 void view_document(const File_format & format, const string & CURRENCY, const string & JSON_DOC) {
@@ -28,7 +28,13 @@ int main() {
       return 0;
    }
    catch (const nlohmann::json::exception & e) {
-      cerr  << __func__ << " " << typeid(e).name() << "  Error json exception: " << e.what() << '\n';
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
+   }
+   catch (pugi::xpath_exception const & e) {
+      cerr << "!!! Error xpath_exception exception: "  << typeid(e).name() << e.result().description() << '\n';
+   }
+   catch (const Xml_processing::Exception & e) {
+      cerr << __func__  << typeid(e).name() << " : " << e.what() << '\n';
    }
    catch (const Asio_IO_Stream_Exception & e) {
       cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';

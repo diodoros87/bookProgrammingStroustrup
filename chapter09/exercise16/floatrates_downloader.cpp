@@ -34,11 +34,11 @@ void Floatrates_downloader::set_format(const File_format & FORMAT) {
    switch (FORMAT) {
       case File_format::JSON :
          getter = &Floatrates_downloader::get_by_asio<true>; 
-         set_float_rates();
+         set_float_rates<true>();
          break;
       case File_format::XML :
          getter = &Floatrates_downloader::get_by_asio<false>;
-         set_float_rates();
+         set_float_rates<false>();
          break;
       default:
          throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)));

@@ -29,12 +29,14 @@ class Floatrates_downloader {
    //string (Floatrates_downloader::*)<const bool>() getter = &Floatrates_downloader::get_by_asio<true>();
    Getter getter = &Floatrates_downloader::get_by_asio<true>;
    
+   template <const bool FLAG>
    inline void set_float_rates() {
+      using Downloader = std::conditional_t<FLAG, Float_rates_json, Float_rates_xml>;
       delete float_rates;
 #ifdef __clang__
-      float_rates = new Float_rates_json { "", false };
+      float_rates = new Downloader { "", false };
 #elif defined(__GNUG__)
-      float_rates = new Float_rates_json {""};
+      float_rates = new Downloader {""};
 #endif
    }
    

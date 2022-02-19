@@ -19,12 +19,6 @@ PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests gmp_test_
 .PHONY: clean all
 
 all: $(PROGRAMS)
-
-asio_test: asio_test.o floatrates.o network.o json_downloader.o asio_downloader.o floatrates_downloader.o xml_downloader.o floatrates_json.o floatrates_xml.o floatrates_test.o downloaders_test.o
-	$(CXX) $(CPPFLAGS) -lpthread -o asio_test asio_test.o floatrates.o network.o json_downloader.o asio_downloader.o floatrates_downloader.o xml_downloader.o floatrates_json.o floatrates_xml.o floatrates_test.o downloaders_test.o
-	
-asio_test.o: asio_test.cpp floatrates.hpp network.hpp network.cpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp floatrates_downloader.hpp floatrates_downloader.cpp xml_downloader.cpp xml_downloader.hpp floatrates_json.hpp floatrates_json.cpp floatrates_xml.hpp floatrates_xml.cpp floatrates_test.cpp floatrates_test.hpp downloaders_test.cpp
-	$(CXX) $(CPPFLAGS) -c asio_test.cpp -o asio_test.o
 	
 LIBXMLNAME = pugixml
 LIBXML = ${LIBXMLNAME}/lib${LIBXMLNAME}.a
@@ -41,6 +35,14 @@ else ifeq ($(CXX), clang++)
 
 endif
 
+CPPFLAGS += -I${LIBXML_HEADER_DIR}
+
+asio_test: directories ${LIBXML} asio_test.o floatrates.o network.o json_downloader.o asio_downloader.o floatrates_downloader.o xml_downloader.o floatrates_json.o floatrates_xml.o floatrates_test.o downloaders_test.o xml_processing.o
+	$(CXX) $(CPPFLAGS)  asio_test.o floatrates.o network.o json_downloader.o asio_downloader.o floatrates_downloader.o xml_downloader.o floatrates_json.o floatrates_xml.o floatrates_test.o downloaders_test.o xml_processing.o -L${LIBXMLNAME} -l${LIBXMLNAME} -lpthread -o asio_test
+	
+asio_test.o: asio_test.cpp floatrates.hpp network.hpp network.cpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp floatrates_downloader.hpp floatrates_downloader.cpp xml_downloader.cpp xml_downloader.hpp floatrates_json.hpp floatrates_json.cpp floatrates_xml.hpp floatrates_xml.cpp floatrates_test.cpp floatrates_test.hpp downloaders_test.cpp xml_processing.cpp xml_processing.hpp
+	$(CXX) $(CPPFLAGS) -c asio_test.cpp -o asio_test.o
+
 $(CURL_TEST): directories ${CURL_TEST}.o ${LIBXML}
 	${CXX} $(CPPFLAGS) ${CURL_TEST}.o ${LPATH} ${LIBS}  -o ${CURL_TEST}
 
@@ -56,11 +58,8 @@ ${LIBXML}: ${LIBXMLNAME}/${LIBXMLNAME}.o
 ${LIBXMLNAME}/${LIBXMLNAME}.o: ${LIBXML_HEADER_DIR}/${LIBXMLNAME}.cpp
 	${CXX} -c $(CPPFLAGS) -I${LIBXML_HEADER_DIR}  $< -o $@
 
-
-
-
-money_test: money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o money_currency_test.o downloaders_test.o floatrates_downloader.o floatrates_json.o xml_downloader.o floatrates_xml.o
-	$(CXX) $(CPPFLAGS) -lpthread -o money_test money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o money_currency_test.o downloaders_test.o floatrates_downloader.o floatrates_json.o xml_downloader.o floatrates_xml.o
+money_test: directories ${LIBXML} money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o money_currency_test.o downloaders_test.o floatrates_downloader.o floatrates_json.o xml_downloader.o floatrates_xml.o xml_processing.o
+	$(CXX) $(CPPFLAGS) money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o money_currency_test.o downloaders_test.o floatrates_downloader.o floatrates_json.o xml_downloader.o floatrates_xml.o xml_processing.o -L${LIBXMLNAME} -lpthread -l${LIBXMLNAME} -o money_test
 
 fundamental_test: fundamental_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o fundamental_test fundamental_test.o integer.o integer_parsing.o parsing_test.o
@@ -92,13 +91,16 @@ money_operations_test.o: money_operations_test.cpp money_operations_test.hpp mon
 money_init_test.o: money_init_test.cpp money_init_test.hpp money.cpp money.hpp integer.hpp integer_parsing.hpp assertions.hpp integers_extremums_tests.hpp money_utility_test.hpp
 	$(CXX) $(CPPFLAGS) -c money_init_test.cpp
 	
-money.o: money.cpp money.hpp money_utility.cpp floatrates.hpp network.hpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp network.cpp floatrates_downloader.hpp floatrates_downloader.cpp
+money.o: money.cpp money.hpp money_utility.cpp floatrates.hpp network.hpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp network.cpp floatrates_downloader.hpp floatrates_downloader.cpp floatrates_json.hpp floatrates_json.cpp floatrates_xml.hpp floatrates_xml.cpp xml_processing.hpp xml_processing.cpp
 	$(CXX) $(CPPFLAGS) -c money_utility.cpp -o money.o
 	
-floatrates_test.o: floatrates_test.cpp floatrates_test.hpp floatrates.hpp network.hpp network.cpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp floatrates_downloader.hpp floatrates_downloader.cpp xml_downloader.cpp xml_downloader.hpp floatrates_json.hpp floatrates_json.cpp floatrates_xml.hpp floatrates_xml.cpp downloaders_test.cpp
+xml_processing.o: xml_processing.hpp xml_processing.cpp
+	$(CXX) $(CPPFLAGS) -c xml_processing.cpp -o xml_processing.o
+	
+floatrates_test.o: floatrates_test.cpp floatrates_test.hpp floatrates.hpp network.hpp network.cpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp floatrates_downloader.hpp floatrates_downloader.cpp xml_downloader.cpp xml_downloader.hpp floatrates_json.hpp floatrates_json.cpp floatrates_xml.hpp floatrates_xml.cpp downloaders_test.cpp xml_processing.hpp xml_processing.cpp
 	$(CXX) $(CPPFLAGS) -c floatrates_test.cpp -o floatrates_test.o
 	
-floatrates_downloader.o: floatrates_downloader.cpp floatrates_downloader.hpp floatrates.hpp network.hpp network.cpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp floatrates_json.cpp floatrates_json.hpp floatrates_xml.cpp floatrates_xml.hpp
+floatrates_downloader.o: floatrates_downloader.cpp floatrates_downloader.hpp floatrates.hpp network.hpp network.cpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp floatrates_json.cpp floatrates_json.hpp floatrates_xml.cpp floatrates_xml.hpp xml_processing.hpp xml_processing.cpp
 	$(CXX) $(CPPFLAGS) -c floatrates_downloader.cpp -o floatrates_downloader.o
 	
 asio_downloader.o: asio_downloader.hpp asio_downloader.cpp network.hpp network.cpp
@@ -107,7 +109,7 @@ asio_downloader.o: asio_downloader.hpp asio_downloader.cpp network.hpp network.c
 json_downloader.o: json_downloader.hpp json_downloader.cpp network.hpp network.cpp asio_downloader.cpp asio_downloader.hpp
 	$(CXX) $(CPPFLAGS) -c json_downloader.cpp
 	
-floatrates_xml.o: floatrates.hpp floatrates.cpp floatrates_xml.hpp floatrates_xml.cpp
+floatrates_xml.o: floatrates.hpp floatrates.cpp floatrates_xml.hpp floatrates_xml.cpp xml_processing.hpp xml_processing.cpp
 	$(CXX) $(CPPFLAGS) -c floatrates_xml.cpp
 	
 floatrates_json.o: floatrates.hpp floatrates.cpp floatrates_json.hpp floatrates_json.cpp

@@ -27,7 +27,7 @@ using network::Cache_control;
 using network::Connection;
 
 class Asio_IO_Stream_Exception : public std::exception { 
-   string msg {"!!! error on the socket stream: "};
+   static string msg;
 public:
    Asio_IO_Stream_Exception() {}
    Asio_IO_Stream_Exception(const string& message) { msg += message; }
@@ -35,6 +35,7 @@ public:
       return msg.c_str();
    }
 };
+inline string Asio_IO_Stream_Exception::msg = {" !!! error on the socket stream: "};
 
 class Asio_downloader {
    //static const string HTTP_VERSION;

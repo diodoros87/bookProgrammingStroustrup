@@ -2,11 +2,14 @@
 #define FLOAT_RATES_XML_HPP
 
 #include "floatrates.hpp"
-
-#include "nlohmann/json.hpp"
+#include "xml_processing.hpp"
 
 class Float_rates_xml : public Float_rates {
 public:   
+   static constexpr char * const CODE_NODE = "/channel/item/targetCurrency";
+   static constexpr char * const RATE_NODE = "/channel/item/exchangeRate";
+   static constexpr char * const INVERSE_RATE_NODE = "/channel/item/inverseRate";
+   
    using Float_rates::Float_rates;
    
    void set_rates_from_doc() override;

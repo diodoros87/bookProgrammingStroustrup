@@ -266,6 +266,7 @@ void test() {
    float_rates_test();
    downloaders_test::downloaders_test();
    Document_test<Float_rates_json>::constructors_test();
+   Document_test<Float_rates_xml>::constructors_test();
 }
 
 }
