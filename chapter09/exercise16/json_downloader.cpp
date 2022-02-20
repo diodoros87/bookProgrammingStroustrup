@@ -1,26 +1,40 @@
 #include "json_downloader.hpp"
 
-void Json_downloader::erase(const char C, const char A) {
-   for (unsigned i = 0; i < doc.size(); i++) {
-      if (C == doc[i] || A == doc[i]) {
-         doc.erase(doc.begin() + i);
-         if (A == doc[i]) {
-            doc.erase(doc.begin() + i);
-            while (i < doc.size() && doc[i] != A) 
-               doc.erase(doc.begin() + i);
-            if (i < doc.size() && A == doc[i]) 
-               doc.erase(doc.begin() + i);
-         }
-      }
-   }
+Json_downloader::Json_downloader(const Json_downloader& other) {
+   cerr << " COPY Constructor " << __func__ << '\n';
+   if (nullptr != other.downloader)
+      downloader = new Asio_downloader(*(other.downloader));
+   doc = other.doc;
 }
 
-void Json_downloader::modify_document() {
-   cerr << __func__ << '\n';
-   cerr << doc << '\n';
-   size_t first = doc.find("{");
-   doc = doc.substr(first);
-   size_t last = doc.rfind("}");
-   doc = doc.substr(0, last + 1);
-   erase('\r', '\n');
+Json_downloader& Json_downloader::operator=(const Json_downloader& other) {
+   cerr << " COPY " << __func__ << '\n';
+   if (&other != this) {
+      delete downloader;
+      if (nullptr == other.downloader)
+         downloader = nullptr;
+      else
+         downloader = new Asio_downloader(*(other.downloader));
+      doc = other.doc;
+   }
+   return *this;
+}
+
+Json_downloader::Json_downloader(Json_downloader&& other) noexcept
+   : downloader(other.downloader), doc(other.doc) {
+   cerr << " MOVE Constructor " << __func__ << '\n';
+   other.downloader = nullptr;
+   other.doc = "";
+}
+
+Json_downloader& Json_downloader::operator=(Json_downloader&& other) noexcept {
+   cerr << " MOVE " << __func__ << '\n';
+   if (&other != this) {
+      delete downloader;
+      downloader = other.downloader;
+      other.downloader = nullptr;
+      doc = other.doc;
+      other.doc = "";
+   }
+   return *this;
 }

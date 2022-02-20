@@ -135,12 +135,12 @@ string formatted_string(const Integer & dollars, const Integer & cents) {
    return out;
 }
 
-map <string, long double> get_by_asio(const File_format & format, const string & CURRENCY = "USD") {
+map <string, long double> download(const Network_library & library, const File_format & format, const string & CURRENCY = "USD") {
 #ifdef __clang__
    static std::ios_base::Init toEnsureInitialization;
 #endif
    cerr << __func__ << '\n';
-   Floatrates_downloader downloader(format, CURRENCY);
+   Floatrates_downloader downloader(library, format, CURRENCY);
    downloader.download();
    //////const Float_rates floatrates = downloader.get_float_rates();
    //floatrates.set_rates_from_json();
@@ -184,16 +184,16 @@ map <string, long double> & set_rates_per_USD(const Network_library & library, c
    switch (library) {
       case Network_library::ASIO :
          if (format == File_format::JSON || format == File_format::XML) 
-            result = get_by_asio(format, USD);
+            result = download(library, format, USD);
          else
             throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)) + " for ASIO ");
-         break; /*
+         break; 
       case Network_library::CURL :
-         if (format == File_format::XML)
-            result = get_by_curl(format, USD);
+         if (format == File_format::JSON || format == File_format::XML)
+            result = download(library, format, USD);
          else
             throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)) + " for CURL ");
-         break; */
+         break; 
       case Network_library::NONE :
          throw invalid_argument(__func__ + string(" network library NONE is not allowed"));
       default:

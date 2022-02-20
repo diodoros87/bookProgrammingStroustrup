@@ -32,7 +32,7 @@ public:
    
    void run() {
       Floatrates_downloader downloder(format, currency);
-      const string doc = downloder.get_by_asio();
+      const string doc = downloder.get_by_library();
       rates_ptr->set_document(doc);
       rates_ptr->set_rates_from_doc();
       map <string, float_rates_info> rates = rates_ptr->float_rates();

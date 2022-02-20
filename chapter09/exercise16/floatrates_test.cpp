@@ -60,7 +60,7 @@ public:
       //const File_format format = is_same<T, Float_rates_json>::value ? File_format::JSON : File_format::XML; 
       constexpr File_format format = get_format();
       //string currency {  };
-      T object = create_rates(format, "pln");
+      T object = create_rates(format, "eur");
       T & obj_ref = object;
       assert(assert_floatrates(obj_ref, object));
       
@@ -75,7 +75,7 @@ public:
       assert(assert_floatrates(obj3, obj_ref));
       assert(assert_floatrates(obj3, object));
       //currency = {  };
-      T other = create_rates(format, "usd");
+      T other = create_rates(format, "pln");
       assert( ! assert_floatrates(other, obj2));
       assert( ! assert_floatrates(other, obj1));
       assert( ! assert_floatrates(other, obj_ref));

@@ -18,7 +18,7 @@ public:
       return msg.c_str();
    }
 };
-string Curl_Error::msg = {"!!! error with curl library: "};
+inline string Curl_Error::msg = {"!!! error with curl library: "};
 
 class Curl_Manager {
    CURL * connection = nullptr;

@@ -4,6 +4,7 @@
 #include <array>
 
 #include "xml_processing.hpp"
+#include "curl_interface.hpp"
 
 using pugi::xml_document;
 using pugi::xpath_node_set;
@@ -16,22 +17,6 @@ using std::cout;
 using xml_processing::Xml_processing;
 
 namespace xml_NBP {
-   
-class Download_Interface {
-   std::string document;
-public:
-   virtual void download (const char * const) = 0;
-   virtual ~ Download_Interface() { cerr << __func__ << '\n'; };
-   
-   Download_Interface(Download_Interface const &) = delete;
-   Download_Interface& operator=(Download_Interface const &) = delete;
-   
-   std::string get_doc() const { return document; }
-protected:
-   Download_Interface() { cerr << __func__ << '\n'; }
-   
-   void set_doc(const std::string & s) { document = s; }
-};
 
 class Xml_NBP_processing final {
    static constexpr char* CURRENCY_NODE = "/ArrayOfExchangeRatesTable/ExchangeRatesTable/Rates/Rate/Currency";
@@ -42,7 +27,6 @@ class Xml_NBP_processing final {
    
    static xml_document doc;
    
-
    static bool print(const xpath_node_set & CURRENCIES, const xpath_node_set & CODES, const xpath_node_set & RATES) {
       const size_t SIZE = CURRENCIES.size();
       if (SIZE != CODES.size() || SIZE != RATES.size()) {
@@ -82,7 +66,7 @@ public:
       }
    }
    
-   static bool download(Download_Interface * downloader) {
+   static bool download(Curl_interface * downloader) {
       if (downloader == nullptr)
          throw std::invalid_argument("downloader can not be nullptr");
       std::string xml_doc;

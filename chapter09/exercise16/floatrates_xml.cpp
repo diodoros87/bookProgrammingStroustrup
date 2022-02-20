@@ -10,29 +10,42 @@ using std::exception;
 using namespace pugi;
 using namespace xml_processing;
 
-map<string, float_rates_info> get_data(const xpath_node_set & INVERSE_RATES, const xpath_node_set & CODES, const xpath_node_set & RATES) {
+static inline size_t validate_sizes(const xpath_node_set & INVERSE_RATES, const xpath_node_set & CODES, const xpath_node_set & RATES) {
    const size_t SIZE = INVERSE_RATES.size();
    if (SIZE != CODES.size() || SIZE != RATES.size()) {
       throw Xml_processing::Exception(
          "Different size of xpath node sets:\nINVERSE_RATES = " + std::to_string(SIZE)
          + "\nCODES = " + std::to_string(CODES.size()) + "\nRATES = " + std::to_string(RATES.size()));
    }
+   return SIZE;
+}
+
+static inline string get_node_string (const xpath_node & NODE) {
+   xml_node    node   = NODE.node();
+   xml_text    text   = node.text();
+   string result = text.as_string(); // code_xmltext.get()
+   return result;
+}
+
+static inline double get_node_double (const xpath_node & NODE) {
+   const string node_text = get_node_string(NODE);
+   const double result = std::stod(node_text);
+   return result; 
+}
+
+static map<string, float_rates_info> get_data(const xpath_node_set & INVERSE_RATES, const xpath_node_set & CODES, const xpath_node_set & RATES) {
+   const size_t SIZE = validate_sizes(INVERSE_RATES, CODES, RATES);
    map<string, float_rates_info> result; 
-   for (size_t i = 0; i < SIZE; i++) {
-      xpath_node  code_xpathnode = CODES[i];
-      xml_node    code_xmlnode   = code_xpathnode.node();
-      xml_text    code_xmltext   = code_xmlnode.text();
-      xpath_node  rate_xpathnode = RATES[i];
-      xml_node    rate_xmlnode   = rate_xpathnode.node();
-      xml_text    rate_xmltext   = rate_xmlnode.text();
-      xpath_node  inverse_xpathnode = INVERSE_RATES[i];
-      xml_node    inverse_xmlnode   = rate_xpathnode.node();
-      xml_text    inverse_xmltext   = rate_xmlnode.text();
-      const double rate                = std::stod(rate_xmltext.as_string());
-      const double inverse_rate        = std::stod(inverse_xmltext.as_string());
-      std::cout << " 1 PLN = " << inverse_rate << " " << code_xmltext.get() << " and"
-         << " 1 " << code_xmltext.as_string() << " = " << rate << " PLN\n";
-      result[code_xmltext.get()] = { code_xmltext.as_string(), rate, inverse_rate };
+   for (size_t i = 0; i < SIZE; i++) { 
+      xpath_node NODE = CODES[i];
+      const string code = get_node_string(NODE);
+      NODE = RATES[i];
+      const double rate = get_node_double(NODE);
+      NODE = INVERSE_RATES[i];
+      const double inverse_rate = get_node_double(NODE);
+      std::cout << " 1 PLN = " << inverse_rate << " " << code << " and"
+         << " 1 " << code << " = " << rate << " PLN\n";
+      result[code] = float_rates_info { code, rate, inverse_rate };
    }
    return result;
 }

@@ -2,6 +2,7 @@
 using namespace std;
 
 //const string Asio_downloader::HTTP_VERSION = "HTTP/1.1";
+string Asio_IO_Stream_Exception::msg = {" !!! error on the socket stream: "};
 
 string Asio_downloader::get_document() const {
    asio::basic_socket_iostream<asio::ip::tcp> socket_iostream;
@@ -63,6 +64,31 @@ void Asio_downloader::process_response_headers(asio::ip::tcp::iostream & socket_
    while (getline(socket_iostream, header) && header != "\r")
       cout << header << "\n";
    cout << "\n";
+}
+
+void Asio_downloader::erase(string & doc, const char C, const char A) {
+   for (unsigned i = 0; i < doc.size(); i++) {
+      if (C == doc[i] || A == doc[i]) {
+         doc.erase(doc.begin() + i);
+         if (A == doc[i]) {
+            doc.erase(doc.begin() + i);
+            while (i < doc.size() && doc[i] != A) 
+               doc.erase(doc.begin() + i);
+            if (i < doc.size() && A == doc[i]) 
+               doc.erase(doc.begin() + i);
+         }
+      }
+   }
+}
+
+void Asio_downloader::modify_document(string & doc, const string & begin, const string & end) {
+   cerr << __func__ << '\n';
+   cerr << doc << '\n';
+   size_t first = doc.find(begin);
+   doc = doc.substr(first);
+   size_t last = doc.rfind(end);
+   doc = doc.substr(0, last + 1);
+   erase(doc, '\r', '\n');
 }
 
 //

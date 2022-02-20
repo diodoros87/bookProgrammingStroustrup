@@ -35,7 +35,7 @@ public:
       return msg.c_str();
    }
 };
-inline string Asio_IO_Stream_Exception::msg = {" !!! error on the socket stream: "};
+//inline string Asio_IO_Stream_Exception::msg = {" !!! error on the socket stream: "};
 
 class Asio_downloader {
    //static const string HTTP_VERSION;
@@ -49,7 +49,7 @@ class Asio_downloader {
 public:
    Asio_downloader(const string & HOST, const Method & METHOD, const string & DIRECTORY,
                          const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
-      assign_non_constans(*this, HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
+      assign_non_constans(HOST, METHOD, DIRECTORY, CACHE_CONTROL, CONNECTION);
    }
    string download() const;
    
@@ -66,7 +66,7 @@ public:
    
    // copy assignment operator of 'Asio_downloader' is implicitly deleted because field 'HTTP_VERSION' has no copy assignment operator
    Asio_downloader & operator=(const Asio_downloader & other) {
-      assign_non_constans(*this, other.host, other.method, other.directory, other.cache_control, other.connection);
+      assign_non_constans(other.host, other.method, other.directory, other.cache_control, other.connection);
       return *this;
    }
    Asio_downloader & operator=(Asio_downloader &&) = default;
@@ -78,17 +78,20 @@ public:
    
    bool operator!=(const Asio_downloader & other) const {
       return ! operator==(other); }
+      
+   static void erase(string & doc, const char C, const char A);
+   static void modify_document(string & doc, const string & begin, const string & end);
 private:
    string get_document() const;
    void process_response_headers(asio::ip::tcp::iostream & socket_iostream) const;
    
-   static void assign_non_constans(Asio_downloader & object, const string & HOST, const Method & METHOD, const string & DIRECTORY,
+   void assign_non_constans(const string & HOST, const Method & METHOD, const string & DIRECTORY,
                          const Cache_control & CACHE_CONTROL, const Connection & CONNECTION) {
-      object.host = HOST;
-      object.method = METHOD;
-      object.directory = DIRECTORY;
-      object.cache_control = CACHE_CONTROL;
-      object.connection = CONNECTION;
+      host = HOST;
+      method = METHOD;
+      directory = DIRECTORY;
+      cache_control = CACHE_CONTROL;
+      connection = CONNECTION;
    }
 };
 

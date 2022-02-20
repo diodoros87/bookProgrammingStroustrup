@@ -36,54 +36,19 @@ public:
 	
 	Xml_downloader& operator=(Xml_downloader&& other)  = default; // explicitly defaulted function was implicitly deleted 
 	*/
-   Xml_downloader(const Xml_downloader& other) {
-      cerr << " COPY Constructor " << __func__ << '\n';
-      if (nullptr != other.downloader.get())
-         downloader.reset(new Asio_downloader(*(other.downloader)));
-      doc = other.doc;
-	}
+   Xml_downloader(const Xml_downloader& other) ;
 
-	Xml_downloader& operator=(const Xml_downloader& other) {
-      cerr << " COPY " << __func__ << '\n';
-		if (&other != this) {
-         if (nullptr == other.downloader.get())
-            downloader.reset(nullptr);
-         else
-            downloader.reset(new Asio_downloader(*(other.downloader)));
-         doc = other.doc;
-      }
-		return *this;
-	}
+	Xml_downloader& operator=(const Xml_downloader& other);
 	
-	Xml_downloader(Xml_downloader&& other) noexcept
-		: doc(other.doc) {
-      cerr << " MOVE Constructor " << __func__ << '\n';
-		//other.downloader = nullptr;
-		downloader.reset(other.downloader.release());
-      other.doc = "";
-      assert(other.downloader.get() == nullptr);
-      assert(other.downloader == nullptr);
-	}
+	Xml_downloader(Xml_downloader&& other) noexcept;
 	
-	Xml_downloader& operator=(Xml_downloader&& other) noexcept {
-      cerr << " MOVE " << __func__ << '\n';
-		if (&other != this) {
-         downloader.reset(other.downloader.release());
-         assert(other.downloader.get() == nullptr);
-         assert(other.downloader == nullptr);
-         doc = other.doc;
-         other.doc = "";
-      }
-		return *this;
-	}
+	Xml_downloader& operator=(Xml_downloader&& other) noexcept;
 
    ~Xml_downloader() { cerr << __func__ << '\n'; }
    
    void download() override {
       doc = downloader->download();
-      cerr << __func__ << doc << '\n';
-      modify_document();
-      
+      Asio_downloader::modify_document(doc, "<", ">");
    }
    
    string get() const { return doc; };   
