@@ -28,20 +28,18 @@ string Floatrates_downloader::get_by_asio() {
    return DOC;
 }
 
-template<class T> 
-inline T& unmove(T&& t) { return t; }
-
 string Floatrates_downloader::get_by_curl() {
    cerr << __func__ << " currency = " << currency << '\n';
    static const string & HOST = static_host();
    const string URL = HOST + "/daily/" + currency + (format == File_format::JSON ? ".json" : ".xml");
 #ifdef __clang__
-   Curl_interface & curl_interf = unmove(Curl_downloader {format});
+   Curl_downloader downloader = Curl_downloader {format};
 #elif defined(__GNUG__)
-   Curl_interface & curl_interf = unmove(Curlcpp_downloader {format});
+   Curlcpp_downloader downloader = Curlcpp_downloader {format};
 #endif
-   curl_interf.download(URL.data());
-   const string DOC = curl_interf.get_doc();
+   Curl_interface & curl = downloader;
+   curl.download(URL.data());
+   const string DOC = curl.get_doc();
    return DOC;
 }
 
@@ -83,7 +81,7 @@ void Floatrates_downloader::download() {
 }
 
 Floatrates_downloader::Floatrates_downloader(const Floatrates_downloader& other) 
-   : currency(other.currency), format(other.format), library(other.library) {
+   : currency(other.currency), format(other.format), library(other.library), asio_getter(other.asio_getter) {
    cerr << " COPY Constructor " << __func__ << '\n';
    if (nullptr != other.float_rates) {
       if (typeid(*(other.float_rates)) == typeid(Float_rates_json) || typeid(*(other.float_rates)) == typeid(Float_rates_xml))
@@ -108,15 +106,18 @@ Floatrates_downloader& Floatrates_downloader::operator=(const Floatrates_downloa
       currency = other.currency;
       format = other.format;
       library = other.library;
+      asio_getter = other.asio_getter;
    }
    return *this;
 }
 
 Floatrates_downloader::Floatrates_downloader(Floatrates_downloader&& other) noexcept
-   : currency(other.currency), format(other.format), library(other.library), float_rates(other.float_rates) {
+   : currency(other.currency), format(other.format), library(other.library), 
+      float_rates(other.float_rates), asio_getter(other.asio_getter) {
    cerr << " MOVE Constructor " << __func__ << '\n';
    other.float_rates = nullptr;
    other.currency = "";
+   other.asio_getter = nullptr;
 }
 
 Floatrates_downloader& Floatrates_downloader::operator=(Floatrates_downloader&& other) noexcept {
@@ -129,6 +130,8 @@ Floatrates_downloader& Floatrates_downloader::operator=(Floatrates_downloader&& 
       other.currency = "";
       format = other.format;
       library = other.library;
+      asio_getter = other.asio_getter;
+      other.asio_getter = nullptr;
    }
    return *this;
 }
@@ -147,6 +150,8 @@ string Floatrates_downloader::get_by_library() {
 } 
 
 void Floatrates_downloader::set_library(const Network_library & LIBRARY) { 
+   if (LIBRARY == library)
+      return;
    switch (LIBRARY) {
       case Network_library::ASIO :
       case Network_library::CURL :

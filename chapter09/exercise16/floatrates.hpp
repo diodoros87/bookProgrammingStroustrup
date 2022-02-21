@@ -85,4 +85,9 @@ protected:
    Float_rates & operator=(Float_rates &&) = default;
 };
 
+inline static bool assert_floatrates(const Float_rates & a1, const Float_rates & a2) {
+   return (a1.get_document() == a2.get_document()) && (a1.float_rates() == a2.float_rates()) &&
+   (a1.inverse_rates() == a2.inverse_rates()) && (a1.rates() == a2.rates());
+}
+
 #endif

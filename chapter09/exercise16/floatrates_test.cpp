@@ -32,8 +32,8 @@ class Document_test {
       return document_ptr;
    }
    
-   static T create_rates(const File_format & format, const string & currency) {
-      Float_rates_test test { format, currency };
+   static T create_rates(const Network_library & LIBRARY, const File_format & format, const string & currency) {
+      Float_rates_test test { LIBRARY, format, currency };
       test.run();
       Float_rates * rates_ptr = test.get_float_rates();
       T * doc_ptr = get_check_rates_ptr(rates_ptr);
@@ -56,11 +56,19 @@ class Document_test {
       //static_assert(false && "Not supported type");
    }
 public:   
-   static void constructors_test() {
+   static void run() {
+      array<Network_library, 2> LIBRARIES = { Network_library::CURL, Network_library::ASIO };
+      for (Network_library item : LIBRARIES) {
+         constructors_test(item);
+         //test_floatrates_downloader(item);
+      }
+   }
+   
+   static void constructors_test(const Network_library & LIBRARY) {
       //const File_format format = is_same<T, Float_rates_json>::value ? File_format::JSON : File_format::XML; 
       constexpr File_format format = get_format();
       //string currency {  };
-      T object = create_rates(format, "eur");
+      T object = create_rates(LIBRARY, format, "eur");
       T & obj_ref = object;
       assert(assert_floatrates(obj_ref, object));
       
@@ -75,7 +83,7 @@ public:
       assert(assert_floatrates(obj3, obj_ref));
       assert(assert_floatrates(obj3, object));
       //currency = {  };
-      T other = create_rates(format, "pln");
+      T other = create_rates(LIBRARY, format, "usd");
       assert( ! assert_floatrates(other, obj2));
       assert( ! assert_floatrates(other, obj1));
       assert( ! assert_floatrates(other, obj_ref));
@@ -194,12 +202,12 @@ static void constructors_test() {
 */
 
 static void test_Float_rates_test() {
-   Float_rates_test obj { File_format::JSON, "pln" };
+   Float_rates_test obj { Network_library::ASIO, File_format::JSON, "pln" };
    // Float_rates_test obj1(obj); call to deleted constructor of 'float_rates_test::Float_rates_test'
-   Float_rates_test obj1 { File_format::JSON, "pln" };
+   Float_rates_test obj1 { Network_library::ASIO, File_format::JSON, "pln" };
    assert(obj == obj1);
    assert( ! (obj != obj1));
-   Float_rates_test obj2 { File_format::XML, "pln" };
+   Float_rates_test obj2 { Network_library::ASIO, File_format::XML, "pln" };
    assert(obj != obj2);
    assert( ! (obj == obj2));
    // Float_rates_test obj3 = obj1; call to deleted constructor of 'float_rates_test::Float_rates_test'
@@ -211,14 +219,15 @@ static void test_Float_rates_test() {
    assert(obj3 == obj);
    assert(obj3 != obj2);
    
-   Float_rates_test obj4 { File_format::XML, "pln" };
+   Float_rates_test obj4 { Network_library::ASIO, File_format::XML, "pln" };
    assert(obj4 == obj2);
    assert(obj3 != obj4);
    assert(obj != obj4);
    assert(obj4 != obj1);
    
    obj4 = move(obj);
-   assert(obj.get_float_rates() == nullptr);
+   Float_rates * float_rates_ptr = obj.get_float_rates();
+   assert(float_rates_ptr == nullptr);
    assert(obj4 != obj);
    assert(obj1 == obj);
    assert(obj4 != obj2);
@@ -232,7 +241,7 @@ static void test_Float_rates_test() {
    assert(obj3 == obj4);
    assert(obj4 != obj1);
    
-   Float_rates_test obj5 { File_format::JSON, "pln" };
+   Float_rates_test obj5 { Network_library::ASIO, File_format::JSON, "pln" };
    assert(obj4 == obj5);
    assert(obj5 != obj);
    assert(obj5 != obj2);
@@ -255,18 +264,22 @@ static void test_Float_rates_test() {
 }
 
 static void float_rates_test() {
-   Float_rates_test test { File_format::JSON, "PLN" };
+   Float_rates_test test { Network_library::CURL, File_format::JSON, "GBP" };
    test.run();
-   //test.set_format(File_format::XML);
-   //test.run();
+   test.set_format(File_format::XML);
+   test.run();
+   test.set_library(Network_library::ASIO);
+   test.run();
+   test.set_format(File_format::JSON);
+   test.run();
 }
    
 void test() {
    test_Float_rates_test();
    float_rates_test();
    downloaders_test::downloaders_test();
-   Document_test<Float_rates_json>::constructors_test();
-   Document_test<Float_rates_xml>::constructors_test();
+   Document_test<Float_rates_json>::run();
+   Document_test<Float_rates_xml>::run();
 }
 
 }

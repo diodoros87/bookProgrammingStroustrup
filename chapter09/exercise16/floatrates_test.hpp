@@ -12,26 +12,23 @@ void test();
    
 using network::File_format;
 
-inline static bool assert_floatrates(const Float_rates & a1, const Float_rates & a2) {
-   return (a1.get_document() == a2.get_document()) && (a1.float_rates() == a2.float_rates()) &&
-   (a1.inverse_rates() == a2.inverse_rates()) && (a1.rates() == a2.rates());
-}
-
 class Float_rates_test {
    string currency;
    File_format format = File_format::NONE;
    Float_rates * rates_ptr = nullptr;
+   Network_library library = Network_library::NONE;
 public:   
-   Float_rates_test(const File_format & f, const string & c) : currency(c) {
+   Float_rates_test(const Network_library & LIBRARY, const File_format & f, const string & c) : currency(c) {
       if ( c.length() == 0)
          throw invalid_argument(string(__func__) + "empty string can not be accepted ");
-      if (f == File_format::NONE)
-         throw invalid_argument(__func__ + string(" file format NONE is not allowed"));
-      set_format(f);
+      if (f == File_format::NONE || LIBRARY == Network_library::NONE)
+         throw std::invalid_argument(__func__ + string(" file format NONE or Network_library NONE are not allowed"));
+      set_format(f); 
+      set_library(LIBRARY);
    }
    
    void run() {
-      Floatrates_downloader downloder(format, currency);
+      Floatrates_downloader downloder(library, format, currency);
       const string doc = downloder.get_by_library();
       rates_ptr->set_document(doc);
       rates_ptr->set_rates_from_doc();
@@ -59,8 +56,21 @@ public:
       format = FORMAT; 
    }
    
+   void set_library(const Network_library & LIBRARY) { 
+      if (LIBRARY == library)
+         return;
+      switch (LIBRARY) {
+         case Network_library::ASIO :
+         case Network_library::CURL :
+            library = LIBRARY;
+            break;
+         default:
+            throw invalid_argument(__func__ + string(" Invalid network library ") + std::to_string(static_cast<int>(library)));
+      }
+   } 
+   
    Float_rates_test(Float_rates_test&& other) noexcept
-		: currency(other.currency), format(other.format), rates_ptr(other.rates_ptr) {
+		: currency(other.currency), format(other.format), rates_ptr(other.rates_ptr), library(other.library) {
       cerr << " MOVE Constructor " << __func__ << '\n';
 		other.rates_ptr = nullptr;
       other.currency = "";
@@ -75,6 +85,7 @@ public:
          currency = other.currency;
          other.currency = "";
          format = other.format;
+         library = other.library;
       }
 		return *this;
 	}
@@ -88,12 +99,13 @@ public:
    ~Float_rates_test() { delete rates_ptr; }
    
    bool operator==(const Float_rates_test & other) const {
-      bool result = currency == other.currency && format == other.format;
+      bool result = currency == other.currency && format == other.format && library == other.library;
       if (! result)
          return result;
       if (rates_ptr == nullptr && other.rates_ptr == nullptr)
          return true;
-      if (rates_ptr != nullptr && other.rates_ptr != nullptr && assert_floatrates(*rates_ptr, *other.rates_ptr))
+      if (rates_ptr != nullptr && other.rates_ptr != nullptr && typeid(*(other.rates_ptr)) == typeid(*rates_ptr)
+            && assert_floatrates(*rates_ptr, *(other.rates_ptr)))
          return true;
       return false;
    }

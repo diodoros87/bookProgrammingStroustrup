@@ -1,6 +1,6 @@
 #include "xml_nbp.hpp"
 #include "curl_manager.hpp"
-#include "curl_dowloader.hpp"
+#include "curl_downloader.hpp"
 
 using namespace std;
 using namespace xml_NBP;

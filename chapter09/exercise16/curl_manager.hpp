@@ -10,15 +10,15 @@ using std::string;
 
 struct Curl_Error : public std::exception {
 private:
-   static string msg;
+   string msg = {"!!! error with curl library: "};
 public:
    Curl_Error() { }
    Curl_Error(const string& message) {  msg += message; }
    const char* what() const noexcept {
-      return msg.c_str();
+      return msg.data();
    }
 };
-inline string Curl_Error::msg = {"!!! error with curl library: "};
+//inline string Curl_Error::msg = {"!!! error with curl library: "};
 
 class Curl_Manager {
    CURL * connection = nullptr;

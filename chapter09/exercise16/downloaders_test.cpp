@@ -2,6 +2,7 @@
 #include <cassert>
 #include "json_downloader.hpp"
 #include "xml_downloader.hpp"
+#include "floatrates_downloader.hpp"
 
 using namespace std;
 
@@ -195,10 +196,157 @@ static void test() {
    assert(assert_downloader(j6, j3));
    assert(nullptr != j6.get_asio_downloader());
 }
+
+struct Test_Floatrates_downloader {
+   static void test_move() {
+      Floatrates_downloader obj  { Network_library::ASIO, File_format::JSON, "pln" };
+      Floatrates_downloader obj1 { Network_library::ASIO, File_format::JSON, "pln" };
+      assert(obj == obj1);
+      assert( ! (obj != obj1));
+      Floatrates_downloader obj2 { Network_library::CURL, File_format::JSON, "pln" };
+      assert(obj != obj2);
+      assert( ! (obj1 == obj2));
+
+      Floatrates_downloader obj3(move(obj1));
+      assert(obj3 != obj1);
+      const Float_rates * float_rates_ptr = obj1.get_float_rates();
+      assert(float_rates_ptr == nullptr);
+      assert(obj3 == obj);
+      assert(obj3 != obj2);
+      
+      Floatrates_downloader obj4 { Network_library::ASIO, File_format::XML, "pln" };
+      assert(obj4 != obj2);
+      assert(obj3 != obj4);
+      assert(obj != obj4);
+      assert(obj4 != obj1);
+      
+      obj4.set_format(File_format::JSON);
+      assert(obj4 != obj2);
+      assert(obj3 == obj4);
+      assert(obj == obj4);
+      assert(obj4 != obj1);
+      
+      obj4.set_format(File_format::XML);
+      assert(obj4 != obj2);
+      assert(obj3 != obj4);
+      assert(obj != obj4);
+      assert(obj4 != obj1);
+      
+      obj4 = move(obj);
+      assert(obj.get_float_rates() == nullptr);
+      assert(obj4 != obj);
+      assert(obj1 == obj);
+      assert(obj4 != obj2);
+      assert(obj3 == obj4);
+      assert(obj4 != obj1);
+      
+      obj4 = move(obj4);
+      assert(obj4 != obj);
+      assert(obj1 == obj);
+      assert(obj4 != obj2);
+      assert(obj3 == obj4);
+      assert(obj4 != obj1);
+      
+      Floatrates_downloader obj5 { Network_library::ASIO, File_format::JSON, "pln" };
+      assert(obj4 == obj5);
+      assert(obj5 != obj);
+      assert(obj5 != obj2);
+      assert(obj3 == obj5);
+      assert(obj5 != obj1);
+      
+      obj5.download();
+      assert(obj4 != obj5);
+      assert(obj5 != obj);
+      assert(obj5 != obj2);
+      assert(obj3 != obj5);
+      assert(obj5 != obj1);
+      
+      obj3.download();
+      assert(obj4 != obj3);
+      assert(obj3 != obj);
+      assert(obj3 != obj2);
+      assert(obj3 == obj5);
+      assert(obj3 != obj1);
+   }
+
+   static void test_copy() {
+      Floatrates_downloader obj  { Network_library::ASIO, File_format::JSON, "pln" };
+      Floatrates_downloader obj1 { Network_library::ASIO, File_format::JSON, "pln" };
+      assert(obj == obj1);
+      assert( ! (obj != obj1));
+      Floatrates_downloader obj2 { Network_library::CURL, File_format::JSON, "pln" };
+      assert(obj != obj2);
+      assert( ! (obj1 == obj2));
+
+      Floatrates_downloader obj3(obj1);
+      assert(obj3 == obj1);
+      const Float_rates * float_rates_ptr = obj1.get_float_rates();
+      assert(float_rates_ptr != nullptr && typeid(*float_rates_ptr) == typeid(Float_rates_json));
+      assert(obj3 == obj);
+      assert(obj3 != obj2);
+      
+      Floatrates_downloader obj4 { Network_library::ASIO, File_format::XML, "pln" };
+      assert(obj4 != obj2);
+      assert(obj3 != obj4);
+      assert(obj != obj4);
+      assert(obj4 != obj1);
+      
+      obj4.set_format(File_format::JSON);
+      assert(obj4 != obj2);
+      assert(obj3 == obj4);
+      assert(obj == obj4);
+      assert(obj4 == obj1);
+      
+      obj4.set_format(File_format::XML);
+      assert(obj4 != obj2);
+      assert(obj3 != obj4);
+      assert(obj != obj4);
+      assert(obj4 != obj1);
+      
+      obj4 = obj;
+      float_rates_ptr = obj.get_float_rates();
+      assert(float_rates_ptr != nullptr && typeid(*float_rates_ptr) == typeid(Float_rates_json));
+      assert(obj4 == obj);
+      assert(obj1 == obj);
+      assert(obj4 != obj2);
+      assert(obj3 == obj4);
+      assert(obj4 == obj1);
+      
+      obj4 = obj4;
+      assert(obj4 == obj);
+      assert(obj1 == obj);
+      assert(obj4 != obj2);
+      assert(obj3 == obj4);
+      assert(obj4 == obj1);
+      
+      Floatrates_downloader obj5 { Network_library::ASIO, File_format::JSON, "pln" };
+      assert(obj4 == obj5);
+      assert(obj5 != obj);
+      assert(obj5 != obj2);
+      assert(obj3 == obj5);
+      assert(obj5 != obj1);
+      
+      obj5.download();
+      assert(obj4 != obj5);
+      assert(obj5 != obj);
+      assert(obj5 != obj2);
+      assert(obj3 != obj5);
+      assert(obj5 != obj1);
+      
+      obj3.download();
+      assert(obj4 != obj3);
+      assert(obj3 != obj);
+      assert(obj3 != obj2);
+      assert(obj3 == obj5);
+      assert(obj3 != obj1);
+   }
+};
    
 void downloaders_test() {
    cerr << '\n' << '\n' << __func__ << '\n';
    test<false>();
    test<true>();
+   Test_Floatrates_downloader::test_move();
+   Test_Floatrates_downloader::test_copy();
 }
 }

@@ -87,6 +87,27 @@ public:
    
    void download();
    
+   bool operator==(const Floatrates_downloader & other) const {
+      bool result = currency == other.currency && format == other.format 
+         && library == other.library && asio_getter == other.asio_getter;
+      if (result) {
+         if (float_rates == nullptr && other.float_rates == nullptr)
+            return true;
+         if (float_rates == nullptr || other.float_rates == nullptr)
+            return false;
+         if (typeid(*(other.float_rates)) != typeid(*float_rates))
+            return false;
+         
+         return assert_floatrates(*float_rates, *(other.float_rates));
+      }
+      return false;
+   }
+   
+   bool operator!=(const Floatrates_downloader & other) const {
+      return ! operator==(other); }
+      
+   const Float_rates * const get_float_rates() const { return float_rates; }
+   
    Floatrates_downloader(const Floatrates_downloader &);
    Floatrates_downloader(Floatrates_downloader &&) noexcept;
    Floatrates_downloader & operator=(const Floatrates_downloader &);

@@ -38,7 +38,7 @@ public:
          const string result = get_document(URL, header);
          set_doc(result);
          curl_slist_free_all(header);
-      } catch (const exception & e) {
+      } catch (const std::exception & e) {
          cerr << __func__ << " Exception: " << typeid(e).name() << " : " << e.what() << '\n';
          curl_slist_free_all(header);
          throw;
