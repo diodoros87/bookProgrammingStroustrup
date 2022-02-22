@@ -74,7 +74,8 @@ public:
    
    ~Curl_Manager() { 
       cerr << __func__ << '\n';
-      curl_easy_cleanup(connection); 
+      curl_easy_cleanup(connection);
+      curl_global_cleanup();
       //check_error("Failed to curl_easy_perform"); 
    }
 };

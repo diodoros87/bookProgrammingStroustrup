@@ -75,6 +75,7 @@ void Floatrates_downloader::download() {
    float_rates->set_document(DOC);
    float_rates->set_rates_from_doc();
    map <string, float_rates_info> rates = float_rates->float_rates();
+   cout << '\n' << __func__ << '\n';
    for (const pair<string, float_rates_info> &p : rates) 
       cout << " 1 " << currency << " = " << p.second.rate << " " << p.second.code << " and "
          << " 1 " << p.second.code << " = " << p.second.inverse_rate << " " << currency << endl;

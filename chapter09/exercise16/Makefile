@@ -13,7 +13,7 @@ else ifeq ($(CXX), clang++)
 	CURL_TEST = curl_test
 endif
 
-PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests gmp_test_integer money_test asio_test $(CURL_TEST)
+PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests gmp_test_integer money_test asio_test floatrates_test $(CURL_TEST)
 #PROGRAMS  = 
 
 .PHONY: clean all
@@ -42,7 +42,7 @@ endif
 CPPFLAGS += -I${LIBXML_HEADER_DIR}
 
 asio_test: directories ${LIBXML} asio_test.o floatrates.o network.o json_downloader.o asio_downloader.o floatrates_downloader.o xml_downloader.o floatrates_json.o floatrates_xml.o floatrates_test.o downloaders_test.o xml_processing.o
-	$(CXX) $(CPPFLAGS)  asio_test.o floatrates.o network.o json_downloader.o asio_downloader.o floatrates_downloader.o xml_downloader.o floatrates_json.o floatrates_xml.o floatrates_test.o downloaders_test.o xml_processing.o ${LPATH} ${LIBS} -o asio_test
+	$(CXX) $(CPPFLAGS)  asio_test.o ${LPATH} ${LIBS} -o asio_test
 	
 asio_test.o: asio_test.cpp floatrates.hpp network.hpp network.cpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp floatrates_downloader.hpp floatrates_downloader.cpp xml_downloader.cpp xml_downloader.hpp floatrates_json.hpp floatrates_json.cpp floatrates_xml.hpp floatrates_xml.cpp floatrates_test.cpp floatrates_test.hpp downloaders_test.cpp xml_processing.cpp xml_processing.hpp
 	$(CXX) $(CPPFLAGS) -c asio_test.cpp -o asio_test.o
@@ -64,6 +64,9 @@ ${LIBXMLNAME}/${LIBXMLNAME}.o: ${LIBXML_HEADER_DIR}/${LIBXMLNAME}.cpp
 
 money_test: directories ${LIBXML} money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o money_currency_test.o downloaders_test.o floatrates_downloader.o floatrates_json.o xml_downloader.o floatrates_xml.o xml_processing.o
 	$(CXX) $(CPPFLAGS) money_test.o integer.o integer_parsing.o money_init_test.o money.o money_operations_test.o floatrates.o network.o json_downloader.o asio_downloader.o money_currency_test.o downloaders_test.o floatrates_downloader.o floatrates_json.o xml_downloader.o floatrates_xml.o xml_processing.o ${LPATH} ${LIBS} -o money_test
+	
+floatrates_test: directories ${LIBXML} floatrates.o network.o json_downloader.o asio_downloader.o floatrates_downloader.o xml_downloader.o floatrates_json.o floatrates_xml.o floatrates_test.o downloaders_test.o xml_processing.o
+	$(CXX) $(CPPFLAGS) floatrates.o network.o json_downloader.o asio_downloader.o floatrates_downloader.o xml_downloader.o floatrates_json.o floatrates_xml.o floatrates_test.o downloaders_test.o xml_processing.o ${LPATH} ${LIBS} -o floatrates_test
 
 fundamental_test: fundamental_test.o integer.o integer_parsing.o parsing_test.o
 	$(CXX) $(CPPFLAGS) -o fundamental_test fundamental_test.o integer.o integer_parsing.o parsing_test.o

@@ -43,15 +43,12 @@ static map<string, float_rates_info> get_data(const xpath_node_set & INVERSE_RAT
       const double rate = get_node_double(NODE);
       NODE = INVERSE_RATES[i];
       const double inverse_rate = get_node_double(NODE);
-      std::cout << " 1 PLN = " << inverse_rate << " " << code << " and"
-         << " 1 " << code << " = " << rate << " PLN\n";
       result[code] = float_rates_info { code, rate, inverse_rate };
    }
    return result;
 }
 
 map<string, float_rates_info> Float_rates_xml::get_data() const {
-   //document = "";
    xml_document xml_doc;
    Xml_processing::load_validate_xml_throw(xml_doc, document);
    try {

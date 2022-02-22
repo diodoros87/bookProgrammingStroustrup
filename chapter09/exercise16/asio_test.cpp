@@ -2,8 +2,15 @@
 #include "floatrates_test.hpp"
 
 using namespace std;
-using namespace float_rates_test;
-using namespace xml_processing;
+
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <system_error>
+
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 /*
 void view_document(const File_format & format, const string & CURRENCY, const string & JSON_DOC) {
@@ -22,42 +29,80 @@ void view_document(const File_format & format, const string & CURRENCY, const st
 }
 */
 
+template <typename... T>
+int execute(const char * file, T &&... args) {
+   if (! file)
+      throw std::invalid_argument("filename is null");
+   pid_t  pid;
+   int    status;
+   pid = fork();
+   if (pid < 0) 
+      throw system_error(make_error_code(errc::no_child_process), "forking child process failed ");
+   else if (pid == 0) {
+      cerr << "Child process pid = " << getpid() << ", parent process pid = " << getppid() << '\n';
+      if (execlp(file, std::forward<T>(args)..., 0 ) < 0)  
+         throw std::system_error(error_code(static_cast<int>(errno), std::generic_category()),
+                            "Call of execvp failed. Error: " + string(strerror(errno)));
+   }
+   else {
+      cerr << "Parent process: pid = " << getpid() << '\n';
+      cerr << "Parent process: waiting for completion of child process with pid = " << pid << '\n';
+      pid_t result;
+      do {
+         result = wait(&status);
+      } while (result != pid && result != -1);
+
+      cerr << "status of child process: " << status << '\n';
+      cerr << "wait(&status) on success returns the process ID of the terminated child - on failure, -1 is returned.\n \
+      Result of waiting for child process: " << result << '\n';
+      cerr << "result of waiting for child process " << (result == static_cast<int>(pid) ? "==" : "!=") << " child pid\n";
+      if (result == -1) 
+         throw system_error(error_code(static_cast<int>(errno), std::generic_category()),
+                                       "Call of wait(&status) failed. Error: " +  string(strerror(errno)));
+      return result;
+   }
+}
+
+/*
+int test_linking(const bool valgrind) {
+   static const string ld_path = "LD_LIBRARY_PATH=.";
+   static const string exec = "./float_rates_test";
+   int result = OK;
+   if (OK == result && valgrind) {
+      static const string valgrind_str = "valgrind --leak-check=full --show-leak-kinds=all --exit-on-first-error=yes --error-exitcode=1";
+      result = system_utility::call_system(ld_path + " " + valgrind_str + " " + exec);
+   }
+   return result;
+}
+*/
 int main() {
-   try {
-      float_rates_test::test();
-      return 0;
+   char cwd[PATH_MAX];
+   if (getcwd(cwd, sizeof(cwd)) != NULL) {
+       printf("Current working dir: %s\n", cwd);
+   } else {
+       perror("getcwd() error");
+       return 1;
    }
-   catch (const nlohmann::json::exception & e) {
-      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
+   //pid_t pid;
+   string pathvar = getenv("PATH");
+   string newpath = pathvar + ":" + cwd;
+
+   //pathvar = getenv("PATH");
+   //strcpy(newpath, pathvar);
+   //strcat(newpath, ":");
+   //strcat(newpath, cwd);
+   cerr << "PATH = " << newpath << '\n';
+   int result = setenv("PATH", newpath.c_str(), 1);
+   cerr << "PATH = " << getenv("PATH") << '\n';
+   if (result) {
+      cerr << std::strerror(errno) << '\n';
+      cerr << " result of setenv = " << result << '\n';
+      return result;
    }
-   catch (pugi::xpath_exception const & e) {
-      cerr << "!!! Error xpath_exception exception: "  << typeid(e).name() << e.result().description() << '\n';
-   }
-   catch (const Xml_processing::Exception & e) {
-      cerr << __func__  << typeid(e).name() << " : " << e.what() << '\n';
-   }
-   catch (const Asio_IO_Stream_Exception & e) {
-      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
-   }
-   catch (const asio::system_error &e) {
-      cerr << "!!! System Error ! Error code = " << e.code()
-           << "\n Message: " << e.what();
-      return e.code().value();
-   } 
-   catch (const std::invalid_argument& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   }
-   catch (const std::bad_cast& e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   } 
-   catch (const std::bad_alloc & e) {
-      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
-   }
-   catch (const exception & e) {
-      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
-   }
-   catch (...) {
-      cerr << __func__ << " " << "Unrecognized Exception: " <<  endl;
-   }
-   return 1;
+   
+   string executable = string(cwd) + "/floatrates_test";
+   cerr << "executable = " << executable << '\n';
+   return execute("valgrind", "valgrind", "--leak-check=full", "--show-leak-kinds=all", 
+         //"--exit-on-first-error=yes", "--error-exitcode=1",
+         executable.c_str());
 }

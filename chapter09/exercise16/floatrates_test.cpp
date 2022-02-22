@@ -1,13 +1,14 @@
 #include "floatrates_test.hpp"
 
 using namespace std;
+using namespace xml_processing;
 
 namespace downloaders_test {
    extern void downloaders_test();
 }
 
 namespace float_rates_test {
-
+/*
 static void validate_format(const File_format & FORMAT) { 
    switch (FORMAT) {
       case File_format::JSON :
@@ -17,7 +18,7 @@ static void validate_format(const File_format & FORMAT) {
          throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(FORMAT)));
    }
 }
-
+*/
 template <class T> 
 class Document_test {
    static_assert(is_base_of<Float_rates, T>::value && "is_base_of<Float_rates, T>::value");
@@ -282,4 +283,44 @@ void test() {
    float_rates_test();
 }
 
+}
+
+int main() {
+   try {
+      float_rates_test::test();
+      return 0;
+   }
+   catch (const nlohmann::json::exception & e) {
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
+   }
+   catch (pugi::xpath_exception const & e) {
+      cerr << "!!! Error xpath_exception exception: "  << typeid(e).name() << e.result().description() << '\n';
+   }
+   catch (const Xml_processing::Exception & e) {
+      cerr << __func__  << typeid(e).name() << " : " << e.what() << '\n';
+   }
+   catch (const Asio_IO_Stream_Exception & e) {
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
+   }
+   catch (const asio::system_error &e) {
+      cerr << "!!! System Error ! Error code = " << e.code()
+           << "\n Message: " << e.what();
+      return e.code().value();
+   } 
+   catch (const std::invalid_argument& e) {
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
+   }
+   catch (const std::bad_cast& e) {
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
+   } 
+   catch (const std::bad_alloc & e) {
+      cerr  << __func__ << " " << typeid(e).name() << " " << e.what() << '\n';
+   }
+   catch (const exception & e) {
+      cerr << __func__ << " " << typeid(e).name() << " " << e.what() << endl;
+   }
+   catch (...) {
+      cerr << __func__ << " " << "Unrecognized Exception: " <<  endl;
+   }
+   return 1;
 }
