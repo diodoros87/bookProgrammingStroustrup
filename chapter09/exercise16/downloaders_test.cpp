@@ -207,7 +207,7 @@ struct Test_Floatrates_downloader {
       assert(obj != obj2);
       assert( ! (obj1 == obj2));
 
-      Floatrates_downloader obj3(move(obj1));
+      Floatrates_downloader obj3{move(obj1)};
       assert(obj3 != obj1);
       const Float_rates * float_rates_ptr = obj1.get_float_rates();
       assert(float_rates_ptr == nullptr);
@@ -267,6 +267,42 @@ struct Test_Floatrates_downloader {
       assert(obj3 != obj2);
       assert(obj3 == obj5);
       assert(obj3 != obj1);
+      
+      Floatrates_downloader obj6{move(obj3)};
+      assert(obj4 != obj6);
+      assert(obj6 != obj);
+      assert(obj6 != obj2);
+      assert(obj6 == obj5);
+      assert(obj6 != obj1);
+      assert(obj3.get_float_rates() == nullptr);
+      assert(obj6 != obj3);
+      assert(obj4 != obj3);
+      assert(obj  == obj3);
+      assert(obj1 == obj3);
+      assert(obj1 == obj);
+      
+      Floatrates_downloader obj7 { Network_library::CURL, File_format::JSON, "pln" };
+      assert(obj4 != obj7);
+      assert(obj7 != obj);
+      assert(obj7 == obj2);
+      assert(obj7 != obj5);
+      assert(obj7 != obj1);
+      assert(obj7 != obj6);
+      assert(obj7 != obj3);
+      
+      obj7 = move(obj5);
+      assert(obj4 != obj7);
+      assert(obj7 != obj);
+      assert(obj7 != obj2);
+      assert(obj7 != obj5);
+      assert(obj7 != obj1);
+      assert(obj7 == obj6);
+      assert(obj7 != obj3);
+      assert(obj5.get_float_rates() == nullptr);
+      assert(obj3 == obj5);
+      assert(obj4 != obj5);
+      assert(obj  == obj5);
+      assert(obj1 == obj5);
    }
 
    static void test_copy() {
@@ -278,7 +314,7 @@ struct Test_Floatrates_downloader {
       assert(obj != obj2);
       assert( ! (obj1 == obj2));
 
-      Floatrates_downloader obj3(obj1);
+      Floatrates_downloader obj3{ obj1 };
       assert(obj3 == obj1);
       const Float_rates * float_rates_ptr = obj1.get_float_rates();
       assert(float_rates_ptr != nullptr && typeid(*float_rates_ptr) == typeid(Float_rates_json));
@@ -313,6 +349,8 @@ struct Test_Floatrates_downloader {
       assert(obj4 == obj1);
       
       obj4 = obj4;
+      float_rates_ptr = obj4.get_float_rates();
+      assert(float_rates_ptr != nullptr && typeid(*float_rates_ptr) == typeid(Float_rates_json));
       assert(obj4 == obj);
       assert(obj1 == obj);
       assert(obj4 != obj2);
@@ -321,10 +359,11 @@ struct Test_Floatrates_downloader {
       
       Floatrates_downloader obj5 { Network_library::ASIO, File_format::JSON, "pln" };
       assert(obj4 == obj5);
-      assert(obj5 != obj);
+      assert(obj5 == obj);
       assert(obj5 != obj2);
       assert(obj3 == obj5);
-      assert(obj5 != obj1);
+      assert(obj5 == obj1);
+      assert(obj5 == obj5);
       
       obj5.download();
       assert(obj4 != obj5);
@@ -339,14 +378,69 @@ struct Test_Floatrates_downloader {
       assert(obj3 != obj2);
       assert(obj3 == obj5);
       assert(obj3 != obj1);
+      
+      Floatrates_downloader obj6 {obj3};
+      assert(obj4 != obj6);
+      assert(obj6 != obj);
+      assert(obj6 != obj2);
+      assert(obj6 == obj5);
+      assert(obj6 != obj1);
+      assert(obj6 == obj3);
+      float_rates_ptr = obj6.get_float_rates();
+      assert(float_rates_ptr != nullptr && typeid(*float_rates_ptr) == typeid(Float_rates_json));
+      
+      Floatrates_downloader obj7 { Network_library::CURL, File_format::JSON, "pln" };
+      assert(obj4 != obj7);
+      assert(obj7 != obj);
+      assert(obj7 == obj2);
+      assert(obj7 != obj5);
+      assert(obj7 != obj1);
+      assert(obj7 != obj6);
+      assert(obj7 != obj3);
+      float_rates_ptr = obj7.get_float_rates();
+      assert(float_rates_ptr != nullptr && typeid(*float_rates_ptr) == typeid(Float_rates_json));
+      
+      obj7 = obj5;
+      assert(obj4 != obj7);
+      assert(obj7 != obj);
+      assert(obj7 != obj2);
+      assert(obj7 == obj5);
+      assert(obj7 != obj1);
+      assert(obj7 == obj6);
+      assert(obj7 == obj3);
+      float_rates_ptr = obj7.get_float_rates();
+      assert(float_rates_ptr != nullptr && typeid(*float_rates_ptr) == typeid(Float_rates_json));
+      
+      obj7.set_format(File_format::XML);
+      assert(obj4 != obj7);
+      assert(obj7 != obj);
+      assert(obj7 != obj2);
+      assert(obj7 != obj5);
+      assert(obj7 != obj1);
+      assert(obj7 != obj6);
+      assert(obj7 != obj3);
+      float_rates_ptr = obj7.get_float_rates();
+      assert(float_rates_ptr != nullptr && typeid(*float_rates_ptr) == typeid(Float_rates_xml));
+      
+      obj7.download();
+      assert(obj4 != obj7);
+      assert(obj7 != obj);
+      assert(obj7 != obj2);
+      assert(obj7 != obj5);
+      assert(obj7 != obj1);
+      assert(obj7 != obj6);
+      assert(obj7 != obj3);
+      float_rates_ptr = obj7.get_float_rates();
+      assert(float_rates_ptr != nullptr && typeid(*float_rates_ptr) == typeid(Float_rates_xml));
    }
 };
    
 void downloaders_test() {
    cerr << '\n' << '\n' << __func__ << '\n';
-   test<false>();
-   test<true>();
    Test_Floatrates_downloader::test_move();
    Test_Floatrates_downloader::test_copy();
+   test<false>();
+   test<true>();
+   
 }
 }

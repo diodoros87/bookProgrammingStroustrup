@@ -275,11 +275,11 @@ static void float_rates_test() {
 }
    
 void test() {
-   test_Float_rates_test();
-   float_rates_test();
    downloaders_test::downloaders_test();
    Document_test<Float_rates_json>::run();
    Document_test<Float_rates_xml>::run();
+   test_Float_rates_test();
+   float_rates_test();
 }
 
 }
