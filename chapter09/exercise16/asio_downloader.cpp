@@ -82,8 +82,8 @@ void Asio_downloader::erase(string & doc, const char C, const char A) {
 }
 
 void Asio_downloader::modify_document(string & doc, const string & begin, const string & end) {
-   cerr << __func__ << '\n';
-   cerr << doc << '\n';
+   //cerr << __func__ << '\n';
+   //cerr << doc << '\n';
    size_t first = doc.find(begin);
    doc = doc.substr(first);
    size_t last = doc.rfind(end);

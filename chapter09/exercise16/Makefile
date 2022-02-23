@@ -13,7 +13,7 @@ else ifeq ($(CXX), clang++)
 	CURL_TEST = curl_test
 endif
 
-PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests gmp_test_integer money_test asio_test floatrates_test $(CURL_TEST)
+PROGRAMS  = integer_test fundamental_test arithmetic_test random_tests gmp_test_integer money_test valgrind_test floatrates_test $(CURL_TEST)
 #PROGRAMS  = 
 
 .PHONY: clean all
@@ -41,11 +41,14 @@ endif
 
 CPPFLAGS += -I${LIBXML_HEADER_DIR}
 
-asio_test: directories ${LIBXML} asio_test.o floatrates.o network.o json_downloader.o asio_downloader.o floatrates_downloader.o xml_downloader.o floatrates_json.o floatrates_xml.o floatrates_test.o downloaders_test.o xml_processing.o
-	$(CXX) $(CPPFLAGS)  asio_test.o ${LPATH} ${LIBS} -o asio_test
+valgrind_test: directories ${LIBXML} valgrind_test.o floatrates.o network.o json_downloader.o asio_downloader.o floatrates_downloader.o xml_downloader.o floatrates_json.o floatrates_xml.o floatrates_test.o downloaders_test.o xml_processing.o system.o
+	$(CXX) $(CPPFLAGS)  valgrind_test.o system.o ${LPATH} ${LIBS} -o valgrind_test
 	
-asio_test.o: asio_test.cpp floatrates.hpp network.hpp network.cpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp floatrates_downloader.hpp floatrates_downloader.cpp xml_downloader.cpp xml_downloader.hpp floatrates_json.hpp floatrates_json.cpp floatrates_xml.hpp floatrates_xml.cpp floatrates_test.cpp floatrates_test.hpp downloaders_test.cpp xml_processing.cpp xml_processing.hpp
-	$(CXX) $(CPPFLAGS) -c asio_test.cpp -o asio_test.o
+valgrind_test.o: valgrind_test.cpp floatrates.hpp network.hpp network.cpp floatrates.cpp asio_downloader.cpp asio_downloader.hpp json_downloader.hpp json_downloader.cpp floatrates_downloader.hpp floatrates_downloader.cpp xml_downloader.cpp xml_downloader.hpp floatrates_json.hpp floatrates_json.cpp floatrates_xml.hpp floatrates_xml.cpp floatrates_test.cpp floatrates_test.hpp downloaders_test.cpp xml_processing.cpp xml_processing.hpp system.cpp system.hpp
+	$(CXX) $(CPPFLAGS) -c valgrind_test.cpp -o valgrind_test.o
+	
+system.o: system.cpp system.hpp
+	$(CXX) $(CPPFLAGS) -c system.cpp -o system.o
 
 $(CURL_TEST): directories ${CURL_TEST}.o ${LIBXML}
 	${CXX} $(CPPFLAGS) ${CURL_TEST}.o ${LPATH} ${LIBS}  -o ${CURL_TEST}

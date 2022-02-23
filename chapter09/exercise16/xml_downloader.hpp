@@ -53,9 +53,6 @@ public:
    
    string get() const { return doc; };   
    Asio_downloader * get_asio_downloader() const { return downloader.get(); }; 
-private:
-   void erase(const char, const char);
-   void modify_document();
 };
 
 #endif

@@ -442,7 +442,7 @@ public:
 };
 
 template <typename T>
-map <string, long double> Money<T>::rates_per_USD = set_rates_per_USD(Network_library::CURL, File_format::JSON);
+map <string, long double> Money<T>::rates_per_USD = set_rates_per_USD(Network_library::ASIO, File_format::XML);
 
 }
 
