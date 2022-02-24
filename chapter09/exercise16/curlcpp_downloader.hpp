@@ -3,7 +3,20 @@
 
 #include "curl_interface.hpp"
 
-class Curlcpp_dowloader  : public Curl_interface {
+#include "curl_header.h"
+#include "curl_easy.h"
+#include "curl_exception.h"
+#include "curl_ios.h"
+
+using curl::curl_header;
+using curl::curl_ios;
+using curl::curl_easy;
+using curl::curl_easy_exception;
+using curl::curlcpp_traceback;
+
+using std::stringstream;
+
+class Curlcpp_downloader  : public Curl_interface {
    stringstream get_document(const char* const URL, const curl_header & HEADER) {
       stringstream stream;
       try {
@@ -31,17 +44,17 @@ public:
          throw invalid_argument("URL is nullptr");
       const string accept_content = get_accept_content();
       curl_header header;
-      header.add(accept_content);
+      header.add(accept_content.c_str());
       stringstream stream = get_document(URL, header);
       set_doc(stream.str());
    }
    
    using Curl_interface::Curl_interface;
    
-   Curlcpp_dowloader(const Curlcpp_dowloader &) = default;
-   Curlcpp_dowloader(Curlcpp_dowloader &&) = default;
-   Curlcpp_dowloader & operator=(const Curlcpp_dowloader &) = default;
-   Curlcpp_dowloader & operator=(Curlcpp_dowloader &&) = default;
+   Curlcpp_downloader(const Curlcpp_downloader &) = default;
+   Curlcpp_downloader(Curlcpp_downloader &&) = default;
+   Curlcpp_downloader & operator=(const Curlcpp_downloader &) = default;
+   Curlcpp_downloader & operator=(Curlcpp_downloader &&) = default;
 };
 
 #endif

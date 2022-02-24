@@ -45,13 +45,15 @@ protected:
    
    void set_doc(const std::string & s) { document = s; }
    
-   const string & get_accept_content() const { 
-      static string result =  "Accept: application/";
+   const string get_accept_content() const { 
+      //static string result =  "Accept: application/";
       switch (format) {
          case File_format::JSON :
-            return result += "json";
+            //return result += "json";
+            return "Accept: application/json";
          case File_format::XML :
-            return result.append("xml");
+            //return result.append("xml");
+            return "Accept: application/xml";
          default:
             throw invalid_argument(__func__ + string(" Invalid file format ") + std::to_string(static_cast<int>(format)));
       }
